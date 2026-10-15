@@ -19,6 +19,18 @@ from zoneinfo import ZoneInfo
 SPOTIFY, HEALTH, OUT = sys.argv[1], sys.argv[2], sys.argv[3]
 os.makedirs(OUT, exist_ok=True)
 
+FT_PER_FLIGHT = 10   # Apple Health counts one flight of stairs as ~10 ft (3 m) of climb
+
+# Days that ran past midnight and should count as one day: date -> hour (on the NEXT day) it ended.
+# 2019-11-06: ~60-mile push, 8am Nov 6 -> ~10am Nov 7 (Appalachian Trail).
+EXTENDED_DAYS = {'2019-11-06': 10}
+
+# Trips with known totals, used for capture %.
+TRIPS = [
+    {'id': 'at2019', 'name': 'Appalachian Trail', 'start': '2019-06-15', 'end': '2019-11-07',
+     'miles': 2192, 'gainFt': 500000},
+]
+
 START = date(2016, 1, 1)
 END = date(2026, 10, 15)
 NDAYS = (END - START).days + 1
@@ -69,6 +81,8 @@ for r in raw:
         continue
     plays.append(r)
 plays.sort(key=lambda r: r['ts'])
+EXT = {(date.fromisoformat(k) - START).days: h for k, h in EXTENDED_DAYS.items()}
+EXT_NEXT = {d + 1: h for d, h in EXT.items()}   # following day starts late
 
 artists, artist_ix = [], {}
 tracks, track_ix = [], {}   # [name, artistIdx, album]
@@ -92,25 +106,40 @@ day_artist = collections.defaultdict(collections.Counter)  # ms per artist
 day_track = collections.defaultdict(collections.Counter)   # count per track
 artist_motion = collections.defaultdict(lambda: [0.0, 0.0])  # [sum steps/hr * sec, sec]
 artist_total = collections.Counter()
+artist_days = collections.defaultdict(set)
 countries = collections.Counter()
 last_zone = ZONES['US']
 
+fixed_offline = 0
 for r in plays:
     end_utc = datetime.strptime(r['ts'], '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=timezone.utc)
     z = ZONES.get(r['conn_country'], last_zone); last_zone = z
-    end = end_utc.astimezone(z).replace(tzinfo=None)
     dur = r['ms_played'] / 1000.0
-    start = end - timedelta(seconds=dur)
+    start_utc = end_utc - timedelta(seconds=dur)
+    # Offline plays are logged when the phone syncs, so `ts` can be hours or days late.
+    # `offline_timestamp` holds the real start time (seconds or ms since epoch).
+    ot = r.get('offline_timestamp')
+    if r.get('offline') and ot:
+        ot = ot / 1000 if ot > 1e11 else ot
+        real = datetime.fromtimestamp(ot, tz=timezone.utc)
+        if timedelta(0) <= end_utc - real <= timedelta(days=60):
+            if abs((start_utc - real).total_seconds()) > 60: fixed_offline += 1
+            start_utc = real
+    start = start_utc.astimezone(z).replace(tzinfo=None)
     di = (start.date() - START).days
     if not 0 <= di < NDAYS:
         continue
+    sod_shift = 0
+    if di in EXT_NEXT and start.hour < EXT_NEXT[di]:
+        di -= 1; sod_shift = 86400
     t = tid(r); a = tracks[t][1]
     countries[r['conn_country']] += 1
-    sod = start.hour * 3600 + start.minute * 60 + start.second
+    sod = start.hour * 3600 + start.minute * 60 + start.second + sod_shift
     skipped = 1 if (r.get('skipped') or r.get('reason_end') in ('fwdbtn', 'backbtn')) else 0
     by_year[start.year].extend([di, sod, int(round(dur)), t, skipped])
     day_plays[di] += 1; day_skips[di] += skipped
     day_artist[di][a] += dur; day_track[di][t] += 1
+    artist_days[a].add(di)
     artist_total[a] += dur
     # spread listening time across hour buckets (may cross midnight)
     cur = start; rem = dur
@@ -125,12 +154,20 @@ for r in plays:
         rem -= seg; cur = nxt
 
 # ---------------------------------------------------------------- daily
-daily = {'steps': [], 'miles': [], 'flights': [], 'listen': [], 'plays': [], 'skips': [], 'top': [], 'has': []}
+def span(grid, di):
+    """Values for a day's hours, honouring extended days (absolute hour index 0..23+)."""
+    lo = EXT_NEXT.get(di, 0)
+    vals = grid[di][lo:]
+    if di in EXT and di + 1 < NDAYS: vals = vals + grid[di + 1][:EXT[di]]
+    return vals
+daily = {'steps': [], 'miles': [], 'flights': [], 'elev': [], 'listen': [], 'plays': [], 'skips': [], 'top': [], 'has': []}
 for di in range(NDAYS):
-    daily['steps'].append(int(round(sum(steps[di]))))
-    daily['miles'].append(round(sum(dist[di]), 2))
-    daily['flights'].append(int(round(sum(flights[di]))))
-    daily['listen'].append(int(round(sum(listen[di]) / 60)))
+    daily['steps'].append(int(round(sum(span(steps, di)))))
+    daily['miles'].append(round(sum(span(dist, di)), 2))
+    fl = sum(span(flights, di))
+    daily['flights'].append(int(round(fl)))
+    daily['elev'].append(int(round(fl * FT_PER_FLIGHT)))
+    daily['listen'].append(int(round(sum(span(listen, di)) / 60)))
     daily['plays'].append(day_plays[di]); daily['skips'].append(day_skips[di])
     daily['top'].append(day_artist[di].most_common(1)[0][0] if day_artist[di] else -1)
     daily['has'].append((1 if have_steps[di] else 0) | (2 if have_fl[di] else 0))
@@ -141,7 +178,9 @@ def dstr(di): return (START + timedelta(days=di)).isoformat()
 # Motion index: mean steps/hour in the hours an artist was playing (time-weighted)
 base_num = sum(v[0] for v in artist_motion.values()); base_den = sum(v[1] for v in artist_motion.values())
 baseline = base_num / base_den
-motion = [(a, v[0] / v[1], v[1] / 3600) for a, v in artist_motion.items() if v[1] >= 3 * 3600]
+MIN_DAYS = 5   # an artist must be played on at least 5 different days (avoids one-off binges)
+motion = [(a, v[0] / v[1], v[1] / 3600) for a, v in artist_motion.items()
+          if v[1] >= 3 * 3600 and len(artist_days[a]) >= MIN_DAYS]
 motion.sort(key=lambda x: -x[1])
 crosscut = {
     'baseline': round(baseline),
@@ -175,16 +214,30 @@ for di, c in day_track.items():
     if n >= 8: worms.append([dstr(di), t, n])
 worms.sort(key=lambda x: -x[2])
 
+trips = []
+for tr in TRIPS:
+    a = (date.fromisoformat(tr['start']) - START).days; b = (date.fromisoformat(tr['end']) - START).days
+    rng = range(a, b + 1)
+    mi = sum(daily['miles'][d] for d in rng); ft = sum(daily['elev'][d] for d in rng)
+    big = max(rng, key=lambda d: daily['miles'][d])
+    trips.append({**tr, 'a': a, 'b': b, 'days': len(rng),
+                  'capMiles': round(mi, 1), 'capFt': int(ft), 'capSteps': sum(daily['steps'][d] for d in rng),
+                  'pctMiles': round(mi / tr['miles'] * 100, 1), 'pctFt': round(ft / tr['gainFt'] * 100, 1),
+                  'bigDay': [dstr(big), daily['miles'][big], daily['steps'][big]],
+                  'listenH': round(sum(daily['listen'][d] for d in rng) / 60)})
+
 top_step_days = sorted(range(NDAYS), key=lambda d: -daily['steps'][d])[:25]
 top_listen_days = sorted(range(NDAYS), key=lambda d: -daily['listen'][d])[:25]
 
 meta = {
     'start': START.isoformat(), 'nDays': NDAYS,
+    'ftPerFlight': FT_PER_FLIGHT, 'trips': trips,
+    'ext': {str(d): h for d, h in EXT.items()},
     'years': sorted(by_year.keys()),
     'artists': artists, 'tracks': tracks,
     'daily': daily,
     'totals': {
-        'steps': sum(daily['steps']), 'miles': round(sum(daily['miles'])), 'flights': sum(daily['flights']),
+        'steps': sum(daily['steps']), 'miles': round(sum(daily['miles'])), 'flights': sum(daily['flights']), 'elevFt': sum(daily['elev']),
         'hours': round(sum(daily['listen']) / 60), 'plays': sum(daily['plays']),
         'artists': len(artists), 'tracks': len(tracks), 'countries': len(countries),
     },
@@ -205,5 +258,6 @@ dump('hourly.json', {
 })
 for y, arr in by_year.items():
     dump(f'plays-{y}.json', arr)
-print(json.dumps(meta['totals']), 'baseline steps/hr', round(baseline))
+print(json.dumps(meta['totals']), 'baseline steps/hr', round(baseline), 'offline plays re-timed', fixed_offline)
+print(json.dumps(trips))
 for f in sorted(os.listdir(OUT)): print(f, os.path.getsize(os.path.join(OUT, f)))

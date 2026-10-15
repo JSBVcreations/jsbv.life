@@ -1,15 +1,14 @@
 # jsbv.life
 
-Personal data experiments, served with GitHub Pages at https://jsbv.life.
+Personal data experiments at https://jsbv.life — static files, deployed by Vercel from this repo.
 
 ```
 index.html              landing page
 step-song/              STEP//SONG explorer (static: index.html + data/*.json)
 scripts/                data builders (raw exports → step-song/data)
-CNAME                   custom domain for GitHub Pages
 ```
 
-No build step. Edit, commit, push → live in about a minute.
+No build step. Edit, commit, push to `main` → Vercel deploys in about a minute.
 
 ## Run locally
 ```

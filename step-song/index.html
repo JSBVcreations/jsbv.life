@@ -19,7 +19,8 @@
   --dim: #8a84b8;       /* secondary text */
   --step: #3ff0ff;      /* movement channel */
   --sound: #ff3fb4;     /* listening channel */
-  --climb: #ffb347;     /* flights channel */
+  --climb: #ffb347;     /* stairs / elevation channel */
+  --trail: #b6ff5c;     /* trail highlight */
   --hot: #ffffff;
   --f-display: "Monoton", "Chakra Petch", system-ui, sans-serif;
   --f-ui: "Chakra Petch", "Segoe UI", system-ui, sans-serif;
@@ -65,7 +66,15 @@ h1 .sl { color: var(--hot); text-shadow: 0 0 6px var(--step), 0 0 18px var(--ste
 .readout div { display: grid; }
 .readout span { font-size: var(--s-0); text-transform: uppercase; letter-spacing: 0.12em; color: var(--dim); font-family: var(--f-ui); }
 .readout strong { font-size: var(--s-3); font-weight: 600; font-variant-numeric: tabular-nums; }
-.c-step { color: var(--step); } .c-sound { color: var(--sound); } .c-climb { color: var(--climb); }
+.c-step { color: var(--step); } .c-sound { color: var(--sound); } .c-climb { color: var(--climb); } .c-trail { color: var(--trail); }
+.heads { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.meters { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 12px 24px; }
+.meter { display: grid; gap: 6px; font-family: var(--f-data); font-size: var(--s-0); }
+.meter .lab { display: flex; justify-content: space-between; gap: 8px; color: var(--dim); }
+.meter .lab b { color: var(--ink); font-weight: 600; }
+.meter .track { height: 10px; background: #120f26; border: 1px solid var(--grid); position: relative; }
+.meter .fill { position: absolute; inset: 0 auto 0 0; }
+#trail { border-color: rgba(182,255,92,0.35); }
 
 section { background: linear-gradient(180deg, var(--panel), rgba(13,11,28,0.6)); border: 1px solid var(--grid); padding: 18px; display: grid; gap: 14px; min-width: 0; }
 .sec-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 16px; }
@@ -82,7 +91,7 @@ h2 small { font-weight: 400; color: var(--dim); letter-spacing: 0.08em; text-tra
 .seg button[aria-pressed="true"] { color: var(--void); background: var(--ink); }
 .seg button[data-mode="steps"][aria-pressed="true"] { background: var(--step); }
 .seg button[data-mode="sound"][aria-pressed="true"] { background: var(--sound); }
-.seg button[data-mode="flights"][aria-pressed="true"] { background: var(--climb); }
+.seg button[data-mode="elev"][aria-pressed="true"] { background: var(--climb); }
 .btn { border: 1px solid var(--grid); color: var(--ink); }
 .btn:hover, .seg button:hover { color: var(--hot); }
 button:focus-visible, input:focus-visible, .click:focus-visible { outline: 2px solid var(--step); outline-offset: 2px; }
@@ -146,7 +155,7 @@ footer { color: var(--dim); font-size: var(--s-0); }
         <button type="button" id="m-both" data-mode="both" aria-pressed="true">Both</button>
         <button type="button" id="m-steps" data-mode="steps" aria-pressed="false">Steps</button>
         <button type="button" id="m-sound" data-mode="sound" aria-pressed="false">Sound</button>
-        <button type="button" id="m-flights" data-mode="flights" aria-pressed="false">Flights</button>
+        <button type="button" id="m-elev" data-mode="elev" aria-pressed="false">Elevation</button>
       </div>
     </div>
     <div class="cv"><canvas id="heat" height="360" aria-label="Daily steps and listening heatmap, 2016 to 2026"></canvas></div>
@@ -156,15 +165,30 @@ footer { color: var(--dim); font-size: var(--s-0); }
   <section aria-labelledby="h-signal">
     <div class="sec-head">
       <h2 id="h-signal">Signal <small>30-day average · bottom strip shows the top artist of each month</small></h2>
+      <div class="seg scale-seg" role="group" aria-label="Chart scale"><button type="button" id="sc-lin-sig" data-scale="lin" aria-pressed="true">Linear</button><button type="button" id="sc-log-sig" data-scale="log" aria-pressed="false">Log</button></div>
     </div>
     <div class="cv"><canvas id="signal" height="250" aria-label="Rolling average of steps and listening hours"></canvas></div>
-    <div class="legend"><span><i style="background:var(--step)"></i>steps / day</span><span><i style="background:var(--sound)"></i>hours listened / day</span><span>click anywhere to open that day</span></div>
+    <div class="legend"><span><i style="background:var(--step)"></i>steps / day</span><span><i style="background:var(--sound)"></i>hours listened / day</span><span><i style="background:rgba(182,255,92,0.35)"></i>Appalachian Trail 2019</span><span>click anywhere to open that day</span></div>
+  </section>
+
+
+  <section id="trail" aria-labelledby="h-trail">
+    <div class="sec-head">
+      <h2 id="h-trail" class="c-trail">Appalachian Trail <small id="trail-sub"></small></h2>
+      <div class="seg scale-seg" role="group" aria-label="Chart scale"><button type="button" id="sc-lin-trail" data-scale="lin" aria-pressed="true">Linear</button><button type="button" id="sc-log-trail" data-scale="log" aria-pressed="false">Log</button></div>
+    </div>
+    <div class="readout" id="trail-stats"></div>
+    <div class="meters" id="trail-meters"></div>
+    <div class="cv"><canvas id="trailcv" height="230" aria-label="Daily miles and elevation gain on the Appalachian Trail"></canvas></div>
+    <div class="legend"><span><i style="background:var(--step)"></i>miles per day</span><span><i style="background:var(--climb)"></i>elevation gain (ft)</span><span><i style="background:#fff"></i>cumulative miles vs 2,192</span><span>click a day to open it</span></div>
+    <p class="note">Capture compares what the phone recorded against the trail's official totals. Gaps come from a dead battery or a phone riding in a hip pocket. Walking around town adds some distance back, so distance capture is an upper bound. Elevation is flights of stairs × 10 ft, Apple Health's definition of one flight.</p>
   </section>
 
   <section id="day" aria-labelledby="h-day">
     <div class="day-head">
       <div class="day-title" id="h-day"><small id="day-dow">—</small><span id="day-date">—</span></div>
       <div class="nav">
+        <div class="seg scale-seg" role="group" aria-label="Chart scale"><button type="button" id="sc-lin-day" data-scale="lin" aria-pressed="true">Linear</button><button type="button" id="sc-log-day" data-scale="log" aria-pressed="false">Log</button></div>
         <button type="button" class="btn" id="prev" aria-label="Previous day">◀ Prev</button>
         <input type="date" id="jump" aria-label="Jump to date">
         <button type="button" class="btn" id="next" aria-label="Next day">Next ▶</button>
@@ -174,7 +198,7 @@ footer { color: var(--dim); font-size: var(--s-0); }
     <div class="day-grid">
       <div style="display:grid;gap:14px;min-width:0">
         <div class="cv"><canvas id="daycv" height="300" aria-label="Hourly steps, flights and tracks for the selected day"></canvas></div>
-        <div class="legend"><span><i style="background:var(--step)"></i>steps per hour</span><span><i style="background:var(--climb)"></i>flights climbed</span><span><i style="background:linear-gradient(90deg,var(--sound),#9d6bff,var(--step))"></i>each track, colored by artist</span><span>← → keys move by day</span></div>
+        <div class="legend"><span><i style="background:var(--step)"></i>steps per hour</span><span><i style="background:var(--climb)"></i>flights of stairs</span><span><i style="background:linear-gradient(90deg,var(--sound),#9d6bff,var(--step))"></i>each track, colored by artist</span><span>← → keys move by day</span></div>
         <h2 style="font-size:var(--s-0)">Fortnight <small>hour by hour · click a row</small></h2>
         <div class="cv"><canvas id="fort" height="260" aria-label="Hour-by-hour grid of the surrounding two weeks"></canvas></div>
       </div>
@@ -220,7 +244,7 @@ footer { color: var(--dim); font-size: var(--s-0); }
     </div>
   </section>
 
-  <footer>Spotify timestamps are UTC and are converted to local time using the country each track was played in (US plays use Eastern time). Apple Health data is hourly in device time, starting July 2016. Flights climbed starts October 2018.</footer>
+  <footer>Spotify timestamps are UTC and are converted to local time using the country each track was played in (US plays use Eastern time). Apple Health data is hourly in device time, starting July 2016. Flights of stairs start October 2018; elevation gain is flights × 10 ft. Plays downloaded for offline listening are placed at the time they were played, not when the phone synced.</footer>
 </div>
 <div id="tip" hidden></div>
 
@@ -232,7 +256,16 @@ const fmt = n => Math.round(n).toLocaleString('en-US');
 const pad = n => String(n).padStart(2, '0');
 const DOW = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-let M, H, ND, START, sel = 0, mode = 'both', circYear = 2019;
+let M, H, ND, START, sel = 0, mode = 'both', circYear = 2019, scaleMode = 'lin';
+const EXTD = {}, EXTN = {};   // extended days: di -> hours into next day; next day -> first counted hour
+const sc = (v, max) => scaleMode === 'log' ? Math.log10(1 + Math.max(0, v)) / Math.log10(1 + max) : v / max;
+// axis ticks that land on readable values in both scales
+const ticks = max => scaleMode === 'log'
+  ? [0, ...[1, 10, 100, 1000, 10000, 100000].filter(v => v < max * 0.8), max]
+  : [0, max / 4, max / 2, max * 3 / 4, max];
+const kfmt = v => v >= 1000 ? (v / 1000).toFixed(v % 1000 && v < 10000 ? 1 : 0).replace(/\.0$/, '') + 'k' : String(Math.round(v));
+const hv = (arr, di, h) => h < 24 ? arr[di * 24 + h] : arr[(di + 1) * 24 + h - 24];
+const dayHours = di => 24 + (EXTD[di] || 0);
 const playsByYear = {}, dayIndex = {};
 
 const dateOf = di => { const d = new Date(START); d.setUTCDate(d.getUTCDate() + di); return d; };
@@ -275,7 +308,7 @@ function cellColor(di) {
   const l = Math.min(1, Math.sqrt(D.listen[di] / 360));
   if (mode === 'steps') return hasS ? mix(CY, 0.08 + 0.92 * s) : null;
   if (mode === 'sound') return D.listen[di] ? mix(MG, 0.1 + 0.9 * l) : null;
-  if (mode === 'flights') return hasF ? mix(AM, 0.08 + 0.92 * Math.min(1, Math.sqrt(D.flights[di] / 60))) : null;
+  if (mode === 'elev') return hasF ? mix(AM, 0.08 + 0.92 * Math.min(1, Math.sqrt(D.elev[di] / 600))) : null;
   if (!hasS && !D.listen[di]) return null;
   return blend(s * 0.95, l * 0.95);
 }
@@ -302,6 +335,10 @@ function drawHeat() {
       g.fillRect(HL.left + k * cw, top, Math.max(1, cw - (cw > 2.5 ? 0.5 : 0)), HL.band);
     }
   });
+  // trips
+  (M.trips || []).forEach(t => { const d0 = dateOf(t.a), y = d0.getUTCFullYear(), yi2 = years.indexOf(y); if (yi2 < 0) return;
+    const k0 = t.a - diOf(`${y}-01-01`), k1 = t.b - diOf(`${y}-01-01`), top = HL.top + yi2 * (HL.band + HL.gap);
+    g.fillStyle = '#b6ff5c'; g.shadowColor = '#b6ff5c'; g.shadowBlur = 6; g.fillRect(HL.left + k0 * cw, top + HL.band + 1, (k1 - k0 + 1) * cw, 2); g.shadowBlur = 0; });
   // selected
   const sd = dateOf(sel), yi = years.indexOf(sd.getUTCFullYear());
   if (yi >= 0) {
@@ -313,7 +350,7 @@ function drawHeat() {
   const leg = { both: '<span><i style="background:var(--step)"></i>steps</span><span><i style="background:var(--sound)"></i>listening</span><span><i style="background:#fff"></i>both at once</span>',
     steps: '<span><i style="background:linear-gradient(90deg,#14243a,var(--step))"></i>0 → 30k+ steps</span>',
     sound: '<span><i style="background:linear-gradient(90deg,#2a1230,var(--sound))"></i>0 → 6h+ listening</span>',
-    flights: '<span><i style="background:linear-gradient(90deg,#2a2018,var(--climb))"></i>0 → 60+ flights</span>' }[mode];
+    elev: '<span><i style="background:linear-gradient(90deg,#2a2018,var(--climb))"></i>0 → 600+ ft gained</span>' }[mode];
   L.innerHTML = leg + '<span><i style="background:#120f26"></i>no data</span><span>hover for detail · click to open a day</span>';
 }
 function yearsList() { const a = []; for (let y = 2016; y <= dateOf(ND - 1).getUTCFullYear(); y++) a.push(y); return a; }
@@ -330,7 +367,8 @@ function dayTip(di) {
   const top = D.top[di] >= 0 ? esc(M.artists[D.top[di]]) : '—';
   return `<b>${DOW[d.getUTCDay()].slice(0,3)} ${iso(d)}</b><br>` +
     (D.has[di] & 1 ? `<span class="c-step">${fmt(D.steps[di])} steps</span> · ${D.miles[di].toFixed(1)} mi<br>` : '<span class="k">no health data</span><br>') +
-    (D.has[di] & 2 ? `<span class="c-climb">${D.flights[di]} flights</span><br>` : '') +
+    (D.has[di] & 2 ? `<span class="c-climb">${D.flights[di]} flights of stairs · ${fmt(D.elev[di])} ft</span><br>` : '') +
+    (EXTD[di] ? `<span class="c-trail">${dayHours(di)}-hour day (through ${pad(EXTD[di])}:00 next day)</span><br>` : '') +
     `<span class="c-sound">${fmt(D.listen[di])} min</span> · ${D.plays[di]} plays<br><span class="k">top:</span> ${top}`;
 }
 
@@ -352,21 +390,21 @@ function drawSignal(hx) {
   const X = i => SG.left + i / (ND - 1) * pw;
   const sMax = Math.ceil(roll.sMax / 5000) * 5000, lMax = Math.ceil(roll.lMax);
   g.font = '10px "JetBrains Mono", monospace'; g.textBaseline = 'middle';
-  for (let k = 0; k <= 4; k++) {
-    const y = SG.top + ph - k / 4 * ph;
-    g.fillStyle = GRIDC; g.fillRect(SG.left, y, pw, 1);
-    g.fillStyle = 'rgba(63,240,255,0.8)'; g.textAlign = 'right'; g.fillText(fmt(sMax * k / 4 / 1000) + 'k', SG.left - 6, y);
-    g.fillStyle = 'rgba(255,63,180,0.85)'; g.textAlign = 'left'; g.fillText((lMax * k / 4).toFixed(1) + 'h', SG.left + pw + 6, y);
-  }
+  ticks(sMax).forEach(v => { const y = SG.top + ph - sc(v, sMax) * ph;
+    g.fillStyle = GRIDC; g.fillRect(SG.left, y, pw, 1); g.fillStyle = 'rgba(63,240,255,0.8)'; g.textAlign = 'right'; g.fillText(kfmt(v), SG.left - 6, y); });
+  (scaleMode === 'log' ? [0, 1, lMax] : [0, lMax / 4, lMax / 2, lMax * 3 / 4, lMax]).forEach(v => { const y = SG.top + ph - sc(v, lMax) * ph;
+    g.fillStyle = 'rgba(255,63,180,0.85)'; g.textAlign = 'left'; g.fillText(v.toFixed(v % 1 ? 1 : 0) + 'h', SG.left + pw + 6, y); });
   g.textAlign = 'center'; g.fillStyle = DIM;
   yearsList().forEach(y => { const i = diOf(`${y}-01-01`); if (i < 0) return; const x = X(i);
     g.fillStyle = GRIDC; g.fillRect(x, SG.top, 1, ph); g.fillStyle = DIM; if (w > 520 || y % 2 === 0) g.fillText(String(y), x + (X(diOf(`${y+1}-01-01`)) - x) / 2, SG.top + ph + 12); });
   const line = (arr, max, rgb) => {
     g.beginPath(); let on = false;
     for (let i = 0; i < ND; i++) { const v = arr[i]; if (isNaN(v)) { on = false; continue; }
-      const x = X(i), y = SG.top + ph - v / max * ph; on ? g.lineTo(x, y) : g.moveTo(x, y); on = true; }
+      const x = X(i), y = SG.top + ph - sc(v, max) * ph; on ? g.lineTo(x, y) : g.moveTo(x, y); on = true; }
     g.strokeStyle = `rgb(${rgb})`; g.lineWidth = 1.4; g.shadowColor = `rgb(${rgb})`; g.shadowBlur = 8; g.stroke(); g.shadowBlur = 0;
   };
+  (M.trips || []).forEach(t => { g.fillStyle = 'rgba(182,255,92,0.10)'; g.fillRect(X(t.a), SG.top, X(t.b) - X(t.a), ph);
+    g.fillStyle = '#b6ff5c'; g.textAlign = 'left'; g.fillText('AT', X(t.a) + 3, SG.top + 8); });
   line(roll.l, lMax, MG.join(',')); line(roll.s, sMax, CY.join(','));
   // eras strip
   const ey = SG.top + ph + 22, eh = 14;
@@ -403,32 +441,35 @@ async function loadYear(y) {
 const DL = { left: 40, right: 10, top: 18, laneH: 46 };
 let dayHits = [];
 function drawDay(hover) {
-  const cv = $('daycv'), [g, w, h] = setup(cv), pw = w - DL.left - DL.right;
+  const cv = $('daycv'), [g, w, h] = setup(cv), pw = w - DL.left - DL.right, HRS = dayHours(sel), lo = EXTN[sel] || 0;
   const barsH = h - DL.top - DL.laneH - 44, base = DL.top + barsH;
-  const st = H.steps.slice(sel * 24, sel * 24 + 24), fl = H.flights.slice(sel * 24, sel * 24 + 24);
-  const max = Math.max(1000, ...st), yMax = Math.ceil(max / 1000) * 1000, X = s => DL.left + s / 86400 * pw, bw = pw / 24;
+  const st = [], fl = [];
+  for (let hr = 0; hr < HRS; hr++) { st.push(hv(H.steps, sel, hr)); fl.push(hv(H.flights, sel, hr)); }
+  const max = Math.max(1000, ...st), yMax = Math.ceil(max / 1000) * 1000, X = s => DL.left + s / (HRS * 3600) * pw, bw = pw / HRS;
   g.font = '10px "JetBrains Mono", monospace'; g.textBaseline = 'middle';
-  for (let k = 0; k <= 4; k++) { const y = base - k / 4 * barsH; g.fillStyle = GRIDC; g.fillRect(DL.left, y, pw, 1);
-    g.fillStyle = DIM; g.textAlign = 'right'; g.fillText(yMax * k / 4 >= 1000 ? (yMax * k / 4 / 1000) + 'k' : String(yMax * k / 4), DL.left - 6, y); }
+  ticks(yMax).forEach(v => { const y = base - sc(v, yMax) * barsH;
+    g.fillStyle = GRIDC; g.fillRect(DL.left, y, pw, 1); g.fillStyle = DIM; g.textAlign = 'right'; g.fillText(kfmt(v), DL.left - 6, y); });
+  if (lo) { g.fillStyle = 'rgba(182,255,92,0.07)'; g.fillRect(DL.left, DL.top, lo * bw, barsH); g.fillStyle = '#b6ff5c'; g.textAlign = 'left';
+    g.fillText(`← counted with ${iso(dateOf(sel - 1)).slice(5)}`, DL.left + 4, DL.top + 6); }
+  if (HRS > 24) { g.fillStyle = 'rgba(182,255,92,0.5)'; g.fillRect(X(86400), DL.top, 1, barsH + 40); g.fillStyle = '#b6ff5c'; g.textAlign = 'left'; g.fillText('midnight →', X(86400) + 4, DL.top + 6); }
   dayHits = [];
-  for (let hr = 0; hr < 24; hr++) {
-    const v = st[hr], bh = v / yMax * barsH, x = DL.left + hr * bw;
-    const grd = g.createLinearGradient(0, base - bh, 0, base); grd.addColorStop(0, 'rgba(63,240,255,1)'); grd.addColorStop(1, 'rgba(63,240,255,0.25)');
-    g.fillStyle = grd; g.shadowColor = '#3ff0ff'; g.shadowBlur = v ? 10 : 0; g.fillRect(x + 1.5, base - bh, bw - 3, bh); g.shadowBlur = 0;
-    if (fl[hr] >= 0.5) { g.fillStyle = '#ffb347'; g.shadowColor = '#ffb347'; g.shadowBlur = 8;
+  for (let hr = 0; hr < HRS; hr++) {
+    const v = st[hr], bh = sc(v, yMax) * barsH, x = DL.left + hr * bw, muted = hr < lo;
+    const grd = g.createLinearGradient(0, base - bh, 0, base); grd.addColorStop(0, `rgba(63,240,255,${muted ? 0.3 : 1})`); grd.addColorStop(1, 'rgba(63,240,255,0.2)');
+    g.fillStyle = grd; g.shadowColor = '#3ff0ff'; g.shadowBlur = v && !muted ? 10 : 0; g.fillRect(x + Math.min(1.5, bw * 0.1), base - bh, bw - Math.min(3, bw * 0.2), bh); g.shadowBlur = 0;
+    if (fl[hr] >= 0.5) { g.fillStyle = muted ? 'rgba(255,179,71,0.35)' : '#ffb347'; g.shadowColor = '#ffb347'; g.shadowBlur = muted ? 0 : 8;
       const r = Math.min(7, 2.5 + Math.sqrt(fl[hr])); g.beginPath(); g.arc(x + bw / 2, base - bh - r - 4, r, 0, 7); g.fill(); g.shadowBlur = 0; }
     dayHits.push({ kind: 'hour', x0: x, x1: x + bw, y0: DL.top, y1: base, hr });
   }
-  // hour axis
   g.textAlign = 'center'; g.fillStyle = DIM;
-  for (let hr = 0; hr <= 24; hr += (w < 520 ? 6 : 3)) g.fillText(pad(hr % 24) + ':00', Math.min(X(hr * 3600), w - 18), base + 12);
-  // lane
+  const stepH = HRS > 24 ? (w < 520 ? 8 : 4) : (w < 520 ? 6 : 3);
+  for (let hr = 0; hr <= HRS; hr += stepH) g.fillText(pad(hr % 24) + ':00' + (hr >= 24 && hr < HRS ? '⁺¹' : ''), Math.min(Math.max(X(hr * 3600), DL.left + 14), w - 18), base + 12);
   const ly = base + 26;
   g.fillStyle = '#120f26'; g.fillRect(DL.left, ly, pw, DL.laneH);
   g.fillStyle = DIM; g.textAlign = 'right'; g.fillText('PLAY', DL.left - 6, ly + DL.laneH / 2);
   const P = dayIndex[sel] || [];
   P.forEach((p, i) => {
-    const [s, d, t, sk] = p, a = M.tracks[t][1], x0 = X(s), x1 = X(Math.min(86400, s + d));
+    const [s, d, t, sk] = p, a = M.tracks[t][1], x0 = X(s), x1 = X(Math.min(HRS * 3600, s + d));
     const isH = hover === i;
     g.fillStyle = artistColor(a, sk ? 0.35 : 0.9); g.shadowColor = artistColor(a); g.shadowBlur = isH ? 14 : 4;
     const hh = sk ? DL.laneH * 0.45 : DL.laneH;
@@ -436,7 +477,7 @@ function drawDay(hover) {
     if (isH) { g.strokeStyle = '#fff'; g.lineWidth = 1; g.strokeRect(x0 - 1, ly - 2, Math.max(2, x1 - x0) + 2, DL.laneH + 4); }
     dayHits.push({ kind: 'play', x0, x1: Math.max(x1, x0 + 2), y0: ly - 4, y1: ly + DL.laneH + 4, i });
   });
-  if (!P.length) { g.fillStyle = DIM; g.textAlign = 'center'; g.fillText(dayIndex[sel] === undefined && playsByYear[dateOf(sel).getUTCFullYear()] instanceof Promise ? 'loading…' : 'no plays this day', DL.left + pw / 2, ly + DL.laneH / 2); }
+  if (!P.length) { g.fillStyle = DIM; g.textAlign = 'center'; g.fillText(playsByYear[dateOf(sel).getUTCFullYear()] instanceof Promise ? 'loading…' : 'no plays this day', DL.left + pw / 2, ly + DL.laneH / 2); }
 }
 function dayHit(e) {
   const [x, y] = pt($('daycv'), e);
@@ -444,7 +485,7 @@ function dayHit(e) {
   if (plays.length) return plays[plays.length - 1];
   return dayHits.find(h => h.kind === 'hour' && x >= h.x0 && x < h.x1 && y >= h.y0 && y <= h.y1);
 }
-const hms = s => `${pad(Math.floor(s / 3600))}:${pad(Math.floor(s % 3600 / 60))}`;
+const hms = s => `${pad(Math.floor(s / 3600) % 24)}:${pad(Math.floor(s % 3600 / 60))}${s >= 86400 ? '⁺¹' : ''}`;
 const mmss = s => `${Math.floor(s / 60)}:${pad(s % 60)}`;
 function renderTracklist() {
   const P = dayIndex[sel] || [], el = $('tracklist');
@@ -457,15 +498,16 @@ function renderTracklist() {
 }
 function renderDayStats() {
   const D = M.daily, d = dateOf(sel);
-  $('day-dow').textContent = DOW[d.getUTCDay()];
-  $('day-date').textContent = `${d.getUTCDate()} ${MON[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
+  $('day-dow').textContent = DOW[d.getUTCDay()] + (EXTD[sel] ? ` · ${dayHours(sel)}-hour day` : '') + (EXTN[sel] ? ` · starts ${pad(EXTN[sel])}:00` : '');
+  $('day-date').textContent = EXTD[sel] ? `${d.getUTCDate()}–${dateOf(sel + 1).getUTCDate()} ${MON[d.getUTCMonth()]} ${d.getUTCFullYear()}` : `${d.getUTCDate()} ${MON[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
   $('jump').value = iso(d);
   const top = D.top[sel] >= 0 ? esc(M.artists[D.top[sel]]) : '—';
   const hs = D.has[sel] & 1, hf = D.has[sel] & 2;
   $('day-stats').innerHTML =
     `<div><span>Steps</span><strong class="c-step">${hs ? fmt(D.steps[sel]) : '—'}</strong></div>` +
     `<div><span>Miles</span><strong class="c-step">${hs ? D.miles[sel].toFixed(1) : '—'}</strong></div>` +
-    `<div><span>Flights</span><strong class="c-climb">${hf ? D.flights[sel] : '—'}</strong></div>` +
+    `<div><span>Flights of stairs</span><strong class="c-climb">${hf ? D.flights[sel] : '—'}</strong></div>` +
+    `<div><span>Elevation gain</span><strong class="c-climb">${hf ? fmt(D.elev[sel]) + ' ft' : '—'}</strong></div>` +
     `<div><span>Listened</span><strong class="c-sound">${Math.floor(D.listen[sel] / 60)}h ${pad(D.listen[sel] % 60)}m</strong></div>` +
     `<div><span>Plays / skips</span><strong>${D.plays[sel]} / ${D.skips[sel]}</strong></div>` +
     `<div style="min-width:0"><span>Top artist</span><strong style="font-size:var(--s-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${top}</strong></div>`;
@@ -497,7 +539,7 @@ function drawFort() {
 let lastTL = -1;
 async function select(di, scroll) {
   sel = Math.max(0, Math.min(ND - 1, di));
-  renderDayStats(); drawHeat(); drawSignal(); drawFort();
+  renderDayStats(); drawHeat(); drawSignal(); drawFort(); drawTrail();
   const y = dateOf(sel).getUTCFullYear(), loads = [loadYear(y)];
   const yp = dateOf(Math.max(0, sel - 7)).getUTCFullYear(); if (yp !== y) loads.push(loadYear(yp));
   drawDay(); if (dayIndex[sel] || !(playsByYear[y] instanceof Promise)) renderTracklist();
@@ -510,12 +552,12 @@ async function select(di, scroll) {
 function rowsHTML(items) { return items.join(''); }
 function renderCuts() {
   const C = M.crosscut, A = M.artists, mx = C.movers[0][1];
-  $('mv-note').textContent = `Highest average steps per hour while an artist was playing (at least 3 hours of listening). Your overall average is ${fmt(C.baseline)} steps per hour.`;
+  $('mv-note').textContent = `Highest average steps per hour while an artist was playing (at least 3 hours, on 5 or more different days). Your overall average is ${fmt(C.baseline)} steps per hour.`;
   const bar = (v, max, c) => `<div class="bar"><b style="width:${Math.max(1, v / max * 100)}%;background:${c};box-shadow:0 0 6px ${c}"></b></div>`;
   $('movers').innerHTML = C.movers.slice(0, 12).map(([a, s, h]) => `<div class="row"><span class="nm">${esc(A[a])}</span><span class="v">${fmt(s)}/h · ${h}h</span>${bar(s, mx, 'var(--step)')}</div>`).join('');
   $('sitters').innerHTML = C.sitters.slice(0, 12).map(([a, s, h]) => `<div class="row"><span class="nm">${esc(A[a])}</span><span class="v">${fmt(s)}/h · ${h}h</span>${bar(h, C.sitters[0][2] > 0 ? Math.max(...C.sitters.slice(0,12).map(x => x[2])) : 1, 'var(--sound)')}</div>`).join('');
   const jump = (date, nm, v) => `<div class="row click" tabindex="0" role="button" data-date="${date}"><span class="nm">${nm}</span><span class="v">${v}</span></div>`;
-  $('stepdays').innerHTML = M.topStepDays.slice(0, 12).map(([d, s, mi]) => jump(d, d, `${fmt(s)} · ${mi.toFixed(1)} mi`)).join('');
+  $('stepdays').innerHTML = M.topStepDays.slice(0, 12).map(([d, s, mi]) => jump(d, EXTD[diOf(d)] ? `${d} <span class="c-trail">+${EXTD[diOf(d)]}h</span>` : d, `${fmt(s)} · ${mi.toFixed(1)} mi`)).join('');
   $('worms').innerHTML = M.earworms.slice(0, 12).map(([d, t, n]) => jump(d, `${esc(M.tracks[t][0])} <span class="v">· ${esc(A[M.tracks[t][1]])}</span>`, `${d.slice(2)} ×${n}`)).join('');
   const tmx = M.topArtists[0][1];
   $('topart').innerHTML = M.topArtists.slice(0, 12).map(([a, h]) => `<div class="row"><span class="nm" style="color:${artistColor(a)}">${esc(A[a])}</span><span class="v">${fmt(h)} h</span>${bar(h, tmx, artistColor(a))}</div>`).join('');
@@ -544,13 +586,59 @@ function drawCirc() {
   poly(C.listen, MG.join(',')); poly(C.steps, CY.join(','));
 }
 
+// ---------- TRAIL
+const TL = { left: 56, right: 52, top: 14, bottom: 22 };
+function renderTrail() {
+  const t = M.trips && M.trips[0]; if (!t) { $('trail').hidden = true; return; }
+  const a = dateOf(t.a), b = dateOf(t.b);
+  $('trail-sub').textContent = `${MON[a.getUTCMonth()]} ${a.getUTCDate()} – ${MON[b.getUTCMonth()]} ${b.getUTCDate()}, ${b.getUTCFullYear()} · ${t.days} days`;
+  $('trail-stats').innerHTML =
+    `<div><span>Miles captured</span><strong class="c-step">${fmt(t.capMiles)} <small style="font-size:var(--s-0);color:var(--dim)">/ ${fmt(t.miles)}</small></strong></div>` +
+    `<div><span>Elevation captured</span><strong class="c-climb">${fmt(t.capFt)} <small style="font-size:var(--s-0);color:var(--dim)">/ ${fmt(t.gainFt)} ft</small></strong></div>` +
+    `<div><span>Steps</span><strong class="c-step">${fmt(t.capSteps)}</strong></div>` +
+    `<div><span>Biggest day</span><strong class="c-trail">${t.bigDay[1].toFixed(1)} mi</strong></div>` +
+    `<div><span>Music on trail</span><strong class="c-sound">${fmt(t.listenH)} h</strong></div>`;
+  const meter = (lab, pct, col) => `<div class="meter"><div class="lab"><span>${lab}</span><b>${pct.toFixed(1)}%</b></div><div class="track"><div class="fill" style="width:${Math.min(100, pct)}%;background:${col};box-shadow:0 0 10px ${col}"></div></div></div>`;
+  $('trail-meters').innerHTML = meter('Distance captured', t.pctMiles, 'var(--step)') + meter('Elevation captured', t.pctFt, 'var(--climb)');
+}
+function trailGeom() { const cv = $('trailcv'), t = M.trips[0], n = t.b - t.a + 1, pw = cv.clientWidth - TL.left - TL.right; return { t, n, pw, bw: pw / n }; }
+function drawTrail() {
+  const t = M.trips && M.trips[0]; if (!t) return;
+  const [g, w, h] = setup($('trailcv')), { n, pw, bw } = trailGeom(), D = M.daily;
+  const ph = h - TL.top - TL.bottom, mid = TL.top + ph * 0.62, upH = mid - TL.top, dnH = TL.top + ph - mid;
+  let mMax = 0, eMax = 0; for (let i = t.a; i <= t.b; i++) { mMax = Math.max(mMax, D.miles[i]); eMax = Math.max(eMax, D.elev[i]); }
+  mMax = Math.ceil(mMax / 10) * 10; eMax = Math.ceil(eMax / 1000) * 1000;
+  g.font = '10px "JetBrains Mono", monospace'; g.textBaseline = 'middle';
+  (scaleMode === 'log' ? [0, 1, 10, mMax] : [0, mMax / 2, mMax]).forEach(v => { const y = mid - sc(v, mMax) * upH;
+    g.fillStyle = GRIDC; g.fillRect(TL.left, y, pw, 1); g.fillStyle = 'rgba(63,240,255,0.8)'; g.textAlign = 'right'; g.fillText(Math.round(v) + ' mi', TL.left - 6, y); });
+  g.fillStyle = 'rgba(255,179,71,0.8)'; g.textAlign = 'right'; g.fillText(kfmt(eMax) + ' ft', TL.left - 6, mid + dnH - 4);
+  let cum = 0; const pts = [];
+  for (let k = 0; k < n; k++) {
+    const di = t.a + k, x = TL.left + k * bw, m = D.miles[di], e = D.elev[di], on = di === sel;
+    const mh = sc(m, mMax) * upH, eh = sc(e, eMax) * dnH;
+    g.fillStyle = on ? '#fff' : 'rgba(63,240,255,0.85)'; g.fillRect(x + 0.5, mid - mh, Math.max(1, bw - 1), mh);
+    g.fillStyle = on ? '#fff' : 'rgba(255,179,71,0.75)'; g.fillRect(x + 0.5, mid + 1, Math.max(1, bw - 1), eh);
+    cum += m; pts.push([x + bw / 2, cum]);
+  }
+  // cumulative vs official
+  const cy = v => TL.top + ph - v / t.miles * ph * 0.98;
+  g.setLineDash([3, 4]); g.strokeStyle = 'rgba(182,255,92,0.6)'; g.lineWidth = 1; g.beginPath(); g.moveTo(TL.left, cy(0)); g.lineTo(TL.left + pw, cy(t.miles)); g.stroke(); g.setLineDash([]);
+  g.beginPath(); pts.forEach(([x, v], i) => i ? g.lineTo(x, cy(v)) : g.moveTo(x, cy(v)));
+  g.strokeStyle = '#fff'; g.lineWidth = 1.5; g.shadowColor = '#fff'; g.shadowBlur = 6; g.stroke(); g.shadowBlur = 0;
+  g.fillStyle = '#b6ff5c'; g.textAlign = 'left'; g.fillText(fmt(t.miles), TL.left + pw + 6, cy(t.miles)); g.fillStyle = '#fff'; g.fillText(fmt(cum), TL.left + pw + 6, cy(cum) + 12);
+  g.fillStyle = DIM; g.textAlign = 'center';
+  for (let k = 0; k < n; k++) { const d = dateOf(t.a + k); if (d.getUTCDate() === 1) { g.fillText(MON[d.getUTCMonth()].toUpperCase(), TL.left + k * bw + 12, h - 8); g.fillStyle = GRIDC; g.fillRect(TL.left + k * bw, TL.top, 1, ph); g.fillStyle = DIM; } }
+}
+function trailHit(e) { const t = M.trips && M.trips[0]; if (!t) return -1; const [x] = pt($('trailcv'), e), { n, bw } = trailGeom(), k = Math.floor((x - TL.left) / bw); return k < 0 || k >= n ? -1 : t.a + k; }
+
 // ---------- totals
 function renderTotals() {
   const T = M.totals;
   $('totals').innerHTML =
     `<div><span>Steps</span><strong class="c-step">${fmt(T.steps)}</strong></div>` +
     `<div><span>Miles on foot</span><strong class="c-step">${fmt(T.miles)}</strong></div>` +
-    `<div><span>Flights</span><strong class="c-climb">${fmt(T.flights)}</strong></div>` +
+    `<div><span>Flights of stairs</span><strong class="c-climb">${fmt(T.flights)}</strong></div>` +
+    `<div><span>Elevation gain</span><strong class="c-climb">${fmt(T.elevFt)} ft</strong></div>` +
     `<div><span>Hours listened</span><strong class="c-sound">${fmt(T.hours)}</strong></div>` +
     `<div><span>Plays</span><strong class="c-sound">${fmt(T.plays)}</strong></div>` +
     `<div><span>Artists</span><strong>${fmt(T.artists)}</strong></div>` +
@@ -582,10 +670,10 @@ function wire() {
       if (hv != null) { const tr = document.querySelector(`#tracklist tr[data-i="${hv}"]`); if (tr) { tr.classList.add('hl'); tr.scrollIntoView({ block: 'nearest' }); } } }
     if (!h) return hideTip();
     if (h.kind === 'play') { const [s, d, t, sk] = dayIndex[sel][h.i], [nm, a, al] = M.tracks[t];
-      const hrSteps = H.steps[sel * 24 + Math.floor(s / 3600)];
+      const hrSteps = hv(H.steps, sel, Math.min(dayHours(sel) - 1, Math.floor(s / 3600)));
       showTip(`<b>${esc(nm)}</b><br><span style="color:${artistColor(a)}">${esc(M.artists[a])}</span><br><span class="k">${esc(al)}</span><br>${hms(s)} · played ${mmss(d)}${sk ? ' · <span class="c-sound">skipped</span>' : ''}<br><span class="c-step">${fmt(hrSteps)} steps that hour</span>`, e); }
-    else { const i = sel * 24 + h.hr, mins = Math.round(H.listen[i] / 60);
-      showTip(`<b>${pad(h.hr)}:00–${pad((h.hr + 1) % 24)}:00</b><br><span class="c-step">${fmt(H.steps[i])} steps · ${H.miles[i].toFixed(2)} mi</span><br><span class="c-climb">${H.flights[i]} flights</span><br><span class="c-sound">${mins} min listening</span>`, e); }
+    else { const q = a => hv(a, sel, h.hr), mins = Math.round(q(H.listen) / 60), fl = q(H.flights);
+      showTip(`<b>${pad(h.hr % 24)}:00–${pad((h.hr + 1) % 24)}:00${h.hr >= 24 ? ' (next day)' : ''}</b>${h.hr < (EXTN[sel] || 0) ? '<br><span class="c-trail">counted with the previous day</span>' : ''}<br><span class="c-step">${fmt(q(H.steps))} steps · ${q(H.miles).toFixed(2)} mi</span><br><span class="c-climb">${fl} flights of stairs · ${fmt(fl * M.ftPerFlight)} ft</span><br><span class="c-sound">${mins} min listening</span>`, e); }
   });
   dc.addEventListener('pointerleave', () => { hideTip(); if (hv != null) { hv = null; drawDay(); document.querySelectorAll('#tracklist tr.hl').forEach(r => r.classList.remove('hl')); } });
   const fort = $('fort');
@@ -601,14 +689,28 @@ function wire() {
     if (e.key === 'ArrowLeft') { e.preventDefault(); select(sel - 1); }
     if (e.key === 'ArrowRight') { e.preventDefault(); select(sel + 1); }
   });
-  let rt; addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => { drawHeat(); drawSignal(); drawDay(); drawFort(); drawCirc(); }, 120); });
+  const tc = $('trailcv');
+  tc.addEventListener('pointermove', e => { const di = trailHit(e); di < 0 ? hideTip() : showTip(dayTip(di), e); tc.style.cursor = di < 0 ? 'default' : 'pointer'; });
+  tc.addEventListener('pointerleave', hideTip);
+  tc.addEventListener('click', e => { const di = trailHit(e); if (di >= 0) { hideTip(); select(di, true); } });
+  document.querySelectorAll('.scale-seg button').forEach(b => b.addEventListener('click', () => {
+    scaleMode = b.dataset.scale;
+    document.querySelectorAll('.scale-seg button').forEach(x => x.setAttribute('aria-pressed', x.dataset.scale === scaleMode));
+    drawSignal(); drawTrail(); drawDay(); }));
+  // Redraw each canvas whenever its own box changes width (layout shifts, scrollbars, window resizes).
+  const painters = { heat: drawHeat, signal: () => drawSignal(), daycv: () => drawDay(), fort: drawFort, circ: drawCirc, trailcv: drawTrail };
+  const lastW = {};
+  const ro = new ResizeObserver(entries => { for (const en of entries) { const id = en.target.id, cw = Math.round(en.contentRect.width);
+    if (lastW[id] !== cw) { lastW[id] = cw; requestAnimationFrame(() => painters[id]()); } } });
+  Object.keys(painters).forEach(id => ro.observe($(id)));
 }
 
 // ---------- boot
 Promise.all([fetch('data/meta.json').then(r => r.json()), fetch('data/hourly.json').then(r => r.json())]).then(([m, h]) => {
   M = m; H = h; ND = M.nDays; START = Date.parse(M.start + 'T00:00:00Z');
+  Object.entries(M.ext || {}).forEach(([d, hrs]) => { EXTD[+d] = hrs; EXTN[+d + 1] = hrs; });
   const j = $('jump'); j.min = M.start; j.max = iso(dateOf(ND - 1));
-  computeRoll(); renderTotals(); renderCuts(); wire(); drawCirc();
+  computeRoll(); renderTotals(); renderTrail(); renderCuts(); wire(); drawCirc();
   select(diOf(M.topStepDays[0][0]));
 }).catch(err => { $('boot').textContent = 'Could not load data files: ' + err.message; });
 })();
