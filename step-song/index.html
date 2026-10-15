@@ -1,0 +1,616 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<title>STEP//SONG</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Monoton&family=Chakra+Petch:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: one long CRT console. Macro on top (decade spectrogram + signal trace),
+   then the bridge (fortnight hour-grid), then the micro (a single day), then cross-cuts.
+   Single dark look by choice: a neon tube display has no daylight mode. */
+:root {
+  color-scheme: dark;
+  --void: #07060f;      /* screen glass */
+  --panel: #0d0b1c;     /* raised console */
+  --grid: #1f1a3d;      /* phosphor grid */
+  --ink: #dcd8ff;       /* primary text */
+  --dim: #8a84b8;       /* secondary text */
+  --step: #3ff0ff;      /* movement channel */
+  --sound: #ff3fb4;     /* listening channel */
+  --climb: #ffb347;     /* flights channel */
+  --hot: #ffffff;
+  --f-display: "Monoton", "Chakra Petch", system-ui, sans-serif;
+  --f-ui: "Chakra Petch", "Segoe UI", system-ui, sans-serif;
+  --f-data: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --s-0: 0.75rem; --s-1: 0.875rem; --s-2: 1rem; --s-3: 1.25rem; --s-4: 1.75rem;
+}
+* { box-sizing: border-box; }
+html, body { background: var(--void); color: var(--ink); }
+body {
+  font-family: var(--f-ui); font-size: var(--s-1); line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 24px 64px;
+  background:
+    radial-gradient(ellipse 80% 40% at 50% 0%, rgba(255,63,180,0.10), transparent 70%),
+    radial-gradient(ellipse 60% 30% at 50% 100%, rgba(63,240,255,0.06), transparent 70%),
+    var(--void);
+  min-height: 100%;
+}
+body::after { /* scanlines */
+  content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 50;
+  background: repeating-linear-gradient(to bottom, rgba(0,0,0,0) 0 2px, rgba(0,0,0,0.18) 2px 3px);
+  mix-blend-mode: multiply;
+}
+.wrap { max-width: 1180px; margin: 0 auto; display: grid; gap: 28px; }
+
+header { display: grid; gap: 14px; }
+h1 {
+  font-family: var(--f-display); font-weight: 400; margin: 0;
+  font-size: clamp(2.2rem, 7vw, 4.6rem); line-height: 1; letter-spacing: 0.02em;
+  color: var(--hot);
+  text-shadow: 0 0 6px var(--sound), 0 0 18px var(--sound), 0 0 42px rgba(255,63,180,0.6);
+}
+h1 .sl { color: var(--hot); text-shadow: 0 0 6px var(--step), 0 0 18px var(--step), 0 0 42px rgba(63,240,255,0.6); }
+@media (prefers-reduced-motion: no-preference) {
+  h1 { animation: flicker 7s infinite; }
+  @keyframes flicker { 0%,93%,100% { opacity: 1 } 94% { opacity: .55 } 95% { opacity: 1 } 96.5% { opacity: .7 } 97% { opacity: 1 } }
+}
+.lede { margin: 0; color: var(--dim); max-width: 68ch; font-size: var(--s-2); }
+.lede b { color: var(--step); font-weight: 600; } .lede i { color: var(--sound); font-style: normal; font-weight: 600; }
+
+.readout { display: flex; flex-wrap: wrap; gap: 8px 28px; font-family: var(--f-data); padding: 12px 0; border-block: 1px solid var(--grid); }
+.readout div { display: grid; }
+.readout span { font-size: var(--s-0); text-transform: uppercase; letter-spacing: 0.12em; color: var(--dim); font-family: var(--f-ui); }
+.readout strong { font-size: var(--s-3); font-weight: 600; font-variant-numeric: tabular-nums; }
+.c-step { color: var(--step); } .c-sound { color: var(--sound); } .c-climb { color: var(--climb); }
+
+section { background: linear-gradient(180deg, var(--panel), rgba(13,11,28,0.6)); border: 1px solid var(--grid); padding: 18px; display: grid; gap: 14px; min-width: 0; }
+.sec-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 16px; }
+h2 { margin: 0; font-size: var(--s-2); font-weight: 700; letter-spacing: 0.22em; text-transform: uppercase; }
+h2 small { font-weight: 400; color: var(--dim); letter-spacing: 0.08em; text-transform: none; margin-left: 10px; font-size: var(--s-1); }
+.note { color: var(--dim); font-size: var(--s-0); margin: 0; max-width: 80ch; }
+
+.seg { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--grid); }
+.seg button, .btn {
+  font: 600 var(--s-0)/1 var(--f-ui); letter-spacing: 0.14em; text-transform: uppercase;
+  background: transparent; color: var(--dim); border: 0; padding: 8px 12px; cursor: pointer;
+}
+.seg button + button { border-left: 1px solid var(--grid); }
+.seg button[aria-pressed="true"] { color: var(--void); background: var(--ink); }
+.seg button[data-mode="steps"][aria-pressed="true"] { background: var(--step); }
+.seg button[data-mode="sound"][aria-pressed="true"] { background: var(--sound); }
+.seg button[data-mode="flights"][aria-pressed="true"] { background: var(--climb); }
+.btn { border: 1px solid var(--grid); color: var(--ink); }
+.btn:hover, .seg button:hover { color: var(--hot); }
+button:focus-visible, input:focus-visible, .click:focus-visible { outline: 2px solid var(--step); outline-offset: 2px; }
+
+canvas { display: block; width: 100%; touch-action: manipulation; }
+.cv { position: relative; min-width: 0; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-family: var(--f-data); font-size: var(--s-0); color: var(--dim); align-items: center; }
+.legend i { display: inline-block; width: 22px; height: 8px; margin-right: 6px; vertical-align: middle; }
+
+/* day view */
+.day-head { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; justify-content: space-between; }
+.day-title { font-family: var(--f-data); font-size: var(--s-4); font-weight: 600; color: var(--hot); text-shadow: 0 0 12px rgba(63,240,255,0.5); }
+.day-title small { display: block; font-family: var(--f-ui); font-size: var(--s-0); letter-spacing: 0.2em; color: var(--dim); text-transform: uppercase; text-shadow: none; }
+.nav { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+input[type="date"] { font: 600 var(--s-0) var(--f-data); background: var(--void); color: var(--ink); border: 1px solid var(--grid); padding: 6px 8px; }
+.day-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 340px); gap: 18px; }
+@media (max-width: 860px) { .day-grid { grid-template-columns: minmax(0, 1fr); } }
+.tracklist { max-height: 420px; overflow: auto; border: 1px solid var(--grid); font-family: var(--f-data); font-size: var(--s-0); }
+.tracklist table { width: 100%; border-collapse: collapse; }
+.tracklist td { padding: 5px 8px; border-bottom: 1px solid rgba(31,26,61,0.7); vertical-align: top; }
+.tracklist td:first-child { color: var(--dim); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.tracklist .t { color: var(--ink); } .tracklist .a { color: var(--dim); }
+.tracklist tr.skip .t { color: var(--dim); text-decoration: line-through; text-decoration-color: rgba(255,63,180,0.6); }
+.tracklist tr.hl { background: rgba(255,63,180,0.12); }
+.dot { display: inline-block; width: 7px; height: 7px; margin-right: 6px; }
+.empty { padding: 16px; color: var(--dim); }
+
+/* crosscuts */
+.cuts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 330px), 1fr)); gap: 18px; }
+.card { border: 1px solid var(--grid); padding: 14px; display: grid; gap: 10px; align-content: start; min-width: 0; background: rgba(7,6,15,0.5); }
+.card h3 { margin: 0; font-size: var(--s-0); letter-spacing: 0.2em; text-transform: uppercase; }
+.rows { display: grid; gap: 4px; font-family: var(--f-data); font-size: var(--s-0); }
+.row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 10px; align-items: center; }
+.row .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.row .v { color: var(--dim); font-variant-numeric: tabular-nums; }
+.bar { grid-column: 1 / -1; height: 3px; background: var(--grid); }
+.bar b { display: block; height: 100%; }
+.click { cursor: pointer; } .click:hover .nm { color: var(--hot); }
+
+#tip {
+  position: fixed; z-index: 60; pointer-events: none; max-width: 300px;
+  background: rgba(7,6,15,0.94); border: 1px solid var(--sound); box-shadow: 0 0 18px rgba(255,63,180,0.35);
+  font-family: var(--f-data); font-size: var(--s-0); padding: 8px 10px; line-height: 1.45; color: var(--ink);
+}
+#tip .k { color: var(--dim); }
+#boot { font-family: var(--f-data); color: var(--step); }
+footer { color: var(--dim); font-size: var(--s-0); }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>STEP<span class="sl">//</span>SONG</h1>
+    <p class="lede">A decade of <b>footsteps</b> and <i>songs</i> on one clock. Start with the whole span, then drill down to a fortnight, a day, and the single track playing during a given hour of walking.</p>
+    <div class="readout" id="totals"><div id="boot">BOOTING… loading listening history</div></div>
+  </header>
+
+  <section id="decade" aria-labelledby="h-decade">
+    <div class="sec-head">
+      <h2 id="h-decade">Decade <small>one column per day · one band per year</small></h2>
+      <div class="seg" role="group" aria-label="Heatmap channel">
+        <button type="button" id="m-both" data-mode="both" aria-pressed="true">Both</button>
+        <button type="button" id="m-steps" data-mode="steps" aria-pressed="false">Steps</button>
+        <button type="button" id="m-sound" data-mode="sound" aria-pressed="false">Sound</button>
+        <button type="button" id="m-flights" data-mode="flights" aria-pressed="false">Flights</button>
+      </div>
+    </div>
+    <div class="cv"><canvas id="heat" height="360" aria-label="Daily steps and listening heatmap, 2016 to 2026"></canvas></div>
+    <div class="legend" id="heat-legend"></div>
+  </section>
+
+  <section aria-labelledby="h-signal">
+    <div class="sec-head">
+      <h2 id="h-signal">Signal <small>30-day average · bottom strip shows the top artist of each month</small></h2>
+    </div>
+    <div class="cv"><canvas id="signal" height="250" aria-label="Rolling average of steps and listening hours"></canvas></div>
+    <div class="legend"><span><i style="background:var(--step)"></i>steps / day</span><span><i style="background:var(--sound)"></i>hours listened / day</span><span>click anywhere to open that day</span></div>
+  </section>
+
+  <section id="day" aria-labelledby="h-day">
+    <div class="day-head">
+      <div class="day-title" id="h-day"><small id="day-dow">—</small><span id="day-date">—</span></div>
+      <div class="nav">
+        <button type="button" class="btn" id="prev" aria-label="Previous day">◀ Prev</button>
+        <input type="date" id="jump" aria-label="Jump to date">
+        <button type="button" class="btn" id="next" aria-label="Next day">Next ▶</button>
+      </div>
+    </div>
+    <div class="readout" id="day-stats"></div>
+    <div class="day-grid">
+      <div style="display:grid;gap:14px;min-width:0">
+        <div class="cv"><canvas id="daycv" height="300" aria-label="Hourly steps, flights and tracks for the selected day"></canvas></div>
+        <div class="legend"><span><i style="background:var(--step)"></i>steps per hour</span><span><i style="background:var(--climb)"></i>flights climbed</span><span><i style="background:linear-gradient(90deg,var(--sound),#9d6bff,var(--step))"></i>each track, colored by artist</span><span>← → keys move by day</span></div>
+        <h2 style="font-size:var(--s-0)">Fortnight <small>hour by hour · click a row</small></h2>
+        <div class="cv"><canvas id="fort" height="260" aria-label="Hour-by-hour grid of the surrounding two weeks"></canvas></div>
+      </div>
+      <div style="display:grid;gap:8px;align-content:start;min-width:0">
+        <h2 style="font-size:var(--s-0)">Tracklist <small id="tl-count"></small></h2>
+        <div class="tracklist" id="tracklist"><div class="empty">Loading plays…</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-cuts">
+    <div class="sec-head"><h2 id="h-cuts">Cross-cuts <small>where the two signals meet</small></h2></div>
+    <div class="cuts">
+      <div class="card">
+        <h3 class="c-step">Artists you move to</h3>
+        <p class="note" id="mv-note"></p>
+        <div class="rows" id="movers"></div>
+      </div>
+      <div class="card">
+        <h3 class="c-sound">Artists you sit with</h3>
+        <p class="note">Lowest average steps per hour while playing. Sleep audio and focus music collect here.</p>
+        <div class="rows" id="sitters"></div>
+      </div>
+      <div class="card">
+        <h3>Circadian <span id="circ-yr" class="c-step"></span></h3>
+        <div class="seg" role="group" aria-label="Year" id="circ-years"></div>
+        <div class="cv" style="max-width:340px;justify-self:center;width:100%"><canvas id="circ" height="340" aria-label="24-hour profile of steps and listening"></canvas></div>
+        <p class="note">Average steps (cyan) and listening (magenta) by hour of day. Each is scaled to its own peak.</p>
+      </div>
+      <div class="card">
+        <h3 class="c-climb">Biggest days on foot</h3>
+        <div class="rows" id="stepdays"></div>
+      </div>
+      <div class="card">
+        <h3 class="c-sound">Earworms</h3>
+        <p class="note">Most repeats of one track in a single day.</p>
+        <div class="rows" id="worms"></div>
+      </div>
+      <div class="card">
+        <h3>Most-played artists</h3>
+        <div class="rows" id="topart"></div>
+      </div>
+    </div>
+  </section>
+
+  <footer>Spotify timestamps are UTC and are converted to local time using the country each track was played in (US plays use Eastern time). Apple Health data is hourly in device time, starting July 2016. Flights climbed starts October 2018.</footer>
+</div>
+<div id="tip" hidden></div>
+
+<script>
+(() => {
+const $ = id => document.getElementById(id);
+const CY = [63, 240, 255], MG = [255, 63, 180], AM = [255, 179, 71], BG = [13, 11, 28], GRIDC = '#1f1a3d', DIM = '#8a84b8', INK = '#dcd8ff';
+const fmt = n => Math.round(n).toLocaleString('en-US');
+const pad = n => String(n).padStart(2, '0');
+const DOW = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+let M, H, ND, START, sel = 0, mode = 'both', circYear = 2019;
+const playsByYear = {}, dayIndex = {};
+
+const dateOf = di => { const d = new Date(START); d.setUTCDate(d.getUTCDate() + di); return d; };
+const iso = d => `${d.getUTCFullYear()}-${pad(d.getUTCMonth()+1)}-${pad(d.getUTCDate())}`;
+const diOf = s => Math.round((Date.parse(s + 'T00:00:00Z') - START) / 864e5);
+const hueOf = a => { let h = 2166136261; const s = M.artists[a]; for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 16777619); return ((h >>> 0) % 360); };
+const artistColor = (a, al = 1) => `hsla(${hueOf(a)},100%,62%,${al})`;
+const blend = (s, l) => `rgb(${Math.min(255, BG[0] + CY[0]*s + MG[0]*l)|0},${Math.min(255, BG[1] + CY[1]*s + MG[1]*l)|0},${Math.min(255, BG[2] + CY[2]*s + MG[2]*l)|0})`;
+const mix = (c, t) => `rgb(${BG[0]+(c[0]-BG[0])*t|0},${BG[1]+(c[1]-BG[1])*t|0},${BG[2]+(c[2]-BG[2])*t|0})`;
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+// ---------- tooltip
+const tip = $('tip');
+function showTip(html, e) {
+  tip.innerHTML = html; tip.hidden = false;
+  const r = tip.getBoundingClientRect();
+  let x = e.clientX + 14, y = e.clientY + 14;
+  if (x + r.width > innerWidth - 8) x = e.clientX - r.width - 14;
+  if (y + r.height > innerHeight - 8) y = e.clientY - r.height - 14;
+  tip.style.left = Math.max(4, x) + 'px'; tip.style.top = Math.max(4, y) + 'px';
+}
+const hideTip = () => { tip.hidden = true; };
+
+// ---------- canvas helper
+function setup(cv) {
+  const dpr = Math.min(2, devicePixelRatio || 1), w = cv.clientWidth, h = +cv.getAttribute('height');
+  cv.style.height = h + 'px';
+  if (cv.width !== Math.round(w * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); }
+  const g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h);
+  return [g, w, h];
+}
+const pt = (cv, e) => { const r = cv.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
+
+// ---------- DECADE heatmap
+const HL = { left: 46, top: 22, band: 26, gap: 5 };
+function cellColor(di) {
+  const D = M.daily;
+  const hasS = D.has[di] & 1, hasF = D.has[di] & 2;
+  const s = hasS ? Math.min(1, Math.sqrt(D.steps[di] / 30000)) : 0;
+  const l = Math.min(1, Math.sqrt(D.listen[di] / 360));
+  if (mode === 'steps') return hasS ? mix(CY, 0.08 + 0.92 * s) : null;
+  if (mode === 'sound') return D.listen[di] ? mix(MG, 0.1 + 0.9 * l) : null;
+  if (mode === 'flights') return hasF ? mix(AM, 0.08 + 0.92 * Math.min(1, Math.sqrt(D.flights[di] / 60))) : null;
+  if (!hasS && !D.listen[di]) return null;
+  return blend(s * 0.95, l * 0.95);
+}
+function drawHeat() {
+  const cv = $('heat'), years = yearsList();
+  cv.setAttribute('height', HL.top + years.length * (HL.band + HL.gap) + 4);
+  const [g, w] = setup(cv), cw = (w - HL.left) / 366;
+  g.font = '600 10px "JetBrains Mono", monospace'; g.textBaseline = 'middle';
+  // month ticks
+  g.fillStyle = DIM;
+  [0,31,59,90,120,151,181,212,243,273,304,334].forEach((d, i) => {
+    const x = HL.left + d * cw; g.fillText(w < 520 ? MON[i][0] : MON[i].toUpperCase(), x + 2, 10);
+    g.fillStyle = GRIDC; g.fillRect(x, HL.top - 4, 1, years.length * (HL.band + HL.gap)); g.fillStyle = DIM;
+  });
+  years.forEach((y, yi) => {
+    const top = HL.top + yi * (HL.band + HL.gap);
+    g.fillStyle = DIM; g.fillText(String(y), 4, top + HL.band / 2);
+    const d0 = diOf(`${y}-01-01`);
+    for (let k = 0; k < 366; k++) {
+      const di = d0 + k; if (di < 0 || di >= ND) continue;
+      if (dateOf(di).getUTCFullYear() !== y) break;
+      const c = cellColor(di);
+      g.fillStyle = c || '#120f26';
+      g.fillRect(HL.left + k * cw, top, Math.max(1, cw - (cw > 2.5 ? 0.5 : 0)), HL.band);
+    }
+  });
+  // selected
+  const sd = dateOf(sel), yi = years.indexOf(sd.getUTCFullYear());
+  if (yi >= 0) {
+    const k = sel - diOf(`${sd.getUTCFullYear()}-01-01`), x = HL.left + k * cw, top = HL.top + yi * (HL.band + HL.gap);
+    g.strokeStyle = '#fff'; g.lineWidth = 1.5; g.shadowColor = '#fff'; g.shadowBlur = 8;
+    g.strokeRect(x - 1.5, top - 3, Math.max(3, cw) + 3, HL.band + 6); g.shadowBlur = 0;
+  }
+  const L = $('heat-legend');
+  const leg = { both: '<span><i style="background:var(--step)"></i>steps</span><span><i style="background:var(--sound)"></i>listening</span><span><i style="background:#fff"></i>both at once</span>',
+    steps: '<span><i style="background:linear-gradient(90deg,#14243a,var(--step))"></i>0 → 30k+ steps</span>',
+    sound: '<span><i style="background:linear-gradient(90deg,#2a1230,var(--sound))"></i>0 → 6h+ listening</span>',
+    flights: '<span><i style="background:linear-gradient(90deg,#2a2018,var(--climb))"></i>0 → 60+ flights</span>' }[mode];
+  L.innerHTML = leg + '<span><i style="background:#120f26"></i>no data</span><span>hover for detail · click to open a day</span>';
+}
+function yearsList() { const a = []; for (let y = 2016; y <= dateOf(ND - 1).getUTCFullYear(); y++) a.push(y); return a; }
+function heatHit(e) {
+  const cv = $('heat'), [x, y] = pt(cv, e), w = cv.clientWidth, cw = (w - HL.left) / 366, years = yearsList();
+  const yi = Math.floor((y - HL.top) / (HL.band + HL.gap)), k = Math.floor((x - HL.left) / cw);
+  if (yi < 0 || yi >= years.length || k < 0 || k > 365) return -1;
+  const di = diOf(`${years[yi]}-01-01`) + k;
+  if (di < 0 || di >= ND || dateOf(di).getUTCFullYear() !== years[yi]) return -1;
+  return di;
+}
+function dayTip(di) {
+  const D = M.daily, d = dateOf(di);
+  const top = D.top[di] >= 0 ? esc(M.artists[D.top[di]]) : '—';
+  return `<b>${DOW[d.getUTCDay()].slice(0,3)} ${iso(d)}</b><br>` +
+    (D.has[di] & 1 ? `<span class="c-step">${fmt(D.steps[di])} steps</span> · ${D.miles[di].toFixed(1)} mi<br>` : '<span class="k">no health data</span><br>') +
+    (D.has[di] & 2 ? `<span class="c-climb">${D.flights[di]} flights</span><br>` : '') +
+    `<span class="c-sound">${fmt(D.listen[di])} min</span> · ${D.plays[di]} plays<br><span class="k">top:</span> ${top}`;
+}
+
+// ---------- SIGNAL
+let roll;
+function computeRoll() {
+  const D = M.daily, W = 30, s = new Float64Array(ND), l = new Float64Array(ND);
+  let ss = 0, sn = 0, ls = 0;
+  for (let i = 0; i < ND; i++) {
+    if (D.has[i] & 1) { ss += D.steps[i]; sn++; } ls += D.listen[i];
+    if (i >= W) { const j = i - W; if (D.has[j] & 1) { ss -= D.steps[j]; sn--; } ls -= D.listen[j]; }
+    s[i] = sn > 10 ? ss / sn : NaN; l[i] = ls / Math.min(W, i + 1) / 60;
+  }
+  roll = { s, l, sMax: Math.max(...[...s].filter(v => !isNaN(v))), lMax: Math.max(...l) };
+}
+const SG = { left: 48, right: 40, top: 12, bottom: 50 };
+function drawSignal(hx) {
+  const [g, w, h] = setup($('signal')), pw = w - SG.left - SG.right, ph = h - SG.top - SG.bottom;
+  const X = i => SG.left + i / (ND - 1) * pw;
+  const sMax = Math.ceil(roll.sMax / 5000) * 5000, lMax = Math.ceil(roll.lMax);
+  g.font = '10px "JetBrains Mono", monospace'; g.textBaseline = 'middle';
+  for (let k = 0; k <= 4; k++) {
+    const y = SG.top + ph - k / 4 * ph;
+    g.fillStyle = GRIDC; g.fillRect(SG.left, y, pw, 1);
+    g.fillStyle = 'rgba(63,240,255,0.8)'; g.textAlign = 'right'; g.fillText(fmt(sMax * k / 4 / 1000) + 'k', SG.left - 6, y);
+    g.fillStyle = 'rgba(255,63,180,0.85)'; g.textAlign = 'left'; g.fillText((lMax * k / 4).toFixed(1) + 'h', SG.left + pw + 6, y);
+  }
+  g.textAlign = 'center'; g.fillStyle = DIM;
+  yearsList().forEach(y => { const i = diOf(`${y}-01-01`); if (i < 0) return; const x = X(i);
+    g.fillStyle = GRIDC; g.fillRect(x, SG.top, 1, ph); g.fillStyle = DIM; if (w > 520 || y % 2 === 0) g.fillText(String(y), x + (X(diOf(`${y+1}-01-01`)) - x) / 2, SG.top + ph + 12); });
+  const line = (arr, max, rgb) => {
+    g.beginPath(); let on = false;
+    for (let i = 0; i < ND; i++) { const v = arr[i]; if (isNaN(v)) { on = false; continue; }
+      const x = X(i), y = SG.top + ph - v / max * ph; on ? g.lineTo(x, y) : g.moveTo(x, y); on = true; }
+    g.strokeStyle = `rgb(${rgb})`; g.lineWidth = 1.4; g.shadowColor = `rgb(${rgb})`; g.shadowBlur = 8; g.stroke(); g.shadowBlur = 0;
+  };
+  line(roll.l, lMax, MG.join(',')); line(roll.s, sMax, CY.join(','));
+  // eras strip
+  const ey = SG.top + ph + 22, eh = 14;
+  M.eras.forEach(([m, a, share]) => {
+    const i0 = diOf(m + '-01'); if (i0 < 0) return; const [yy, mm] = m.split('-').map(Number);
+    const i1 = diOf(`${mm === 12 ? yy + 1 : yy}-${pad(mm === 12 ? 1 : mm + 1)}-01`);
+    g.fillStyle = artistColor(a, 0.3 + 0.7 * Math.min(1, share * 3)); g.fillRect(X(i0), ey, Math.max(1, X(Math.min(i1, ND - 1)) - X(i0) - 0.5), eh);
+  });
+  g.fillStyle = DIM; g.textAlign = 'right'; g.fillText('ERA', SG.left - 6, ey + eh / 2);
+  // selection + hover cursor
+  const cur = (i, c) => { g.fillStyle = c; g.fillRect(X(i) - 0.5, SG.top, 1, ph + 36); };
+  cur(sel, 'rgba(255,255,255,0.75)');
+  if (hx != null) cur(hx, 'rgba(255,255,255,0.35)');
+}
+function signalHit(e) {
+  const cv = $('signal'), [x, y] = pt(cv, e), pw = cv.clientWidth - SG.left - SG.right;
+  const i = Math.round((x - SG.left) / pw * (ND - 1)); return [i < 0 || i >= ND ? -1 : i, y];
+}
+
+// ---------- plays loading
+async function loadYear(y) {
+  if (playsByYear[y] !== undefined) return playsByYear[y];
+  if (!M.years.includes(y)) { playsByYear[y] = null; return null; }
+  playsByYear[y] = fetch(`data/plays-${y}.json`).then(r => r.json()).then(a => {
+    const touched = new Set();
+    for (let i = 0; i < a.length; i += 5) { (dayIndex[a[i]] ||= []).push([a[i+1], a[i+2], a[i+3], a[i+4]]); touched.add(a[i]); }
+    touched.forEach(d => dayIndex[d].sort((p, q) => p[0] - q[0]));
+    playsByYear[y] = a; return a;
+  });
+  return playsByYear[y];
+}
+
+// ---------- DAY
+const DL = { left: 40, right: 10, top: 18, laneH: 46 };
+let dayHits = [];
+function drawDay(hover) {
+  const cv = $('daycv'), [g, w, h] = setup(cv), pw = w - DL.left - DL.right;
+  const barsH = h - DL.top - DL.laneH - 44, base = DL.top + barsH;
+  const st = H.steps.slice(sel * 24, sel * 24 + 24), fl = H.flights.slice(sel * 24, sel * 24 + 24);
+  const max = Math.max(1000, ...st), yMax = Math.ceil(max / 1000) * 1000, X = s => DL.left + s / 86400 * pw, bw = pw / 24;
+  g.font = '10px "JetBrains Mono", monospace'; g.textBaseline = 'middle';
+  for (let k = 0; k <= 4; k++) { const y = base - k / 4 * barsH; g.fillStyle = GRIDC; g.fillRect(DL.left, y, pw, 1);
+    g.fillStyle = DIM; g.textAlign = 'right'; g.fillText(yMax * k / 4 >= 1000 ? (yMax * k / 4 / 1000) + 'k' : String(yMax * k / 4), DL.left - 6, y); }
+  dayHits = [];
+  for (let hr = 0; hr < 24; hr++) {
+    const v = st[hr], bh = v / yMax * barsH, x = DL.left + hr * bw;
+    const grd = g.createLinearGradient(0, base - bh, 0, base); grd.addColorStop(0, 'rgba(63,240,255,1)'); grd.addColorStop(1, 'rgba(63,240,255,0.25)');
+    g.fillStyle = grd; g.shadowColor = '#3ff0ff'; g.shadowBlur = v ? 10 : 0; g.fillRect(x + 1.5, base - bh, bw - 3, bh); g.shadowBlur = 0;
+    if (fl[hr] >= 0.5) { g.fillStyle = '#ffb347'; g.shadowColor = '#ffb347'; g.shadowBlur = 8;
+      const r = Math.min(7, 2.5 + Math.sqrt(fl[hr])); g.beginPath(); g.arc(x + bw / 2, base - bh - r - 4, r, 0, 7); g.fill(); g.shadowBlur = 0; }
+    dayHits.push({ kind: 'hour', x0: x, x1: x + bw, y0: DL.top, y1: base, hr });
+  }
+  // hour axis
+  g.textAlign = 'center'; g.fillStyle = DIM;
+  for (let hr = 0; hr <= 24; hr += (w < 520 ? 6 : 3)) g.fillText(pad(hr % 24) + ':00', Math.min(X(hr * 3600), w - 18), base + 12);
+  // lane
+  const ly = base + 26;
+  g.fillStyle = '#120f26'; g.fillRect(DL.left, ly, pw, DL.laneH);
+  g.fillStyle = DIM; g.textAlign = 'right'; g.fillText('PLAY', DL.left - 6, ly + DL.laneH / 2);
+  const P = dayIndex[sel] || [];
+  P.forEach((p, i) => {
+    const [s, d, t, sk] = p, a = M.tracks[t][1], x0 = X(s), x1 = X(Math.min(86400, s + d));
+    const isH = hover === i;
+    g.fillStyle = artistColor(a, sk ? 0.35 : 0.9); g.shadowColor = artistColor(a); g.shadowBlur = isH ? 14 : 4;
+    const hh = sk ? DL.laneH * 0.45 : DL.laneH;
+    g.fillRect(x0, ly + (DL.laneH - hh) / 2, Math.max(1, x1 - x0 - 0.5), hh); g.shadowBlur = 0;
+    if (isH) { g.strokeStyle = '#fff'; g.lineWidth = 1; g.strokeRect(x0 - 1, ly - 2, Math.max(2, x1 - x0) + 2, DL.laneH + 4); }
+    dayHits.push({ kind: 'play', x0, x1: Math.max(x1, x0 + 2), y0: ly - 4, y1: ly + DL.laneH + 4, i });
+  });
+  if (!P.length) { g.fillStyle = DIM; g.textAlign = 'center'; g.fillText(dayIndex[sel] === undefined && playsByYear[dateOf(sel).getUTCFullYear()] instanceof Promise ? 'loading…' : 'no plays this day', DL.left + pw / 2, ly + DL.laneH / 2); }
+}
+function dayHit(e) {
+  const [x, y] = pt($('daycv'), e);
+  const plays = dayHits.filter(h => h.kind === 'play' && x >= h.x0 - 1 && x <= h.x1 + 1 && y >= h.y0 && y <= h.y1);
+  if (plays.length) return plays[plays.length - 1];
+  return dayHits.find(h => h.kind === 'hour' && x >= h.x0 && x < h.x1 && y >= h.y0 && y <= h.y1);
+}
+const hms = s => `${pad(Math.floor(s / 3600))}:${pad(Math.floor(s % 3600 / 60))}`;
+const mmss = s => `${Math.floor(s / 60)}:${pad(s % 60)}`;
+function renderTracklist() {
+  const P = dayIndex[sel] || [], el = $('tracklist');
+  $('tl-count').textContent = P.length ? `${P.length} plays` : '';
+  if (!P.length) { el.innerHTML = '<div class="empty">No plays recorded on this day.</div>'; return; }
+  el.innerHTML = '<table><tbody>' + P.map((p, i) => {
+    const [s, d, t, sk] = p, [name, a] = M.tracks[t];
+    return `<tr data-i="${i}" class="${sk ? 'skip' : ''}"><td>${hms(s)}</td><td><span class="dot" style="background:${artistColor(a)}"></span><span class="t">${esc(name)}</span><br><span class="a">${esc(M.artists[a])} · ${mmss(d)}${sk ? ' · skipped' : ''}</span></td></tr>`;
+  }).join('') + '</tbody></table>';
+}
+function renderDayStats() {
+  const D = M.daily, d = dateOf(sel);
+  $('day-dow').textContent = DOW[d.getUTCDay()];
+  $('day-date').textContent = `${d.getUTCDate()} ${MON[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
+  $('jump').value = iso(d);
+  const top = D.top[sel] >= 0 ? esc(M.artists[D.top[sel]]) : '—';
+  const hs = D.has[sel] & 1, hf = D.has[sel] & 2;
+  $('day-stats').innerHTML =
+    `<div><span>Steps</span><strong class="c-step">${hs ? fmt(D.steps[sel]) : '—'}</strong></div>` +
+    `<div><span>Miles</span><strong class="c-step">${hs ? D.miles[sel].toFixed(1) : '—'}</strong></div>` +
+    `<div><span>Flights</span><strong class="c-climb">${hf ? D.flights[sel] : '—'}</strong></div>` +
+    `<div><span>Listened</span><strong class="c-sound">${Math.floor(D.listen[sel] / 60)}h ${pad(D.listen[sel] % 60)}m</strong></div>` +
+    `<div><span>Plays / skips</span><strong>${D.plays[sel]} / ${D.skips[sel]}</strong></div>` +
+    `<div style="min-width:0"><span>Top artist</span><strong style="font-size:var(--s-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${top}</strong></div>`;
+}
+
+// ---------- FORTNIGHT
+const FL = { left: 74, top: 16, rowH: 15 };
+let fortDays = [];
+function drawFort() {
+  const cv = $('fort'); fortDays = [];
+  for (let k = -7; k <= 7; k++) if (sel + k >= 0 && sel + k < ND) fortDays.push(sel + k);
+  cv.setAttribute('height', FL.top + fortDays.length * FL.rowH + 4);
+  const [g, w] = setup(cv), cw = (w - FL.left) / 24;
+  g.font = '10px "JetBrains Mono", monospace'; g.textBaseline = 'middle'; g.textAlign = 'center'; g.fillStyle = DIM;
+  for (let hr = 0; hr < 24; hr += (w < 520 ? 6 : 3)) g.fillText(pad(hr), FL.left + hr * cw + cw / 2, 7);
+  fortDays.forEach((di, r) => {
+    const y = FL.top + r * FL.rowH, d = dateOf(di);
+    g.textAlign = 'left'; g.fillStyle = di === sel ? '#fff' : DIM;
+    g.fillText(`${DOW[d.getUTCDay()].slice(0,2)} ${MON[d.getUTCMonth()]} ${pad(d.getUTCDate())}`, 0, y + FL.rowH / 2);
+    for (let hr = 0; hr < 24; hr++) {
+      const s = Math.min(1, Math.sqrt(H.steps[di * 24 + hr] / 4000)), l = Math.min(1, H.listen[di * 24 + hr] / 3600);
+      g.fillStyle = (s || l) ? blend(s, l) : '#120f26'; g.fillRect(FL.left + hr * cw, y + 1, cw - 1, FL.rowH - 2);
+    }
+    if (di === sel) { g.strokeStyle = '#fff'; g.lineWidth = 1; g.strokeRect(FL.left - 0.5, y + 0.5, w - FL.left, FL.rowH - 1); }
+  });
+}
+
+// ---------- select
+let lastTL = -1;
+async function select(di, scroll) {
+  sel = Math.max(0, Math.min(ND - 1, di));
+  renderDayStats(); drawHeat(); drawSignal(); drawFort();
+  const y = dateOf(sel).getUTCFullYear(), loads = [loadYear(y)];
+  const yp = dateOf(Math.max(0, sel - 7)).getUTCFullYear(); if (yp !== y) loads.push(loadYear(yp));
+  drawDay(); if (dayIndex[sel] || !(playsByYear[y] instanceof Promise)) renderTracklist();
+  if (scroll) $('day').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+  const me = sel; await Promise.all(loads); if (me !== sel) return;
+  drawDay(); renderTracklist();
+}
+
+// ---------- cross-cuts
+function rowsHTML(items) { return items.join(''); }
+function renderCuts() {
+  const C = M.crosscut, A = M.artists, mx = C.movers[0][1];
+  $('mv-note').textContent = `Highest average steps per hour while an artist was playing (at least 3 hours of listening). Your overall average is ${fmt(C.baseline)} steps per hour.`;
+  const bar = (v, max, c) => `<div class="bar"><b style="width:${Math.max(1, v / max * 100)}%;background:${c};box-shadow:0 0 6px ${c}"></b></div>`;
+  $('movers').innerHTML = C.movers.slice(0, 12).map(([a, s, h]) => `<div class="row"><span class="nm">${esc(A[a])}</span><span class="v">${fmt(s)}/h · ${h}h</span>${bar(s, mx, 'var(--step)')}</div>`).join('');
+  $('sitters').innerHTML = C.sitters.slice(0, 12).map(([a, s, h]) => `<div class="row"><span class="nm">${esc(A[a])}</span><span class="v">${fmt(s)}/h · ${h}h</span>${bar(h, C.sitters[0][2] > 0 ? Math.max(...C.sitters.slice(0,12).map(x => x[2])) : 1, 'var(--sound)')}</div>`).join('');
+  const jump = (date, nm, v) => `<div class="row click" tabindex="0" role="button" data-date="${date}"><span class="nm">${nm}</span><span class="v">${v}</span></div>`;
+  $('stepdays').innerHTML = M.topStepDays.slice(0, 12).map(([d, s, mi]) => jump(d, d, `${fmt(s)} · ${mi.toFixed(1)} mi`)).join('');
+  $('worms').innerHTML = M.earworms.slice(0, 12).map(([d, t, n]) => jump(d, `${esc(M.tracks[t][0])} <span class="v">· ${esc(A[M.tracks[t][1]])}</span>`, `${d.slice(2)} ×${n}`)).join('');
+  const tmx = M.topArtists[0][1];
+  $('topart').innerHTML = M.topArtists.slice(0, 12).map(([a, h]) => `<div class="row"><span class="nm" style="color:${artistColor(a)}">${esc(A[a])}</span><span class="v">${fmt(h)} h</span>${bar(h, tmx, artistColor(a))}</div>`).join('');
+  document.querySelectorAll('[data-date]').forEach(el => {
+    const go = () => select(diOf(el.dataset.date), true);
+    el.addEventListener('click', go); el.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } });
+  });
+  const ys = Object.keys(M.circadian).map(Number);
+  $('circ-years').innerHTML = ys.map(y => `<button type="button" id="cy-${y}" data-y="${y}" aria-pressed="${y === circYear}">${String(y).slice(2)}</button>`).join('');
+  $('circ-years').querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+    circYear = +b.dataset.y; $('circ-years').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b)); drawCirc(); }));
+}
+function drawCirc() {
+  const [g, w, h] = setup($('circ')), cx = w / 2, cy = h / 2, R = Math.min(w, h) / 2 - 26, r0 = R * 0.18, C = M.circadian[circYear];
+  $('circ-yr').textContent = circYear;
+  g.strokeStyle = GRIDC; g.lineWidth = 1;
+  [0.25, 0.5, 0.75, 1].forEach(f => { g.beginPath(); g.arc(cx, cy, r0 + (R - r0) * f, 0, 7); g.stroke(); });
+  g.font = '10px "JetBrains Mono", monospace'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = DIM;
+  for (let hr = 0; hr < 24; hr++) { const a = hr / 24 * Math.PI * 2 - Math.PI / 2;
+    g.beginPath(); g.moveTo(cx + Math.cos(a) * r0, cy + Math.sin(a) * r0); g.lineTo(cx + Math.cos(a) * R, cy + Math.sin(a) * R); g.stroke();
+    if (hr % 3 === 0) g.fillText(pad(hr), cx + Math.cos(a) * (R + 14), cy + Math.sin(a) * (R + 14)); }
+  const poly = (arr, rgb) => { const mx = Math.max(...arr) || 1; g.beginPath();
+    for (let i = 0; i <= 24; i++) { const hr = i % 24, a = (hr + 0.5) / 24 * Math.PI * 2 - Math.PI / 2, rr = r0 + (R - r0) * arr[hr] / mx;
+      i ? g.lineTo(cx + Math.cos(a) * rr, cy + Math.sin(a) * rr) : g.moveTo(cx + Math.cos(a) * rr, cy + Math.sin(a) * rr); }
+    g.fillStyle = `rgba(${rgb},0.16)`; g.fill(); g.strokeStyle = `rgb(${rgb})`; g.lineWidth = 1.6; g.shadowColor = `rgb(${rgb})`; g.shadowBlur = 10; g.stroke(); g.shadowBlur = 0; };
+  poly(C.listen, MG.join(',')); poly(C.steps, CY.join(','));
+}
+
+// ---------- totals
+function renderTotals() {
+  const T = M.totals;
+  $('totals').innerHTML =
+    `<div><span>Steps</span><strong class="c-step">${fmt(T.steps)}</strong></div>` +
+    `<div><span>Miles on foot</span><strong class="c-step">${fmt(T.miles)}</strong></div>` +
+    `<div><span>Flights</span><strong class="c-climb">${fmt(T.flights)}</strong></div>` +
+    `<div><span>Hours listened</span><strong class="c-sound">${fmt(T.hours)}</strong></div>` +
+    `<div><span>Plays</span><strong class="c-sound">${fmt(T.plays)}</strong></div>` +
+    `<div><span>Artists</span><strong>${fmt(T.artists)}</strong></div>` +
+    `<div><span>Countries</span><strong>${T.countries}</strong></div>`;
+}
+
+// ---------- events
+function wire() {
+  document.querySelectorAll('#decade .seg button').forEach(b => b.addEventListener('click', () => {
+    mode = b.dataset.mode; document.querySelectorAll('#decade .seg button').forEach(x => x.setAttribute('aria-pressed', x === b)); drawHeat(); }));
+  const heat = $('heat');
+  heat.addEventListener('pointermove', e => { const di = heatHit(e); di < 0 ? hideTip() : showTip(dayTip(di), e); heat.style.cursor = di < 0 ? 'default' : 'crosshair'; });
+  heat.addEventListener('pointerleave', hideTip);
+  heat.addEventListener('click', e => { const di = heatHit(e); if (di >= 0) { hideTip(); select(di, true); } });
+  const sig = $('signal');
+  sig.addEventListener('pointermove', e => {
+    const [i, y] = signalHit(e); if (i < 0) { hideTip(); drawSignal(); return; }
+    drawSignal(i); const d = dateOf(i), m = `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}`, era = M.eras.find(x => x[0] === m);
+    showTip(`<b>${iso(d)}</b> <span class="k">30-day avg</span><br><span class="c-step">${isNaN(roll.s[i]) ? '—' : fmt(roll.s[i])} steps/day</span><br><span class="c-sound">${roll.l[i].toFixed(1)} h/day listening</span>` +
+      (era ? `<br><span class="k">${MON[d.getUTCMonth()]} era:</span> <span style="color:${artistColor(era[1])}">${esc(M.artists[era[1]])}</span> <span class="k">${Math.round(era[2] * 100)}% of time</span>` : ''), e);
+  });
+  sig.addEventListener('pointerleave', () => { hideTip(); drawSignal(); });
+  sig.addEventListener('click', e => { const [i] = signalHit(e); if (i >= 0) { hideTip(); select(i, true); } });
+  const dc = $('daycv'); let hv = null;
+  dc.addEventListener('pointermove', e => {
+    const h = dayHit(e);
+    const nv = h && h.kind === 'play' ? h.i : null; if (nv !== hv) { hv = nv; drawDay(hv);
+      document.querySelectorAll('#tracklist tr.hl').forEach(r => r.classList.remove('hl'));
+      if (hv != null) { const tr = document.querySelector(`#tracklist tr[data-i="${hv}"]`); if (tr) { tr.classList.add('hl'); tr.scrollIntoView({ block: 'nearest' }); } } }
+    if (!h) return hideTip();
+    if (h.kind === 'play') { const [s, d, t, sk] = dayIndex[sel][h.i], [nm, a, al] = M.tracks[t];
+      const hrSteps = H.steps[sel * 24 + Math.floor(s / 3600)];
+      showTip(`<b>${esc(nm)}</b><br><span style="color:${artistColor(a)}">${esc(M.artists[a])}</span><br><span class="k">${esc(al)}</span><br>${hms(s)} · played ${mmss(d)}${sk ? ' · <span class="c-sound">skipped</span>' : ''}<br><span class="c-step">${fmt(hrSteps)} steps that hour</span>`, e); }
+    else { const i = sel * 24 + h.hr, mins = Math.round(H.listen[i] / 60);
+      showTip(`<b>${pad(h.hr)}:00–${pad((h.hr + 1) % 24)}:00</b><br><span class="c-step">${fmt(H.steps[i])} steps · ${H.miles[i].toFixed(2)} mi</span><br><span class="c-climb">${H.flights[i]} flights</span><br><span class="c-sound">${mins} min listening</span>`, e); }
+  });
+  dc.addEventListener('pointerleave', () => { hideTip(); if (hv != null) { hv = null; drawDay(); document.querySelectorAll('#tracklist tr.hl').forEach(r => r.classList.remove('hl')); } });
+  const fort = $('fort');
+  const fortHit = e => { const [, y] = pt(fort, e), r = Math.floor((y - FL.top) / FL.rowH); return fortDays[r]; };
+  fort.addEventListener('click', e => { const di = fortHit(e); if (di != null) select(di); });
+  fort.addEventListener('pointermove', e => { const di = fortHit(e); di == null ? hideTip() : showTip(dayTip(di), e); fort.style.cursor = di == null ? 'default' : 'pointer'; });
+  fort.addEventListener('pointerleave', hideTip);
+  $('prev').addEventListener('click', () => select(sel - 1));
+  $('next').addEventListener('click', () => select(sel + 1));
+  $('jump').addEventListener('change', e => { if (e.target.value) select(diOf(e.target.value)); });
+  addEventListener('keydown', e => {
+    if (e.target.tagName === 'INPUT') return;
+    if (e.key === 'ArrowLeft') { e.preventDefault(); select(sel - 1); }
+    if (e.key === 'ArrowRight') { e.preventDefault(); select(sel + 1); }
+  });
+  let rt; addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => { drawHeat(); drawSignal(); drawDay(); drawFort(); drawCirc(); }, 120); });
+}
+
+// ---------- boot
+Promise.all([fetch('data/meta.json').then(r => r.json()), fetch('data/hourly.json').then(r => r.json())]).then(([m, h]) => {
+  M = m; H = h; ND = M.nDays; START = Date.parse(M.start + 'T00:00:00Z');
+  const j = $('jump'); j.min = M.start; j.max = iso(dateOf(ND - 1));
+  computeRoll(); renderTotals(); renderCuts(); wire(); drawCirc();
+  select(diOf(M.topStepDays[0][0]));
+}).catch(err => { $('boot').textContent = 'Could not load data files: ' + err.message; });
+})();
+</script>
+</html>

@@ -1,0 +1,5 @@
+.DS_Store
+# raw personal exports never go in this repo (Spotify raw JSON contains IP addresses)
+raw/
+*.csv
+Streaming_History_*.json
