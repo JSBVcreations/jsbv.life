@@ -75,6 +75,20 @@ h1 .sl { color: var(--hot); text-shadow: 0 0 6px var(--step), 0 0 18px var(--ste
 .meter .track { height: 10px; background: #120f26; border: 1px solid var(--grid); position: relative; }
 .meter .fill { position: absolute; inset: 0 auto 0 0; }
 #trail { border-color: rgba(182,255,92,0.35); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px 14px; font-family: var(--f-data); font-size: var(--s-0); color: var(--dim); }
+.chips span { display: inline-flex; align-items: center; gap: 6px; }
+.chips i { width: 10px; height: 10px; display: inline-block; box-shadow: 0 0 8px currentColor; }
+.slope { display: grid; gap: 10px; }
+.slope-row { display: grid; grid-template-columns: 92px minmax(0, 1fr) 84px; gap: 10px; align-items: center; font-family: var(--f-data); font-size: var(--s-0); }
+.slope-row .lab { color: var(--ink); text-transform: uppercase; letter-spacing: 0.1em; }
+.slope-row .v { color: var(--dim); text-align: right; font-variant-numeric: tabular-nums; }
+.stack { display: flex; height: 14px; border: 1px solid var(--grid); background: #120f26; overflow: hidden; }
+.stack b { display: block; height: 100%; }
+.trail-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 320px); gap: 18px; align-items: start; }
+@media (max-width: 860px) { .trail-grid { grid-template-columns: minmax(0, 1fr); } }
+.cls { font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; padding: 1px 5px; border: 1px solid currentColor; margin-left: 6px; }
+.cls.adhd { color: var(--climb); } .cls.skip { color: var(--sound); } .cls.sleep { color: #8a84b8; }
+.tracklist tr.sleep .t, .tracklist tr.sleep .a { color: #5e5888; }
 
 section { background: linear-gradient(180deg, var(--panel), rgba(13,11,28,0.6)); border: 1px solid var(--grid); padding: 18px; display: grid; gap: 14px; min-width: 0; }
 .sec-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 16px; }
@@ -150,7 +164,7 @@ footer { color: var(--dim); font-size: var(--s-0); }
 
   <section id="decade" aria-labelledby="h-decade">
     <div class="sec-head">
-      <h2 id="h-decade">Decade <small>one column per day · one band per year</small></h2>
+      <h2 id="h-decade">Every day since 2016 <small>each row is a year · each thin stripe is one day</small></h2>
       <div class="seg" role="group" aria-label="Heatmap channel">
         <button type="button" id="m-both" data-mode="both" aria-pressed="true">Both</button>
         <button type="button" id="m-steps" data-mode="steps" aria-pressed="false">Steps</button>
@@ -158,7 +172,7 @@ footer { color: var(--dim); font-size: var(--s-0); }
         <button type="button" id="m-elev" data-mode="elev" aria-pressed="false">Elevation</button>
       </div>
     </div>
-    <div class="cv"><canvas id="heat" height="360" aria-label="Daily steps and listening heatmap, 2016 to 2026"></canvas></div>
+    <div class="cv"><canvas id="heat" data-h="360" aria-label="Daily steps and listening heatmap, 2016 to 2026"></canvas></div>
     <div class="legend" id="heat-legend"></div>
   </section>
 
@@ -167,7 +181,7 @@ footer { color: var(--dim); font-size: var(--s-0); }
       <h2 id="h-signal">Signal <small>30-day average · bottom strip shows the top artist of each month</small></h2>
       <div class="seg scale-seg" role="group" aria-label="Chart scale"><button type="button" id="sc-lin-sig" data-scale="lin" aria-pressed="true">Linear</button><button type="button" id="sc-log-sig" data-scale="log" aria-pressed="false">Log</button></div>
     </div>
-    <div class="cv"><canvas id="signal" height="250" aria-label="Rolling average of steps and listening hours"></canvas></div>
+    <div class="cv"><canvas id="signal" data-h="250" aria-label="Rolling average of steps and listening hours"></canvas></div>
     <div class="legend"><span><i style="background:var(--step)"></i>steps / day</span><span><i style="background:var(--sound)"></i>hours listened / day</span><span><i style="background:rgba(182,255,92,0.35)"></i>Appalachian Trail 2019</span><span>click anywhere to open that day</span></div>
   </section>
 
@@ -179,9 +193,20 @@ footer { color: var(--dim); font-size: var(--s-0); }
     </div>
     <div class="readout" id="trail-stats"></div>
     <div class="meters" id="trail-meters"></div>
-    <div class="cv"><canvas id="trailcv" height="230" aria-label="Daily miles and elevation gain on the Appalachian Trail"></canvas></div>
-    <div class="legend"><span><i style="background:var(--step)"></i>miles per day</span><span><i style="background:var(--climb)"></i>elevation gain (ft)</span><span><i style="background:#fff"></i>cumulative miles vs 2,192</span><span>click a day to open it</span></div>
-    <p class="note">Capture compares what the phone recorded against the trail's official totals. Gaps come from a dead battery or a phone riding in a hip pocket. Walking around town adds some distance back, so distance capture is an upper bound. Elevation is flights of stairs × 10 ft, Apple Health's definition of one flight.</p>
+    <h2 style="font-size:var(--s-0)">Elevation profile <small id="prof-sub">Katahdin → Springer Mountain · glow = what was playing</small></h2>
+    <div class="cv"><canvas id="profcv" data-h="300" aria-label="Appalachian Trail elevation profile, colored by the genre playing at each point"></canvas></div>
+    <div class="chips" id="genre-chips"></div>
+    <div class="trail-grid">
+      <div style="display:grid;gap:8px;min-width:0">
+        <h2 style="font-size:var(--s-0)">Climb and descent by day <small>from the profile · white tick = phone-measured gain</small></h2>
+        <div class="cv"><canvas id="trailcv" data-h="200" aria-label="Daily climb and descent on the Appalachian Trail"></canvas></div>
+      </div>
+      <div style="display:grid;gap:10px;min-width:0">
+        <h2 style="font-size:var(--s-0)">Soundtrack by terrain <small>hours on the move</small></h2>
+        <div class="slope" id="slope"></div>
+      </div>
+    </div>
+    <p class="note">The phone only counts flights climbed, never descended, so the profile does the rest: each hour's distance moves you along the real trail (Katahdin to Springer), and the trail's elevation at that point gives the climb and descent. Positions are approximate where the phone was off. Capture compares what the phone recorded against official totals; town walking adds some distance back, so distance capture is an upper bound. Profile data: <a href="https://github.com/JasonSanford/every-mile" style="color:var(--dim)">every-mile</a>.</p>
   </section>
 
   <section id="day" aria-labelledby="h-day">
@@ -197,10 +222,10 @@ footer { color: var(--dim); font-size: var(--s-0); }
     <div class="readout" id="day-stats"></div>
     <div class="day-grid">
       <div style="display:grid;gap:14px;min-width:0">
-        <div class="cv"><canvas id="daycv" height="300" aria-label="Hourly steps, flights and tracks for the selected day"></canvas></div>
-        <div class="legend"><span><i style="background:var(--step)"></i>steps per hour</span><span><i style="background:var(--climb)"></i>flights of stairs</span><span><i style="background:linear-gradient(90deg,var(--sound),#9d6bff,var(--step))"></i>each track, colored by artist</span><span>← → keys move by day</span></div>
+        <div class="cv"><canvas id="daycv" data-h="300" aria-label="Hourly steps, flights and tracks for the selected day"></canvas></div>
+        <div class="legend"><span><i style="background:var(--step)"></i>steps per hour</span><span><i style="background:var(--climb)"></i>flights of stairs</span><span><i style="background:linear-gradient(90deg,#ff3b4e,#9d6bff,#ffd84a)"></i>each track, colored by genre (short = skip, mid = ADHD listen)</span><span id="ele-legend" hidden><i style="background:var(--trail)"></i>trail elevation</span><span>← → keys move by day</span></div>
         <h2 style="font-size:var(--s-0)">Fortnight <small>hour by hour · click a row</small></h2>
-        <div class="cv"><canvas id="fort" height="260" aria-label="Hour-by-hour grid of the surrounding two weeks"></canvas></div>
+        <div class="cv"><canvas id="fort" data-h="260" aria-label="Hour-by-hour grid of the surrounding two weeks"></canvas></div>
       </div>
       <div style="display:grid;gap:8px;align-content:start;min-width:0">
         <h2 style="font-size:var(--s-0)">Tracklist <small id="tl-count"></small></h2>
@@ -219,13 +244,13 @@ footer { color: var(--dim); font-size: var(--s-0); }
       </div>
       <div class="card">
         <h3 class="c-sound">Artists you sit with</h3>
-        <p class="note">Lowest average steps per hour while playing. Sleep audio and focus music collect here.</p>
+        <p class="note">Lowest average steps per hour while playing. Sleep audio is counted separately.</p>
         <div class="rows" id="sitters"></div>
       </div>
       <div class="card">
         <h3>Circadian <span id="circ-yr" class="c-step"></span></h3>
         <div class="seg" role="group" aria-label="Year" id="circ-years"></div>
-        <div class="cv" style="max-width:340px;justify-self:center;width:100%"><canvas id="circ" height="340" aria-label="24-hour profile of steps and listening"></canvas></div>
+        <div class="cv" style="max-width:340px;justify-self:center;width:100%"><canvas id="circ" data-h="340" aria-label="24-hour profile of steps and listening"></canvas></div>
         <p class="note">Average steps (cyan) and listening (magenta) by hour of day. Each is scaled to its own peak.</p>
       </div>
       <div class="card">
@@ -238,13 +263,23 @@ footer { color: var(--dim); font-size: var(--s-0); }
         <div class="rows" id="worms"></div>
       </div>
       <div class="card">
+        <h3 style="color:#a9a3d6">Sleep audio</h3>
+        <p class="note" id="sleep-note"></p>
+        <div class="rows" id="sleepart"></div>
+      </div>
+      <div class="card">
+        <h3>How you listen</h3>
+        <p class="note">Share of each track played: under ⅓ is a skip, ⅓–⅔ an ADHD listen, over ⅔ a full listen.</p>
+        <div class="rows" id="classes"></div>
+      </div>
+      <div class="card">
         <h3>Most-played artists</h3>
         <div class="rows" id="topart"></div>
       </div>
     </div>
   </section>
 
-  <footer>Spotify timestamps are UTC and are converted to local time using the country each track was played in (US plays use Eastern time). Apple Health data is hourly in device time, starting July 2016. Flights of stairs start October 2018; elevation gain is flights × 10 ft. Plays downloaded for offline listening are placed at the time they were played, not when the phone synced.</footer>
+  <footer>Spotify timestamps are UTC and are converted to local time using the country each track was played in (US plays use Eastern time). Apple Health data is hourly in device time, starting July 2016. Flights of stairs start October 2018; elevation gain is flights × 10 ft. Plays downloaded for offline listening are placed at the time they were played, not when the phone synced. Genres are hand-tagged for about 620 artists; the rest show as Other.</footer>
 </div>
 <div id="tip" hidden></div>
 
@@ -272,6 +307,10 @@ const dateOf = di => { const d = new Date(START); d.setUTCDate(d.getUTCDate() + 
 const iso = d => `${d.getUTCFullYear()}-${pad(d.getUTCMonth()+1)}-${pad(d.getUTCDate())}`;
 const diOf = s => Math.round((Date.parse(s + 'T00:00:00Z') - START) / 864e5);
 const hueOf = a => { let h = 2166136261; const s = M.artists[a]; for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 16777619); return ((h >>> 0) % 360); };
+const genreOf = a => M.artistGenre[a];
+const genreColor = (g, al = 1) => { const c = M.genres[g] ? M.genres[g].color : '#7d77a8'; if (al >= 1) return c;
+  const n = parseInt(c.slice(1), 16); return `rgba(${n >> 16},${(n >> 8) & 255},${n & 255},${al})`; };
+const CLS = ['full', 'adhd', 'skip', 'sleep'], CLS_LABEL = ['', 'ADHD', 'skip', 'sleep'];
 const artistColor = (a, al = 1) => `hsla(${hueOf(a)},100%,62%,${al})`;
 const blend = (s, l) => `rgb(${Math.min(255, BG[0] + CY[0]*s + MG[0]*l)|0},${Math.min(255, BG[1] + CY[1]*s + MG[1]*l)|0},${Math.min(255, BG[2] + CY[2]*s + MG[2]*l)|0})`;
 const mix = (c, t) => `rgb(${BG[0]+(c[0]-BG[0])*t|0},${BG[1]+(c[1]-BG[1])*t|0},${BG[2]+(c[2]-BG[2])*t|0})`;
@@ -291,9 +330,11 @@ const hideTip = () => { tip.hidden = true; };
 
 // ---------- canvas helper
 function setup(cv) {
-  const dpr = Math.min(2, devicePixelRatio || 1), w = cv.clientWidth, h = +cv.getAttribute('height');
+  // Logical size lives in data-h; the bitmap is always sized to CSS size × pixel ratio on both axes.
+  const dpr = Math.min(2, devicePixelRatio || 1), w = cv.clientWidth, h = +cv.dataset.h;
   cv.style.height = h + 'px';
-  if (cv.width !== Math.round(w * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); }
+  const bw = Math.round(w * dpr), bh = Math.round(h * dpr);
+  if (cv.width !== bw || cv.height !== bh) { cv.width = bw; cv.height = bh; }
   const g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h);
   return [g, w, h];
 }
@@ -314,7 +355,7 @@ function cellColor(di) {
 }
 function drawHeat() {
   const cv = $('heat'), years = yearsList();
-  cv.setAttribute('height', HL.top + years.length * (HL.band + HL.gap) + 4);
+  cv.dataset.h = HL.top + years.length * (HL.band + HL.gap) + 4;
   const [g, w] = setup(cv), cw = (w - HL.left) / 366;
   g.font = '600 10px "JetBrains Mono", monospace'; g.textBaseline = 'middle';
   // month ticks
@@ -369,7 +410,8 @@ function dayTip(di) {
     (D.has[di] & 1 ? `<span class="c-step">${fmt(D.steps[di])} steps</span> · ${D.miles[di].toFixed(1)} mi<br>` : '<span class="k">no health data</span><br>') +
     (D.has[di] & 2 ? `<span class="c-climb">${D.flights[di]} flights of stairs · ${fmt(D.elev[di])} ft</span><br>` : '') +
     (EXTD[di] ? `<span class="c-trail">${dayHours(di)}-hour day (through ${pad(EXTD[di])}:00 next day)</span><br>` : '') +
-    `<span class="c-sound">${fmt(D.listen[di])} min</span> · ${D.plays[di]} plays<br><span class="k">top:</span> ${top}`;
+    `<span class="c-sound">${fmt(D.listen[di])} min</span> · ${D.full[di]} full · ${D.adhd[di]} ADHD · ${D.skips[di]} skips<br>` +
+    (D.sleep[di] ? `<span class="k">sleep audio:</span> ${D.sleep[di]} min<br>` : '') + `<span class="k">top:</span> ${top}`;
 }
 
 // ---------- SIGNAL
@@ -467,12 +509,26 @@ function drawDay(hover) {
   const ly = base + 26;
   g.fillStyle = '#120f26'; g.fillRect(DL.left, ly, pw, DL.laneH);
   g.fillStyle = DIM; g.textAlign = 'right'; g.fillText('PLAY', DL.left - 6, ly + DL.laneH / 2);
+  // trail elevation for this day (from the profile)
+  const tr = trailFor(sel); $('ele-legend').hidden = !tr;
+  if (tr) {
+    const E = [];
+    for (let hr = 0; hr < HRS; hr++) { const k = (sel - tr.a) * 24 + hr; if (k >= 0 && k < tr.hours.ele.length) E.push([hr, tr.hours.ele[k]]); }
+    if (E.length) {
+      let lo2 = Math.min(...E.map(e => e[1])), hi2 = Math.max(...E.map(e => e[1])); const padE = Math.max(200, (hi2 - lo2) * 0.15); lo2 -= padE; hi2 += padE;
+      const Y = v => base - (v - lo2) / (hi2 - lo2) * barsH;
+      g.beginPath(); E.forEach(([hr, v], i) => { const x = DL.left + (hr + 0.5) * bw; i ? g.lineTo(x, Y(v)) : g.moveTo(x, Y(v)); });
+      g.strokeStyle = '#b6ff5c'; g.lineWidth = 2; g.shadowColor = '#b6ff5c'; g.shadowBlur = 10; g.stroke(); g.shadowBlur = 0;
+      g.fillStyle = '#b6ff5c'; g.textAlign = 'left';
+      [hi2 - padE, lo2 + padE].forEach(v => g.fillText(fmt(Math.round(v / 10) * 10) + ' ft', w - DL.right - 44, Y(v)));
+    }
+  }
   const P = dayIndex[sel] || [];
   P.forEach((p, i) => {
-    const [s, d, t, sk] = p, a = M.tracks[t][1], x0 = X(s), x1 = X(Math.min(HRS * 3600, s + d));
+    const [s, d, t, c] = p, a = M.tracks[t][1], x0 = X(s), x1 = X(Math.min(HRS * 3600, s + d)), col = c === 3 ? '#4a4478' : genreColor(genreOf(a));
     const isH = hover === i;
-    g.fillStyle = artistColor(a, sk ? 0.35 : 0.9); g.shadowColor = artistColor(a); g.shadowBlur = isH ? 14 : 4;
-    const hh = sk ? DL.laneH * 0.45 : DL.laneH;
+    g.fillStyle = c === 3 ? col : genreColor(genreOf(a), c === 2 ? 0.4 : 0.9); g.shadowColor = col; g.shadowBlur = isH ? 14 : (c === 3 ? 0 : 4);
+    const hh = DL.laneH * [1, 0.7, 0.4, 0.25][c];
     g.fillRect(x0, ly + (DL.laneH - hh) / 2, Math.max(1, x1 - x0 - 0.5), hh); g.shadowBlur = 0;
     if (isH) { g.strokeStyle = '#fff'; g.lineWidth = 1; g.strokeRect(x0 - 1, ly - 2, Math.max(2, x1 - x0) + 2, DL.laneH + 4); }
     dayHits.push({ kind: 'play', x0, x1: Math.max(x1, x0 + 2), y0: ly - 4, y1: ly + DL.laneH + 4, i });
@@ -492,8 +548,9 @@ function renderTracklist() {
   $('tl-count').textContent = P.length ? `${P.length} plays` : '';
   if (!P.length) { el.innerHTML = '<div class="empty">No plays recorded on this day.</div>'; return; }
   el.innerHTML = '<table><tbody>' + P.map((p, i) => {
-    const [s, d, t, sk] = p, [name, a] = M.tracks[t];
-    return `<tr data-i="${i}" class="${sk ? 'skip' : ''}"><td>${hms(s)}</td><td><span class="dot" style="background:${artistColor(a)}"></span><span class="t">${esc(name)}</span><br><span class="a">${esc(M.artists[a])} · ${mmss(d)}${sk ? ' · skipped' : ''}</span></td></tr>`;
+    const [s, d, t, c] = p, [name, a, , full] = M.tracks[t];
+    const pct = full ? ` / ${mmss(full)}` : '';
+    return `<tr data-i="${i}" class="${c === 2 ? 'skip' : c === 3 ? 'sleep' : ''}"><td>${hms(s)}</td><td><span class="dot" style="background:${c === 3 ? '#4a4478' : genreColor(genreOf(a))}"></span><span class="t">${esc(name)}</span>${c ? `<span class="cls ${CLS[c]}">${CLS_LABEL[c]}</span>` : ''}<br><span class="a">${esc(M.artists[a])} · ${mmss(d)}${pct}</span></td></tr>`;
   }).join('') + '</tbody></table>';
 }
 function renderDayStats() {
@@ -509,7 +566,8 @@ function renderDayStats() {
     `<div><span>Flights of stairs</span><strong class="c-climb">${hf ? D.flights[sel] : '—'}</strong></div>` +
     `<div><span>Elevation gain</span><strong class="c-climb">${hf ? fmt(D.elev[sel]) + ' ft' : '—'}</strong></div>` +
     `<div><span>Listened</span><strong class="c-sound">${Math.floor(D.listen[sel] / 60)}h ${pad(D.listen[sel] % 60)}m</strong></div>` +
-    `<div><span>Plays / skips</span><strong>${D.plays[sel]} / ${D.skips[sel]}</strong></div>` +
+    `<div><span>Full · ADHD · skip</span><strong>${D.full[sel]} · <span class="c-climb">${D.adhd[sel]}</span> · <span class="c-sound">${D.skips[sel]}</span></strong></div>` +
+    (D.sleep[sel] ? `<div><span>Sleep audio</span><strong style="color:#a9a3d6">${Math.floor(D.sleep[sel] / 60)}h ${pad(D.sleep[sel] % 60)}m</strong></div>` : '') +
     `<div style="min-width:0"><span>Top artist</span><strong style="font-size:var(--s-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${top}</strong></div>`;
 }
 
@@ -519,7 +577,7 @@ let fortDays = [];
 function drawFort() {
   const cv = $('fort'); fortDays = [];
   for (let k = -7; k <= 7; k++) if (sel + k >= 0 && sel + k < ND) fortDays.push(sel + k);
-  cv.setAttribute('height', FL.top + fortDays.length * FL.rowH + 4);
+  cv.dataset.h = FL.top + fortDays.length * FL.rowH + 4;
   const [g, w] = setup(cv), cw = (w - FL.left) / 24;
   g.font = '10px "JetBrains Mono", monospace'; g.textBaseline = 'middle'; g.textAlign = 'center'; g.fillStyle = DIM;
   for (let hr = 0; hr < 24; hr += (w < 520 ? 6 : 3)) g.fillText(pad(hr), FL.left + hr * cw + cw / 2, 7);
@@ -539,7 +597,7 @@ function drawFort() {
 let lastTL = -1;
 async function select(di, scroll) {
   sel = Math.max(0, Math.min(ND - 1, di));
-  renderDayStats(); drawHeat(); drawSignal(); drawFort(); drawTrail();
+  renderDayStats(); drawHeat(); drawSignal(); drawFort(); drawTrail(); drawProfile();
   const y = dateOf(sel).getUTCFullYear(), loads = [loadYear(y)];
   const yp = dateOf(Math.max(0, sel - 7)).getUTCFullYear(); if (yp !== y) loads.push(loadYear(yp));
   drawDay(); if (dayIndex[sel] || !(playsByYear[y] instanceof Promise)) renderTracklist();
@@ -560,7 +618,13 @@ function renderCuts() {
   $('stepdays').innerHTML = M.topStepDays.slice(0, 12).map(([d, s, mi]) => jump(d, EXTD[diOf(d)] ? `${d} <span class="c-trail">+${EXTD[diOf(d)]}h</span>` : d, `${fmt(s)} · ${mi.toFixed(1)} mi`)).join('');
   $('worms').innerHTML = M.earworms.slice(0, 12).map(([d, t, n]) => jump(d, `${esc(M.tracks[t][0])} <span class="v">· ${esc(A[M.tracks[t][1]])}</span>`, `${d.slice(2)} ×${n}`)).join('');
   const tmx = M.topArtists[0][1];
-  $('topart').innerHTML = M.topArtists.slice(0, 12).map(([a, h]) => `<div class="row"><span class="nm" style="color:${artistColor(a)}">${esc(A[a])}</span><span class="v">${fmt(h)} h</span>${bar(h, tmx, artistColor(a))}</div>`).join('');
+  $('topart').innerHTML = M.topArtists.slice(0, 12).map(([a, h]) => `<div class="row"><span class="nm" style="color:${genreColor(genreOf(a))}">${esc(A[a])}</span><span class="v">${fmt(h)} h</span>${bar(h, tmx, genreColor(genreOf(a)))}</div>`).join('');
+  const SL = M.sleep, smx = SL.artists.length ? SL.artists[0][1] : 1;
+  $('sleep-note').textContent = `${fmt(SL.hours)} hours across ${fmt(SL.nights)} nights: hypnosis, binaural beats, rain sounds and silence. Kept out of listening stats until it joins your sleep data.`;
+  $('sleepart').innerHTML = SL.artists.slice(0, 8).map(([a, h]) => `<div class="row"><span class="nm">${esc(A[a])}</span><span class="v">${h} h</span>${bar(h, smx, '#8a84b8')}</div>`).join('');
+  const K = M.classes, kt = K.full + K.adhd + K.skip;
+  $('classes').innerHTML = [['Full listens', K.full, 'var(--step)'], ['ADHD listens', K.adhd, 'var(--climb)'], ['Skips', K.skip, 'var(--sound)']]
+    .map(([l, v, c]) => `<div class="row"><span class="nm">${l}</span><span class="v">${fmt(v)} · ${Math.round(v / kt * 100)}%</span>${bar(v, kt, c)}</div>`).join('');
   document.querySelectorAll('[data-date]').forEach(el => {
     const go = () => select(diOf(el.dataset.date), true);
     el.addEventListener('click', go); el.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } });
@@ -587,11 +651,12 @@ function drawCirc() {
 }
 
 // ---------- TRAIL
-const TL = { left: 56, right: 52, top: 14, bottom: 22 };
+const trailFor = di => (M.trips || []).find(t => t.hours && di >= t.a && di <= t.b + 1);
+const TL = { left: 56, right: 14, top: 12, bottom: 22 };
 function renderTrail() {
   const t = M.trips && M.trips[0]; if (!t) { $('trail').hidden = true; return; }
   const a = dateOf(t.a), b = dateOf(t.b);
-  $('trail-sub').textContent = `${MON[a.getUTCMonth()]} ${a.getUTCDate()} – ${MON[b.getUTCMonth()]} ${b.getUTCDate()}, ${b.getUTCFullYear()} · ${t.days} days`;
+  $('trail-sub').textContent = `${MON[a.getUTCMonth()]} ${a.getUTCDate()} – ${MON[b.getUTCMonth()]} ${b.getUTCDate()}, ${b.getUTCFullYear()} · ${t.days} days · southbound`;
   $('trail-stats').innerHTML =
     `<div><span>Miles captured</span><strong class="c-step">${fmt(t.capMiles)} <small style="font-size:var(--s-0);color:var(--dim)">/ ${fmt(t.miles)}</small></strong></div>` +
     `<div><span>Elevation captured</span><strong class="c-climb">${fmt(t.capFt)} <small style="font-size:var(--s-0);color:var(--dim)">/ ${fmt(t.gainFt)} ft</small></strong></div>` +
@@ -600,36 +665,102 @@ function renderTrail() {
     `<div><span>Music on trail</span><strong class="c-sound">${fmt(t.listenH)} h</strong></div>`;
   const meter = (lab, pct, col) => `<div class="meter"><div class="lab"><span>${lab}</span><b>${pct.toFixed(1)}%</b></div><div class="track"><div class="fill" style="width:${Math.min(100, pct)}%;background:${col};box-shadow:0 0 10px ${col}"></div></div></div>`;
   $('trail-meters').innerHTML = meter('Distance captured', t.pctMiles, 'var(--step)') + meter('Elevation captured', t.pctFt, 'var(--climb)');
+  if (!t.hours) return;
+  // genre legend (only genres heard on trail)
+  const heard = new Set(t.hours.genre.filter(g => g >= 0));
+  $('genre-chips').innerHTML = M.genres.map((g, i) => heard.has(i) ? `<span><i style="background:${g.color};color:${g.color}"></i>${esc(g.name)}</span>` : '').join('') +
+    '<span><i style="background:#1a1630;color:transparent;border:1px solid var(--grid)"></i>No music</span>';
+  // soundtrack by terrain
+  const rows = [['climb', 'Climbing'], ['roll', 'Rolling'], ['descend', 'Descending']];
+  $('slope').innerHTML = rows.map(([k, lab]) => {
+    const v = t.bySlope[k] || {}, tot = Object.entries(v).filter(([g]) => g !== '_hours').reduce((s, [, x]) => s + x, 0) || 1;
+    const segs = Object.entries(v).filter(([g]) => g !== '_hours' && g !== 'silence').sort((x, y) => y[1] - x[1])
+      .map(([g, x]) => `<b title="${esc(M.genres[+g].name)} ${Math.round(x / tot * 100)}%" style="width:${x / tot * 100}%;background:${M.genres[+g].color}"></b>`).join('');
+    const music = Math.round((1 - (v.silence || 0) / tot) * 100);
+    return `<div class="slope-row"><span class="lab">${lab}</span><div class="stack">${segs}</div><span class="v">${music}% music</span></div>`;
+  }).join('') + `<p class="note">${rows.map(([k, lab]) => `${lab.toLowerCase()} ${t.bySlope[k]._hours} h`).join(' · ')}. An hour counts as climbing or descending when the profile changes by more than 250 ft. Bars show the mix of what played; the rest of the time you hiked without music.</p>`;
 }
-function trailGeom() { const cv = $('trailcv'), t = M.trips[0], n = t.b - t.a + 1, pw = cv.clientWidth - TL.left - TL.right; return { t, n, pw, bw: pw / n }; }
-function drawTrail() {
-  const t = M.trips && M.trips[0]; if (!t) return;
-  const [g, w, h] = setup($('trailcv')), { n, pw, bw } = trailGeom(), D = M.daily;
-  const ph = h - TL.top - TL.bottom, mid = TL.top + ph * 0.62, upH = mid - TL.top, dnH = TL.top + ph - mid;
-  let mMax = 0, eMax = 0; for (let i = t.a; i <= t.b; i++) { mMax = Math.max(mMax, D.miles[i]); eMax = Math.max(eMax, D.elev[i]); }
-  mMax = Math.ceil(mMax / 10) * 10; eMax = Math.ceil(eMax / 1000) * 1000;
+// ---- profile chart
+const PL = { left: 52, right: 14, top: 18, bottom: 24 };
+function profGeom() { const cv = $('profcv'), t = M.trips[0], pw = cv.clientWidth - PL.left - PL.right, ph = +cv.dataset.h - PL.top - PL.bottom;
+  let lo = Infinity, hi = 0; t.profile.forEach(v => { lo = Math.min(lo, v); hi = Math.max(hi, v); }); hi = Math.ceil(hi / 1000) * 1000;
+  return { t, pw, ph, X: mi => PL.left + mi / t.miles * pw, Y: ft => PL.top + ph - ft / hi * ph, hi }; }
+function drawProfile() {
+  const t = M.trips && M.trips[0]; if (!t || !t.hours) return;
+  const [g, w, h] = setup($('profcv')), { pw, ph, X, Y, hi } = profGeom(), P = t.profile, step = t.profileStepMi, Hh = t.hours;
   g.font = '10px "JetBrains Mono", monospace'; g.textBaseline = 'middle';
-  (scaleMode === 'log' ? [0, 1, 10, mMax] : [0, mMax / 2, mMax]).forEach(v => { const y = mid - sc(v, mMax) * upH;
-    g.fillStyle = GRIDC; g.fillRect(TL.left, y, pw, 1); g.fillStyle = 'rgba(63,240,255,0.8)'; g.textAlign = 'right'; g.fillText(Math.round(v) + ' mi', TL.left - 6, y); });
-  g.fillStyle = 'rgba(255,179,71,0.8)'; g.textAlign = 'right'; g.fillText(kfmt(eMax) + ' ft', TL.left - 6, mid + dnH - 4);
-  let cum = 0; const pts = [];
-  for (let k = 0; k < n; k++) {
-    const di = t.a + k, x = TL.left + k * bw, m = D.miles[di], e = D.elev[di], on = di === sel;
-    const mh = sc(m, mMax) * upH, eh = sc(e, eMax) * dnH;
-    g.fillStyle = on ? '#fff' : 'rgba(63,240,255,0.85)'; g.fillRect(x + 0.5, mid - mh, Math.max(1, bw - 1), mh);
-    g.fillStyle = on ? '#fff' : 'rgba(255,179,71,0.75)'; g.fillRect(x + 0.5, mid + 1, Math.max(1, bw - 1), eh);
-    cum += m; pts.push([x + bw / 2, cum]);
+  for (let ft = 0; ft <= hi; ft += 2000) { const y = Y(ft); g.fillStyle = GRIDC; g.fillRect(PL.left, y, pw, 1); g.fillStyle = DIM; g.textAlign = 'right'; g.fillText(kfmt(ft) + ' ft', PL.left - 6, y); }
+  const eleAt = mi => P[Math.min(P.length - 1, Math.max(0, Math.round(mi / step)))];
+  // aura: one glowing column per trail hour, colored by genre, under the profile
+  g.save(); g.beginPath(); g.moveTo(PL.left, Y(0)); P.forEach((v, i) => g.lineTo(X(i * step), Y(v))); g.lineTo(X(t.miles), Y(0)); g.closePath(); g.clip();
+  const bg = g.createLinearGradient(0, PL.top, 0, PL.top + ph); bg.addColorStop(0, '#1a1630'); bg.addColorStop(1, '#0d0b1c'); g.fillStyle = bg; g.fillRect(PL.left, PL.top, pw, ph);
+  let prev = 0;
+  for (let k = 0; k < Hh.pos.length; k++) {
+    const p = Hh.pos[k], gi = Hh.genre[k];
+    if (gi >= 0 && p > prev) {
+      const x0 = X(prev), x1 = Math.max(X(p), x0 + 1), al = 0.25 + 0.65 * Math.min(1, Hh.listen[k] / 3600);
+      const top = Y(Math.max(eleAt(prev), eleAt(p)));
+      const gr = g.createLinearGradient(0, top, 0, PL.top + ph); gr.addColorStop(0, genreColor(gi, al)); gr.addColorStop(1, genreColor(gi, 0.05));
+      g.fillStyle = gr; g.fillRect(x0, top, x1 - x0, PL.top + ph - top);
+    }
+    prev = p;
   }
-  // cumulative vs official
-  const cy = v => TL.top + ph - v / t.miles * ph * 0.98;
-  g.setLineDash([3, 4]); g.strokeStyle = 'rgba(182,255,92,0.6)'; g.lineWidth = 1; g.beginPath(); g.moveTo(TL.left, cy(0)); g.lineTo(TL.left + pw, cy(t.miles)); g.stroke(); g.setLineDash([]);
-  g.beginPath(); pts.forEach(([x, v], i) => i ? g.lineTo(x, cy(v)) : g.moveTo(x, cy(v)));
-  g.strokeStyle = '#fff'; g.lineWidth = 1.5; g.shadowColor = '#fff'; g.shadowBlur = 6; g.stroke(); g.shadowBlur = 0;
-  g.fillStyle = '#b6ff5c'; g.textAlign = 'left'; g.fillText(fmt(t.miles), TL.left + pw + 6, cy(t.miles)); g.fillStyle = '#fff'; g.fillText(fmt(cum), TL.left + pw + 6, cy(cum) + 12);
+  g.restore();
+  // profile line
+  g.beginPath(); P.forEach((v, i) => i ? g.lineTo(X(i * step), Y(v)) : g.moveTo(X(0), Y(v)));
+  g.strokeStyle = '#e8e4ff'; g.lineWidth = 1.2; g.shadowColor = '#fff'; g.shadowBlur = 6; g.stroke(); g.shadowBlur = 0;
+  // selected day bracket
+  const k0 = (sel - t.a) * 24, k1 = k0 + dayHours(sel);
+  if (k0 >= 0 && k0 < Hh.pos.length) {
+    const m0 = k0 ? Hh.pos[k0 - 1] : 0, m1 = Hh.pos[Math.min(Hh.pos.length - 1, k1 - 1)];
+    g.fillStyle = 'rgba(255,255,255,0.12)'; g.fillRect(X(m0), PL.top, Math.max(2, X(m1) - X(m0)), ph);
+    g.fillStyle = '#fff'; g.fillRect(X(m0), PL.top, 1, ph); g.fillRect(X(m1), PL.top, 1, ph);
+  }
+  // axis
+  g.fillStyle = DIM; g.textAlign = 'center';
+  for (let mi = 0; mi <= t.miles; mi += 250) g.fillText(mi + ' mi', Math.min(Math.max(X(mi), PL.left + 16), w - 26), h - 8);
+  g.fillStyle = '#b6ff5c'; g.textAlign = 'left'; g.fillText(t.ends[0], PL.left + 4, PL.top - 8); g.textAlign = 'right'; g.fillText(t.ends[1], w - PL.right, PL.top - 8);
+}
+function profHit(e) {
+  const t = M.trips && M.trips[0]; if (!t || !t.hours) return -1;
+  const [x] = pt($('profcv'), e), { pw } = profGeom(), mi = (x - PL.left) / pw * t.miles, P = t.hours.pos;
+  if (mi < 0 || mi > t.miles) return -1;
+  let lo = 0, hi = P.length - 1; while (lo < hi) { const m = (lo + hi) >> 1; P[m] < mi ? lo = m + 1 : hi = m; }
+  return lo;
+}
+function profTip(k) {
+  const t = M.trips[0], Hh = t.hours, di = t.a + Math.floor(k / 24), hr = k % 24, gi = Hh.genre[k], tr = Hh.track[k];
+  return `<b>${iso(dateOf(di))} · ${pad(hr)}:00</b><br><span class="c-trail">mile ${fmt(Hh.pos[k])} · ${fmt(Hh.ele[k])} ft</span><br>` +
+    `<span class="c-climb">▲ ${fmt(Hh.up[k])} ft</span> · <span style="color:#a9a3d6">▼ ${fmt(Hh.dn[k])} ft</span> this hour<br>` +
+    (gi >= 0 ? `<span style="color:${genreColor(gi)}">${esc(M.genres[gi].name)}</span> · ${Math.round(Hh.listen[k] / 60)} min<br><span class="k">${esc(M.tracks[tr][0])} — ${esc(M.artists[M.tracks[tr][1]])}</span>` : '<span class="k">no music</span>');
+}
+// ---- daily climb / descent bars
+function trailGeom() { const cv = $('trailcv'), t = M.trips[0], n = t.b - t.a + 1, pw = cv.clientWidth - TL.left - TL.right; return { t, n, pw, bw: pw / n }; }
+function dayTerrain(t, di) { const Hh = t.hours; let up = 0, dn = 0; const k0 = (di - t.a) * 24, k1 = k0 + dayHours(di);
+  for (let k = k0 + (EXTN[di] || 0); k < Math.min(k1, Hh.up.length); k++) { up += Hh.up[k]; dn += Hh.dn[k]; } return [up, dn]; }
+function drawTrail() {
+  const t = M.trips && M.trips[0]; if (!t || !t.hours) return;
+  const [g, w, h] = setup($('trailcv')), { n, pw, bw } = trailGeom(), D = M.daily;
+  const ph = h - TL.top - TL.bottom, mid = TL.top + ph / 2, half = ph / 2;
+  const T = []; let mx = 0; for (let k = 0; k < n; k++) { const v = dayTerrain(t, t.a + k); T.push(v); mx = Math.max(mx, v[0], v[1], D.elev[t.a + k]); }
+  mx = Math.ceil(mx / 1000) * 1000;
+  g.font = '10px "JetBrains Mono", monospace'; g.textBaseline = 'middle'; g.textAlign = 'right';
+  g.fillStyle = GRIDC; g.fillRect(TL.left, mid, pw, 1);
+  g.fillStyle = 'rgba(255,179,71,0.85)'; g.fillText('▲ ' + kfmt(mx), TL.left - 6, TL.top + 4);
+  g.fillStyle = '#a9a3d6'; g.fillText('▼ ' + kfmt(mx), TL.left - 6, TL.top + ph - 4);
+  for (let k = 0; k < n; k++) {
+    const di = t.a + k, x = TL.left + k * bw, [up, dn] = T[k], on = di === sel;
+    const uh = sc(up, mx) * half, dh = sc(dn, mx) * half;
+    g.fillStyle = on ? '#fff' : 'rgba(255,179,71,0.85)'; g.fillRect(x + 0.5, mid - uh, Math.max(1, bw - 1), uh);
+    g.fillStyle = on ? '#fff' : 'rgba(169,163,214,0.75)'; g.fillRect(x + 0.5, mid + 1, Math.max(1, bw - 1), dh);
+    if (D.elev[di]) { g.fillStyle = '#fff'; g.fillRect(x, mid - sc(D.elev[di], mx) * half - 0.5, Math.max(2, bw), 1.5); }
+  }
   g.fillStyle = DIM; g.textAlign = 'center';
   for (let k = 0; k < n; k++) { const d = dateOf(t.a + k); if (d.getUTCDate() === 1) { g.fillText(MON[d.getUTCMonth()].toUpperCase(), TL.left + k * bw + 12, h - 8); g.fillStyle = GRIDC; g.fillRect(TL.left + k * bw, TL.top, 1, ph); g.fillStyle = DIM; } }
 }
 function trailHit(e) { const t = M.trips && M.trips[0]; if (!t) return -1; const [x] = pt($('trailcv'), e), { n, bw } = trailGeom(), k = Math.floor((x - TL.left) / bw); return k < 0 || k >= n ? -1 : t.a + k; }
+function trailTip(di) { const t = M.trips[0], [up, dn] = dayTerrain(t, di);
+  return dayTip(di) + `<br><span class="c-climb">▲ ${fmt(up)} ft</span> · <span style="color:#a9a3d6">▼ ${fmt(dn)} ft</span> <span class="k">(profile)</span>`; }
 
 // ---------- totals
 function renderTotals() {
@@ -662,20 +793,21 @@ function wire() {
   });
   sig.addEventListener('pointerleave', () => { hideTip(); drawSignal(); });
   sig.addEventListener('click', e => { const [i] = signalHit(e); if (i >= 0) { hideTip(); select(i, true); } });
-  const dc = $('daycv'); let hv = null;
+  const dc = $('daycv'); let hovI = null;
   dc.addEventListener('pointermove', e => {
     const h = dayHit(e);
-    const nv = h && h.kind === 'play' ? h.i : null; if (nv !== hv) { hv = nv; drawDay(hv);
+    const nv = h && h.kind === 'play' ? h.i : null; if (nv !== hovI) { hovI = nv; drawDay(hovI);
       document.querySelectorAll('#tracklist tr.hl').forEach(r => r.classList.remove('hl'));
-      if (hv != null) { const tr = document.querySelector(`#tracklist tr[data-i="${hv}"]`); if (tr) { tr.classList.add('hl'); tr.scrollIntoView({ block: 'nearest' }); } } }
+      if (hovI != null) { const tr = document.querySelector(`#tracklist tr[data-i="${hovI}"]`); if (tr) { tr.classList.add('hl'); tr.scrollIntoView({ block: 'nearest' }); } } }
     if (!h) return hideTip();
-    if (h.kind === 'play') { const [s, d, t, sk] = dayIndex[sel][h.i], [nm, a, al] = M.tracks[t];
+    if (h.kind === 'play') { const [s, d, t, c] = dayIndex[sel][h.i], [nm, a, al, full] = M.tracks[t], gi = genreOf(a);
       const hrSteps = hv(H.steps, sel, Math.min(dayHours(sel) - 1, Math.floor(s / 3600)));
-      showTip(`<b>${esc(nm)}</b><br><span style="color:${artistColor(a)}">${esc(M.artists[a])}</span><br><span class="k">${esc(al)}</span><br>${hms(s)} · played ${mmss(d)}${sk ? ' · <span class="c-sound">skipped</span>' : ''}<br><span class="c-step">${fmt(hrSteps)} steps that hour</span>`, e); }
+      const how = c === 3 ? 'sleep audio' : full ? `${Math.round(d / full * 100)}% of ${mmss(full)} · ${['full listen', 'ADHD listen', 'skip'][c]}` : ['full listen', 'ADHD listen', 'skip'][c];
+      showTip(`<b>${esc(nm)}</b><br><span style="color:${genreColor(gi)}">${esc(M.artists[a])}</span> <span class="k">· ${esc(M.genres[gi].name)}</span><br><span class="k">${esc(al)}</span><br>${hms(s)} · played ${mmss(d)}<br><span class="c-climb">${how}</span><br><span class="c-step">${fmt(hrSteps)} steps that hour</span>`, e); }
     else { const q = a => hv(a, sel, h.hr), mins = Math.round(q(H.listen) / 60), fl = q(H.flights);
       showTip(`<b>${pad(h.hr % 24)}:00–${pad((h.hr + 1) % 24)}:00${h.hr >= 24 ? ' (next day)' : ''}</b>${h.hr < (EXTN[sel] || 0) ? '<br><span class="c-trail">counted with the previous day</span>' : ''}<br><span class="c-step">${fmt(q(H.steps))} steps · ${q(H.miles).toFixed(2)} mi</span><br><span class="c-climb">${fl} flights of stairs · ${fmt(fl * M.ftPerFlight)} ft</span><br><span class="c-sound">${mins} min listening</span>`, e); }
   });
-  dc.addEventListener('pointerleave', () => { hideTip(); if (hv != null) { hv = null; drawDay(); document.querySelectorAll('#tracklist tr.hl').forEach(r => r.classList.remove('hl')); } });
+  dc.addEventListener('pointerleave', () => { hideTip(); if (hovI != null) { hovI = null; drawDay(); document.querySelectorAll('#tracklist tr.hl').forEach(r => r.classList.remove('hl')); } });
   const fort = $('fort');
   const fortHit = e => { const [, y] = pt(fort, e), r = Math.floor((y - FL.top) / FL.rowH); return fortDays[r]; };
   fort.addEventListener('click', e => { const di = fortHit(e); if (di != null) select(di); });
@@ -690,7 +822,11 @@ function wire() {
     if (e.key === 'ArrowRight') { e.preventDefault(); select(sel + 1); }
   });
   const tc = $('trailcv');
-  tc.addEventListener('pointermove', e => { const di = trailHit(e); di < 0 ? hideTip() : showTip(dayTip(di), e); tc.style.cursor = di < 0 ? 'default' : 'pointer'; });
+  tc.addEventListener('pointermove', e => { const di = trailHit(e); di < 0 ? hideTip() : showTip(trailTip(di), e); tc.style.cursor = di < 0 ? 'default' : 'pointer'; });
+  const pc = $('profcv');
+  pc.addEventListener('pointermove', e => { const k = profHit(e); k < 0 ? hideTip() : showTip(profTip(k), e); pc.style.cursor = k < 0 ? 'default' : 'pointer'; });
+  pc.addEventListener('pointerleave', hideTip);
+  pc.addEventListener('click', e => { const k = profHit(e); if (k >= 0) { hideTip(); select(M.trips[0].a + Math.floor(k / 24), true); } });
   tc.addEventListener('pointerleave', hideTip);
   tc.addEventListener('click', e => { const di = trailHit(e); if (di >= 0) { hideTip(); select(di, true); } });
   document.querySelectorAll('.scale-seg button').forEach(b => b.addEventListener('click', () => {
@@ -698,7 +834,7 @@ function wire() {
     document.querySelectorAll('.scale-seg button').forEach(x => x.setAttribute('aria-pressed', x.dataset.scale === scaleMode));
     drawSignal(); drawTrail(); drawDay(); }));
   // Redraw each canvas whenever its own box changes width (layout shifts, scrollbars, window resizes).
-  const painters = { heat: drawHeat, signal: () => drawSignal(), daycv: () => drawDay(), fort: drawFort, circ: drawCirc, trailcv: drawTrail };
+  const painters = { heat: drawHeat, signal: () => drawSignal(), daycv: () => drawDay(), fort: drawFort, circ: drawCirc, trailcv: drawTrail, profcv: drawProfile };
   const lastW = {};
   const ro = new ResizeObserver(entries => { for (const en of entries) { const id = en.target.id, cw = Math.round(en.contentRect.width);
     if (lastW[id] !== cw) { lastW[id] = cw; requestAnimationFrame(() => painters[id]()); } } });

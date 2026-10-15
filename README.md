@@ -25,3 +25,6 @@ python3 scripts/build_step_song.py \
   step-song/data
 ```
 Update `END` in the script if the Health export runs later than 2026-10-15.
+
+## Credits
+Appalachian Trail elevation profile derived from [JasonSanford/every-mile](https://github.com/JasonSanford/every-mile) (BSD 3-Clause, © 2021 Jason Sanford).

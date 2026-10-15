@@ -37,6 +37,12 @@ Fonts: Monoton (titles only), Chakra Petch (UI), JetBrains Mono (data).
 - TRIPS: known-total trips for capture % (AT 2019: Jun 15–Nov 7, 2,192 mi, ~500,000 ft).
 - Elevation gain = flights of stairs × 10 ft (Apple's flight definition).
 - Movers/sitters need ≥3 h listened on ≥5 distinct days.
+- Listen classes: share of track played <⅓ skip, ⅓–⅔ "ADHD listen", >⅔ full. Track length = median of plays that
+  ran to the end (Spotify's export has no durations). Plays field 5: 0 full · 1 ADHD · 2 skip · 3 sleep.
+- Sleep audio (scripts/genres.json → "sleep"): kept out of listening stats; shown in its own card.
+- Genres: scripts/genres.json, hand-tagged (~620 artists); untagged = Other. Edit + rebuild to fix.
+- AT terrain: scripts/at_profile.json (every-mile, BSD-3, 0.1-mi steps). Each hour's phone distance places it on
+  the trail (SOBO); the profile gives estimated elevation, climb and descent (the phone never records descent).
 
 ## Adding a new experiment
 Make `/<slug>/index.html` with its own `data/`, reuse the tokens, add a card to `index.html`.
