@@ -3,3 +3,4 @@
 raw/
 *.csv
 Streaming_History_*.json
+~$*

@@ -44,6 +44,26 @@ Fonts: Monoton (titles only), Chakra Petch (UI), JetBrains Mono (data).
 - AT terrain: scripts/at_profile.json (every-mile, BSD-3, 0.1-mi steps). Each hour's phone distance places it on
   the trail (SOBO); the profile gives estimated elevation, climb and descent (the phone never records descent).
 
+## AT 2019 trail log (scripts/build_at_log.py → step-song/data/at2019-log.json)
+- Source: `2019-AT-SOBO-for-json.xlsx` (hand-kept daily log, web export without people/notes), kept OUTSIDE
+  this repo; pass its path as the script's argument. Ground truth
+  for distance; reads phone data from meta.json/hourly.json, so run it AFTER build_step_song.py.
+- Miles SOBO: 0 = Katahdin, 2192 = Springer; −5..0 Katahdin climb, 2192..2201 Approach Trail.
+  9/4 Skyland skip (91.1 mi) = 0 hiked. Walked 2,115.9 mi; on-AT 2,101.9.
+- Nov 7's 9 log miles fold into the extended Nov 6 day (59.1 mi). 11/5 has no end mile; its miles sit on 11/6,
+  so 11/5–11/6 are compared as one block (`phone_cmp`).
+- Per day: log_miles, phone_miles, capture, missed_mi / extra_mi, ma7 (trailing, all days) and ma7_hiking
+  (hiking days only), kind (hike / nero <10 mi / zero / skip / unknown / folded), active_h (≥1000 steps),
+  dark_h (06–22 h with 0 steps), phone_mph (phone miles ÷ moving hours, estimate).
+- Pace rule (trail convention): +30 min per 1,000 ft climbed. moving_h = Σ hours min(1, steps/6000);
+  raw_mph = log mi / moving_h; adj_mph = log mi / (moving_h − 0.5 h per 1,000 ft). Only days with capture
+  0.8–1.25. Climb per day from at_profile.json by log start/end mile (+4,188 ft Katahdin climb on day 0).
+  Jack's stated flat moving pace = 3.2 mph; model_h = mi/3.2 + climb hours.
+- Shown in step-song/index.html inside #trail as `#log-block` ("Trail log vs phone"): miles-per-day bars
+  (log, missed, over-count, 7-day avg toggle all/hiking days), running totals of missed vs over-counted,
+  moving pace (raw → adjusted, 3.2 mph line), capture card, stats card. Loads data/at2019-log.json; if the
+  file is missing the block stays hidden. Clicking a day calls select() like the other trail charts.
+
 ## Adding a new experiment
 Make `/<slug>/index.html` with its own `data/`, reuse the tokens, add a card to `index.html`.
 

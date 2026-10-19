@@ -86,6 +86,15 @@ h1 .sl { color: var(--hot); text-shadow: 0 0 6px var(--step), 0 0 18px var(--ste
 .stack b { display: block; height: 100%; }
 .trail-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 320px); gap: 18px; align-items: start; }
 @media (max-width: 860px) { .trail-grid { grid-template-columns: minmax(0, 1fr); } }
+.log-block { display: grid; gap: 14px; padding-top: 14px; border-top: 1px solid rgba(182,255,92,0.35); min-width: 0; }
+.log-block[hidden] { display: none; }
+.bands { display: flex; height: 14px; border: 1px solid var(--grid); overflow: hidden; }
+.bands b { display: block; height: 100%; }
+.dist { display: grid; grid-template-columns: minmax(0, 1fr) repeat(3, auto); gap: 4px 12px; font-family: var(--f-data); font-size: var(--s-0); }
+.dist span { color: var(--dim); text-align: right; font-variant-numeric: tabular-nums; }
+.dist .lb { text-align: left; color: var(--ink); }
+.dist .hd { color: var(--dim); text-transform: uppercase; letter-spacing: 0.1em; font-size: 10px; text-align: right; }
+.dist b { color: var(--ink); font-weight: 600; text-align: right; }
 .cls { font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; padding: 1px 5px; border: 1px solid currentColor; margin-left: 6px; }
 .cls.adhd { color: var(--climb); } .cls.skip { color: var(--sound); } .cls.sleep { color: #8a84b8; }
 .tracklist tr.sleep .t, .tracklist tr.sleep .a { color: #5e5888; }
@@ -205,6 +214,37 @@ footer { color: var(--dim); font-size: var(--s-0); }
         <h2 style="font-size:var(--s-0)">Soundtrack by terrain <small>hours on the move</small></h2>
         <div class="slope" id="slope"></div>
       </div>
+    </div>
+    <div class="log-block" id="log-block" hidden>
+      <div class="sec-head">
+        <h2 class="c-trail" style="font-size:var(--s-1)">Trail log vs phone <small>the log counts every mile walked; the phone is what Apple Health caught</small></h2>
+      </div>
+      <div class="readout" id="log-stats"></div>
+      <div class="sec-head">
+        <h2 style="font-size:var(--s-0)">Miles per day <small>click a day to open it</small></h2>
+        <div class="seg" id="ma-seg" role="group" aria-label="Moving average"><button type="button" data-ma="all" aria-pressed="true">7-day avg · all days</button><button type="button" data-ma="hiking" aria-pressed="false">7-day avg · hiking days</button></div>
+      </div>
+      <div class="cv"><canvas id="logcv" data-h="250" aria-label="Miles per day on the 2019 Appalachian Trail: trail log against phone, with a 7-day moving average"></canvas></div>
+      <div class="legend" id="log-legend"></div>
+      <h2 style="font-size:var(--s-0)">Running totals <small>miles the phone missed vs miles it over-counted · they almost cancel</small></h2>
+      <div class="cv"><canvas id="cumcv" data-h="190" aria-label="Running total of miles missed and over-counted by the phone"></canvas></div>
+      <h2 style="font-size:var(--s-0)">Moving pace <small>dim dot = raw · bright dot = terrain-adjusted (+30 min per 1,000 ft)</small></h2>
+      <div class="cv"><canvas id="pacecv" data-h="220" aria-label="Moving pace per day, raw and adjusted for climbing"></canvas></div>
+      <div class="cuts">
+        <div class="card" style="gap:12px">
+          <h3>What the phone caught</h3>
+          <div class="meters" id="cap-meters" style="grid-template-columns:1fr"></div>
+          <div id="cap-bands"></div>
+          <div class="rows" id="cap-months"></div>
+        </div>
+        <div class="card" style="gap:12px">
+          <h3>Miles per day</h3>
+          <div class="rows" id="log-dist"></div>
+          <h3>Biggest days</h3>
+          <div class="rows" id="log-big"></div>
+        </div>
+      </div>
+      <p class="note" id="log-note"></p>
     </div>
     <p class="note">The phone only counts flights climbed, never descended, so the profile does the rest: each hour's distance moves you along the real trail (Katahdin to Springer), and the trail's elevation at that point gives the climb and descent. Positions are approximate where the phone was off. Capture compares what the phone recorded against official totals; town walking adds some distance back, so distance capture is an upper bound. Profile data: <a href="https://github.com/JasonSanford/every-mile" style="color:var(--dim)">every-mile</a>.</p>
   </section>
@@ -597,7 +637,7 @@ function drawFort() {
 let lastTL = -1;
 async function select(di, scroll) {
   sel = Math.max(0, Math.min(ND - 1, di));
-  renderDayStats(); drawHeat(); drawSignal(); drawFort(); drawTrail(); drawProfile();
+  renderDayStats(); drawHeat(); drawSignal(); drawFort(); drawTrail(); drawProfile(); drawLogAll();
   const y = dateOf(sel).getUTCFullYear(), loads = [loadYear(y)];
   const yp = dateOf(Math.max(0, sel - 7)).getUTCFullYear(); if (yp !== y) loads.push(loadYear(yp));
   drawDay(); if (dayIndex[sel] || !(playsByYear[y] instanceof Promise)) renderTracklist();
@@ -762,6 +802,155 @@ function trailHit(e) { const t = M.trips && M.trips[0]; if (!t) return -1; const
 function trailTip(di) { const t = M.trips[0], [up, dn] = dayTerrain(t, di);
   return dayTip(di) + `<br><span class="c-climb">▲ ${fmt(up)} ft</span> · <span style="color:#a9a3d6">▼ ${fmt(dn)} ft</span> <span class="k">(profile)</span>`; }
 
+// ---------- TRAIL LOG (hand-kept daily log vs phone)
+let LG = null, maMode = 'all';
+const LL = { left: 40, right: 12, top: 14, bottom: 22 };
+const SND = '#ff3fb4', STP = '#3ff0ff', TRL = '#b6ff5c', MUTE = '#4a4470';
+const f1 = v => v == null ? '—' : (+v).toFixed(1);
+const pct = v => v == null ? '—' : Math.round(v * 100) + '%';
+const KIND = { hike: 'hiking day', nero: 'nero (under 10 mi)', zero: 'zero', skip: 'skipped by car (Skyland, 91.1 mi)',
+  unknown: 'no end mile in the log; its miles are counted on the next day', folded: 'folded into the extended Nov 6 day' };
+const phoneCmp = x => x.phone_cmp != null ? x.phone_cmp : x.phone_miles;
+function logGeom(id) { const cv = $(id), n = LG.days.length, pw = cv.clientWidth - LL.left - LL.right; return { cv, n, pw, bw: pw / n }; }
+function logHit(id, e) { if (!LG) return -1; const [x] = pt($(id), e), { n, bw } = logGeom(id), k = Math.floor((x - LL.left) / bw); return k < 0 || k >= n ? -1 : k; }
+function monthAxis(g, w, h, ph, bw) {
+  g.font = '10px "JetBrains Mono", monospace'; g.textBaseline = 'middle'; g.textAlign = 'center';
+  LG.days.forEach((x, k) => { if (x.date.endsWith('-01')) { const X = LL.left + k * bw;
+    g.fillStyle = GRIDC; g.fillRect(X, LL.top, 1, ph); g.fillStyle = DIM; g.fillText(MON[+x.date.slice(5, 7) - 1].toUpperCase(), Math.min(X + 12, w - 14), h - 8); } });
+}
+function yAxis(g, pw, ph, mx, step, unit) {
+  g.font = '10px "JetBrains Mono", monospace'; g.textBaseline = 'middle'; g.textAlign = 'right';
+  for (let v = 0; v <= mx + 1e-9; v += step) { const y = LL.top + ph - v / mx * ph;
+    g.fillStyle = GRIDC; g.fillRect(LL.left, y, pw, 1); g.fillStyle = DIM; g.fillText(kfmt(v) + unit, LL.left - 6, y); }
+}
+function selMark(g, ph, bw) { const k = sel - LG.days[0].di; if (k < 0 || k >= LG.days.length) return;
+  g.fillStyle = 'rgba(255,255,255,0.10)'; g.fillRect(LL.left + k * bw, LL.top, Math.max(2, bw), ph); }
+
+function renderLog() {
+  const S = LG.stats, P = S.phone, Pc = S.pace, sm = s => `<small style="font-size:var(--s-0);color:var(--dim)">${s}</small>`;
+  $('log-block').hidden = false;
+  $('log-stats').innerHTML =
+    `<div><span>Walked</span><strong class="c-trail">${fmt(S.walked_mi)} mi ${sm(`· ${fmt(S.on_at_mi)} on the AT`)}</strong></div>` +
+    `<div><span>Miles per day</span><strong class="c-trail">${f1(S.per_day_all.mean)} ${sm(`· ${f1(S.per_day_no_zeros.mean)} without zeros`)}</strong></div>` +
+    `<div><span>Missed by phone</span><strong class="c-sound">${pct(P.missed_pct)} ${sm(`· ${fmt(P.missed_mi)} mi`)}</strong></div>` +
+    `<div><span>Moving pace</span><strong class="c-trail">${Pc.adj_mph.mean.toFixed(2)} mph ${sm(`· adjusted for climbing · raw ${Pc.raw_mph.mean.toFixed(2)}`)}</strong></div>` +
+    `<div><span>Longest streak</span><strong>${S.longest_hiking_streak} days ${sm('without a zero')}</strong></div>`;
+  $('log-legend').innerHTML =
+    `<span><i style="background:${TRL}"></i>log miles the phone also caught</span><span><i style="background:${SND}"></i>missed by phone</span>` +
+    `<span><i style="background:rgba(63,240,255,0.45)"></i>phone over the log (town walking, stride error)</span>` +
+    `<span><i style="background:#fff;height:2px"></i>7-day average</span><span><i style="background:${MUTE};height:4px"></i>zero / skip</span>`;
+  // capture card
+  const meter = (lab, v, col, note) => `<div class="meter"><div class="lab"><span>${lab}</span><b>${(v * 100).toFixed(1)}%</b></div><div class="track"><div class="fill" style="width:${Math.min(100, v * 100)}%;background:${col};box-shadow:0 0 10px ${col}"></div></div>${note ? `<span style="color:var(--dim)">${note}</span>` : ''}</div>`;
+  $('cap-meters').innerHTML = meter('Missed, day by day', P.missed_pct, SND, `${fmt(P.missed_mi)} of ${fmt(S.walked_mi)} logged miles never reached the phone`) +
+    meter('Phone total vs log', P.net_capture, STP, `misses offset by ${fmt(P.extra_on_hiking_days_mi + P.extra_on_rest_days_mi)} mi of over-counting`);
+  const B = P.capture_bands, bc = { '<50%': SND, '50-80%': 'rgba(255,63,180,0.5)', '80-100%': 'rgba(182,255,92,0.55)', '>=100%': 'rgba(63,240,255,0.55)' };
+  const nB = Object.values(B).reduce((a, b) => a + b, 0);
+  $('cap-bands').innerHTML = `<div class="meter"><div class="lab"><span>Hiking days by capture</span><b>${nB} days</b></div>` +
+    `<div class="bands">${Object.entries(B).map(([k, v]) => `<b title="${k}: ${v} days" style="width:${v / nB * 100}%;background:${bc[k]}"></b>`).join('')}</div>` +
+    `<div class="legend" style="margin-top:2px">${Object.entries(B).map(([k, v]) => `<span><i style="background:${bc[k]};width:10px"></i>${k.replace('>=', '≥')} · ${v}</span>`).join('')}</div></div>`;
+  $('cap-months').innerHTML = Object.entries(S.by_month).map(([m, b]) => {
+    const miss = b.log ? b.missed / b.log : 0;
+    return `<div class="row"><span class="nm">${MON[+m.slice(5) - 1]} <span style="color:var(--dim)">· ${fmt(b.log)} mi</span></span><span class="v"><span class="c-sound">${fmt(b.missed)} missed</span> · ${pct(b.capture)} net</span>` +
+      `<div class="bar"><b style="width:${Math.min(100, miss * 100 * 3)}%;background:${SND}"></b></div></div>`; }).join('') +
+    '<p class="note">Bar = share of the month\'s miles the phone missed (scaled ×3).</p>';
+  // distribution + biggest days
+  const A = S.per_day_all, Z = S.per_day_no_zeros, C = S.counts;
+  $('log-dist').innerHTML = `<div class="dist"><span></span><span class="hd">mean</span><span class="hd">median</span><span class="hd">sd</span>` +
+    `<span class="lb">All days (${A.n})</span><b>${f1(A.mean)}</b><b>${f1(A.median)}</b><b>${f1(A.sd)}</b>` +
+    `<span class="lb">Without zeros (${Z.n})</span><b>${f1(Z.mean)}</b><b>${f1(Z.median)}</b><b>${f1(Z.sd)}</b>` +
+    `<span class="lb">Moving mph, raw</span><b>${Pc.raw_mph.mean.toFixed(2)}</b><b>${Pc.raw_mph.median.toFixed(2)}</b><b>${Pc.raw_mph.sd.toFixed(2)}</b>` +
+    `<span class="lb">Moving mph, adjusted</span><b>${Pc.adj_mph.mean.toFixed(2)}</b><b>${Pc.adj_mph.median.toFixed(2)}</b><b>${Pc.adj_mph.sd.toFixed(2)}</b></div>` +
+    `<p class="note">${C.hike} full days · ${C.nero} neros · ${C.zero} zeros · ${C.skip} skip. Pace uses the ${Pc.days_used} days the phone was on most of the time.</p>`;
+  $('log-big').innerHTML = S.biggest_days.slice(0, 6).map(([d, mi, loc]) =>
+    `<div class="row click" tabindex="0" role="button" data-date="${d}"><span class="nm">${d.slice(5).replace('-', '/')} · ${esc(loc)}</span><span class="v c-trail">${f1(mi)} mi</span></div>`).join('');
+  document.querySelectorAll('#log-big .row').forEach(r => { const go = () => select(diOf(r.dataset.date), true);
+    r.addEventListener('click', go); r.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } }); });
+  $('log-note').innerHTML = `The trail log is the ground truth: mile 0 is Katahdin, 2,192 is Springer. Day one includes the 5-mile Katahdin climb and the last day the 9-mile Approach Trail; the 91-mile Skyland skip counts as zero. Nov 7's miles (Springer and the Approach Trail, done before 10:00) fold into the extended Nov 6 day, and Nov 5 has no end mile in the log, so Nov 5–6 are compared as one block. ` +
+    `<b>Missed</b> = logged miles the phone did not record that day; over-counting on other days is not netted against it. ` +
+    `<b>Moving time</b> = each hour's steps ÷ 6,000 (a fully moving hour), capped at 1. <b>Adjusted pace</b> takes 30 minutes per 1,000 ft climbed out of moving time; climb comes from the trail profile by the log's start and end miles (the profile totals about ${fmt(Pc.gain_ft_profile)} ft, under the official ~500,000). Pace only uses days where the phone caught 80–125% of the log.`;
+}
+
+function drawLog() {
+  if (!LG) return;
+  const [g, w, h] = setup($('logcv')), { n, pw, bw } = logGeom('logcv'), ph = h - LL.top - LL.bottom, D = LG.days;
+  let mx = 0; D.forEach(x => { mx = Math.max(mx, x.log_miles || 0, phoneCmp(x) || 0); }); mx = Math.ceil(mx / 10) * 10;
+  const Y = v => LL.top + ph - v / mx * ph;
+  yAxis(g, pw, ph, mx, 10, ''); monthAxis(g, w, h, ph, bw); selMark(g, ph, bw);
+  const gap = bw > 4 ? 1 : 0.3;
+  D.forEach((x, k) => {
+    const X = LL.left + k * bw + gap / 2, W = Math.max(1, bw - gap), L = x.log_miles, P = phoneCmp(x), on = x.di === sel;
+    if (!L) { g.fillStyle = on ? '#fff' : MUTE; g.fillRect(X, Y(0) - 3, W, 3); }
+    else {
+      const caught = Math.min(L, P);
+      g.fillStyle = on ? '#fff' : TRL; g.fillRect(X, Y(caught), W, Y(0) - Y(caught));
+      if (P < L) { g.fillStyle = on ? '#ffb3e0' : SND; g.fillRect(X, Y(L), W, Y(caught) - Y(L)); }
+    }
+    if (P > (L || 0) && x.kind !== 'unknown') { g.fillStyle = 'rgba(63,240,255,0.45)'; g.fillRect(X + W * 0.2, Y(P), W * 0.6, Y(L || 0) - Y(P)); }
+    if (x.kind === 'unknown') { g.fillStyle = 'rgba(63,240,255,0.45)'; g.fillRect(X + W * 0.2, Y(P), W * 0.6, Y(0) - Y(P) - 3); }
+  });
+  // 7-day moving average
+  const key = maMode === 'all' ? 'ma7' : 'ma7_hiking';
+  g.beginPath(); let started = false;
+  D.forEach((x, k) => { const v = x[key]; if (v == null) return; const X = LL.left + (k + 0.5) * bw; started ? g.lineTo(X, Y(v)) : g.moveTo(X, Y(v)); started = true; });
+  g.strokeStyle = '#fff'; g.lineWidth = 1.6; g.shadowColor = '#fff'; g.shadowBlur = 8; g.stroke(); g.shadowBlur = 0;
+  g.fillStyle = DIM; g.textAlign = 'left'; g.font = '10px "JetBrains Mono", monospace'; g.fillText('mi / day', LL.left + 4, LL.top - 6);
+}
+function logTip(k) {
+  const x = LG.days[k], d = dateOf(x.di), P = phoneCmp(x), loc = esc(x.location || '');
+  let s = `<b>Day ${x.day} · ${DOW[d.getUTCDay()].slice(0, 3)} ${x.date}</b><br><span class="c-trail">${loc}</span><br>`;
+  s += x.start_mile != null ? `<span class="k">mile ${f1(x.start_mile)} → ${x.end_mile == null ? '?' : f1(x.end_mile)} · ${KIND[x.kind]}</span><br>` : '';
+  if (x.kind === 'unknown') return s + `<span class="c-step">phone ${f1(x.phone_miles)} mi</span> <span class="k">(compared with ${x.merged_into.slice(5)})</span>`;
+  s += `<span class="c-trail">log ${f1(x.log_miles)} mi</span> · <span class="c-step">phone ${f1(P)} mi</span>${x.capture != null ? ` <span class="k">(${pct(x.capture)})</span>` : ''}<br>`;
+  if (x.phone_cmp != null) s += `<span class="k">phone includes ${f1(x.phone_cmp - x.phone_miles)} mi from the day before</span><br>`;
+  if (x.missed_mi) s += `<span class="c-sound">missed ${f1(x.missed_mi)} mi</span><br>`;
+  else if (x.extra_mi) s += `<span class="c-step">phone over by ${f1(x.extra_mi)} mi</span><br>`;
+  if (x.gain_ft) s += `<span class="c-climb">▲ ${fmt(x.gain_ft)} ft climbed</span> <span class="k">(+${Math.round(x.climb_h * 60)} min)</span><br>`;
+  if (x.adj_mph) s += `moving ${f1(x.moving_h)} h · <span class="k">raw</span> ${x.raw_mph.toFixed(2)} → <span class="c-trail">${x.adj_mph.toFixed(2)} mph adjusted</span><br>`;
+  else if (x.log_miles) s += `<span class="k">pace not computed: phone ${x.capture < 0.8 ? 'off for part of the day' : 'over-counted too much'} (${pct(x.capture)})</span><br>`;
+  return s + `<span class="k">7-day avg</span> ${f1(x.ma7)} mi${x.ma7_hiking != null ? ` · ${f1(x.ma7_hiking)} hiking days` : ''}`;
+}
+
+function cumSeries() { let m = 0, o = 0; const M_ = [], O_ = [];
+  LG.days.forEach(x => { m += x.missed_mi || 0; o += x.extra_mi || 0; M_.push(m); O_.push(o); }); return [M_, O_]; }
+function drawCum() {
+  if (!LG) return;
+  const [g, w, h] = setup($('cumcv')), { pw, bw } = logGeom('cumcv'), ph = h - LL.top - LL.bottom, D = LG.days, [Mi, Ov] = cumSeries();
+  const mx = Math.ceil(Math.max(Mi[Mi.length - 1], Ov[Ov.length - 1]) / 100) * 100, Y = v => LL.top + ph - v / mx * ph, X = k => LL.left + (k + 1) * bw;
+  yAxis(g, pw, ph, mx, 100, ''); monthAxis(g, w, h, ph, bw); selMark(g, ph, bw);
+  for (let k = 0; k < D.length; k++) { const ym = Y(Mi[k]), yo = Y(Ov[k]);
+    g.fillStyle = Mi[k] > Ov[k] ? 'rgba(255,63,180,0.18)' : 'rgba(63,240,255,0.16)'; g.fillRect(LL.left + k * bw, Math.min(ym, yo), bw + 0.5, Math.abs(ym - yo)); }
+  const line = (arr, col) => { g.beginPath(); g.moveTo(LL.left, Y(0)); arr.forEach((v, k) => g.lineTo(X(k), Y(v)));
+    g.strokeStyle = col; g.lineWidth = 1.8; g.shadowColor = col; g.shadowBlur = 8; g.stroke(); g.shadowBlur = 0; };
+  line(Ov, STP); line(Mi, SND);
+  const n = D.length - 1; g.font = '600 10px "JetBrains Mono", monospace'; g.textAlign = 'right';
+  const lm = Y(Mi[n]), lo = Y(Ov[n]), sep = Math.abs(lm - lo) < 14 ? 7 : 0;
+  g.fillStyle = SND; g.fillText(`missed ${fmt(Mi[n])} mi`, w - LL.right - 2, lm - 8 - sep);
+  g.fillStyle = STP; g.fillText(`over-counted ${fmt(Ov[n])} mi`, w - LL.right - 2, lo + 10 + sep);
+  g.fillStyle = DIM; g.textAlign = 'left'; g.font = '10px "JetBrains Mono", monospace'; g.fillText('mi', LL.left + 4, LL.top - 6);
+}
+function cumTip(k) { const [Mi, Ov] = cumSeries(), x = LG.days[k], net = Mi[k] - Ov[k];
+  return `<b>${x.date}</b> · day ${x.day} <span class="k">running totals</span><br><span class="c-sound">missed ${fmt(Mi[k])} mi</span><br><span class="c-step">over-counted ${fmt(Ov[k])} mi</span><br><span class="k">phone ${net > 0 ? 'behind' : 'ahead of'} the log by ${fmt(Math.abs(net))} mi</span>`; }
+
+function drawPace() {
+  if (!LG) return;
+  const [g, w, h] = setup($('pacecv')), { pw, bw } = logGeom('pacecv'), ph = h - LL.top - LL.bottom, D = LG.days, flat = LG.stats.pace.flat_mph_stated;
+  let mx = 0; D.forEach(x => { if (x.adj_mph) mx = Math.max(mx, x.adj_mph); }); mx = Math.ceil(mx); const lo = 1;
+  const Y = v => LL.top + ph - (v - lo) / (mx - lo) * ph;
+  g.font = '10px "JetBrains Mono", monospace'; g.textBaseline = 'middle'; g.textAlign = 'right';
+  for (let v = lo; v <= mx; v++) { g.fillStyle = GRIDC; g.fillRect(LL.left, Y(v), pw, 1); g.fillStyle = DIM; g.fillText(String(v), LL.left - 6, Y(v)); }
+  monthAxis(g, w, h, ph, bw); selMark(g, ph, bw);
+  g.setLineDash([4, 4]); g.strokeStyle = 'rgba(255,255,255,0.7)'; g.lineWidth = 1; g.beginPath(); g.moveTo(LL.left, Y(flat)); g.lineTo(LL.left + pw, Y(flat)); g.stroke(); g.setLineDash([]);
+  g.font = '10px "JetBrains Mono", monospace'; g.fillStyle = '#fff'; g.textAlign = 'right'; g.fillText(w < 560 ? `${flat} mph` : `${flat} mph · your stated pace`, LL.left + pw - 2, Y(flat) - 8);
+  const r = Math.max(2, Math.min(3.5, bw * 0.45));
+  D.forEach((x, k) => { if (!x.adj_mph) return; const X = LL.left + (k + 0.5) * bw, on = x.di === sel;
+    g.strokeStyle = on ? '#fff' : 'rgba(182,255,92,0.35)'; g.lineWidth = 1; g.beginPath(); g.moveTo(X, Y(x.raw_mph)); g.lineTo(X, Y(x.adj_mph)); g.stroke();
+    g.fillStyle = on ? '#fff' : 'rgba(138,132,184,0.9)'; g.beginPath(); g.arc(X, Y(x.raw_mph), r * 0.8, 0, 7); g.fill();
+    g.fillStyle = on ? '#fff' : TRL; g.shadowColor = TRL; g.shadowBlur = on ? 10 : 5; g.beginPath(); g.arc(X, Y(x.adj_mph), r, 0, 7); g.fill(); g.shadowBlur = 0; });
+  g.fillStyle = DIM; g.textAlign = 'left'; g.fillText('mph', LL.left + 4, LL.top - 6);
+}
+
+const drawLogAll = () => { drawLog(); drawCum(); drawPace(); };
+
 // ---------- totals
 function renderTotals() {
   const T = M.totals;
@@ -833,8 +1022,17 @@ function wire() {
     scaleMode = b.dataset.scale;
     document.querySelectorAll('.scale-seg button').forEach(x => x.setAttribute('aria-pressed', x.dataset.scale === scaleMode));
     drawSignal(); drawTrail(); drawDay(); }));
+  if (LG) {
+    document.querySelectorAll('#ma-seg button').forEach(b => b.addEventListener('click', () => {
+      maMode = b.dataset.ma; document.querySelectorAll('#ma-seg button').forEach(x => x.setAttribute('aria-pressed', x === b)); drawLog(); }));
+    [['logcv', logTip], ['cumcv', cumTip], ['pacecv', logTip]].forEach(([id, tf]) => { const cv = $(id);
+      cv.addEventListener('pointermove', e => { const k = logHit(id, e), ok = k >= 0 && (id !== 'pacecv' || LG.days[k].adj_mph);
+        ok ? showTip(tf(k), e) : hideTip(); cv.style.cursor = k < 0 ? 'default' : 'pointer'; });
+      cv.addEventListener('pointerleave', hideTip);
+      cv.addEventListener('click', e => { const k = logHit(id, e); if (k >= 0) { hideTip(); select(LG.days[k].di, true); } }); });
+  }
   // Redraw each canvas whenever its own box changes width (layout shifts, scrollbars, window resizes).
-  const painters = { heat: drawHeat, signal: () => drawSignal(), daycv: () => drawDay(), fort: drawFort, circ: drawCirc, trailcv: drawTrail, profcv: drawProfile };
+  const painters = { heat: drawHeat, signal: () => drawSignal(), daycv: () => drawDay(), fort: drawFort, circ: drawCirc, trailcv: drawTrail, profcv: drawProfile, logcv: drawLog, cumcv: drawCum, pacecv: drawPace };
   const lastW = {};
   const ro = new ResizeObserver(entries => { for (const en of entries) { const id = en.target.id, cw = Math.round(en.contentRect.width);
     if (lastW[id] !== cw) { lastW[id] = cw; requestAnimationFrame(() => painters[id]()); } } });
@@ -842,11 +1040,12 @@ function wire() {
 }
 
 // ---------- boot
-Promise.all([fetch('data/meta.json').then(r => r.json()), fetch('data/hourly.json').then(r => r.json())]).then(([m, h]) => {
-  M = m; H = h; ND = M.nDays; START = Date.parse(M.start + 'T00:00:00Z');
+Promise.all([fetch('data/meta.json').then(r => r.json()), fetch('data/hourly.json').then(r => r.json()),
+  fetch('data/at2019-log.json').then(r => r.ok ? r.json() : null).catch(() => null)]).then(([m, h, lg]) => {
+  M = m; H = h; LG = lg; ND = M.nDays; START = Date.parse(M.start + 'T00:00:00Z');
   Object.entries(M.ext || {}).forEach(([d, hrs]) => { EXTD[+d] = hrs; EXTN[+d + 1] = hrs; });
   const j = $('jump'); j.min = M.start; j.max = iso(dateOf(ND - 1));
-  computeRoll(); renderTotals(); renderTrail(); renderCuts(); wire(); drawCirc();
+  computeRoll(); renderTotals(); renderTrail(); if (LG) renderLog(); renderCuts(); wire(); drawCirc();
   select(diOf(M.topStepDays[0][0]));
 }).catch(err => { $('boot').textContent = 'Could not load data files: ' + err.message; });
 })();
