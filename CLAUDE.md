@@ -88,7 +88,11 @@ Fonts: Monoton (titles only), Chakra Petch (UI), JetBrains Mono (data).
 - Watching dataset: `scripts/build_watch_log.py "<workbook.xlsx>"` → `meta-log/data/watch.json` (then rerun build_meta_log.py).
   The workbook stays OUTSIDE the repo (`*.xlsx` is git-ignored). HARD RULE: never publish the names of people Jack watched
   with. The script reads only Watch Date, Minutes Watched, Primary Genre, Platform and Episode Count from the Movie Log
-  and TV Log sheets; 'Where / With' and 'Notes' are never read. watch.json holds day totals by genre / platform / movies-vs-TV.
+  and TV Log sheets, plus titles and the public film details on the Titles sheet; 'Where / With', 'Notes', 'Review' and
+  'Themes / Notes' are never read. watch.json = day totals by genre / platform / movies-vs-TV (folded into daily.json).
+  watch-titles.json = one row per title (hours, episodes, dates, year, director, IMDb id/rating, poster link) for the
+  `#watched` poster wall. Posters are hot-linked from the URLs in the workbook, never copied into the repo; a missing or
+  broken cover falls back to the title text.
 - `meta-log/data/life.json` = chapters/events that are published. `meta-log/data/life.private.json` (git-ignored) = entries
   that show only when previewing locally. Same format: `{id, label, color, start, end}` for a period, `{id, label, color, date}`
   for a single day. Entries about other people (Emily, Max's illness, Jim, Kyah) start in the private file; move a line to

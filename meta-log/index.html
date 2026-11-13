@@ -111,6 +111,18 @@ td small { color: var(--dim); display: block; }
 details summary { cursor: pointer; font: 600 var(--s-0) var(--f-ui); letter-spacing: 0.12em; text-transform: uppercase; color: var(--dim); }
 footer { font-family: var(--f-data); font-size: var(--s-0); color: var(--dim); }
 .err { border: 1px solid var(--sound); padding: 14px; font-family: var(--f-data); }
+.wall { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 16px 14px; }
+.title { display: grid; gap: 6px; align-content: start; color: inherit; text-decoration: none; min-width: 0; }
+.title .cover { aspect-ratio: 2 / 3; background: var(--well); border: 1px solid var(--grid); display: grid; place-items: center; overflow: hidden; position: relative; }
+.title .cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.title .cover .ph { padding: 10px; text-align: center; font: 600 var(--s-1)/1.3 var(--f-ui); letter-spacing: 0.08em; text-transform: uppercase; color: var(--dim); overflow-wrap: anywhere; }
+.title .cover .tags { position: absolute; left: 6px; bottom: 6px; display: flex; gap: 4px; }
+.title .cover .tags span { font: 600 10px var(--f-data); letter-spacing: 0.06em; padding: 2px 5px; background: rgba(7,6,15,0.88); border: 1px solid var(--dim); color: var(--ink); }
+a.title:hover .cover, a.title:focus-visible .cover { border-color: var(--sound); box-shadow: 0 0 18px rgba(255,63,180,0.3); }
+a.title:focus-visible { outline: none; }
+.title b { font: 600 var(--s-1)/1.25 var(--f-ui); color: var(--hot); overflow-wrap: anywhere; }
+.title small { font: 400 var(--s-0)/1.4 var(--f-data); color: var(--dim); }
+.title small em { font-style: normal; color: var(--ink); }
 @media (max-width: 640px) { input[type="text"] { min-width: 0; width: 100%; } }
 </style>
 
@@ -118,13 +130,14 @@ footer { font-family: var(--f-data); font-size: var(--s-0); color: var(--dim); }
   <header>
     <a class="back" href="../">◀ jsbv.life</a>
     <h1 style="margin-top:10px">META<span>//LOG</span></h1>
-    <p class="lede">Every dataset on this site on one clock. A report card for the numbers being tracked, an explorer for cutting them any way and saving the picture, and a calendar with the chapters of a life laid over the days.</p>
+    <p class="lede">Every dataset on this site on one clock. A report card for the numbers being tracked, an explorer for cutting them any way and saving the picture, a calendar with the chapters of a life laid over the days, and the wall of everything watched this year.</p>
   </header>
 
   <nav class="tabs" aria-label="Views">
     <a href="#report">Report card</a>
     <a href="#explore">Explorer</a>
     <a href="#calendar">Calendar</a>
+    <a href="#watched" id="tab-watched" hidden>Watched</a>
   </nav>
 
   <div id="boot" class="note">Loading data…</div>
@@ -225,6 +238,28 @@ footer { font-family: var(--f-data); font-size: var(--s-0); color: var(--dim); }
       <h2>Chapters</h2>
       <p class="note" id="c-tnote"></p>
       <div class="scroll"><table id="c-table"></table></div>
+    </section>
+  </div>
+
+  <!-- ============================================================ WATCHED -->
+  <div class="view" id="v-watched" hidden>
+    <section class="box">
+      <h2>Watched</h2>
+      <p class="note" id="w-note"></p>
+      <div class="row">
+        <div class="field"><span>Show</span><div class="seg" id="w-type"></div></div>
+        <label class="field"><span>Genre</span><select id="w-genre"></select></label>
+        <label class="field"><span>Sort by</span><select id="w-sort">
+          <option value="recent">Last watched, newest first</option>
+          <option value="first">First watched, oldest first</option>
+          <option value="hours">Most hours</option>
+          <option value="imdb">IMDb rating</option>
+          <option value="year">Release year, newest first</option>
+          <option value="title">Title A to Z</option>
+        </select></label>
+        <label class="field"><span>Find a title</span><input type="text" id="w-find" placeholder="type to filter"></label>
+      </div>
+      <div class="wall" id="w-wall"></div>
     </section>
   </div>
 
@@ -786,7 +821,50 @@ footer { font-family: var(--f-data); font-size: var(--s-0); color: var(--dim); }
   }
 
   // ================================================================ routing + boot
-  const VIEWS = { report: renderReport, explore: renderExplorer, calendar: renderCalendar };
+  // ================================================================ WATCHED (poster wall)
+  const WT = (await get('data/watch-titles.json', true)) || null;
+  const WV = { type: 'all', genre: '', sort: 'recent', find: '' };
+  const hrs = (min) => (min >= 600 ? Math.round(min / 60) : +(min / 60).toFixed(1)) + ' h';
+  const dshort = (s) => `${MON[+s.slice(5, 7) - 1]} ${+s.slice(8, 10)}`;
+  function titleCard(t) {
+    const cover = el('div', { className: 'cover' });
+    const ph = () => el('div', { className: 'ph', text: t.t });
+    if (t.poster) cover.append(el('img', { src: t.poster, alt: '', loading: 'lazy', referrerPolicy: 'no-referrer', onerror: (e) => e.target.replaceWith(ph()) }));
+    else cover.append(ph());
+    const tags = [t.theater && 'THEATER', t.rewatch && 'REWATCH', t.tier && 'TIER ' + t.tier].filter(Boolean);
+    if (tags.length) cover.append(el('div', { className: 'tags' }, tags.map((x) => el('span', { text: x }))));
+    const what = t.type === 'tv' ? `${t.n} episode${t.n === 1 ? '' : 's'}` : t.sit > 1 ? `${t.sit} sittings` : 'movie';
+    const when = t.first === t.last ? dshort(t.first) : `${dshort(t.first)} – ${dshort(t.last)}`;
+    const kids = [cover, el('b', { text: t.t }),
+      el('small', {}, [el('em', { text: hrs(t.min) }), ` · ${what}`]),
+      el('small', { text: [when, t.year, t.imdb && 'IMDb ' + t.imdb, t.rating && 'mine ' + t.rating].filter(Boolean).join(' · ') })];
+    return t.id ? el('a', { className: 'title', href: `https://www.imdb.com/title/${t.id}/`, target: '_blank', rel: 'noopener', title: `${t.t} on IMDb` }, kids)
+      : el('div', { className: 'title' }, kids);
+  }
+  function renderWatched() {
+    if (!WT) return;
+    const q = WV.find.trim().toLowerCase();
+    let rows = WT.titles.filter((t) => (WV.type === 'all' || t.type === WV.type) && (!WV.genre || (t.genre || []).includes(WV.genre)) && (!q || t.t.toLowerCase().includes(q)));
+    const by = { recent: (a, b) => (a.last < b.last ? 1 : a.last > b.last ? -1 : 0), first: (a, b) => (a.first < b.first ? -1 : a.first > b.first ? 1 : 0),
+      hours: (a, b) => b.min - a.min, imdb: (a, b) => (b.imdb || 0) - (a.imdb || 0), year: (a, b) => (b.year || 0) - (a.year || 0), title: (a, b) => a.t.localeCompare(b.t) };
+    rows = rows.slice().sort(by[WV.sort]);
+    const mv = rows.filter((t) => t.type === 'movie').length;
+    $('#w-note').textContent = `${rows.length} title${rows.length === 1 ? '' : 's'} (${mv} movie${mv === 1 ? '' : 's'}, ${rows.length - mv} show${rows.length - mv === 1 ? '' : 's'}), ${hrs(rows.reduce((a, t) => a + t.min, 0))} watched, logged through ${dshort(WT.through)}. A cover opens the title on IMDb; titles without a cover link yet show their name.`;
+    $('#w-wall').replaceChildren(...(rows.length ? rows.map(titleCard) : [el('p', { className: 'note', text: 'Nothing matches those filters.' })]));
+  }
+  if (WT) {
+    $('#tab-watched').hidden = false;
+    const wt = $('#w-type');
+    wt.replaceChildren(...[['all', 'ALL'], ['movie', 'MOVIES'], ['tv', 'TV']].map(([v, label]) => el('button', { type: 'button', text: label, 'aria-pressed': String(WV.type === v),
+      onclick: () => { WV.type = v; for (const b of wt.children) b.setAttribute('aria-pressed', String(b.textContent === label)); renderWatched(); } })));
+    const gs = [...new Set(WT.titles.flatMap((t) => t.genre || []))].sort();
+    $('#w-genre').replaceChildren(el('option', { value: '', text: 'All genres' }), ...gs.map((g) => el('option', { value: g, text: g })));
+    $('#w-genre').onchange = (e) => { WV.genre = e.target.value; renderWatched(); };
+    $('#w-sort').onchange = (e) => { WV.sort = e.target.value; renderWatched(); };
+    $('#w-find').oninput = (e) => { WV.find = e.target.value; renderWatched(); };
+  }
+
+  const VIEWS = { report: renderReport, explore: renderExplorer, calendar: renderCalendar, ...(WT ? { watched: renderWatched } : {}) };
   function route() {
     const v = VIEWS[location.hash.slice(1)] ? location.hash.slice(1) : 'report';
     for (const k in VIEWS) $('#v-' + k).hidden = k !== v;

@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
-"""Build meta-log/data/watch.json from the movie/TV watch-list workbook.
+"""Build meta-log/data/watch.json (day totals) and meta-log/data/watch-titles.json (the titles) from the watch-list workbook.
 
     python3 scripts/build_watch_log.py "/path/to/2026-Watch-List.xlsx"
     python3 scripts/build_meta_log.py          # then fold it into META//LOG
 
 The workbook stays OUTSIDE this repo (*.xlsx is git-ignored): its logs name the people things were watched with.
-This script reads only these columns of the 'Movie Log' and 'TV Log' sheets, and writes day totals only:
-    Watch Date, Minutes Watched, Primary Genre, Platform, Episode Count
-'Where / With', 'Notes' and every other sheet are never read. No titles, names or notes reach watch.json.
+This script reads only the columns listed in KEEP below: dates, minutes, genre, platform, title and the
+public film details on the Titles sheet (year, director, runtime, IMDb id/rating, poster link, my rating/tier).
+'Where / With', 'Notes', 'Review', 'Themes / Notes' and every other sheet are never read, so no names of
+people and no free-text notes can reach the site. Posters are linked, not copied into the repo.
 Standard library only (an .xlsx is a zip of XML), so it runs with the stock macOS python3.
 """
 import sys, os, re, json, zipfile, datetime as dt, collections
@@ -17,8 +18,9 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(ROOT, 'meta-log', 'data', 'watch.json')
 NS = {'m': 'http://schemas.openxmlformats.org/spreadsheetml/2006/main',
       'r': 'http://schemas.openxmlformats.org/officeDocument/2006/relationships'}
-KEEP = {'Movie Log': ['Watch Date', 'Minutes Watched', 'Primary Genre', 'Platform'],
-        'TV Log': ['Watch Date', 'Minutes Watched', 'Primary Genre', 'Platform', 'Episode Count']}
+KEEP = {'Movie Log': ['Watch Date', 'Minutes Watched', 'Primary Genre', 'Platform', 'Title', 'Rewatch', 'In Theaters'],
+        'TV Log': ['Watch Date', 'Minutes Watched', 'Primary Genre', 'Platform', 'Episode Count', 'Show'],
+        'Titles': ['Title', 'Type', 'My Rating', 'Tier', 'Year', 'Runtime (min)', 'Genre', 'Director', 'IMDb Rating', 'Poster URL', 'IMDb ID']}
 
 def col_of(ref): return re.match(r'[A-Z]+', ref).group(0)
 
@@ -67,11 +69,16 @@ def serial(x): return dt.date(1899, 12, 30) + dt.timedelta(days=int(x))
 if len(sys.argv) != 2: sys.exit(__doc__)
 S = load(sys.argv[1])
 entries = []   # (date, kind, minutes, genre, platform, count)
+agg = collections.defaultdict(lambda: {'min': 0.0, 'n': 0, 'sit': 0, 'dates': [], 'rewatch': False, 'theater': False})
 for kind, name in (('movies', 'Movie Log'), ('tv', 'TV Log')):
     for r in S[name]:
         d, mins = r.get('Watch Date'), r.get('Minutes Watched')
         if not isinstance(d, float) or not isinstance(mins, float): continue      # blank template rows
         n = r.get('Episode Count') if kind == 'tv' else 1
+        name_ = (r.get('Title') if kind == 'movies' else r.get('Show'))
+        if isinstance(name_, str):
+            a = agg[name_.strip()]; a['min'] += mins; a['n'] += int(n) if isinstance(n, float) else 1; a['sit'] += 1
+            a['dates'].append(serial(d)); a['rewatch'] |= r.get('Rewatch') == 'Y'; a['theater'] |= r.get('In Theaters') == 'Y'
         entries.append((serial(d), kind, mins, (r.get('Primary Genre') or 'Unknown').strip(),
                         (r.get('Platform') or 'Not logged').strip(), int(n) if isinstance(n, float) else 1))
 if not entries: sys.exit('no dated rows found')
@@ -117,3 +124,30 @@ out = {
 os.makedirs(os.path.dirname(OUT), exist_ok=True)
 with open(OUT, 'w') as f: json.dump(out, f, separators=(',', ':'), ensure_ascii=False)
 print(f"watch  {start} → {end}  minutes={round(sum(tot)):,} movies={sum(mov)} episodes={sum(eps)}  genres={len(gc)} platforms={len(pc)}  → {os.path.relpath(OUT, ROOT)}")
+
+# ---------------------------------------------------------------- the titles themselves (poster wall)
+def num(x): return x if isinstance(x, float) else None
+titles = []
+for r in S['Titles']:
+    t = r.get('Title')
+    if not isinstance(t, str) or t.strip() not in agg: continue          # only what was actually watched
+    a = agg[t.strip()]; poster = r.get('Poster URL'); imdb = r.get('IMDb ID'); y = num(r.get('Year')); rt = num(r.get('Runtime (min)'))
+    row = {'t': t.strip(), 'type': 'tv' if 'TV' in str(r.get('Type') or '') else 'movie',
+           'min': round(a['min'], 1), 'n': a['n'], 'sit': a['sit'], 'first': min(a['dates']).isoformat(), 'last': max(a['dates']).isoformat()}
+    if y: row['year'] = int(y)
+    if rt: row['rt'] = round(rt)
+    if isinstance(r.get('Genre'), str): row['genre'] = [g.strip() for g in r['Genre'].split(',') if g.strip()]
+    if isinstance(r.get('Director'), str): row['dir'] = r['Director'].strip()
+    if num(r.get('IMDb Rating')): row['imdb'] = r['IMDb Rating']
+    if isinstance(imdb, str) and re.fullmatch(r'tt\d+', imdb.strip()): row['id'] = imdb.strip()
+    if isinstance(poster, str) and poster.startswith('https://'): row['poster'] = poster.strip()
+    if num(r.get('My Rating')): row['rating'] = r['My Rating']
+    if isinstance(r.get('Tier'), str): row['tier'] = r['Tier'].strip()
+    if a['rewatch']: row['rewatch'] = True
+    if a['theater']: row['theater'] = True
+    titles.append(row)
+titles.sort(key=lambda x: (x['first'], x['t']))
+TOUT = os.path.join(ROOT, 'meta-log', 'data', 'watch-titles.json')
+with open(TOUT, 'w') as f: json.dump({'through': end.isoformat(), 'titles': titles}, f, separators=(',', ':'), ensure_ascii=False)
+print(f"titles {len(titles)} ({sum(1 for x in titles if x['type'] == 'movie')} movies, {sum(1 for x in titles if x['type'] == 'tv')} shows), "
+      f"{sum(1 for x in titles if 'poster' in x)} with a poster  → {os.path.relpath(TOUT, ROOT)}")
