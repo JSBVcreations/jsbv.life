@@ -1,0 +1,4 @@
+{
+  "how": "Hand-logged metrics. Add an object to `metrics` and it shows up on the report card, in the explorer and in the calendar. agg is 'sum' (totals add up, e.g. pages written) or 'mean' (a level, e.g. weight). Example: {\"id\": \"pages\", \"name\": \"Pages written\", \"unit\": \"pages\", \"agg\": \"sum\", \"color\": \"#4ea8ff\", \"entries\": [[\"2026-11-13\", 3], [\"2026-11-14\", 5]]}",
+  "metrics": []
+}

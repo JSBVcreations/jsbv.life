@@ -4,3 +4,5 @@ raw/
 *.csv
 Streaming_History_*.json
 ~$*
+# personal overlay entries that only show on this machine
+meta-log/data/life.private.json

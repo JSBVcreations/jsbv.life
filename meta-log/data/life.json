@@ -1,0 +1,5 @@
+[
+  {"id": "college", "label": "College", "start": "2015-09-01", "end": "2019-05-31", "color": "#9b7bff", "note": "Month precision: Sep 2015 to May 2019"},
+  {"id": "at", "label": "Appalachian Trail", "start": "2019-06-15", "end": "2019-11-06", "color": "#b6ff5c"},
+  {"id": "yale", "label": "Yale Writing Workshop", "start": "2026-05-31", "end": "2026-06-05", "color": "#4ea8ff"}
+]

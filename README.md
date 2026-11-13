@@ -5,7 +5,8 @@ Personal data experiments at https://jsbv.life — static files, deployed by Ver
 ```
 index.html              landing page
 step-song/              STEP//SONG explorer (static: index.html + data/*.json)
-scripts/                data builders (raw exports → step-song/data)
+meta-log/               META//LOG: report card, explorer, life calendar (index.html + data/*.json)
+scripts/                data builders (raw exports → step-song/data, site data → meta-log/data)
 ```
 
 No build step. Edit, commit, push to `main` → Vercel deploys in about a minute.
@@ -25,6 +26,14 @@ python3 scripts/build_step_song.py \
   step-song/data
 ```
 Update `END` in the script if the Health export runs later than 2026-10-15.
+
+## Refresh META//LOG data
+Run after any other data refresh; it only reads files already in this repo.
+```
+python3 scripts/build_meta_log.py
+```
+Life chapters: `meta-log/data/life.json` (published) and `meta-log/data/life.private.json` (git-ignored, shows only on this machine).
+Hand-logged metrics: `meta-log/data/manual.json`.
 
 ## Credits
 Appalachian Trail elevation profile derived from [JasonSanford/every-mile](https://github.com/JasonSanford/every-mile) (BSD 3-Clause, © 2021 Jason Sanford).
