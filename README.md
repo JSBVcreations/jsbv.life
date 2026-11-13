@@ -32,6 +32,11 @@ Run after any other data refresh; it only reads files already in this repo.
 ```
 python3 scripts/build_meta_log.py
 ```
+Watch list: keep the workbook outside this repo (`*.xlsx` is git-ignored; it names people), then
+```
+python3 scripts/build_watch_log.py "/path/to/2026-Watch-List.xlsx"
+python3 scripts/build_meta_log.py
+```
 Life chapters: `meta-log/data/life.json` (published) and `meta-log/data/life.private.json` (git-ignored, shows only on this machine).
 Hand-logged metrics: `meta-log/data/manual.json`.
 

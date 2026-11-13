@@ -85,6 +85,10 @@ Fonts: Monoton (titles only), Chakra Petch (UI), JetBrains Mono (data).
 - `meta-log/data/daily.json` is written by `scripts/build_meta_log.py`, which reads only step-song/data and
   photo-library/data. Run it after any other builder. Layout is documented at the top of the script. To add a dataset,
   append to `datasets` there (metrics + optional dims); the page picks it up without changes.
+- Watching dataset: `scripts/build_watch_log.py "<workbook.xlsx>"` → `meta-log/data/watch.json` (then rerun build_meta_log.py).
+  The workbook stays OUTSIDE the repo (`*.xlsx` is git-ignored). HARD RULE: never publish the names of people Jack watched
+  with. The script reads only Watch Date, Minutes Watched, Primary Genre, Platform and Episode Count from the Movie Log
+  and TV Log sheets; 'Where / With' and 'Notes' are never read. watch.json holds day totals by genre / platform / movies-vs-TV.
 - `meta-log/data/life.json` = chapters/events that are published. `meta-log/data/life.private.json` (git-ignored) = entries
   that show only when previewing locally. Same format: `{id, label, color, start, end}` for a period, `{id, label, color, date}`
   for a single day. Entries about other people (Emily, Max's illness, Jim, Kyah) start in the private file; move a line to

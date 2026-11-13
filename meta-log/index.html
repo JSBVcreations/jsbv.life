@@ -264,7 +264,7 @@ footer { font-family: var(--f-data); font-size: var(--s-0); color: var(--dim); }
   const num = (v, unit) => {
     if (v == null || !isFinite(v)) return '—';
     const a = Math.abs(v);
-    const s = a >= 100 ? Math.round(v).toLocaleString('en-US') : a >= 10 ? v.toFixed(1) : a === 0 ? '0' : v.toFixed(2);
+    const s = a >= 100 || Number.isInteger(v) ? Math.round(v).toLocaleString('en-US') : a >= 10 ? v.toFixed(1) : a === 0 ? '0' : v.toFixed(2);
     return unit ? `${s} ${unit}` : s;
   };
   const tick = (v) => { const a = Math.abs(v);

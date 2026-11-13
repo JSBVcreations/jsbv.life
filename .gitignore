@@ -6,3 +6,5 @@ Streaming_History_*.json
 ~$*
 # personal overlay entries that only show on this machine
 meta-log/data/life.private.json
+# source workbooks stay out of the repo (the watch list names people)
+*.xlsx
