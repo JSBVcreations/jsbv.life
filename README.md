@@ -37,6 +37,11 @@ Watch list: keep the workbook outside this repo (`*.xlsx` is git-ignored; it nam
 python3 scripts/build_watch_log.py "/path/to/2026-Watch-List.xlsx"
 python3 scripts/build_meta_log.py
 ```
+Call log (same rule: workbook stays outside the repo; only day totals are written, never who a call was with):
+```
+python3 scripts/build_call_log.py "/path/to/2026-11-Call-Log-Backup.xlsx"
+python3 scripts/build_meta_log.py
+```
 The first command also writes `meta-log/data/watch-titles.json` (the poster wall). Covers are linked from the poster URLs in the workbook, not stored here.
 Life chapters: `meta-log/data/life.json` (published) and `meta-log/data/life.private.json` (git-ignored, shows only on this machine).
 Hand-logged metrics: `meta-log/data/manual.json`.

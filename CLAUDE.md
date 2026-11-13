@@ -93,6 +93,10 @@ Fonts: Monoton (titles only), Chakra Petch (UI), JetBrains Mono (data).
   watch-titles.json = one row per title (hours, episodes, dates, year, director, IMDb id/rating, poster link) for the
   `#watched` poster wall. Posters are hot-linked from the URLs in the workbook, never copied into the repo; a missing or
   broken cover falls back to the title text.
+- Phone calls dataset: `scripts/build_call_log.py "<call-log.xlsx>"` → `meta-log/data/calls.json` (then rerun build_meta_log.py).
+  Workbook stays OUTSIDE the repo. HARD RULE: no specific people. The script reads only HHMM (start), HrMin (length as
+  h:mm digits), Month and Day; it never opens 'Who' / 'Who Two'. calls.json = calls and minutes per day by time of day and
+  call length. Do not add per-person, per-contact or ranked-contact breakdowns, even with names replaced.
 - `meta-log/data/life.json` = chapters/events that are published. `meta-log/data/life.private.json` (git-ignored) = entries
   that show only when previewing locally. Same format: `{id, label, color, start, end}` for a period, `{id, label, color, date}`
   for a single day. Entries about other people (Emily, Max's illness, Jim, Kyah) start in the private file; move a line to

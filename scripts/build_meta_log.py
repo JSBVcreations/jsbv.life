@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Build meta-log/data/daily.json: one day-indexed file joining every dataset on the site.
 
-Reads only files already in this repo (step-song/data, photo-library/data, meta-log/data/watch.json),
+Reads only files already in this repo (step-song/data, photo-library/data, meta-log/data/watch.json and calls.json),
 so it never touches raw exports.
 Run it after build_step_song.py / build_at_log.py / the photo snapshot scripts:
 
@@ -168,10 +168,11 @@ if os.path.exists(lrp):
         })
 
 # ---------------------------------------------------------------- watch log (built by scripts/build_watch_log.py)
-wp = os.path.join(OUT, 'watch.json')
-if os.path.exists(wp):
-    W = load(wp); W['offset'] = day(W.pop('start'))
-    datasets.append(W)
+for extra in ('watch.json', 'calls.json'):          # calls.json is built by scripts/build_call_log.py
+    wp = os.path.join(OUT, extra)
+    if os.path.exists(wp):
+        W = load(wp); W['offset'] = day(W.pop('start'))
+        datasets.append(W)
 
 # ---------------------------------------------------------------- library snapshots for the report card
 snap = {'photos': P.get('snapshots', []), 'lightroom': load(lrp).get('snapshots', []) if os.path.exists(lrp) else []}
