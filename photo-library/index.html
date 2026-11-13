@@ -63,11 +63,14 @@ th:first-child, td:first-child { text-align: left; }
 .two { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 28px; }
 footer { font-family: var(--f-data); font-size: var(--s-0); color: var(--dim); }
 [hidden] { display: none !important; }
+nav.site { display: flex; flex-wrap: wrap; gap: 6px 18px; font: 600 var(--s-0) var(--f-data); letter-spacing: 0.08em; text-transform: uppercase; }
+nav.site a { color: var(--dim); text-decoration: none; }
+nav.site a:hover, nav.site a:focus-visible { color: var(--step); }
 </style>
 <body>
 <div class="wrap">
   <header>
-    <a class="back" href="../">&lt; jsbv.life</a>
+    <nav class="site" aria-label="Site"><a href="../">◀ Home</a><a href="../#data">Data</a><a href="../#highlights">Highlights</a></nav>
     <h1 style="margin-top:14px">PHOTO<span>//SORT</span></h1>
     <p class="lede">One photo library, far too many items, being sorted and culled a session at a time. This page tracks the numbers. No photos, file names or album names are stored here.</p>
   </header>

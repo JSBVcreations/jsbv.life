@@ -3,9 +3,10 @@
 Personal data experiments at https://jsbv.life — static files, deployed by Vercel from this repo.
 
 ```
-index.html              landing page
+index.html              home dashboard + Data directory + Highlights + explorer/calendar/poster wall (hash views)
 step-song/              STEP//SONG explorer (static: index.html + data/*.json)
-meta-log/               META//LOG: report card, explorer, life calendar (index.html + data/*.json)
+meta-log/               data/*.json for the root page (index.html here only redirects to /)
+data/, highlights/       redirects to /#data and /#highlights
 scripts/                data builders (raw exports → step-song/data, site data → meta-log/data)
 ```
 
@@ -42,7 +43,12 @@ Call log (same rule: workbook stays outside the repo; only day totals are writte
 python3 scripts/build_call_log.py "/path/to/2026-11-Call-Log-Backup.xlsx"
 python3 scripts/build_meta_log.py
 ```
-The first command also writes `meta-log/data/watch-titles.json` (the poster wall). Covers are linked from the poster URLs in the workbook, not stored here.
+Breathwork (Wim Hof app export; `.numbers` needs `pip3 install numbers-parser`, `.csv` needs nothing):
+```
+python3 scripts/build_breath_log.py "/path/to/export_results.numbers"
+python3 scripts/build_meta_log.py
+```
+The first watch-list command also writes `meta-log/data/watch-titles.json` (the poster wall). Covers are linked from the poster URLs in the workbook, not stored here.
 Life chapters: `meta-log/data/life.json` (published) and `meta-log/data/life.private.json` (git-ignored, shows only on this machine).
 Hand-logged metrics: `meta-log/data/manual.json`.
 

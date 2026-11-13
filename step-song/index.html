@@ -164,11 +164,14 @@ input[type="date"] { font: 600 var(--s-0) var(--f-data); background: var(--void)
 footer { color: var(--dim); font-size: var(--s-0); }
 a.back { font-family: var(--f-data); font-size: var(--s-0); color: var(--dim); text-decoration: none; justify-self: start; }
 a.back:hover, a.back:focus-visible { color: var(--step); }
+nav.site { display: flex; flex-wrap: wrap; gap: 6px 18px; font: 600 var(--s-0) var(--f-data); letter-spacing: 0.08em; text-transform: uppercase; }
+nav.site a { color: var(--dim); text-decoration: none; }
+nav.site a:hover, nav.site a:focus-visible { color: var(--step); }
 </style>
 
 <div class="wrap">
   <header>
-    <a class="back" href="../">◀ jsbv.life</a>
+    <nav class="site" aria-label="Site"><a href="../">◀ Home</a><a href="../#data">Data</a><a href="../#highlights">Highlights</a></nav>
     <h1>STEP<span class="sl">//</span>SONG</h1>
     <p class="lede">A decade of <b>footsteps</b> and <i>songs</i> on one clock. Start with the whole span, then drill down to a fortnight, a day, and the single track playing during a given hour of walking.</p>
     <div class="readout" id="totals"><div id="boot">BOOTING… loading listening history</div></div>

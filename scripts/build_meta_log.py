@@ -168,7 +168,7 @@ if os.path.exists(lrp):
         })
 
 # ---------------------------------------------------------------- watch log (built by scripts/build_watch_log.py)
-for extra in ('watch.json', 'calls.json'):          # calls.json is built by scripts/build_call_log.py
+for extra in ('watch.json', 'calls.json', 'breath.json'):     # built by build_watch_log / build_call_log / build_breath_log
     wp = os.path.join(OUT, extra)
     if os.path.exists(wp):
         W = load(wp); W['offset'] = day(W.pop('start'))
@@ -183,5 +183,5 @@ with open(os.path.join(OUT, 'daily.json'), 'w') as f:
     json.dump(out, f, separators=(',', ':'), ensure_ascii=False)
 for d in datasets:
     first = START + dt.timedelta(days=d['offset']); last = first + dt.timedelta(days=d['n'] - 1)
-    print(f"{d['id']:10s} {first} → {last}  " + ', '.join(f"{m['id']}={round(sum(m['v'])):,}" for m in d['metrics']))
+    print(f"{d['id']:10s} {first} → {last}  " + ', '.join(f"{m['id']}={round(sum(x for x in m['v'] if x is not None)):,}" for m in d['metrics']))
 print('check', check, '| daily.json', os.path.getsize(os.path.join(OUT, 'daily.json')) // 1024, 'KB')
