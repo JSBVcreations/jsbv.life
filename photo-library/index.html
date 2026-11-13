@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PHOTO//SORT</title>
+<meta name="description" content="Tracking the cleanup of a 111,000-item photo library. Numbers only: no photos live here.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Monoton&family=Chakra+Petch:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: one CRT console, same tokens as STEP//SONG. Readout on top, then the capture timeline,
+   then the work log (one entry per library snapshot), then type and culling cross-cuts. */
+:root {
+  color-scheme: dark;
+  --void: #07060f; --panel: #0d0b1c; --grid: #1f1a3d; --ink: #dcd8ff; --dim: #8a84b8;
+  --step: #3ff0ff; --sound: #ff3fb4; --climb: #ffb347; --trail: #b6ff5c; --violet: #9b7bff; --hot: #fff;
+  --f-display: "Monoton", "Chakra Petch", system-ui, sans-serif;
+  --f-ui: "Chakra Petch", "Segoe UI", system-ui, sans-serif;
+  --f-data: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --s-0: 0.75rem; --s-1: 0.875rem; --s-2: 1rem; --s-3: 1.25rem;
+}
+* { box-sizing: border-box; }
+html, body { background: var(--void); color: var(--ink); }
+body { margin: 0; font-family: var(--f-ui); font-size: var(--s-1); line-height: 1.5;
+  padding: 24px max(16px, env(safe-area-inset-right, 0px)) 64px max(16px, env(safe-area-inset-left, 0px));
+  background: radial-gradient(ellipse 80% 40% at 50% 0%, rgba(182,255,92,0.08), transparent 70%), var(--void); }
+body::after { content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 50;
+  background: repeating-linear-gradient(to bottom, rgba(0,0,0,0) 0 2px, rgba(0,0,0,0.18) 2px 3px); }
+.wrap { max-width: 1180px; margin: 0 auto; display: grid; gap: 28px; }
+a.back { font-family: var(--f-data); font-size: var(--s-0); color: var(--dim); text-decoration: none; }
+a.back:hover { color: var(--step); }
+h1 { font-family: var(--f-display); font-weight: 400; margin: 0; font-size: clamp(2.2rem, 7vw, 4.6rem); line-height: 1;
+  color: var(--hot); text-shadow: 0 0 6px var(--trail), 0 0 18px var(--trail), 0 0 42px rgba(182,255,92,0.5); }
+h1 span { text-shadow: 0 0 6px var(--step), 0 0 18px var(--step), 0 0 42px rgba(63,240,255,0.6); }
+.lede { margin: 12px 0 0; color: var(--dim); max-width: 68ch; font-size: var(--s-2); }
+.readout { display: flex; flex-wrap: wrap; gap: 8px 28px; font-family: var(--f-data); padding: 12px 0; border-block: 1px solid var(--grid); }
+.readout div { display: grid; }
+.readout span { font-size: var(--s-0); text-transform: uppercase; letter-spacing: 0.12em; color: var(--dim); font-family: var(--f-ui); }
+.readout strong { font-size: var(--s-3); font-weight: 600; font-variant-numeric: tabular-nums; }
+section { border: 1px solid var(--grid); background: var(--panel); padding: 18px; display: grid; gap: 12px; min-width: 0; }
+h2 { margin: 0; font: 700 var(--s-2)/1.2 var(--f-ui); letter-spacing: 0.18em; text-transform: uppercase; color: var(--hot); }
+.note { margin: 0; color: var(--dim); max-width: 80ch; }
+.bar { display: flex; height: 14px; border: 1px solid var(--grid); background: #120f26; }
+.bar i { display: block; height: 100%; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px 14px; font-family: var(--f-data); font-size: var(--s-0); color: var(--dim); }
+.chips span { display: inline-flex; align-items: center; gap: 6px; }
+.chips i { width: 10px; height: 10px; display: inline-block; box-shadow: 0 0 8px currentColor; background: currentColor; }
+.ctl { display: flex; flex-wrap: wrap; gap: 8px; }
+.ctl button { font: 600 var(--s-0) var(--f-data); letter-spacing: 0.08em; color: var(--dim); background: none;
+  border: 1px solid var(--grid); padding: 6px 10px; cursor: pointer; }
+.ctl button[aria-pressed="true"] { color: var(--void); background: var(--step); border-color: var(--step); }
+.chart svg { display: block; width: 100%; height: auto; }
+.chart text { font: 400 11px var(--f-data); fill: var(--dim); }
+.read { font-family: var(--f-data); font-size: var(--s-0); color: var(--ink); min-height: 1.5em; }
+.rows { display: grid; gap: 8px; font-family: var(--f-data); font-size: var(--s-0); }
+.rows .lab { display: flex; justify-content: space-between; gap: 8px; color: var(--dim); }
+.rows .lab b { color: var(--ink); font-weight: 600; }
+.scroll { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-family: var(--f-data); font-size: var(--s-0); font-variant-numeric: tabular-nums; }
+th, td { padding: 6px 10px; border-bottom: 1px solid var(--grid); text-align: right; white-space: nowrap; }
+th { color: var(--dim); font-weight: 400; text-transform: uppercase; letter-spacing: 0.08em; }
+th:first-child, td:first-child { text-align: left; }
+.two { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 28px; }
+footer { font-family: var(--f-data); font-size: var(--s-0); color: var(--dim); }
+[hidden] { display: none !important; }
+</style>
+<body>
+<div class="wrap">
+  <header>
+    <a class="back" href="../">&lt; jsbv.life</a>
+    <h1 style="margin-top:14px">PHOTO<span>//SORT</span></h1>
+    <p class="lede">One photo library, far too many items, being sorted and culled a session at a time. This page tracks the numbers. No photos, file names or album names are stored here.</p>
+  </header>
+  <p class="note" id="err" hidden>Data failed to load.</p>
+  <div class="readout" id="readout">
+    <div><span>Items</span><strong id="r-total">—</strong></div>
+    <div><span>Storage</span><strong id="r-gb">—</strong></div>
+    <div><span>Sorted</span><strong id="r-sorted" style="color:var(--trail)">—</strong></div>
+    <div><span>Bucket only</span><strong id="r-bucket" style="color:var(--climb)">—</strong></div>
+    <div><span>No album</span><strong id="r-unfiled" style="color:var(--sound)">—</strong></div>
+    <div><span>Last snapshot</span><strong id="r-date">—</strong></div>
+  </div>
+  <section id="status">
+    <h2>Where it stands</h2>
+    <div class="bar" id="status-bar" role="img" aria-label="Share of items sorted, in buckets only, and in no album"></div>
+    <div class="chips"><span style="color:var(--trail)"><i></i>Sorted: in a real album</span><span style="color:var(--climb)"><i></i>Bucket only: just catch-all albums</span><span style="color:var(--sound)"><i></i>No album</span></div>
+  </section>
+  <section id="timeline">
+    <h2>What gets captured, by date taken</h2>
+    <div class="ctl">
+      <button data-mode="type" aria-pressed="true">BY TYPE</button><button data-mode="status" aria-pressed="false">BY STATUS</button>
+      <button data-grain="month" aria-pressed="true">MONTHS 2017+</button><button data-grain="year" aria-pressed="false">ALL YEARS</button>
+    </div>
+    <div class="chips" id="tl-legend"></div>
+    <div class="chart" id="tl-chart"></div>
+    <div class="read" id="tl-read">Hover or tap a bar.</div>
+  </section>
+  <section id="worklog">
+    <h2>Work log</h2>
+    <p class="note">One entry per library snapshot. Added, removed and newly sorted are counted against the snapshot before.</p>
+    <div class="chart" id="wl-chart"></div>
+    <div class="read" id="wl-read"></div>
+    <div class="scroll"><table><thead><tr><th>Snapshot</th><th>Items</th><th>GB</th><th>Sorted</th><th>Bucket</th><th>No album</th><th>Added</th><th>Removed</th><th>Newly sorted</th></tr></thead><tbody id="wl-body"></tbody></table></div>
+  </section>
+  <div class="two">
+    <section id="types">
+      <h2>Sorted or not, by type</h2>
+      <div class="rows" id="type-rows"></div>
+    </section>
+    <section id="storage">
+      <h2>What takes the space</h2>
+      <div class="rows" id="gb-rows"></div>
+    </section>
+  </div>
+  <section id="proper" hidden>
+    <h2>The proper photography</h2>
+    <p class="note">The camera archive, kept in a Lightroom catalog apart from the phone library above. Every frame starts unrated; reviewing means rejecting it or giving it stars.</p>
+    <div class="readout" style="border:0;padding:0">
+      <div><span>Frames</span><strong id="lr-total">—</strong></div>
+      <div><span>Reviewed</span><strong id="lr-reviewed" style="color:var(--step)">—</strong></div>
+      <div><span>4–5 stars</span><strong id="lr-high" style="color:var(--trail)">—</strong></div>
+      <div><span>Edited</span><strong id="lr-edited">—</strong></div>
+      <div><span>Also in cloud</span><strong id="lr-cloud">—</strong></div>
+      <div data-disk hidden><span>On disk</span><strong id="lr-gb">—</strong></div>
+      <div data-disk hidden><span>Not in catalog yet</span><strong id="lr-uncat" style="color:var(--climb)">—</strong></div>
+      <div data-disk hidden><span>Catalog can't find</span><strong id="lr-missing" style="color:var(--sound)">—</strong></div>
+      <div><span>Catalog saved</span><strong id="lr-saved">—</strong></div>
+    </div>
+    <div class="bar" id="lr-bar" role="img" aria-label="Share of frames by review stage"></div>
+    <div class="chips" id="lr-legend"></div>
+    <div class="chart" id="lr-chart" data-label="Frames by month taken, stacked by review stage"></div>
+    <div class="read" id="lr-read">Hover or tap a bar.</div>
+    <div class="scroll"><table><thead><tr><th>Snapshot</th><th>Frames</th><th>Unrated</th><th>Rejected</th><th>1–2★</th><th>3★</th><th>4–5★</th><th>Added</th><th>Removed</th><th>Newly reviewed</th></tr></thead><tbody id="lr-body"></tbody></table></div>
+  </section>
+  <section id="culling">
+    <h2>Taken versus kept</h2>
+    <p class="note" id="cull-note">Culling appears after the second snapshot: anything seen in an earlier snapshot and gone from the latest counts as removed, by the month it was taken.</p>
+    <div class="chips" id="cull-legend" hidden><span style="color:var(--dim)"><i></i>Still in library</span><span style="color:var(--sound)"><i></i>Removed</span></div>
+    <div class="chart" id="cull-chart"></div>
+    <div class="read" id="cull-read"></div>
+  </section>
+  <footer>Counts come from a read-only snapshot of the library database. © Jack · jsbv.life</footer>
+</div>
+<script>
+(() => {
+  const NS = 'http://www.w3.org/2000/svg';
+  const $ = (s) => document.querySelector(s);
+  const F = (n) => Math.round(n).toLocaleString('en-US');
+  const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+  const svgEl = (n, a, p) => { const e = document.createElementNS(NS, n); for (const k in a) e.setAttribute(k, a[k]); if (p) p.appendChild(e); return e; };
+  const htmlEl = (n, cls, txt, p) => { const e = document.createElement(n); if (cls) e.className = cls; if (txt != null) e.textContent = txt; if (p) p.appendChild(e); return e; };
+  const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const label = (p) => (p.length === 7 ? MONTHS[+p.slice(5) - 1] + ' ' + p.slice(0, 4) : p);
+
+  const TYPE = { keys: ['my_photos', 'my_videos', 'screens', 'saved', 'imported'],
+    names: { my_photos: 'Photos I took', my_videos: 'Videos I took', screens: 'Screenshots & recordings', saved: 'Saved from apps', imported: 'Imported / other' },
+    colors: { my_photos: '--step', my_videos: '--sound', screens: '--climb', saved: '--violet', imported: '--trail' } };
+  const STATUS = { keys: ['sorted', 'bucket', 'unfiled'],
+    names: { sorted: 'Sorted', bucket: 'Bucket only', unfiled: 'No album' },
+    colors: { sorted: '--trail', bucket: '--climb', unfiled: '--sound' } };
+  const CULL = { keys: ['kept', 'culled'], names: { kept: 'Still in library', culled: 'Removed' }, colors: { kept: '--dim', culled: '--sound' } };
+  const CAT = { camera_photo: 'Photos I took', camera_video: 'Videos I took', screenshot: 'Screenshots', screen_rec: 'Screen recordings',
+    saved_photo: 'Saved images', saved_video: 'Saved videos', import_photo: 'Imported photos', import_video: 'Imported videos', other: 'Other / unknown' };
+
+  // stacked bars: rows = [{period, <key>: n}], drawn to fit the host's width
+  function stackChart(host, rows, set, read, idle) {
+    const W = Math.max(300, host.clientWidth || 800), H = 280, ml = 44, mb = 20, mt = 8;
+    const sum = (r) => set.keys.reduce((a, k) => a + r[k], 0);
+    const raw = Math.max(1, ...rows.map(sum)), pow = Math.pow(10, Math.floor(Math.log10(raw)));
+    const max = Math.ceil(raw / pow) * pow;
+    const y = (v) => H - mb - (v / max) * (H - mb - mt);
+    const bw = (W - ml - 2) / Math.max(1, rows.length), gap = Math.min(2, bw * 0.15);
+    host.replaceChildren();
+    const svg = svgEl('svg', { viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': host.dataset.label || 'Chart' }, host);
+    for (let i = 0; i <= 4; i++) {
+      const v = (max / 4) * i;
+      svgEl('line', { x1: ml, x2: W - 2, y1: y(v), y2: y(v), stroke: css('--grid') }, svg);
+      svgEl('text', { x: ml - 6, y: y(v) + 4, 'text-anchor': 'end' }, svg).textContent = v >= 1000 ? v / 1000 + 'k' : v;
+    }
+    rows.forEach((r, i) => {
+      let acc = 0;
+      for (const k of set.keys) {
+        const h = y(acc) - y(acc + r[k]);
+        if (h > 0) svgEl('rect', { x: ml + i * bw + gap / 2, y: y(acc + r[k]), width: Math.max(0.5, bw - gap), height: h, fill: css(set.colors[k]) }, svg);
+        acc += r[k];
+      }
+    });
+    const ticks = rows.map((r, i) => [r, i]).filter(([r]) => r.period.length !== 7 || r.period.endsWith('-01'));
+    const step = Math.max(1, Math.ceil((ticks.length * (ticks[0] && ticks[0][0].period.length > 7 ? 86 : 42)) / (W - ml)));
+    ticks.forEach(([r, i], n) => { if (n % step === 0) svgEl('text', { x: ml + i * bw + (r.period.length === 7 ? 0 : bw / 2), y: H - 5, 'text-anchor': r.period.length === 7 ? 'start' : 'middle' }, svg).textContent = r.period.length === 7 ? r.period.slice(0, 4) : r.period; });
+    const cursor = svgEl('rect', { y: mt, width: bw, height: H - mb - mt, fill: 'rgba(255,255,255,0.08)', visibility: 'hidden' }, svg);
+    const hit = svgEl('rect', { x: ml, y: 0, width: W - ml, height: H, fill: 'transparent' }, svg);
+    const move = (e) => {
+      const b = svg.getBoundingClientRect(), px = ((e.clientX - b.left) / b.width) * W;
+      const i = Math.min(rows.length - 1, Math.max(0, Math.floor((px - ml) / bw))), r = rows[i];
+      if (!r) return;
+      cursor.setAttribute('x', ml + i * bw); cursor.setAttribute('visibility', 'visible');
+      read.textContent = label(r.period) + '  ·  ' + set.keys.map((k) => set.names[k] + ' ' + F(r[k])).join('  ·  ') + '  ·  total ' + F(sum(r));
+    };
+    hit.addEventListener('pointermove', move); hit.addEventListener('pointerdown', move);
+    hit.addEventListener('pointerleave', () => { cursor.setAttribute('visibility', 'hidden'); read.textContent = idle || ''; });
+  }
+
+  function legend(host, set) {
+    host.replaceChildren(...set.keys.map((k) => { const s = htmlEl('span'); s.style.color = css(set.colors[k]); htmlEl('i', null, null, s); s.append(set.names[k]); return s; }));
+  }
+
+  function init(d) {
+    const C = d.daily_columns, col = (r, k) => r[C.indexOf(k)];
+    const snaps = d.snapshots, s = snaps[snaps.length - 1], pct = (k) => Math.round((100 * s[k]) / s.total);
+    $('#r-total').textContent = F(s.total); $('#r-gb').textContent = F(s.gb) + ' GB'; $('#r-date').textContent = s.date;
+    for (const k of STATUS.keys) {
+      $('#r-' + k).textContent = pct(k) + '%';
+      const i = htmlEl('i', null, null, $('#status-bar')); i.style.width = (100 * s[k]) / s.total + '%'; i.style.background = css(STATUS.colors[k]);
+      i.title = STATUS.names[k] + ': ' + F(s[k]);
+    }
+
+    const roll = (len, from) => {
+      const m = new Map(), blank = (p) => ({ period: p, my_photos: 0, my_videos: 0, screens: 0, saved: 0, imported: 0, sorted: 0, bucket: 0, unfiled: 0 });
+      for (const r of d.daily) {
+        const p = r[0].slice(0, len); if (p < from) continue;
+        let o = m.get(p); if (!o) { o = blank(p); m.set(p, o); }
+        o.my_photos += col(r, 'camera_photo'); o.my_videos += col(r, 'camera_video');
+        o.screens += col(r, 'screenshot') + col(r, 'screen_rec'); o.saved += col(r, 'saved_photo') + col(r, 'saved_video');
+        o.imported += col(r, 'import_photo') + col(r, 'import_video') + col(r, 'other');
+        for (const k of STATUS.keys) o[k] += col(r, k);
+      }
+      const keys = [...m.keys()].sort();
+      if (len === 7 && keys.length) {
+        let [y, mo] = keys[0].split('-').map(Number);
+        for (;;) { const p = y + '-' + String(mo).padStart(2, '0'); if (p > keys[keys.length - 1]) break; if (!m.has(p)) m.set(p, blank(p)); if (++mo > 12) { mo = 1; y++; } }
+      }
+      return [...m.values()].sort((a, b) => (a.period < b.period ? -1 : 1));
+    };
+    const data = { month: roll(7, '2017-01'), year: roll(4, '0000') };
+    const state = { mode: 'type', grain: 'month' };
+    const drawTimeline = () => {
+      const set = state.mode === 'type' ? TYPE : STATUS;
+      legend($('#tl-legend'), set);
+      stackChart($('#tl-chart'), data[state.grain], set, $('#tl-read'), 'Hover or tap a bar.');
+    };
+    document.querySelectorAll('#timeline .ctl button').forEach((b) => b.addEventListener('click', () => {
+      const key = b.dataset.mode ? 'mode' : 'grain'; state[key] = b.dataset[key];
+      document.querySelectorAll(`#timeline .ctl button[data-${key}]`).forEach((o) => o.setAttribute('aria-pressed', String(o === b)));
+      drawTimeline();
+    }));
+
+    const drawLog = () => stackChart($('#wl-chart'), snaps.slice(-60).map((r) => ({ period: r.date, sorted: r.sorted, bucket: r.bucket, unfiled: r.unfiled })), STATUS, $('#wl-read'), '');
+    $('#wl-body').replaceChildren(...snaps.slice().reverse().map((r, i) => {
+      const tr = htmlEl('tr'), first = i === snaps.length - 1;
+      [r.date, F(r.total), F(r.gb), F(r.sorted), F(r.bucket), F(r.unfiled), first ? '—' : '+' + F(r.added), first ? '—' : '−' + F(r.removed), first ? '—' : F(r.newly_sorted)].forEach((v) => htmlEl('td', null, v, tr));
+      return tr;
+    }));
+
+    const cats = {};
+    for (const r of d.type_by_status) { const o = (cats[r.category] = cats[r.category] || { name: CAT[r.category] || r.category, items: 0, gb: 0, sorted: 0, bucket: 0, unfiled: 0 }); o[r.tier] += r.items; o.items += r.items; o.gb += r.gb; }
+    const list = Object.values(cats), maxItems = Math.max(...list.map((o) => o.items)), maxGb = Math.max(...list.map((o) => o.gb));
+    for (const o of list) {
+      const row = htmlEl('div', null, null, $('#type-rows')), lab = htmlEl('div', 'lab', null, row);
+      htmlEl('b', null, o.name, lab); htmlEl('span', null, F(o.items) + ' · ' + Math.round((100 * o.sorted) / o.items) + '% sorted', lab);
+      const bar = htmlEl('div', 'bar', null, row);
+      for (const k of STATUS.keys) { const i = htmlEl('i', null, null, bar); i.style.width = (100 * o[k]) / maxItems + '%'; i.style.background = css(STATUS.colors[k]); }
+    }
+    for (const o of list.slice().sort((a, b) => b.gb - a.gb)) {
+      const row = htmlEl('div', null, null, $('#gb-rows')), lab = htmlEl('div', 'lab', null, row);
+      htmlEl('b', null, o.name, lab); htmlEl('span', null, F(o.gb) + ' GB', lab);
+      const bar = htmlEl('div', 'bar', null, row), i = htmlEl('i', null, null, bar); i.style.width = (100 * o.gb) / maxGb + '%'; i.style.background = css('--step');
+    }
+
+    const cull = d.culling_by_month.filter((r) => r.month >= '2017-01').map((r) => ({ period: r.month, kept: r.kept, culled: r.culled }));
+    const hasCull = snaps.length > 1;
+    $('#cull-note').hidden = hasCull; $('#cull-legend').hidden = !hasCull;
+    const drawCull = () => { if (hasCull) stackChart($('#cull-chart'), cull, CULL, $('#cull-read'), ''); };
+
+    const drawAll = () => { drawTimeline(); drawLog(); drawCull(); };
+    drawAll();
+    let t; addEventListener('resize', () => { clearTimeout(t); t = setTimeout(drawAll, 150); });
+  }
+
+  const LR = { keys: ['high', 'mid', 'low', 'rejected', 'unrated'],
+    names: { high: '4–5 stars', mid: '3 stars', low: '1–2 stars', rejected: 'Rejected', unrated: 'Unrated' },
+    colors: { high: '--trail', mid: '--step', low: '--climb', rejected: '--sound', unrated: '--violet' } };
+  function initLR(d) {
+    const snaps = d.snapshots, s = snaps[snaps.length - 1];
+    $('#proper').hidden = false;
+    $('#lr-total').textContent = F(s.total); $('#lr-reviewed').textContent = Math.round((100 * (s.total - s.unrated)) / s.total) + '%';
+    $('#lr-high').textContent = F(s.high); $('#lr-edited').textContent = F(s.edited);
+    $('#lr-cloud').textContent = F(s.cloud_linked); $('#lr-saved').textContent = s.catalog_saved;
+    if (s.disk_gb != null) {
+      document.querySelectorAll('#proper [data-disk]').forEach((e) => { e.hidden = false; });
+      $('#lr-gb').textContent = F(s.disk_gb) + ' GB'; $('#lr-uncat').textContent = F(s.uncataloged); $('#lr-missing').textContent = F(s.missing);
+    }
+    for (const k of LR.keys) { const i = htmlEl('i', null, null, $('#lr-bar')); i.style.width = (100 * s[k]) / s.total + '%'; i.style.background = css(LR.colors[k]); i.title = LR.names[k] + ': ' + F(s[k]); }
+    legend($('#lr-legend'), LR);
+    const by = new Map(d.monthly.filter((r) => r.month >= '2022-01').map((r) => [r.month, r])), months = [...by.keys()].sort(), rows = [];
+    if (months.length) {
+      let [y, mo] = months[0].split('-').map(Number);
+      for (;;) { const p = y + '-' + String(mo).padStart(2, '0'); if (p > months[months.length - 1]) break;
+        const r = by.get(p) || {}; rows.push({ period: p, high: r.high || 0, mid: r.mid || 0, low: r.low || 0, rejected: r.rejected || 0, unrated: r.unrated || 0 });
+        if (++mo > 12) { mo = 1; y++; } }
+    }
+    const draw = () => stackChart($('#lr-chart'), rows, LR, $('#lr-read'), 'Hover or tap a bar. Months from 2022 on.');
+    draw(); $('#lr-read').textContent = 'Hover or tap a bar. Months from 2022 on.';
+    let t; addEventListener('resize', () => { clearTimeout(t); t = setTimeout(draw, 150); });
+    $('#lr-body').replaceChildren(...snaps.slice().reverse().map((r, i) => {
+      const tr = htmlEl('tr'), first = i === snaps.length - 1;
+      [r.date, F(r.total), F(r.unrated), F(r.rejected), F(r.low), F(r.mid), F(r.high), first ? '—' : '+' + F(r.added), first ? '—' : '−' + F(r.removed), first ? '—' : F(r.newly_reviewed)].forEach((v) => htmlEl('td', null, v, tr));
+      return tr;
+    }));
+  }
+  fetch('data/lightroom.json').then((r) => (r.ok ? r.json() : null)).then((d) => { if (d) initLR(d); }).catch(() => {});
+
+  fetch('data/photo-library.json').then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); }).then(init)
+    .catch((e) => { console.error(e); $('#err').hidden = false; });
+})();
+</script>
+</body>
+</html>

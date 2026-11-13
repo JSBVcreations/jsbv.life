@@ -64,6 +64,18 @@ Fonts: Monoton (titles only), Chakra Petch (UI), JetBrains Mono (data).
   moving pace (raw → adjusted, 3.2 mph line), capture card, stats card. Loads data/at2019-log.json; if the
   file is missing the block stays hidden. Clicking a day calls select() like the other trail charts.
 
+## PHOTO//SORT (photo-library/)
+- `photo-library/index.html` (markup + CSS + JS in one file, no libraries) reads `photo-library/data/photo-library.json`.
+- That JSON is written by `~/Documents/01-Projects/photo-library-tracker/photo_snapshot.py`, which reads the Photos
+  library database read-only. Each run adds a snapshot and rewrites the JSON here (path in its `config.json`).
+- Numbers only: counts and GB per capture date, per type, per status and per snapshot. Item ids, file names,
+  album names and app names stay in the tracker folder's `snapshots/` and `data/` and never get copied into this repo.
+- Status: sorted = in at least one non-bucket album; bucket = only catch-all albums (list in `config.json`); else no album.
+- The landing-page card's numbers are typed by hand; update them when they drift.
+- `#proper` ("The proper photography") reads `photo-library/data/lightroom.json`, written by `lightroom_snapshot.py` in the
+  same tracker folder from the Lightroom Classic catalog (`~/Pictures/Lightroom/JSBV-Catalog.lrcat`, read-only).
+  Stages: rejected (reject flag) > 4–5★ > 3★ > 1–2★ > unrated. If the file is missing the section stays hidden.
+
 ## Adding a new experiment
 Make `/<slug>/index.html` with its own `data/`, reuse the tokens, add a card to `index.html`.
 
