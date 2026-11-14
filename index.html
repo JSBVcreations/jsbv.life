@@ -136,6 +136,30 @@ a.title:focus-visible { outline: none; }
 .title small { font: 400 var(--s-0)/1.4 var(--f-data); color: var(--dim); }
 .title small em { font-style: normal; color: var(--ink); }
 @media (max-width: 640px) { input[type="text"] { min-width: 0; width: 100%; } }
+/* experiments */
+#v-experiments .head { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; justify-content: space-between; }
+.e-ring-wrap { display: grid; justify-items: center; } #e-ring-cv { display: block; max-width: 100%; touch-action: manipulation; }
+.e-split { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+@media (max-width: 900px) { .e-split { grid-template-columns: minmax(0, 1fr); } }
+.e-scroll { overflow-x: auto; } .e-side { display: grid; gap: 12px; min-width: 0; }
+#e-matrix svg, #e-scatter svg, #e-race-chart svg, .e-wk svg { display: block; width: 100%; height: auto; }
+#e-matrix svg { min-width: 520px; } #e-matrix text, #e-scatter text, #e-race-chart text, .e-wk text { font-family: var(--f-data); font-size: 11px; fill: var(--dim); }
+#e-matrix rect.c { cursor: pointer; } #e-matrix rect.c:hover { stroke: var(--hot); }
+#e-top { display: grid; gap: 4px; font-family: var(--f-data); font-size: var(--s-0); }
+#e-top button { display: grid; grid-template-columns: 52px minmax(0, 1fr); gap: 8px; text-align: left; font: inherit; color: var(--ink); background: none; border: 1px solid var(--grid); padding: 6px 8px; cursor: pointer; }
+#e-top button:hover, #e-top button[aria-pressed="true"] { border-color: var(--step); } #e-top b { font-variant-numeric: tabular-nums; }
+.e-weeks { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 12px; }
+.e-wk { border: 1px solid var(--grid); padding: 10px; display: grid; gap: 4px; min-width: 0; }
+.e-wk h3 { margin: 0; font: 600 var(--s-0) var(--f-ui); letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink); }
+.e-wk p { margin: 0; font-family: var(--f-data); font-size: var(--s-0); color: var(--dim); }
+#e-tide-chart svg, #e-pair-chart svg { display: block; width: 100%; height: auto; } #e-tide-chart text, #e-pair-chart text { font-family: var(--f-data); font-size: 11px; fill: var(--dim); }
+.e-chips { display: flex; flex-wrap: wrap; gap: 6px; } .e-chips button { font: 600 var(--s-0)/1 var(--f-data); background: none; color: var(--ink); border: 1px solid var(--grid); padding: 7px 10px; cursor: pointer; }
+.e-chips button:hover, .e-chips button[aria-pressed="true"] { border-color: var(--climb, #ffb347); color: var(--climb, #ffb347); }
+.e-pick { display: grid; gap: 4px; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--dim); min-width: 0; flex: 1 1 220px; max-width: 360px; } .e-pick select { width: 100%; min-width: 0; }
+#e-pair-card { border: 1px solid var(--grid); padding: 14px; font-family: var(--f-data); font-size: var(--s-0); align-content: start; }
+#e-pair-card .rho { font-size: 2.2rem; font-weight: 600; line-height: 1; font-variant-numeric: tabular-nums; } #e-pair-card p { margin: 0; }
+#e-pair-card dl { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; margin: 0; } #e-pair-card dt { color: var(--dim); } #e-pair-card dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; }
+#e-tip { position: fixed; z-index: 70; pointer-events: none; max-width: 260px; background: rgba(7,6,15,0.95); border: 1px solid var(--step); font-family: var(--f-data); font-size: var(--s-0); padding: 6px 9px; line-height: 1.4; color: var(--ink); }
 </style>
 
 <div class="wrap">
@@ -148,7 +172,7 @@ a.title:focus-visible { outline: none; }
     <a href="#report" data-nav="home">Home</a>
     <a href="#data" data-nav="data">Data</a>
     <a href="#highlights" data-nav="highlights">Highlights</a>
-    <a href="experiments/" data-nav="experiments">Experiments</a>
+    <a href="#experiments" data-nav="experiments">Experiments</a>
   </nav>
   <nav class="sub" id="subnav" aria-label="Data tools" hidden>
     <a href="#data">◀ All data</a>
@@ -279,6 +303,66 @@ a.title:focus-visible { outline: none; }
       <p class="note">Stretches of the record that get their own closer look.</p>
     </section>
     <div class="cards wide" id="h-cards"></div>
+  </div>
+
+  <!-- ============================================================ EXPERIMENTS -->
+  <div class="view" id="v-experiments" hidden>
+    <section class="box">
+      <h2>Experiments</h2>
+      <p class="note">Other ways of looking at the same record. Each one is drawn live from the datasets on this site, so it moves when they do.</p>
+    </section>
+    <section class="box" id="e-rings">
+      <div class="head"><h2>Year rings</h2>
+        <div class="seg" role="group" aria-label="Ring metric" id="e-ring-seg"></div></div>
+      <p class="note">One ring per year, January at the top, running clockwise. The longer and brighter the spoke, the bigger the day. Hover a day to read it.</p>
+      <div class="e-ring-wrap"><canvas id="e-ring-cv" aria-label="Every day as a spoke, one ring per year"></canvas></div>
+      <p class="note" id="e-ring-note"></p>
+    </section>
+    <section class="box" id="e-corr">
+      <div class="head"><h2>What moves together</h2>
+        <div class="seg" role="group" aria-label="Time span" id="e-win-seg"></div></div>
+      <p class="note">Every pair of weekly numbers, scored from −1 (one goes up when the other goes down) to +1 (they rise and fall together). Click a square to see the weeks behind it.</p>
+      <div class="e-split">
+        <div class="e-scroll"><div id="e-matrix"></div></div>
+        <div class="e-side"><div id="e-scatter"></div><div id="e-top"></div></div>
+      </div>
+      <p class="note">Rank correlation (Spearman) on weekly values; a pair needs at least 20 weeks where both were recorded. A link is not a cause: two things can move together because a third thing, like a season, moves both.</p>
+    </section>
+    <section class="box" id="e-week">
+      <div class="head"><h2>The shape of a week</h2></div>
+      <p class="note">Each number's average for Monday through Sunday, against its own overall average (the dashed line). The brightest bar is the biggest day. Uses the time span chosen above.</p>
+      <div class="e-weeks" id="e-weeks"></div>
+    </section>
+    <section class="box" id="e-race" hidden>
+      <div class="head"><h2>Racing 2019</h2></div>
+      <p class="note">Miles on the phone, added up over the 111 days before leaving for a long trail: the run-in to the Appalachian Trail in 2019 against the run-in to the Pacific Crest Trail now.</p>
+      <div id="e-race-chart"></div>
+      <p class="note" id="e-race-note"></p>
+    </section>
+    <section class="box" id="e-tide" hidden>
+      <div class="head"><h2>Tide</h2>
+        <div class="legend"><span><i class="sw" style="background:#3ff0ff"></i>steps a day</span><span><i class="sw" style="background:#ff3fb4"></i>hours of music a day</span><span><i class="sw" style="background:#b6ff5c"></i>Appalachian Trail</span></div></div>
+      <p class="note">Steps rise above the line and listening sinks below it, one column per week since 2016. Look for tall weeks sitting over deep ones.</p>
+      <div id="e-tide-chart"></div>
+      <p class="note" id="e-tide-note"></p>
+    </section>
+    <section class="box" id="e-pairs">
+      <div class="head"><h2>Any two numbers</h2>
+        <div class="seg" role="group" aria-label="Weeks or days" id="e-pair-grain"></div></div>
+      <p class="note">The grid above scores a fixed set of weekly numbers. This one takes any two metrics on the site, by week or by day, from any starting year, and shows every dot behind the score.</p>
+      <div class="e-chips" id="e-pair-presets" role="group" aria-label="Pairs worth a look"></div>
+      <div class="row">
+        <label class="e-pick">Across<select id="e-pair-x"></select></label>
+        <label class="e-pick">Up<select id="e-pair-y"></select></label>
+        <label class="e-pick" style="flex:0 1 130px">From<select id="e-pair-from"></select></label>
+      </div>
+      <div class="e-split">
+        <div id="e-pair-chart"></div>
+        <div class="e-side" id="e-pair-card" aria-live="polite"></div>
+      </div>
+      <div class="legend" id="e-pair-legend"></div>
+      <p class="note">The score is a Spearman rank correlation, as in the grid. A long stretch of life (a thru-hike, a quiet year) can make two things look linked that have nothing to do with each other week to week, so the card also gives the score with each year's average taken out, and “From” drops the early years. Stairs were not recorded before October 2018 (they read as zero), so compare stairs or elevation from 2019 on.</p>
+    </section>
   </div>
 
   <!-- ============================================================ WATCHED -->
@@ -959,8 +1043,212 @@ a.title:focus-visible { outline: none; }
     $('#h-cards').replaceChildren(...(cards.length ? cards : [el('p', { className: 'note', text: 'Nothing here yet.' })]));
   }
 
-  const VIEWS = { report: renderReport, data: renderData, highlights: renderHighlights, explore: renderExplorer, calendar: renderCalendar, ...(WT ? { watched: renderWatched } : {}) };
-  const NAV_OF = { report: 'home', data: 'data', highlights: 'highlights', explore: 'data', calendar: 'data', watched: 'data' };
+  // ================================================================ EXPERIMENTS
+  // Four views drawn from daily.json (plus pct-training/data/training.json for the race). To add one: a section in
+  // #v-experiments, a draw function, and a call in renderExperiments().
+  const EXP = { ring: 'move:steps', win: 'year', pair: null, race: undefined };
+  const eTip = el('div', { id: 'e-tip', hidden: true }); document.body.append(eTip);
+  const eTipAt = (ev, html) => { eTip.innerHTML = html; eTip.hidden = false; const r = eTip.getBoundingClientRect();
+    eTip.style.left = Math.max(6, Math.min(innerWidth - r.width - 6, ev.clientX + 14)) + 'px'; eTip.style.top = Math.max(6, ev.clientY + 16 + r.height > innerHeight ? ev.clientY - r.height - 10 : ev.clientY + 16) + 'px'; };
+  const eTipOff = () => { eTip.hidden = true; };
+  const E_RINGS = [['move:steps', 'Steps'], ['music:minutes', 'Music'], ['photos:items', 'Photos']].filter(([k]) => asLine(...k.split(':')));
+  const E_SET = [['move', 'steps'], ['move', 'elev'], ['exercise', 'minutes'], ['body', 'resting_hr'], ['body', 'hrv'], ['body', 'sleep_h'], ['music', 'minutes'],
+    ['photos', 'items'], ['watch', 'minutes'], ['calls', 'minutes'], ['breath', 'minutes']].filter(([d, m]) => metricOf(d, m)).map(([d, m]) => ({ key: d + ':' + m, L: asLine(d, m) }));
+  const eSpan = () => { const b = Math.max(...E_SET.map((s) => s.L.off + s.L.n - 1)); return EXP.win === 'year' ? [d2i(`${YR[b]}-01-01`), b] : [Math.min(...E_SET.map((s) => s.L.off)), b]; };
+  // weekly value per metric: totals become a per-day average (so a short week still compares), levels stay a mean
+  function eWeekly(L, B) { return B.map((k) => { const r = sumRange(L, k.a, k.b); return L.agg === 'mean' ? (r.cnt >= 3 ? r.sum / r.cnt : null) : (r.cov >= 5 ? r.sum / r.cov : null); }); }
+  const rankOf = (x, y) => { const p = []; for (let i = 0; i < x.length; i++) if (x[i] != null && y[i] != null) p.push([x[i], y[i]]);
+    const rk = (j) => { const o = p.map((q, i) => [q[j], i]).sort((a, b) => a[0] - b[0]), r = new Array(p.length); for (let i = 0; i < o.length;) { let e = i; while (e + 1 < o.length && o[e + 1][0] === o[i][0]) e++; for (let t = i; t <= e; t++) r[o[t][1]] = (i + e) / 2; i = e + 1; } return r; };
+    return p.length < 20 ? null : pearson(rk(0), rk(1)); };
+  const corrColor = (r) => `rgba(${r >= 0 ? '63,240,255' : '255,63,180'},${(0.08 + 0.85 * Math.min(1, Math.abs(r) / 0.7)).toFixed(2)})`;
+
+  function drawRings() {
+    const cv = $('#e-ring-cv'), L = asLine(...EXP.ring.split(':')), size = Math.max(300, Math.min(760, $('.e-ring-wrap').clientWidth || 700)), dpr = window.devicePixelRatio || 1;
+    cv.width = size * dpr; cv.height = size * dpr; cv.style.width = size + 'px'; cv.style.height = size + 'px';
+    const g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, size, size);
+    const y0 = YR[L.off], y1 = YR[L.off + L.n - 1], nY = y1 - y0 + 1, cx = size / 2, cy = size / 2, R = size / 2 - 20, r0 = size * 0.085, rw = (R - r0) / nY;
+    const vals = L.v.filter((v) => v > 0).sort((a, b) => a - b), cap = vals[Math.floor(vals.length * 0.995)] || 1, rgb = L.color.match(/\w\w/g).map((h) => parseInt(h, 16)).join(',');
+    const ang = (i) => { const jan1 = d2i(`${YR[i]}-01-01`), len = d2i(`${YR[i] + 1}-01-01`) - jan1; return [((i - jan1) / len) * Math.PI * 2 - Math.PI / 2, (Math.PI * 2) / len]; };
+    g.strokeStyle = '#1f1a3d'; g.lineWidth = 1;
+    for (let k = 0; k <= nY; k++) { g.beginPath(); g.arc(cx, cy, r0 + k * rw, 0, Math.PI * 2); g.stroke(); }
+    g.font = '10px "JetBrains Mono", monospace'; g.fillStyle = '#8a84b8'; g.textAlign = 'center'; g.textBaseline = 'middle';
+    MON.forEach((m, k) => { const a = (k / 12) * Math.PI * 2 - Math.PI / 2; g.beginPath(); g.moveTo(cx + Math.cos(a) * r0, cy + Math.sin(a) * r0); g.lineTo(cx + Math.cos(a) * R, cy + Math.sin(a) * R); g.stroke();
+      const am = ((k + 0.5) / 12) * Math.PI * 2 - Math.PI / 2; g.fillText(m.toUpperCase(), cx + Math.cos(am) * (R + 11), cy + Math.sin(am) * (R + 11)); });
+    for (let j = 0; j < L.n; j++) { const v = L.v[j]; if (!v) continue; const i = L.off + j, [a, da] = ang(i), t = Math.sqrt(Math.min(1, v / cap)), ri = r0 + (YR[i] - y0) * rw + 1;
+      g.fillStyle = `rgba(${rgb},${(0.25 + 0.75 * t).toFixed(2)})`; g.beginPath(); g.arc(cx, cy, ri + t * (rw - 2), a, a + da * 1.08); g.arc(cx, cy, ri, a + da * 1.08, a, true); g.closePath(); g.fill(); }
+    g.textAlign = 'left'; g.fillStyle = '#dcd8ff';
+    for (let k = 0; k < nY; k++) if (rw >= 11 || k % 2 === 0) g.fillText(String(y0 + k), cx + 3, cy - (r0 + k * rw + rw / 2));
+    cv.onmousemove = (ev) => { const b = cv.getBoundingClientRect(), x = ev.clientX - b.left - cx, y = ev.clientY - b.top - cy, rr = Math.hypot(x, y), k = Math.floor((rr - r0) / rw);
+      if (k < 0 || k >= nY) { eTipOff(); return; } let a = Math.atan2(y, x) + Math.PI / 2; if (a < 0) a += Math.PI * 2;
+      const yr = y0 + k, jan1 = d2i(`${yr}-01-01`), len = d2i(`${yr + 1}-01-01`) - jan1, i = jan1 + Math.min(len - 1, Math.floor((a / (Math.PI * 2)) * len)), v = i >= L.off && i < L.off + L.n ? L.v[i - L.off] : null;
+      eTipAt(ev, `<b>${dstr(i)}</b><br>${v == null ? 'no data' : num(v, L.unit)}`); };
+    cv.onmouseleave = eTipOff;
+    const byY = {}; for (let j = 0; j < L.n; j++) { const y = YR[L.off + j]; (byY[y] = byY[y] || [0, 0]); byY[y][0] += L.v[j] || 0; byY[y][1]++; }
+    const full = Object.entries(byY).filter(([, v]) => v[1] >= 300 || +v[1] === L.n).map(([y, v]) => [y, v[0] / v[1]]).sort((a, b) => b[1] - a[1]);
+    $('#e-ring-note').textContent = full.length > 1 ? `${L.name}: the biggest year on record is ${full[0][0]} at ${num(full[0][1], L.unit)} a day, the quietest ${full[full.length - 1][0]} at ${num(full[full.length - 1][1], L.unit)}. Spokes are drawn on a square-root scale and the top half-percent of days are clipped, so ordinary days stay visible next to the biggest ones.` : '';
+  }
+
+  function drawCorr() {
+    const [a, b] = eSpan(), B = makeBuckets(a, b, 'week'), W = E_SET.map((s) => eWeekly(s.L, B)), n = E_SET.length, pairs = [];
+    const R = E_SET.map((_, i) => E_SET.map((_, j) => (i === j ? null : rankOf(W[i], W[j]))));
+    for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) if (R[i][j]) pairs.push([i, j, R[i][j].r, R[i][j].n]);
+    pairs.sort((p, q) => Math.abs(q[2]) - Math.abs(p[2]));
+    if (!EXP.pair || !R[EXP.pair[0]] || !R[EXP.pair[0]][EXP.pair[1]]) EXP.pair = pairs.length ? [pairs[0][0], pairs[0][1]] : null;
+    const lab = 150, cs = 34, top = 96, w = lab + n * cs + 6, h = top + n * cs + 6, s = svg('svg', { viewBox: `0 0 ${w} ${h}`, role: 'img', 'aria-label': 'Correlation between each pair of weekly metrics' });
+    E_SET.forEach((m, i) => { s.append(svg('text', { x: lab - 8, y: top + i * cs + cs / 2 + 4, 'text-anchor': 'end', style: 'fill:var(--ink)' }, m.L.name.length > 20 ? m.L.name.slice(0, 19) + '…' : m.L.name));
+      s.append(svg('text', { x: 0, y: 0, transform: `translate(${lab + i * cs + cs / 2 + 4},${top - 8}) rotate(-55)`, style: 'fill:var(--ink)' }, m.L.name.length > 14 ? m.L.name.slice(0, 13) + '…' : m.L.name)); });
+    for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) { const c = R[i][j], x = lab + j * cs, y = top + i * cs, on = EXP.pair && ((EXP.pair[0] === i && EXP.pair[1] === j) || (EXP.pair[0] === j && EXP.pair[1] === i));
+      if (i === j) { s.append(svg('rect', { x: x + 1, y: y + 1, width: cs - 2, height: cs - 2, fill: '#1f1a3d' })); continue; }
+      if (!c) { s.append(svg('rect', { x: x + 1, y: y + 1, width: cs - 2, height: cs - 2, fill: 'none', stroke: '#1f1a3d', 'stroke-dasharray': '2 3' })); continue; }
+      const r = svg('rect', { x: x + 1, y: y + 1, width: cs - 2, height: cs - 2, fill: corrColor(c.r), stroke: on ? '#fff' : 'none', 'stroke-width': on ? 2 : 1, class: 'c', tabindex: 0, role: 'button', 'aria-label': `${E_SET[i].L.name} and ${E_SET[j].L.name}: ${c.r.toFixed(2)}` });
+      const pick = () => { EXP.pair = [Math.min(i, j), Math.max(i, j)]; drawCorr(); };
+      r.addEventListener('click', pick); r.addEventListener('keydown', (ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); pick(); } });
+      r.addEventListener('mousemove', (ev) => eTipAt(ev, `<b>${E_SET[i].L.name}</b> and <b>${E_SET[j].L.name}</b><br>${c.r >= 0 ? '+' : '−'}${Math.abs(c.r).toFixed(2)} over ${c.n} weeks`)); r.addEventListener('mouseleave', eTipOff);
+      s.append(r); s.append(svg('text', { x: x + cs / 2, y: y + cs / 2 + 4, 'text-anchor': 'middle', style: `fill:${Math.abs(c.r) > 0.35 ? '#fff' : 'var(--dim)'};pointer-events:none;font-size:10px` }, (c.r >= 0 ? '' : '−') + Math.abs(c.r).toFixed(2).slice(1))); }
+    $('#e-matrix').replaceChildren(s);
+    // scatter of the chosen pair
+    const host = $('#e-scatter'); host.replaceChildren();
+    if (EXP.pair) { const [i, j] = EXP.pair, X = W[i], Y = W[j], pts = B.map((k, t) => [X[t], Y[t], k.label]).filter((p) => p[0] != null && p[1] != null), c = R[i][j];
+      const xs = pts.map((p) => p[0]), ys = pts.map((p) => p[1]), x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys), Wd = 420, Hd = 300, m = { l: 52, r: 12, t: 12, b: 40 };
+      const px = (v) => m.l + ((v - x0) / (x1 - x0 || 1)) * (Wd - m.l - m.r), py = (v) => Hd - m.b - ((v - y0) / (y1 - y0 || 1)) * (Hd - m.t - m.b), sc = svg('svg', { viewBox: `0 0 ${Wd} ${Hd}`, role: 'img', 'aria-label': `${E_SET[i].L.name} against ${E_SET[j].L.name}, one dot per week` });
+      sc.append(svg('rect', { x: m.l, y: m.t, width: Wd - m.l - m.r, height: Hd - m.t - m.b, fill: 'none', stroke: '#1f1a3d' }));
+      const per = (L) => (L.agg === 'mean' ? L.unit : L.unit + ' a day');
+      sc.append(svg('text', { x: m.l, y: Hd - 22 }, tick(x0))); sc.append(svg('text', { x: Wd - m.r, y: Hd - 22, 'text-anchor': 'end' }, tick(x1))); sc.append(svg('text', { x: (m.l + Wd - m.r) / 2, y: Hd - 6, 'text-anchor': 'middle', style: 'fill:var(--ink)' }, `${E_SET[i].L.name} (${per(E_SET[i].L)})`));
+      sc.append(svg('text', { x: m.l - 6, y: Hd - m.b, 'text-anchor': 'end' }, tick(y0))); sc.append(svg('text', { x: m.l - 6, y: m.t + 10, 'text-anchor': 'end' }, tick(y1)));
+      sc.append(svg('text', { transform: `translate(12,${(m.t + Hd - m.b) / 2}) rotate(-90)`, 'text-anchor': 'middle', style: 'fill:var(--ink)' }, `${E_SET[j].L.name} (${per(E_SET[j].L)})`));
+      for (const p of pts) { const d = svg('circle', { cx: px(p[0]), cy: py(p[1]), r: 4, fill: c.r >= 0 ? '#3ff0ff' : '#ff3fb4', opacity: 0.7 });
+        d.addEventListener('mousemove', (ev) => eTipAt(ev, `<b>${p[2]}</b><br>${E_SET[i].L.name}: ${num(p[0], per(E_SET[i].L))}<br>${E_SET[j].L.name}: ${num(p[1], per(E_SET[j].L))}`)); d.addEventListener('mouseleave', eTipOff); sc.append(d); }
+      const strength = Math.abs(c.r) >= 0.6 ? 'strongly' : Math.abs(c.r) >= 0.4 ? 'clearly' : Math.abs(c.r) >= 0.25 ? 'loosely' : 'barely';
+      host.append(el('h3', { text: `${E_SET[i].L.name} × ${E_SET[j].L.name}`, style: 'margin:0;font:600 var(--s-0) var(--f-ui);letter-spacing:0.14em;text-transform:uppercase;color:var(--ink)' }), sc,
+        el('p', { className: 'note', text: `${c.r >= 0 ? '+' : '−'}${Math.abs(c.r).toFixed(2)} over ${c.n} weeks: these ${strength} ${c.r >= 0 ? 'rise and fall together' : 'move in opposite directions'}.` })); }
+    $('#e-top').replaceChildren(el('p', { className: 'note', text: pairs.length ? 'Strongest links in this span' : 'Not enough overlapping weeks yet.' }), ...pairs.slice(0, 6).map(([i, j, r]) => el('button', { type: 'button', 'aria-pressed': String(!!EXP.pair && EXP.pair[0] === i && EXP.pair[1] === j),
+      onclick: () => { EXP.pair = [i, j]; drawCorr(); } }, [el('b', { text: (r >= 0 ? '+' : '−') + Math.abs(r).toFixed(2), style: `color:${r >= 0 ? '#3ff0ff' : '#ff3fb4'}` }), el('span', { text: `${E_SET[i].L.name} × ${E_SET[j].L.name}` })])));
+  }
+
+  function drawWeekShape() {
+    const [a, b] = eSpan();
+    $('#e-weeks').replaceChildren(...E_SET.map(({ L }) => { const s = new Array(7).fill(0), c = new Array(7).fill(0), lo = Math.max(a, L.off), hi = Math.min(b, L.off + L.n - 1);
+      for (let i = lo; i <= hi; i++) { const v = L.v[i - L.off]; if (v == null) continue; s[DOW[i]] += v; c[DOW[i]]++; }
+      const avg = s.map((x, k) => (c[k] ? x / c[k] : null)), ok = avg.filter((x) => x != null); if (ok.length < 7) return null;
+      const mean = ok.reduce((x, y) => x + y, 0) / 7, rel = avg.map((x) => x / (mean || 1)), mx = Math.max(...rel), mn = Math.min(...rel), top = Math.max(1.25, mx * 1.05), Wd = 190, Hd = 96, bw = Wd / 7;
+      const g = svg('svg', { viewBox: `0 0 ${Wd} ${Hd + 16}`, role: 'img', 'aria-label': `${L.name} by weekday` }), y = (v) => Hd - (v / top) * Hd;
+      rel.forEach((r, k) => { const bar = svg('rect', { x: k * bw + 3, y: y(r), width: bw - 6, height: Hd - y(r), fill: L.color, opacity: r === mx ? 1 : 0.45 }); bar.append(svg('title', {}, `${WD[k]}: ${num(avg[k], L.unit)}`)); g.append(bar);
+        g.append(svg('text', { x: k * bw + bw / 2, y: Hd + 12, 'text-anchor': 'middle', style: r === mx ? 'fill:var(--hot)' : '' }, WD[k][0])); });
+      g.append(svg('line', { x1: 0, x2: Wd, y1: y(1), y2: y(1), stroke: '#8a84b8', 'stroke-dasharray': '3 4' }));
+      const hiK = rel.indexOf(mx), loK = rel.indexOf(mn);
+      return el('div', { className: 'e-wk' }, [el('h3', { text: L.name }), g, el('p', { text: `${WD[hiK]} high: ${num(avg[hiK], L.unit)}` }), el('p', { text: `${WD[loK]} low: ${num(avg[loK], L.unit)}` })]); }).filter(Boolean));
+  }
+
+  async function drawRace() {
+    if (EXP.race === undefined) { try { const r = await fetch('pct-training/data/training.json', { cache: 'no-cache' }); EXP.race = r.ok ? await r.json() : null; } catch (e) { EXP.race = null; } }
+    const T = EXP.race, sec = $('#e-race'); if (!T || !T.pre_at || !T.health) { sec.hidden = true; return; } sec.hidden = false;
+    const P = T.pre_at, N = P.n, startI = d2i(T.plan.start), h0 = d2i(T.health.start), a = startI - N - h0, nowN = Math.max(0, Math.min(N, T.health.miles.length - a));
+    const cum = (arr) => { let t = 0; return arr.map((v) => (t += v)); }, then = cum(P.miles), now = cum(T.health.miles.slice(a, a + nowN));
+    const Wd = 900, Hd = 320, m = { l: 48, r: 110, t: 14, b: 30 }, top = Math.max(then[N - 1], now[nowN - 1] || 0) * 1.08, x = (k) => m.l + (k / (N - 1)) * (Wd - m.l - m.r), y = (v) => Hd - m.b - (v / top) * (Hd - m.t - m.b);
+    const s = svg('svg', { viewBox: `0 0 ${Wd} ${Hd}`, role: 'img', 'aria-label': 'Cumulative phone miles over the 111 days before each trail' });
+    for (let v = 0; v <= top; v += top > 600 ? 200 : 100) { s.append(svg('line', { x1: m.l, x2: Wd - m.r, y1: y(v), y2: y(v), stroke: '#1f1a3d' })); s.append(svg('text', { x: m.l - 6, y: y(v) + 4, 'text-anchor': 'end' }, String(v))); }
+    for (const k of [0, 20, 41, 62, 83, N - 1]) s.append(svg('text', { x: x(k), y: Hd - 10, 'text-anchor': 'middle' }, k === N - 1 ? 'last day' : `${N - k} to go`));
+    const path = (arr) => arr.map((v, k) => `${k ? 'L' : 'M'}${x(k).toFixed(1)} ${y(v).toFixed(1)}`).join('');
+    s.append(svg('path', { d: path(then), fill: 'none', stroke: '#ff3fb4', 'stroke-width': 2 })); s.append(svg('text', { x: x(N - 1) + 8, y: y(then[N - 1]) + 4, style: 'fill:#ff3fb4' }, `2019 · ${num(then[N - 1], 'mi')}`));
+    if (nowN) { s.append(svg('path', { d: path(now), fill: 'none', stroke: '#3ff0ff', 'stroke-width': 3 })); s.append(svg('circle', { cx: x(nowN - 1), cy: y(now[nowN - 1]), r: 5, fill: '#3ff0ff' }));
+      s.append(svg('text', { x: x(nowN - 1) + 10, y: y(now[nowN - 1]) - 8, style: 'fill:#3ff0ff' }, `now · ${num(now[nowN - 1], 'mi')}`)); }
+    const hit = svg('rect', { x: m.l, y: m.t, width: Wd - m.l - m.r, height: Hd - m.t - m.b, fill: 'transparent' });
+    hit.addEventListener('mousemove', (ev) => { const b = s.getBoundingClientRect(), k = Math.max(0, Math.min(N - 1, Math.round((((ev.clientX - b.left) / b.width) * Wd - m.l) / ((Wd - m.l - m.r) / (N - 1)))));
+      eTipAt(ev, `<b>${N - k} days to go</b><br><span style="color:#ff3fb4">2019:</span> ${num(then[k], 'mi')} so far` + (k < nowN ? `<br><span style="color:#3ff0ff">now:</span> ${num(now[k], 'mi')} so far` : '')); }); hit.addEventListener('mouseleave', eTipOff); s.append(hit);
+    $('#e-race-chart').replaceChildren(s);
+    $('#e-race-note').textContent = nowN ? `${nowN} day${nowN === 1 ? '' : 's'} in: ${num(now[nowN - 1], 'mi')} this time against ${num(then[nowN - 1], 'mi')} at the same point in 2019. The whole 2019 run-in came to ${num(then[N - 1], 'mi')}, about ${num(then[N - 1] / N, 'mi')} a day.` : `The 2019 run-in came to ${num(then[N - 1], 'mi')}. This year's line starts ${N} days before the start.`;
+  }
+
+  // ---- Tide: weekly steps above a centre line, weekly listening below it
+  const eQuant = (arr, q) => { const o = arr.filter((x) => x != null).sort((a, b) => a - b); return o.length ? o[Math.min(o.length - 1, Math.floor(q * o.length))] : 0; };
+  const eAT = DS.trail ? [DS.trail.offset, DS.trail.end] : null, eOnAT = (i) => eAT && i >= eAT[0] && i <= eAT[1];
+  const eRho = (xs, ys) => { const rk = (v) => { const o = v.map((x, i) => [x, i]).sort((a, b) => a[0] - b[0]), r = new Array(v.length); for (let i = 0; i < o.length;) { let e = i; while (e + 1 < o.length && o[e + 1][0] === o[i][0]) e++; for (let t = i; t <= e; t++) r[o[t][1]] = (i + e) / 2; i = e + 1; } return r; }; const o = xs.length < 3 ? null : pearson(rk(xs), rk(ys)); return o ? o.r : null; };
+  function drawTide() {
+    const LS = asLine('move', 'steps'), LM = asLine('music', 'minutes'), sec = $('#e-tide'); if (!LS || !LM) { sec.hidden = true; return; } sec.hidden = false;
+    const host = $('#e-tide-chart'), B = makeBuckets(Math.min(LS.off, LM.off), Math.max(LS.off + LS.n, LM.off + LM.n) - 1, 'week'), S = eWeekly(LS, B), M = eWeekly(LM, B);
+    const Wd = Math.max(320, host.clientWidth || 900), Hd = 380, m = { l: 46, r: 10, t: 14, b: 24 }, mid = m.t + (Hd - m.t - m.b) * 0.56, up = mid - m.t, dn = Hd - m.b - mid;
+    const sCap = eQuant(S, 0.97) || 1, mCap = eQuant(M, 0.995) || 1, bw = (Wd - m.l - m.r) / B.length, X = (k) => m.l + k * bw;
+    const s = svg('svg', { viewBox: `0 0 ${Wd} ${Hd}`, role: 'img', 'aria-label': 'Weekly steps above the line and weekly listening below it' });
+    for (const t of [5000, 10000, 15000, 20000].filter((t) => t <= sCap)) { const y = mid - (t / sCap) * up; s.append(svg('line', { x1: m.l, x2: Wd - m.r, y1: y, y2: y, stroke: '#1f1a3d' })); s.append(svg('text', { x: m.l - 6, y: y + 4, 'text-anchor': 'end' }, t / 1000 + 'k')); }
+    for (const t of [2, 4, 6, 8].filter((t) => t * 60 <= mCap)) { const y = mid + ((t * 60) / mCap) * dn; s.append(svg('line', { x1: m.l, x2: Wd - m.r, y1: y, y2: y, stroke: '#1f1a3d' })); s.append(svg('text', { x: m.l - 6, y: y + 4, 'text-anchor': 'end' }, t + 'h')); }
+    B.forEach((k, j) => { if (j && YR[k.a] !== YR[B[j - 1].a]) { s.append(svg('line', { x1: X(j), x2: X(j), y1: m.t, y2: Hd - m.b, stroke: '#1f1a3d' })); s.append(svg('text', { x: X(j) + 4, y: Hd - 8 }, String(YR[k.a]))); }
+      if (S[j]) { const h = Math.min(1, S[j] / sCap) * up; s.append(svg('rect', { x: X(j), y: mid - h, width: Math.max(1, bw - 0.4), height: h, fill: eOnAT(k.a + 3) ? '#b6ff5c' : '#3ff0ff', opacity: 0.88 })); }
+      if (M[j]) { const h = Math.min(1, M[j] / mCap) * dn; s.append(svg('rect', { x: X(j), y: mid, width: Math.max(1, bw - 0.4), height: h, fill: '#ff3fb4', opacity: 0.88 })); } });
+    s.append(svg('line', { x1: m.l, x2: Wd - m.r, y1: mid, y2: mid, stroke: '#dcd8ff' }));
+    const cur = svg('line', { y1: m.t, y2: Hd - m.b, stroke: '#fff', opacity: 0, 'pointer-events': 'none' }), hit = svg('rect', { x: m.l, y: m.t, width: Wd - m.l - m.r, height: Hd - m.t - m.b, fill: 'transparent' });
+    hit.addEventListener('mousemove', (ev) => { const r = s.getBoundingClientRect(), j = Math.max(0, Math.min(B.length - 1, Math.floor((((ev.clientX - r.left) / r.width) * Wd - m.l) / bw))), k = B[j];
+      cur.setAttribute('x1', X(j) + bw / 2); cur.setAttribute('x2', X(j) + bw / 2); cur.setAttribute('opacity', 0.6);
+      eTipAt(ev, `<b>Week of ${dstr(k.a)}</b><br>${S[j] != null ? num(S[j], 'steps a day') : 'no step data'}<br>${M[j] != null ? num(M[j] / 60, 'h of music a day') : 'no listening data'}${eOnAT(k.a + 3) ? '<br>on the Appalachian Trail' : ''}`); });
+    hit.addEventListener('mouseleave', () => { eTipOff(); cur.setAttribute('opacity', 0); });
+    s.append(cur, hit); host.replaceChildren(s);
+    const xs = [], ys = []; B.forEach((_, j) => { if (S[j] != null && M[j] != null) { xs.push(S[j]); ys.push(M[j]); } }); const rho = eRho(xs, ys);
+    $('#e-tide-note').textContent = rho == null ? '' : `Across ${xs.length} weeks, steps and listening rank together at ${rho >= 0 ? '+' : '−'}${Math.abs(rho).toFixed(2)}. The trail weeks are capped at the top of the scale so the rest stay readable.`;
+  }
+
+  // ---- Any two numbers: every week (or day) as a dot, the rank correlation, and the same with each year's mean removed
+  const E_ALL = daily.datasets.filter((d) => d.grain === 'day' && d.id !== 'trail').flatMap((d) => d.metrics.map((mm) => ({ key: d.id + ':' + mm.id, label: `${d.name} · ${mm.name}` })));
+  const E_PRESETS = [['Steps ↔ music', 'move:steps', 'music:minutes', 0], ['Steps ↔ photos, since 2020', 'move:steps', 'photos:items', 2020], ['Stairs ↔ photos, since 2020', 'move:flights', 'photos:items', 2020],
+    ['Resting HR ↔ HRV', 'body:resting_hr', 'body:hrv', 0], ['Calls ↔ resting HR', 'calls:minutes', 'body:resting_hr', 0], ['Screen time ↔ sleep', 'watch:minutes', 'body:sleep_h', 0], ['Stairs ↔ screen time', 'move:flights', 'watch:minutes', 0], ['Steps ↔ sleep', 'move:steps', 'body:sleep_h', 0]]
+    .filter((q) => asLine(...q[1].split(':')) && asLine(...q[2].split(':')));
+  const EP = { grain: 'week' };
+  const eYearColor = (y, y0, y1) => `hsl(${Math.round(255 - ((y - y0) / Math.max(1, y1 - y0)) * 175)} 90% ${Math.round(52 + ((y - y0) / Math.max(1, y1 - y0)) * 14)}%)`;
+  function drawPairs() {
+    const kx = $('#e-pair-x').value, ky = $('#e-pair-y').value, from = +$('#e-pair-from').value || 0, LX = asLine(...kx.split(':')), LY = asLine(...ky.split(':')), pts = [];
+    const a = Math.max(LX.off, LY.off, from ? d2i(`${from}-01-01`) : 0), b = Math.min(LX.off + LX.n, LY.off + LY.n) - 1;
+    if (b >= a) { if (EP.grain === 'week') { const B = makeBuckets(a, b, 'week'), wx = eWeekly(LX, B), wy = eWeekly(LY, B); B.forEach((k, j) => { if (wx[j] != null && wy[j] != null) pts.push({ i: k.a, x: wx[j], y: wy[j] }); }); }
+      else for (let i = a; i <= b; i++) { const x = LX.v[i - LX.off], y = LY.v[i - LY.off]; if (x != null && y != null) pts.push({ i, x, y }); } }
+    for (const q of pts) q.yr = YR[q.i];
+    for (const c of $('#e-pair-presets').children) c.setAttribute('aria-pressed', String(c.dataset.x === kx && c.dataset.y === ky && +c.dataset.from === from));
+    const host = $('#e-pair-chart'), card = $('#e-pair-card'), Wd = Math.max(320, host.clientWidth || 640), Hd = Math.min(500, Math.max(330, Wd * 0.7)), m = { l: 56, r: 14, t: 14, b: 40 };
+    const s = svg('svg', { viewBox: `0 0 ${Wd} ${Hd}`, role: 'img', 'aria-label': `${LX.name} against ${LY.name}` });
+    const ux = EP.grain === 'week' && LX.agg !== 'mean' ? `${LX.unit} a day` : LX.unit, uy = EP.grain === 'week' && LY.agg !== 'mean' ? `${LY.unit} a day` : LY.unit, unit = EP.grain === 'week' ? 'week' : 'day';
+    if (pts.length < 8) { s.append(svg('text', { x: Wd / 2, y: Hd / 2, 'text-anchor': 'middle' }, 'These two barely overlap. Try another pair, or days.')); host.replaceChildren(s); card.replaceChildren(el('p', { text: 'Not enough overlap to score.' })); $('#e-pair-legend').replaceChildren(); return; }
+    const xs = pts.map((q) => q.x), ys = pts.map((q) => q.y), n = pts.length, qc = n >= 100 ? 0.95 : 1, capX = eQuant(xs, qc), capY = eQuant(ys, qc), minX = LX.agg === 'mean' ? Math.min(...xs) : 0, minY = LY.agg === 'mean' ? Math.min(...ys) : 0;
+    const X = (v) => m.l + Math.min(1, Math.max(0, (v - minX) / (capX - minX || 1))) * (Wd - m.l - m.r), Y = (v) => Hd - m.b - Math.min(1, Math.max(0, (v - minY) / (capY - minY || 1))) * (Hd - m.t - m.b);
+    for (let k = 0; k <= 4; k++) { const vx = minX + ((capX - minX) * k) / 4, vy = minY + ((capY - minY) * k) / 4;
+      s.append(svg('line', { x1: X(vx), x2: X(vx), y1: m.t, y2: Hd - m.b, stroke: '#1f1a3d' })); s.append(svg('text', { x: X(vx), y: Hd - m.b + 15, 'text-anchor': 'middle' }, tick(vx)));
+      s.append(svg('line', { x1: m.l, x2: Wd - m.r, y1: Y(vy), y2: Y(vy), stroke: '#1f1a3d' })); s.append(svg('text', { x: m.l - 6, y: Y(vy) + 4, 'text-anchor': 'end' }, tick(vy))); }
+    s.append(svg('text', { x: (m.l + Wd - m.r) / 2, y: Hd - 6, 'text-anchor': 'middle', style: 'fill:var(--ink)' }, `${LX.name} (${ux}) →`));
+    s.append(svg('text', { transform: `translate(14,${(m.t + Hd - m.b) / 2}) rotate(-90)`, 'text-anchor': 'middle', style: 'fill:var(--ink)' }, `${LY.name} (${uy}) →`));
+    const y0 = Math.min(...pts.map((q) => q.yr)), y1 = Math.max(...pts.map((q) => q.yr)), rad = n > 1500 ? 1.6 : n > 400 ? 2.4 : 3.4, mark = (q) => eOnAT(q.i + (EP.grain === 'week' ? 3 : 0));
+    for (const q of pts) { const c = svg('circle', { cx: X(q.x), cy: Y(q.y), r: rad, fill: mark(q) ? '#b6ff5c' : eYearColor(q.yr, y0, y1), opacity: n > 1500 ? 0.5 : 0.8 });
+      c.addEventListener('mousemove', (ev) => eTipAt(ev, `<b>${EP.grain === 'week' ? 'Week of ' : ''}${dstr(q.i)}</b><br>${LX.name}: ${num(q.x, ux)}<br>${LY.name}: ${num(q.y, uy)}`)); c.addEventListener('mouseleave', eTipOff); s.append(c); }
+    const mx = xs.reduce((t, v) => t + v, 0) / n, my = ys.reduce((t, v) => t + v, 0) / n; let sxy = 0, sxx = 0; for (let k = 0; k < n; k++) { sxy += (xs[k] - mx) * (ys[k] - my); sxx += (xs[k] - mx) ** 2; }
+    if (sxx) { const sl = sxy / sxx, ic = my - sl * mx, f = (v) => Math.max(minY, Math.min(capY, ic + sl * v)); s.append(svg('line', { x1: X(minX), y1: Y(f(minX)), x2: X(capX), y2: Y(f(capX)), stroke: '#fff', 'stroke-width': 1.5, 'stroke-dasharray': '6 5', opacity: 0.8 })); }
+    host.replaceChildren(s);
+    const rho = eRho(xs, ys) || 0, byYr = {}; for (const q of pts) (byYr[q.yr] = byYr[q.yr] || []).push(q);
+    const dx = [], dy = []; for (const yr in byYr) { const g = byYr[yr]; if (g.length < 6) continue; const ax = g.reduce((t, q) => t + q.x, 0) / g.length, ay = g.reduce((t, q) => t + q.y, 0) / g.length; for (const q of g) { dx.push(q.x - ax); dy.push(q.y - ay); } }
+    const within = dx.length >= 12 ? eRho(dx, dy) : null, sg = (v) => (v >= 0 ? '+' : '−') + Math.abs(v).toFixed(2), ar = Math.abs(rho), word = ar >= 0.6 ? 'Strong' : ar >= 0.4 ? 'Moderate' : ar >= 0.2 ? 'Weak' : 'Little or no';
+    const dir = rho >= 0.2 ? 'rise together' : rho <= -0.2 ? 'move in opposite directions' : 'show no clear pattern';
+    const rows = [[EP.grain === 'week' ? 'Weeks compared' : 'Days compared', n.toLocaleString('en-US')], ['Years covered', y0 === y1 ? String(y0) : `${y0}–${y1}`], ...(y0 !== y1 && within != null ? [['With each year’s average removed', sg(within)]] : []),
+      [`Typical ${LX.name.toLowerCase()}`, num(eQuant(xs, 0.5), ux)], [`Typical ${LY.name.toLowerCase()}`, num(eQuant(ys, 0.5), uy)]];
+    const caveat = n < 60 ? `Only ${n} ${unit}s overlap, so treat this as a hint.` : within != null && y0 !== y1 && ar - Math.abs(within) > 0.2 ? 'Most of the link is between years: in years with more of one there was more of the other. Inside a single year it is weaker.' : '';
+    card.replaceChildren(el('h3', { text: 'Rank correlation', style: 'margin:0;font:600 var(--s-0) var(--f-ui);letter-spacing:0.14em;text-transform:uppercase;color:var(--ink)' }), el('div', { className: 'rho', text: sg(rho), style: `color:${ar >= 0.4 ? '#ffb347' : 'var(--ink)'}` }),
+      el('p', { text: `${word} link: ${LX.name.toLowerCase()} and ${LY.name.toLowerCase()} ${dir}.` }), el('dl', {}, rows.flatMap(([k, v]) => [el('dt', { text: k }), el('dd', { text: v })])), ...(caveat ? [el('p', { className: 'note', text: caveat })] : []));
+    const lg = []; for (let y = y0; y <= y1; y++) lg.push(el('span', {}, [el('i', { className: 'sw', style: `background:${eYearColor(y, y0, y1)}` }), String(y)]));
+    if (pts.some(mark)) lg.push(el('span', {}, [el('i', { className: 'sw', style: 'background:#b6ff5c' }), 'on the AT']));
+    lg.push(el('span', { text: 'dashed = straight-line fit' + (n >= 100 ? ' · the highest 5% sit on the edges' : ''), style: 'color:var(--dim)' })); $('#e-pair-legend').replaceChildren(...lg);
+  }
+  function wirePairs() {
+    for (const id of ['#e-pair-x', '#e-pair-y']) $(id).replaceChildren(...E_ALL.map((q) => el('option', { value: q.key, text: q.label })));
+    const ya = Math.max(2016, Math.min(...daily.datasets.filter((d) => d.grain === 'day').map((d) => YR[d.offset]))), yb = Math.max(...daily.datasets.filter((d) => d.grain === 'day').map((d) => YR[d.end]));
+    $('#e-pair-from').replaceChildren(el('option', { value: '0', text: 'All years' }), ...Array.from({ length: yb - ya }, (_, k) => el('option', { value: String(ya + 1 + k), text: String(ya + 1 + k) })));
+    $('#e-pair-presets').replaceChildren(...E_PRESETS.map(([label, x, y, from]) => { const c = el('button', { type: 'button', text: label, onclick: () => { $('#e-pair-x').value = x; $('#e-pair-y').value = y; $('#e-pair-from').value = String(from); drawPairs(); } }); c.dataset.x = x; c.dataset.y = y; c.dataset.from = from; return c; }));
+    $('#e-pair-grain').replaceChildren(...[['week', 'Weeks'], ['day', 'Days']].map(([k, label]) => el('button', { type: 'button', text: label, 'aria-pressed': String(EP.grain === k), onclick: (ev) => { EP.grain = k; for (const c of $('#e-pair-grain').children) c.setAttribute('aria-pressed', String(c === ev.target)); drawPairs(); } })));
+    const first = E_PRESETS[0] || ['', E_ALL[0].key, (E_ALL[1] || E_ALL[0]).key, 0]; $('#e-pair-x').value = first[1]; $('#e-pair-y').value = first[2]; $('#e-pair-from').value = String(first[3]);
+    for (const id of ['#e-pair-x', '#e-pair-y', '#e-pair-from']) $(id).addEventListener('change', drawPairs);
+  }
+
+  let expWired = false;
+  function renderExperiments() {
+    if (!expWired) { expWired = true; wirePairs();
+      $('#e-ring-seg').replaceChildren(...E_RINGS.map(([k, label]) => el('button', { type: 'button', text: label, 'aria-pressed': String(EXP.ring === k), onclick: (ev) => { EXP.ring = k; for (const b of $('#e-ring-seg').children) b.setAttribute('aria-pressed', String(b === ev.target)); drawRings(); } })));
+      $('#e-win-seg').replaceChildren(...[['year', 'This year'], ['all', 'All years']].map(([k, label]) => el('button', { type: 'button', text: label, 'aria-pressed': String(EXP.win === k), onclick: (ev) => { EXP.win = k; EXP.pair = null; for (const b of $('#e-win-seg').children) b.setAttribute('aria-pressed', String(b === ev.target)); drawCorr(); drawWeekShape(); } }))); }
+    drawRings(); drawCorr(); drawWeekShape(); drawRace(); drawTide(); drawPairs();
+  }
+
+  const VIEWS = { report: renderReport, data: renderData, highlights: renderHighlights, experiments: renderExperiments, explore: renderExplorer, calendar: renderCalendar, ...(WT ? { watched: renderWatched } : {}) };
+  const NAV_OF = { report: 'home', data: 'data', highlights: 'highlights', experiments: 'experiments', explore: 'data', calendar: 'data', watched: 'data' };
   function route() {
     const v = VIEWS[location.hash.slice(1)] ? location.hash.slice(1) : 'report';
     for (const k in VIEWS) $('#v-' + k).hidden = k !== v;
@@ -974,7 +1262,7 @@ a.title:focus-visible { outline: none; }
   $('#boot').remove();
   try { await Promise.race([document.fonts.ready, new Promise((r) => setTimeout(r, 1500))]); } catch (e) {}
   window.addEventListener('hashchange', route);
-  let rz; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { if (!$('#v-explore').hidden) renderExplorer(); }, 120); });
+  let rz; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { if (!$('#v-explore').hidden) renderExplorer(); if (!$('#v-experiments').hidden) { drawRings(); drawTide(); drawPairs(); } }, 120); });
   route();
 })();
 </script>
