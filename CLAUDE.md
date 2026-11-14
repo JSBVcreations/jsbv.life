@@ -84,9 +84,16 @@ Fonts: Monoton (titles only), Chakra Petch (UI), JetBrains Mono (data).
   Stages: rejected (reject flag) > 4–5★ > 3★ > 1–2★ > unrated. If the file is missing the section stays hidden.
 
 ## Site nav (Nov 2026 reconfigure)
-- Three top-level destinations, all hash views of the ROOT `index.html` (the former META//LOG app, moved to the root):
+- Four top-level destinations (the fourth, Experiments, is described below), all hash views of the ROOT `index.html` (the former META//LOG app, moved to the root):
   Home `#report` (the dashboard / report card) · Data `#data` (directory: one card per dataset in daily.json, plus the
   Explorer and Calendar tools) · Highlights `#highlights` (subsets that get a closer look; for now the AT 2019 card).
+- Experiments `#experiments` (fourth top-level tab, added Nov 14, 2026; also linked from `nav.site` on the project pages):
+  alternative views drawn live from daily.json by `renderExperiments()` in the root page. Year rings (canvas; one ring per
+  year, a spoke per day; steps / music / photos), What moves together (Spearman correlation matrix of weekly values for the
+  metrics in `E_SET`, this year or all years, click a square for the scatter; needs 20+ overlapping weeks), The shape of a
+  week (weekday averages against each metric's own mean) and Racing 2019 (cumulative phone miles over the 111 days before
+  the AT vs before the PCT; reads `pct-training/data/training.json`, hidden if that file is missing). To add one: a
+  `section.box` in `#v-experiments`, a draw function, and a call in `renderExperiments()`.
 - `#explore`, `#calendar`, `#watched` are tools reached from Data; they show a sub-nav and keep Data lit in the top nav.
 - Data cards are generated from daily.json; the `DIR` map in index.html gives each dataset its blurb and its own-page
   link (STEP//SONG, PHOTO//SORT, poster wall). `HIDE_IN_DATA` keeps the trail log out of Data (it lives in Highlights).
