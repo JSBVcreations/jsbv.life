@@ -21,6 +21,9 @@ Output layout
   health      {start, through, partial_last_day, steps[], miles[], flights[], exercise_min[],
               recovery {resting_hr[], hrv[], sleep_h[]}} one value per day, null = nothing recorded
   at          AT 2019 by Sunday-start week {start, miles, days, zeros} + headline stats
+  pre_at      the PRE_DAYS (111) days before the AT start, from the STEP//SONG phone data:
+              {start, end, depart, n, steps[], miles[], flights[], active_h[]} (active hour = >= 1000 steps).
+              The training calendar lines these up by days-until-departure against the PCT build.
 """
 import datetime as dt, json, os, sys
 
@@ -52,6 +55,24 @@ def read_health(folder):
         out[k] = h[k]
     out['recovery'] = {k: h['vitals'][k] for k in ('resting_hr', 'hrv', 'sleep_h')}
     return out
+
+
+PRE_DAYS = 111
+
+
+def pre_at(depart):
+    """Phone data for the PRE_DAYS days before `depart` (the AT start), from step-song/data."""
+    meta = load('step-song', 'data', 'meta.json')
+    hourly = load('step-song', 'data', 'hourly.json')
+    a = (d(depart) - dt.timedelta(days=PRE_DAYS) - d(meta['start'])).days
+    if a < 0:
+        return None
+    D = meta['daily']
+    act = [sum(1 for x in hourly['steps'][(a + i) * 24:(a + i + 1) * 24] if x >= 1000) for i in range(PRE_DAYS)]
+    return {'label': 'The 111 days before the Appalachian Trail', 'start': (d(depart) - dt.timedelta(days=PRE_DAYS)).isoformat(),
+            'end': (d(depart) - dt.timedelta(days=1)).isoformat(), 'depart': depart, 'n': PRE_DAYS,
+            'steps': D['steps'][a:a + PRE_DAYS], 'miles': [round(x, 2) for x in D['miles'][a:a + PRE_DAYS]],
+            'flights': [round(x) for x in D['flights'][a:a + PRE_DAYS]], 'active_h': act}
 
 
 def main():
@@ -100,6 +121,9 @@ def main():
     out = {'generated': dt.date.today().isoformat(),
            'plan': {k: plan[k] for k in ('trail', 'start', 'trail_miles', 'unit_miles', 'peak_week_miles', 'flat_mph')},
            'weeks': weeks, 'activities': rows, 'activities_through': acts.get('through'), 'at': at}
+    pre = pre_at(at['start'])
+    if pre:
+        out['pre_at'] = pre
     if health:
         out['health'] = health
     with open(OUT, 'w', encoding='utf-8') as f:

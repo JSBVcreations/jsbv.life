@@ -61,6 +61,12 @@ Fonts: Monoton (titles only), Chakra Petch (UI), JetBrains Mono (data).
   raw_mph = log mi / moving_h; adj_mph = log mi / (moving_h − 0.5 h per 1,000 ft). Only days with capture
   0.8–1.25. Climb per day from at_profile.json by log start/end mile (+4,188 ft Katahdin climb on day 0).
   Jack's stated flat moving pace = 3.2 mph; model_h = mi/3.2 + climb hours.
+- `#log-block` has two views (`#log-view` buttons): Charts (below) and Calendar (`renderLogCal`): one row per week, Sunday
+  to Saturday, 22 rows. Each day cell: date + day number, kind badge (zero / nero / skip), three bars (log miles, phone
+  steps, moving hours; each scaled to its own best day, miles capped at 36 with a white cap above), miles, steps · hours,
+  where the day ended, climb + end mile. Week total: miles, bar vs best week, steps, moving hours, climb, zeros, mi/day,
+  running total. Hover = `calTip` (logTip + steps, hours, climb, pace, music); click = `select()`. Deep link:
+  `step-song/#trail-calendar`.
 - Shown in step-song/index.html inside #trail as `#log-block` ("Trail log vs phone"): miles-per-day bars
   (log, missed, over-count, 7-day avg toggle all/hiking days), running totals of missed vs over-counted,
   moving pace (raw → adjusted, 3.2 mph line), capture card, stats card. Loads data/at2019-log.json; if the
@@ -147,6 +153,13 @@ Fonts: Monoton (titles only), Chakra Petch (UI), JetBrains Mono (data).
 - Health export = HealthView hourly CSVs (one file per metric, one row per day, 24 hour columns), kept OUTSIDE the repo
   (`*.csv` is git-ignored). The export is parsed by `build_health_log.read_export`; this page uses steps, distance, flights,
   exercise minutes and, in `#recovery`, resting heart rate, HRV and sleep (daily dots + 7-day average, last 12 weeks).
+- Two views (hash): `#overview` (default; any other hash such as `#recovery` also lands here) and `#calendar`. The calendar is
+  one row per week (Sunday to Saturday): label, seven day cells, week total. Each day shows a dashed outline = that week's
+  target ÷ 7 (the plan is weekly), a bar for miles (toggle: logged hikes / all walking from the phone), steps (phone) and
+  hours (Strava). Future days show the outline only. The last row runs to the start date.
+- Pre-AT comparison: `pre_at` in training.json = phone steps / miles / flights / active hours for the 111 days before the
+  AT start (Feb 24 – Jun 14, 2019), read from step-song/data. The calendar lines them up by days-until-departure (pink line
+  per day, pink marker + "2019" line in the week total, readout above the grid). 2019 has phone data only.
 - Strava rule: titles and numbers only (date, miles, moving time, gain, pack weight). Descriptions, GPS tracks and
   locations are never copied into the repo; the home loop's location stays off the site.
 - The last health day is usually a part day (exported before midnight); the page labels it.

@@ -9,7 +9,8 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Monoton&family=Chakra+Petch:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
 <style>
 /* PCT//PREP: the training build for the Pacific Crest Trail. Same console as STEP//SONG.
-   Top to bottom: where things stand, the plan week by week, the last six weeks by day,
+   Two views: Overview and Calendar (week rows, plan as a dashed silhouette, 2019's pre-AT days by countdown).
+   Overview, top to bottom: where things stand, the plan week by week, the last six weeks by day,
    the whole year on the phone, recovery (resting heart rate, HRV, sleep), the Appalachian Trail for scale + a pace calculator, the hike log.
    Colors keep their site meaning: cyan = movement (phone), lime = trail (logged hikes),
    amber = load and elevation. Single dark look by choice. */
@@ -97,6 +98,38 @@ th { position: sticky; top: 0; background: var(--panel); color: var(--dim); font
 th:nth-child(-n+2), td:nth-child(-n+2) { text-align: left; }
 td:nth-child(2) { white-space: normal; min-width: 180px; color: var(--ink); }
 td { color: var(--dim); } td.m { color: var(--trail); }
+nav.views { display: inline-flex; border: 1px solid var(--grid); justify-self: start; }
+nav.views a { font: 600 var(--s-0)/1 var(--f-ui); letter-spacing: 0.14em; text-transform: uppercase; color: var(--dim); text-decoration: none; padding: 10px 16px; }
+nav.views a + a { border-left: 1px solid var(--grid); }
+nav.views a:hover { color: var(--hot); }
+nav.views a[aria-current="page"] { color: var(--void); background: var(--trail); }
+/* calendar: one row per week = label | 7 days | week summary. Scrolls sideways on narrow screens so cells stay readable. */
+.cal-scroll { overflow-x: auto; }
+.cal { display: grid; grid-template-columns: 84px repeat(7, minmax(96px, 1fr)) minmax(168px, 1.5fr); gap: 4px; min-width: 980px; font-family: var(--f-data); font-size: var(--s-0); }
+.cal .hd { color: var(--dim); text-transform: uppercase; letter-spacing: 0.12em; font-size: 10px; padding: 2px 6px; }
+.cal .wk { display: grid; align-content: center; gap: 2px; padding: 6px; color: var(--dim); border-left: 2px solid var(--grid); }
+.cal .wk b { color: var(--ink); font-weight: 600; } .cal .wk.now { border-left-color: var(--trail); }
+.cell { position: relative; display: grid; grid-template-rows: auto 60px auto auto; gap: 3px; padding: 6px; border: 1px solid var(--grid); background: rgba(7,6,15,0.5); min-width: 0; }
+.cell.out { opacity: 0.35; } .cell.future .num, .cell.future .sub { visibility: hidden; }
+.cell.today { border-color: var(--hot); } .cell.go { border-color: var(--trail); background: rgba(182,255,92,0.08); }
+.cell .dt { display: flex; justify-content: space-between; color: var(--dim); font-size: 10px; letter-spacing: 0.06em; }
+.cell .dt em { font-style: normal; color: var(--sound); }
+.cell .bars { position: relative; border-bottom: 1px solid var(--grid); }
+.cell .ghost { position: absolute; left: 12%; right: 12%; bottom: 0; border: 1px dashed rgba(138,132,184,0.75); border-bottom: 0; background: rgba(138,132,184,0.08); }
+.cell .fill { position: absolute; left: 20%; right: 20%; bottom: 0; background: var(--trail); }
+.cell .fill.phone { background: var(--step); }
+.cell .pre { position: absolute; left: 4%; right: 4%; height: 0; border-top: 2px solid var(--sound); }
+.cell .num { color: var(--ink); font-variant-numeric: tabular-nums; } .cell .num b { font-size: var(--s-1); font-weight: 600; color: var(--trail); } .cell .num.phone b { color: var(--step); }
+.cell .sub { color: var(--dim); font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
+.sum { display: grid; align-content: center; gap: 4px; padding: 6px 8px; border: 1px solid var(--grid); background: rgba(13,11,28,0.8); min-width: 0; }
+.sum .big { font-size: var(--s-2); font-weight: 600; color: var(--trail); font-variant-numeric: tabular-nums; } .sum .big.phone { color: var(--step); } .sum .big small { color: var(--dim); font-weight: 400; font-size: var(--s-0); }
+.sum .track { position: relative; height: 10px; background: #120f26; border: 1px solid var(--grid); }
+.sum .track i { position: absolute; inset: 0 auto 0 0; } .sum .track .g { border-right: 2px dashed var(--dim); background: rgba(138,132,184,0.12); } .sum .track .f { background: var(--trail); } .sum .track .f.phone { background: var(--step); }
+.sum .track .p { border-right: 2px solid var(--sound); }
+.sum .sub { color: var(--dim); font-size: 10px; font-variant-numeric: tabular-nums; } .sum .sub.pre { color: var(--sound); }
+.ctl { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; }
+.seg button[aria-pressed="true"].pre-on { background: var(--sound); }
+#cal-fill button[data-k="hike"][aria-pressed="true"] { background: var(--trail); }
 #tip { position: fixed; z-index: 60; pointer-events: none; max-width: 280px; background: rgba(7,6,15,0.94); border: 1px solid var(--trail);
   box-shadow: 0 0 18px rgba(182,255,92,0.3); font-family: var(--f-data); font-size: var(--s-0); padding: 8px 10px; line-height: 1.45; color: var(--ink); }
 #tip .k { color: var(--dim); } #tip b { color: var(--hot); }
@@ -110,9 +143,27 @@ footer { color: var(--dim); font-size: var(--s-0); }
     <h1>PCT<span class="sl">//</span>PREP</h1>
     <p class="lede">Training for a northbound Pacific Crest Trail thru-hike that starts <b>March 1, 2027</b>. The aim is to arrive already used to 150-mile weeks under load. This page shows the <b>plan</b>, the <b>hikes logged</b> so far, what the <i>phone</i> counted all year, and how it measures up to the Appalachian Trail in 2019.</p>
     <div class="readout" id="kpis"><div id="boot">BOOTING… loading training data</div></div>
+    <nav class="views" aria-label="Views" id="views" hidden><a href="#overview" data-v="overview">Overview</a><a href="#calendar" data-v="calendar">Calendar</a></nav>
   </header>
 
-  <section id="weeks" aria-labelledby="h-weeks" hidden>
+  <section id="calendar" aria-labelledby="h-cal" data-view="calendar" hidden>
+    <div class="sec-head">
+      <h2 id="h-cal">Training calendar <small>one row per week · the dashed outline is the plan, the bar is what got walked</small></h2>
+      <div class="ctl">
+        <div class="seg" role="group" aria-label="What the bars count" id="cal-fill">
+          <button type="button" data-k="hike" aria-pressed="true">Logged hikes</button>
+          <button type="button" data-k="phone" aria-pressed="false">All walking</button>
+        </div>
+        <div class="seg"><button type="button" id="cal-pre" class="pre-on" aria-pressed="true">2019: before the AT</button></div>
+      </div>
+    </div>
+    <div class="readout" id="pre-stats"></div>
+    <div class="legend" id="cal-legend"></div>
+    <div class="cal-scroll"><div class="cal" id="cal-grid" role="table" aria-label="Training calendar by week"></div></div>
+    <p class="note" id="cal-note"></p>
+  </section>
+
+  <section id="weeks" data-view="overview" aria-labelledby="h-weeks" hidden>
     <div class="sec-head">
       <h2 id="h-weeks">The plan, week by week <small>weeks run Sunday to Saturday · pick a week</small></h2>
       <div class="legend">
@@ -128,7 +179,7 @@ footer { color: var(--dim); font-size: var(--s-0); }
     </div>
   </section>
 
-  <section id="days" aria-labelledby="h-days" hidden>
+  <section id="days" data-view="overview" aria-labelledby="h-days" hidden>
     <div class="sec-head">
       <h2 id="h-days">Day by day <small>the last six weeks</small></h2>
       <div class="legend">
@@ -140,7 +191,7 @@ footer { color: var(--dim); font-size: var(--s-0); }
     <p class="note" id="days-note"></p>
   </section>
 
-  <section id="year" aria-labelledby="h-year" hidden>
+  <section id="year" data-view="overview" aria-labelledby="h-year" hidden>
     <div class="sec-head">
       <h2 id="h-year">2026 on the phone <small>weekly totals from Apple Health</small></h2>
       <div class="seg" role="group" aria-label="Metric" id="year-seg">
@@ -154,7 +205,7 @@ footer { color: var(--dim); font-size: var(--s-0); }
     <p class="note" id="year-note"></p>
   </section>
 
-  <section id="recovery" aria-labelledby="h-rec" hidden>
+  <section id="recovery" data-view="overview" aria-labelledby="h-rec" hidden>
     <div class="sec-head">
       <h2 id="h-rec">Recovery <small>the last twelve weeks, from Apple Health</small></h2>
       <div class="seg" role="group" aria-label="Recovery metric" id="rec-seg">
@@ -171,7 +222,7 @@ footer { color: var(--dim); font-size: var(--s-0); }
     <p class="note" id="rec-note"></p>
   </section>
 
-  <section id="at" aria-labelledby="h-at" hidden>
+  <section id="at" data-view="overview" aria-labelledby="h-at" hidden>
     <div class="sec-head">
       <h2 id="h-at">For scale: the Appalachian Trail <small>miles per week, 2019 southbound</small></h2>
       <div class="legend">
@@ -192,7 +243,7 @@ footer { color: var(--dim); font-size: var(--s-0); }
     </div>
   </section>
 
-  <section id="log" aria-labelledby="h-log" hidden>
+  <section id="log" data-view="overview" aria-labelledby="h-log" hidden>
     <div class="sec-head">
       <h2 id="h-log">Hike log <small id="log-sub"></small></h2>
       <button type="button" class="btn" id="log-all" hidden>Show all weeks</button>
@@ -418,12 +469,88 @@ footer { color: var(--dim); font-size: var(--s-0); }
     }
   }
 
-  function renderAll() { renderWeeks(); renderDays(); if (H) renderYear(); if (H && H.recovery) renderRec(); renderAt(); }
+  /* training calendar: week rows, plan as a dashed silhouette, actual as the fill, 2019's pre-AT days lined up by countdown */
+  const PA = T.pre_at; let calFill = 'hike', calPre = !!PA;
+  const kfmt = (v) => v >= 1000 ? (v / 1000).toFixed(v < 10000 ? 1 : 0).replace(/\.0$/, '') + 'k' : String(Math.round(v));
+  function renderCal() {
+    const hike = {}, mins = {}; for (const a of A) { hike[a.date] = (hike[a.date] || 0) + a.miles; mins[a.date] = (mins[a.date] || 0) + a.moving_min; }
+    const h0 = H ? day(H.start) : null, hi = (d) => (H ? Math.round((d - h0) / 864e5) : -1), hv = (key, d) => { const i = hi(d); return H && i >= 0 && i < H[key].length ? H[key][i] : null; };
+    const hikeThrough = T.activities_through || A[A.length - 1].date, preDay0 = PA ? day(PA.start) : null;
+    const preOf = (d) => { if (!PA) return null; const k = Math.round((startDay - d) / 864e5); if (k < 1 || k > PA.n) return null; const i = PA.n - k; return { i, k, d: addDays(preDay0, i), miles: PA.miles[i], steps: PA.steps[i], act: PA.active_h[i] }; };
+    const first = day(W[0].start), nRows = Math.ceil((Math.round((startDay - first) / 864e5) + 1) / 7);
+    const maxTarget = Math.max(...W.map((w) => (w.target_miles || 0) / 7)), SC = Math.max(maxTarget, ...Object.values(hike), ...(calFill === 'phone' && H ? H.miles.slice(Math.max(0, hi(first))) : [0]), ...(calPre && PA ? PA.miles : [0])) * 1.05, pc = (v) => `${Math.min(100, (v / SC) * 100)}%`;
+    const kids = [el('div', { className: 'hd', textContent: 'Week' }), ...DOW.map((n) => el('div', { className: 'hd', textContent: n })), el('div', { className: 'hd', textContent: 'Week total' })];
+    const weekMax = Math.max(P.peak_week_miles, ...W.map((w) => w.target_miles || 0)) * 1.02;
+    for (let r = 0; r < nRows; r++) {
+      const ws = addDays(first, r * 7), w = W.find((x) => x.start === iso(ws)), dayT = w && w.target_miles ? w.target_miles / 7 : 0, isNow = iso(today) >= iso(ws) && iso(today) <= iso(addDays(ws, 6));
+      kids.push(el('div', { className: 'wk' + (isNow ? ' now' : '') }, [el('b', { textContent: w ? `Week ${w.week}` : 'Go' }), el('span', { textContent: md(ws) }), el('span', { textContent: w ? w.phase : 'Trail' })]));
+      let sMi = 0, sSteps = 0, sMin = 0, sPre = 0, hasPre = false, nData = 0;
+      for (let c = 0; c < 7; c++) {
+        const d = addDays(ws, c), k = iso(d), isStart = k === P.start, after = d > startDay, pre = preOf(d);
+        const hm_ = hike[k] || 0, ph = hv('miles', d), st = hv('steps', d), val = calFill === 'hike' ? hm_ : ph;
+        const future = calFill === 'hike' ? k > hikeThrough : ph == null;
+        if (!future && !after) { sMi += val || 0; nData++; } if (st != null) sSteps += st; sMin += mins[k] || 0;
+        if (pre) { sPre += pre.miles; hasPre = true; }
+        const bars = el('div', { className: 'bars' });
+        if (dayT && !after && !isStart) bars.append(el('i', { className: 'ghost', style: `height:${pc(dayT)}` }));
+        if (!future && val) bars.append(el('i', { className: 'fill' + (calFill === 'phone' ? ' phone' : ''), style: `height:${pc(val)}` }));
+        if (calPre && pre) bars.append(el('i', { className: 'pre', style: `bottom:${pc(pre.miles)}` }));
+        const cell = el('div', { className: 'cell' + (future ? ' future' : '') + (k === iso(today) ? ' today' : '') + (isStart ? ' go' : '') + (after ? ' out' : ''), tabIndex: 0 }, [
+          el('div', { className: 'dt' }, [el('span', { textContent: d.getUTCDate() === 1 || c === 0 ? md(d) : String(d.getUTCDate()) }), el('em', { textContent: isStart ? 'START' : '' })]),
+          bars,
+          el('div', { className: 'num' + (calFill === 'phone' ? ' phone' : '') }, [el('b', { textContent: val ? n1(val) : '0' }), ' mi']),
+          el('div', { className: 'sub', textContent: (st != null ? `${kfmt(st)} steps` : '') + (mins[k] ? ` · ${n1(mins[k] / 60)} h` : '') }),
+        ]);
+        bindTip(cell, () => `<b>${DOW[d.getUTCDay()]} ${md(d)}</b>` + (isStart ? ' · <b>PCT start</b>' : pre ? ` <span class="k">· ${pre.k} days to go</span>` : '') + '<br>'
+          + (future ? '<span class="k">not walked yet</span><br>' : `hikes ${n1(hm_)} mi${mins[k] ? ` · ${hm(mins[k])}` : ''}<br>` + (ph != null ? `phone ${n1(ph)} mi · ${n0(st)} steps<br>` : ''))
+          + (dayT && !isStart ? `<span class="k">plan</span> ${n1(dayT)} mi a day (${n1(w.target_miles)} this week)<br>` : '')
+          + (pre ? `<span style="color:${css('--sound')}">2019, ${md(pre.d)}:</span> ${n1(pre.miles)} mi · ${n0(pre.steps)} steps · ${pre.act} active h` : ''));
+        kids.push(cell);
+      }
+      const tgt = w && w.target_miles, sum = el('div', { className: 'sum' });
+      sum.append(el('div', { className: 'big' + (calFill === 'phone' ? ' phone' : '') }, [nData ? n1(sMi) : '–', el('small', { textContent: tgt ? ` / ${n1(tgt)} mi` : ' mi' })]));
+      const track = el('div', { className: 'track' });
+      if (tgt) track.append(el('i', { className: 'g', style: `width:${(tgt / weekMax) * 100}%` }));
+      if (nData && sMi) track.append(el('i', { className: 'f' + (calFill === 'phone' ? ' phone' : ''), style: `width:${Math.min(100, (sMi / weekMax) * 100)}%` }));
+      if (calPre && hasPre) track.append(el('i', { className: 'p', style: `width:${Math.min(100, (sPre / weekMax) * 100)}%` }));
+      sum.append(track);
+      if (nData) sum.append(el('div', { className: 'sub', textContent: `${kfmt(sSteps)} steps · ${n1(sMin / 60)} h hiked` + (tgt ? ` · ${n0((100 * sMi) / tgt)}%` : '') }));
+      if (calPre && hasPre) sum.append(el('div', { className: 'sub pre', textContent: `2019: ${n1(sPre)} mi on the phone` }));
+      kids.push(sum);
+    }
+    $('#cal-grid').replaceChildren(...kids);
+    $('#cal-legend').innerHTML = `<span><i style="background:${calFill === 'phone' ? C.step : C.trail}"></i>${calFill === 'phone' ? 'every mile the phone counted' : 'miles on logged hikes'}</span><span><i style="border:1px dashed ${C.dim}"></i>the plan, spread evenly over the week</span>` + (calPre && PA ? `<span style="color:${css('--sound')}"><i style="height:0;border-top:2px solid currentColor"></i>the same countdown day before the AT, 2019 (phone miles)</span>` : '');
+    $('#cal-note').textContent = 'The plan sets a weekly total; the dashed outline in each day is that total divided by seven, so a rest day and a long day can still add up to a full week. Steps come from the phone, hours from the hikes logged on Strava. '
+      + (PA ? `The pink line lines 2019 up by days left: ${md(day(PA.start))} to ${md(day(PA.end))}, 2019 were the ${PA.n} days before the Appalachian Trail, set against the ${PA.n} days before ${md(startDay)}. 2019 has phone data only, so switch the bars to “All walking” for a like-for-like comparison.` : '');
+    renderPre();
+  }
+  function renderPre() {
+    const host = $('#pre-stats'); if (!PA || !calPre) { host.hidden = true; return; } host.hidden = false;
+    const tot = PA.miles.reduce((a, b) => a + b, 0), steps = PA.steps.reduce((a, b) => a + b, 0), best = Math.max(...PA.miles), bi = PA.miles.indexOf(best), over5 = PA.miles.filter((m) => m >= 5).length;
+    const k = (label, value, sub, cls) => el('div', {}, [el('span', { textContent: label }), el('strong', { className: cls || '', textContent: value }), el('small', { textContent: sub || '' })]);
+    const tiles = [k(`${PA.n} days before the AT`, `${n1(tot)} mi`, `${md(day(PA.start))} – ${md(day(PA.end))}, 2019 · phone`), k('A typical day then', `${n1(tot / PA.n)} mi`, `${n0(steps / PA.n)} steps`), k('Biggest day then', `${n1(best)} mi`, md(addDays(day(PA.start), bi))), k('Days of 5+ miles then', String(over5), `of ${PA.n}`)];
+    if (H) { // same stretch of the countdown, this time
+      const t0 = addDays(startDay, -PA.n), h0 = day(H.start), a = Math.round((t0 - h0) / 864e5), n = Math.min(PA.n, H.miles.length - a);
+      if (n > 0) { const now = H.miles.slice(a, a + n).reduce((x, y) => x + y, 0), then = PA.miles.slice(0, n).reduce((x, y) => x + y, 0);
+        tiles.push(k(`First ${n} of the ${PA.n} days`, `${n1(now)} mi`, `2019, same days: ${n1(then)} mi · ${n1(now / then)}×`, 'c-step')); }
+    }
+    host.replaceChildren(...tiles);
+  }
+
+  function renderAll() { if (view === 'calendar') { renderCal(); return; } renderWeeks(); renderDays(); if (H) renderYear(); if (H && H.recovery) renderRec(); renderAt(); }
+  let view = 'overview';
+  const HAS = { year: !!H, recovery: !!(H && H.recovery) };
+  function route() {
+    view = location.hash === '#calendar' ? 'calendar' : 'overview';  // any other hash (e.g. #recovery) is the overview
+    for (const sec of document.querySelectorAll('section[data-view]')) sec.hidden = sec.dataset.view !== view || HAS[sec.id] === false;
+    for (const a of $('#views').children) { if (a.dataset.v === view) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); }
+    renderAll();
+  }
   renderKpis(); renderWeekCard(); renderLog(false);
-  for (const id of ['weeks', 'days', 'at', 'log']) $('#' + id).hidden = false;
-  if (H) $('#year').hidden = false;
-  if (H && H.recovery) $('#recovery').hidden = false;
-  renderAll();
+  $('#views').hidden = false; addEventListener('hashchange', route); route();
+  $('#cal-fill').addEventListener('click', (ev) => { const b = ev.target.closest('button'); if (!b) return; calFill = b.dataset.k; for (const x of $('#cal-fill').children) x.setAttribute('aria-pressed', String(x === b)); renderCal(); });
+  if (!PA) $('#cal-pre').parentElement.hidden = true;
+  $('#cal-pre').addEventListener('click', () => { calPre = !calPre; $('#cal-pre').setAttribute('aria-pressed', String(calPre)); renderCal(); });
   $('#year-seg').addEventListener('click', (ev) => { const b = ev.target.closest('button'); if (!b) return; yearKey = b.dataset.k; for (const x of $('#year-seg').children) x.setAttribute('aria-pressed', String(x === b)); renderYear(); });
   $('#rec-seg').addEventListener('click', (ev) => { const b = ev.target.closest('button'); if (!b) return; recKey = b.dataset.k; for (const x of $('#rec-seg').children) x.setAttribute('aria-pressed', String(x === b)); renderRec(); });
   $('#i-days').addEventListener('input', renderAt); $('#i-zeros').addEventListener('input', renderAt);

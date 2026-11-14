@@ -88,6 +88,28 @@ h1 .sl { color: var(--hot); text-shadow: 0 0 6px var(--step), 0 0 18px var(--ste
 @media (max-width: 860px) { .trail-grid { grid-template-columns: minmax(0, 1fr); } }
 .log-block { display: grid; gap: 14px; padding-top: 14px; border-top: 1px solid rgba(182,255,92,0.35); min-width: 0; }
 .log-block[hidden] { display: none; }
+/* trail-log calendar: one row per week = label | 7 days | week summary; scrolls sideways on narrow screens */
+#log-charts { display: grid; gap: 14px; min-width: 0; } #log-charts[hidden], #log-cal[hidden] { display: none; }
+#log-cal { display: grid; gap: 12px; min-width: 0; }
+.cal-scroll { overflow-x: auto; }
+.cal { display: grid; grid-template-columns: 74px repeat(7, minmax(112px, 1fr)) minmax(176px, 1.4fr); gap: 4px; min-width: 1060px; font-family: var(--f-data); font-size: var(--s-0); }
+.cal .hd { color: var(--dim); text-transform: uppercase; letter-spacing: 0.12em; font-size: 10px; padding: 2px 6px; }
+.cal .wk { display: grid; align-content: center; gap: 2px; padding: 6px; color: var(--dim); border-left: 2px solid rgba(182,255,92,0.35); }
+.cal .wk b { color: var(--ink); font-weight: 600; }
+.ccell { display: grid; grid-template-rows: auto 52px auto auto auto auto; gap: 2px; padding: 6px; border: 1px solid var(--grid); background: rgba(7,6,15,0.5); min-width: 0; cursor: pointer; }
+.ccell:hover, .ccell:focus-visible { border-color: var(--trail); }
+.ccell.sel { border-color: var(--hot); } .ccell.rest { background: rgba(31,26,61,0.35); } .ccell.void { border-style: dashed; opacity: 0.35; cursor: default; }
+.ccell .dt { display: flex; justify-content: space-between; gap: 4px; color: var(--dim); font-size: 10px; letter-spacing: 0.06em; }
+.ccell .dt em { font-style: normal; text-transform: uppercase; letter-spacing: 0.1em; color: var(--climb); } .ccell .dt em.zero { color: var(--dim); } .ccell .dt em.skip { color: var(--sound); }
+.ccell .bars { display: grid; grid-template-columns: 5fr 2fr 2fr; gap: 3px; align-items: end; border-bottom: 1px solid var(--grid); padding: 0 8%; }
+.ccell .bars i { display: block; min-height: 0; } .ccell .bars .mi { background: var(--trail); } .ccell .bars .mi.over { border-top: 3px solid var(--hot); } .ccell .bars .st { background: var(--step); } .ccell .bars .hr { background: var(--climb); }
+.ccell .num b { font-size: var(--s-1); font-weight: 600; color: var(--trail); } .ccell.rest .num b { color: var(--dim); }
+.ccell .sub { color: var(--dim); font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
+.ccell .sub.loc { color: var(--ink); } .ccell .sub .st { color: var(--step); } .ccell .sub .hr { color: var(--climb); }
+.csum { display: grid; align-content: center; gap: 4px; padding: 6px 8px; border: 1px solid var(--grid); background: rgba(13,11,28,0.8); min-width: 0; }
+.csum .big { font-size: var(--s-3); font-weight: 600; color: var(--trail); font-variant-numeric: tabular-nums; } .csum .big small { color: var(--dim); font-weight: 400; font-size: var(--s-0); }
+.csum .track { height: 8px; background: #120f26; border: 1px solid var(--grid); } .csum .track i { display: block; height: 100%; background: var(--trail); }
+.csum .sub { color: var(--dim); font-size: 10px; font-variant-numeric: tabular-nums; }
 .bands { display: flex; height: 14px; border: 1px solid var(--grid); overflow: hidden; }
 .bands b { display: block; height: 100%; }
 .dist { display: grid; grid-template-columns: minmax(0, 1fr) repeat(3, auto); gap: 4px 12px; font-family: var(--f-data); font-size: var(--s-0); }
@@ -226,6 +248,13 @@ nav.site a:hover, nav.site a:focus-visible { color: var(--step); }
         <h2 class="c-trail" style="font-size:var(--s-1)">Trail log vs phone <small>the log counts every mile walked; the phone is what Apple Health caught</small></h2>
       </div>
       <div class="readout" id="log-stats"></div>
+      <div class="seg" id="log-view" role="group" aria-label="Trail log view" style="justify-self:start"><button type="button" data-v="charts" aria-pressed="true">Charts</button><button type="button" data-v="cal" aria-pressed="false">Calendar</button></div>
+      <div id="log-cal" hidden>
+        <div class="legend" id="cal-legend"></div>
+        <div class="cal-scroll"><div class="cal" id="cal-grid" role="table" aria-label="Appalachian Trail 2019, one row per week"></div></div>
+        <p class="note" id="cal-note"></p>
+      </div>
+      <div id="log-charts">
       <div class="sec-head">
         <h2 style="font-size:var(--s-0)">Miles per day <small>click a day to open it</small></h2>
         <div class="seg" id="ma-seg" role="group" aria-label="Moving average"><button type="button" data-ma="all" aria-pressed="true">7-day avg · all days</button><button type="button" data-ma="hiking" aria-pressed="false">7-day avg · hiking days</button></div>
@@ -249,6 +278,7 @@ nav.site a:hover, nav.site a:focus-visible { color: var(--step); }
           <h3>Biggest days</h3>
           <div class="rows" id="log-big"></div>
         </div>
+      </div>
       </div>
       <p class="note" id="log-note"></p>
     </div>
@@ -876,6 +906,65 @@ function renderLog() {
     `<b>Moving time</b> = each hour's steps ÷ 6,000 (a fully moving hour), capped at 1. <b>Adjusted pace</b> takes 30 minutes per 1,000 ft climbed out of moving time; climb comes from the trail profile by the log's start and end miles (the profile totals about ${fmt(Pc.gain_ft_profile)} ft, under the official ~500,000). Pace only uses days where the phone caught 80–125% of the log.`;
 }
 
+// ---------- TRAIL LOG calendar: week rows (Sunday to Saturday), every day of the hike in one grid
+let logView = 'charts';
+function calTip(k) {
+  const x = LG.days[k]; let s = logTip(k);
+  const bits = [];
+  if (x.phone_steps) bits.push(`<span class="c-step">${fmt(x.phone_steps)} steps</span>`);
+  if (x.moving_h) bits.push(`<span class="c-climb">${f1(x.moving_h)} h moving</span>`);
+  if (x.active_h != null) bits.push(`${x.active_h} active h`);
+  if (bits.length) s += `<br>${bits.join(' · ')}`;
+  if (x.gain_ft) s += `<br><span class="c-climb">▲ ${fmt(x.gain_ft)} ft</span> <span class="k">(profile)</span>` + (x.adj_mph ? ` · ${x.adj_mph.toFixed(2)} mph <span class="k">adjusted</span>` : '');
+  if (x.listen_min) s += `<br><span class="c-sound">${fmt(x.listen_min)} min of music</span>`;
+  return s;
+}
+function renderLogCal() {
+  const D = LG.days, at = {}; D.forEach((x, k) => { at[x.di] = k; });
+  const d0 = D[0].di, dN = D[D.length - 1].di, ws0 = d0 - dateOf(d0).getUTCDay();
+  const CAP = 36, stMax = Math.max(...D.map(x => x.phone_steps || 0).sort((a, b) => a - b).slice(0, -2)), hrMax = Math.max(...D.map(x => x.moving_h || 0));
+  const BADGE = { zero: 'zero', nero: 'nero', skip: 'skip', unknown: '?', folded: '→ Nov 6' };
+  const weeks = []; let cum = 0;
+  for (let ws = ws0; ws <= dN; ws += 7) { const w = { ws, mi: 0, st: 0, hr: 0, ft: 0, zeros: 0, days: 0 };
+    for (let c = 0; c < 7; c++) { const k = at[ws + c]; if (k == null) continue; const x = D[k]; w.days++; w.mi += x.log_miles || 0; w.st += x.phone_steps || 0; w.hr += x.moving_h || 0; w.ft += x.gain_ft || 0; if (x.kind === 'zero') w.zeros++; }
+    cum += w.mi; w.cum = cum; weeks.push(w); }
+  const best = Math.max(...weeks.map(w => w.mi)), total = cum;
+  let h = '<div class="hd">Week</div>' + DOW.map(n => `<div class="hd">${n.slice(0, 3)}</div>`).join('') + '<div class="hd">Week total</div>';
+  weeks.forEach((w, i) => {
+    const wd = dateOf(w.ws);
+    h += `<div class="wk"><b>Week ${i + 1}</b><span>${MON[wd.getUTCMonth()]} ${wd.getUTCDate()}</span></div>`;
+    for (let c = 0; c < 7; c++) {
+      const di = w.ws + c, k = at[di], d = dateOf(di), lab = d.getUTCDate() === 1 || c === 0 ? `${MON[d.getUTCMonth()]} ${d.getUTCDate()}` : d.getUTCDate();
+      if (k == null) { h += `<div class="ccell void"><div class="dt"><span>${lab}</span></div></div>`; continue; }
+      const x = D[k], mi = x.log_miles || 0, rest = x.kind === 'zero' || x.kind === 'skip' || x.kind === 'folded' || x.kind === 'unknown';
+      h += `<div class="ccell${rest ? ' rest' : ''}${di === sel ? ' sel' : ''}" tabindex="0" role="button" data-k="${k}" aria-label="${x.date}, ${f1(mi)} miles, ${esc(x.location || '')}">` +
+        `<div class="dt"><span>${lab} <span style="opacity:.7">· d${x.day}</span></span>${BADGE[x.kind] ? `<em class="${x.kind}">${BADGE[x.kind]}</em>` : ''}</div>` +
+        `<div class="bars"><i class="mi${mi > CAP ? ' over' : ''}" style="height:${Math.min(100, mi / CAP * 100)}%"></i><i class="st" style="height:${Math.min(100, (x.phone_steps || 0) / stMax * 100)}%"></i><i class="hr" style="height:${Math.min(100, (x.moving_h || 0) / hrMax * 100)}%"></i></div>` +
+        `<div class="num"><b>${x.kind === 'unknown' ? '?' : f1(mi)}</b> mi</div>` +
+        `<div class="sub"><span class="st">${x.phone_steps ? kfmt(x.phone_steps) : '—'}</span> steps · <span class="hr">${x.moving_h ? f1(x.moving_h) : '—'}</span> h</div>` +
+        `<div class="sub loc">${esc(x.location || '')}</div>` +
+        `<div class="sub">${x.gain_ft ? '▲ ' + fmt(x.gain_ft) + ' ft' : '&nbsp;'}${x.end_mile != null && !rest ? ' · mi ' + fmt(x.end_mile) : ''}</div></div>`;
+    }
+    h += `<div class="csum"><div class="big">${f1(w.mi)} <small>mi${w.days < 7 ? ' · ' + w.days + ' days' : ''}</small></div><div class="track"><i style="width:${w.mi / best * 100}%"></i></div>` +
+      `<div class="sub"><span class="c-step">${kfmt(w.st)} steps</span> · <span class="c-climb">${f1(w.hr)} h moving</span></div>` +
+      `<div class="sub">▲ ${fmt(w.ft)} ft · ${w.zeros} zero${w.zeros === 1 ? '' : 's'} · ${f1(w.mi / w.days)} mi/day</div>` +
+      `<div class="sub">${fmt(w.cum)} mi so far · ${Math.round(w.cum / total * 100)}%</div></div>`;
+  });
+  $('cal-grid').innerHTML = h;
+  $('cal-legend').innerHTML = `<span><i style="background:${TRL};width:14px"></i>miles (trail log)</span><span><i style="background:${STP};width:8px"></i>steps (phone)</span><span><i style="background:#ffb347;width:8px"></i>hours moving (phone)</span>` +
+    `<span>each bar is scaled to its own best day · a white cap = over ${CAP} miles</span>`;
+  $('cal-note').innerHTML = 'Each cell: date and day number, the three bars, miles from the trail log, steps and moving hours from the phone, where the day ended, climb from the trail profile and the end mile. ' +
+    'Hover for the rest (phone miles, pace, music); click a day to open it below. Steps and hours read low on days the phone was off or dead.';
+  document.querySelectorAll('#cal-grid .ccell[data-k]').forEach(c => { const k = +c.dataset.k, go = () => select(LG.days[k].di, true);
+    c.addEventListener('mousemove', e => showTip(calTip(k), e)); c.addEventListener('mouseleave', hideTip); c.addEventListener('click', go);
+    c.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } }); });
+}
+function setLogView(v) {
+  logView = v; document.querySelectorAll('#log-view button').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === v));
+  $('log-charts').hidden = v !== 'charts'; $('log-cal').hidden = v !== 'cal';
+  if (v === 'cal') renderLogCal(); else drawLogAll();
+}
+
 function drawLog() {
   if (!LG) return;
   const [g, w, h] = setup($('logcv')), { n, pw, bw } = logGeom('logcv'), ph = h - LL.top - LL.bottom, D = LG.days;
@@ -955,7 +1044,7 @@ function drawPace() {
   g.fillStyle = DIM; g.textAlign = 'left'; g.fillText('mph', LL.left + 4, LL.top - 6);
 }
 
-const drawLogAll = () => { drawLog(); drawCum(); drawPace(); };
+const drawLogAll = () => { if (LG && logView === 'cal') { renderLogCal(); return; } drawLog(); drawCum(); drawPace(); };
 
 // ---------- totals
 function renderTotals() {
@@ -1029,6 +1118,8 @@ function wire() {
     document.querySelectorAll('.scale-seg button').forEach(x => x.setAttribute('aria-pressed', x.dataset.scale === scaleMode));
     drawSignal(); drawTrail(); drawDay(); }));
   if (LG) {
+    document.querySelectorAll('#log-view button').forEach(b => b.addEventListener('click', () => setLogView(b.dataset.v)));
+    if (location.hash === '#trail-calendar') { setLogView('cal'); requestAnimationFrame(() => $('log-block').scrollIntoView()); }
     document.querySelectorAll('#ma-seg button').forEach(b => b.addEventListener('click', () => {
       maMode = b.dataset.ma; document.querySelectorAll('#ma-seg button').forEach(x => x.setAttribute('aria-pressed', x === b)); drawLog(); }));
     [['logcv', logTip], ['cumcv', cumTip], ['pacecv', logTip]].forEach(([id, tf]) => { const cv = $(id);
