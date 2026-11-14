@@ -1,0 +1,28 @@
+{
+  "how": "Hand-kept mirror of the Plan tab in the PCT 2027 Training Program sheet. Weeks run Sunday to Saturday. unit_miles = one lap of the home loop. Edit here (or in the sheet, then copy across) and rerun scripts/build_pct_training.py.",
+  "trail": "Pacific Crest Trail, northbound",
+  "start": "2027-03-01",
+  "trail_miles": 2650,
+  "unit_miles": 3.7,
+  "peak_week_miles": 150,
+  "flat_mph": 3.2,
+  "weeks": [
+    {"week": 0, "start": "2026-11-01", "phase": "Pre-plan", "target_units": null, "pack_lb": null, "note": "Before the plan started; no target"},
+    {"week": 1, "start": "2026-11-08", "phase": "Base", "target_units": 8, "pack_lb": 0, "note": "First 2-unit day Thu Nov 12"},
+    {"week": 2, "start": "2026-11-15", "phase": "Base", "target_units": 10, "pack_lb": 5, "note": ""},
+    {"week": 3, "start": "2026-11-22", "phase": "Base", "target_units": 12, "pack_lb": 10, "note": ""},
+    {"week": 4, "start": "2026-11-29", "phase": "Base", "target_units": 10, "pack_lb": 10, "note": "Deload"},
+    {"week": 5, "start": "2026-12-06", "phase": "Build 1", "target_units": 14, "pack_lb": 15, "note": ""},
+    {"week": 6, "start": "2026-12-13", "phase": "Build 1", "target_units": 17, "pack_lb": 15, "note": ""},
+    {"week": 7, "start": "2026-12-20", "phase": "Build 1", "target_units": 20, "pack_lb": 20, "note": ""},
+    {"week": 8, "start": "2026-12-27", "phase": "Build 1", "target_units": 15, "pack_lb": 15, "note": "Deload"},
+    {"week": 9, "start": "2027-01-03", "phase": "Build 2", "target_units": 24, "pack_lb": 20, "note": ""},
+    {"week": 10, "start": "2027-01-10", "phase": "Build 2", "target_units": 28, "pack_lb": 25, "note": ""},
+    {"week": 11, "start": "2027-01-17", "phase": "Build 2", "target_units": 32, "pack_lb": 25, "note": ""},
+    {"week": 12, "start": "2027-01-24", "phase": "Build 2", "target_units": 24, "pack_lb": 20, "note": "Deload"},
+    {"week": 13, "start": "2027-01-31", "phase": "Peak", "target_units": 36, "pack_lb": 30, "note": ""},
+    {"week": 14, "start": "2027-02-07", "phase": "Peak", "target_units": 41, "pack_lb": 30, "note": "First 150-mile week"},
+    {"week": 15, "start": "2027-02-14", "phase": "Peak", "target_units": 41, "pack_lb": 30, "note": "Second 150-mile week"},
+    {"week": 16, "start": "2027-02-21", "phase": "Taper", "target_units": 20, "pack_lb": 15, "note": "Taper and travel; start Mon Mar 1"}
+  ]
+}

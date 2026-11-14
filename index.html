@@ -948,6 +948,11 @@ a.title:focus-visible { outline: none; }
         linkRow([['step-song/#trail', 'Open the trail log'], [() => openInExplorer([['trail', 'log_miles', null, [], false], ['move', 'steps', null, [], false]], a, b), 'Chart this stretch']]),
       ]));
     }
+    cards.push(el('div', { className: 'card' }, [
+      el('h3', { text: 'Pacific Crest Trail 2027: training' }),
+      el('p', { text: 'The build toward a northbound start on March 1, 2027: the weekly plan, the hikes logged so far, and how it compares with the Appalachian Trail.' }),
+      linkRow([['pct-training/', 'Open the training tracker']]),
+    ]));
     $('#h-cards').replaceChildren(...(cards.length ? cards : [el('p', { className: 'note', text: 'Nothing here yet.' })]));
   }
 

@@ -7,6 +7,7 @@ index.html              home dashboard + Data directory + Highlights + explorer/
 step-song/              STEP//SONG explorer (static: index.html + data/*.json)
 meta-log/               data/*.json for the root page (index.html here only redirects to /)
 data/, highlights/       redirects to /#data and /#highlights
+pct-training/           PCT//PREP training tracker (static: index.html + data/*.json)
 scripts/                data builders (raw exports → step-song/data, site data → meta-log/data)
 ```
 
@@ -51,6 +52,14 @@ python3 scripts/build_meta_log.py
 The first watch-list command also writes `meta-log/data/watch-titles.json` (the poster wall). Covers are linked from the poster URLs in the workbook, not stored here.
 Life chapters: `meta-log/data/life.json` (published) and `meta-log/data/life.private.json` (git-ignored, shows only on this machine).
 Hand-logged metrics: `meta-log/data/manual.json`.
+
+## Refresh PCT//PREP data
+Add new hikes to `pct-training/data/activities.json` (and plan changes to `plan.json`), then
+```
+python3 scripts/build_pct_training.py "/path/to/health export 2026-11-14"
+```
+The health export folder stays outside this repo; only steps, distance, flights and exercise minutes are read.
+Leave the folder off to refresh just the plan and hikes.
 
 ## Credits
 Appalachian Trail elevation profile derived from [JasonSanford/every-mile](https://github.com/JasonSanford/every-mile) (BSD 3-Clause, © 2021 Jason Sanford).

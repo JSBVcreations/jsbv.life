@@ -1,0 +1,389 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PCT//PREP</title>
+<meta name="description" content="Jack's training for a northbound Pacific Crest Trail thru-hike starting March 1, 2027: the plan, what has been walked, and how it compares with the Appalachian Trail in 2019.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Monoton&family=Chakra+Petch:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* PCT//PREP: the training build for the Pacific Crest Trail. Same console as STEP//SONG.
+   Top to bottom: where things stand, the plan week by week, the last six weeks by day,
+   the whole year on the phone, the Appalachian Trail for scale + a pace calculator, the hike log.
+   Colors keep their site meaning: cyan = movement (phone), lime = trail (logged hikes),
+   amber = load and elevation. Single dark look by choice. */
+:root {
+  color-scheme: dark;
+  --void: #07060f; --panel: #0d0b1c; --grid: #1f1a3d; --ink: #dcd8ff; --dim: #8a84b8;
+  --step: #3ff0ff; --sound: #ff3fb4; --climb: #ffb347; --trail: #b6ff5c; --hot: #ffffff;
+  --f-display: "Monoton", "Chakra Petch", system-ui, sans-serif;
+  --f-ui: "Chakra Petch", "Segoe UI", system-ui, sans-serif;
+  --f-data: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --s-0: 0.75rem; --s-1: 0.875rem; --s-2: 1rem; --s-3: 1.25rem; --s-4: 1.75rem;
+}
+* { box-sizing: border-box; }
+html, body { background: var(--void); color: var(--ink); margin: 0; }
+body {
+  font-family: var(--f-ui); font-size: var(--s-1); line-height: 1.5;
+  padding: 24px max(16px, env(safe-area-inset-right, 0px)) 64px max(16px, env(safe-area-inset-left, 0px));
+  background:
+    radial-gradient(ellipse 80% 40% at 50% 0%, rgba(182,255,92,0.08), transparent 70%),
+    radial-gradient(ellipse 60% 30% at 50% 100%, rgba(63,240,255,0.06), transparent 70%),
+    var(--void);
+  min-height: 100vh;
+}
+body::after { content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 50;
+  background: repeating-linear-gradient(to bottom, rgba(0,0,0,0) 0 2px, rgba(0,0,0,0.18) 2px 3px); mix-blend-mode: multiply; }
+.wrap { max-width: 1180px; margin: 0 auto; display: grid; gap: 28px; }
+header { display: grid; gap: 14px; }
+nav.site { display: flex; flex-wrap: wrap; gap: 6px 18px; font: 600 var(--s-0) var(--f-data); letter-spacing: 0.08em; text-transform: uppercase; }
+nav.site a { color: var(--dim); text-decoration: none; }
+nav.site a:hover, nav.site a:focus-visible { color: var(--step); }
+h1 { font-family: var(--f-display); font-weight: 400; margin: 0; font-size: clamp(2.2rem, 7vw, 4.6rem); line-height: 1; letter-spacing: 0.02em;
+  color: var(--hot); text-shadow: 0 0 6px var(--trail), 0 0 18px var(--trail), 0 0 42px rgba(182,255,92,0.55); }
+h1 .sl { text-shadow: 0 0 6px var(--step), 0 0 18px var(--step), 0 0 42px rgba(63,240,255,0.6); }
+@media (prefers-reduced-motion: no-preference) {
+  h1 { animation: flicker 7s infinite; }
+  @keyframes flicker { 0%,93%,100% { opacity: 1 } 94% { opacity: .55 } 95% { opacity: 1 } 96.5% { opacity: .7 } 97% { opacity: 1 } }
+}
+.lede { margin: 0; color: var(--dim); max-width: 70ch; font-size: var(--s-2); }
+.lede b { color: var(--trail); font-weight: 600; } .lede i { color: var(--step); font-style: normal; font-weight: 600; }
+.readout { display: flex; flex-wrap: wrap; gap: 10px 32px; font-family: var(--f-data); padding: 12px 0; border-block: 1px solid var(--grid); }
+.readout div { display: grid; }
+.readout span { font-size: var(--s-0); text-transform: uppercase; letter-spacing: 0.12em; color: var(--dim); font-family: var(--f-ui); }
+.readout strong { font-size: var(--s-3); font-weight: 600; font-variant-numeric: tabular-nums; }
+.readout small { color: var(--dim); font-size: var(--s-0); }
+.c-step { color: var(--step); } .c-climb { color: var(--climb); } .c-trail { color: var(--trail); }
+
+section { background: linear-gradient(180deg, var(--panel), rgba(13,11,28,0.6)); border: 1px solid var(--grid); padding: 18px; display: grid; gap: 14px; min-width: 0; }
+.sec-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 16px; }
+h2 { margin: 0; font-size: var(--s-2); font-weight: 700; letter-spacing: 0.22em; text-transform: uppercase; }
+h2 small { font-weight: 400; color: var(--dim); letter-spacing: 0.08em; text-transform: none; margin-left: 10px; font-size: var(--s-1); }
+h3 { margin: 0; font-size: var(--s-0); letter-spacing: 0.2em; text-transform: uppercase; }
+.note { color: var(--dim); font-size: var(--s-0); margin: 0; max-width: 84ch; }
+.seg { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--grid); }
+.seg button, .btn { font: 600 var(--s-0)/1 var(--f-ui); letter-spacing: 0.14em; text-transform: uppercase; background: transparent; color: var(--dim); border: 0; padding: 8px 12px; cursor: pointer; }
+.seg button + button { border-left: 1px solid var(--grid); }
+.seg button[aria-pressed="true"] { color: var(--void); background: var(--step); }
+.btn { border: 1px solid var(--grid); color: var(--ink); }
+.btn:hover, .seg button:hover { color: var(--hot); }
+.seg button[aria-pressed="true"]:hover { color: var(--void); }
+button:focus-visible, input:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--step); outline-offset: 2px; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-family: var(--f-data); font-size: var(--s-0); color: var(--dim); align-items: center; }
+.legend i { display: inline-block; width: 22px; height: 8px; margin-right: 6px; vertical-align: middle; }
+.legend i.line { height: 0; border-top: 2px dashed currentColor; }
+.chart { min-width: 0; }
+.chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+.chart text { font-family: var(--f-data); font-size: 11px; fill: var(--dim); }
+.chart .hit { fill: transparent; cursor: pointer; }
+.chart .hit:hover, .chart .hit.on { fill: rgba(220,216,255,0.06); }
+.split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 320px); gap: 18px; align-items: start; }
+@media (max-width: 860px) { .split { grid-template-columns: minmax(0, 1fr); } }
+.card { border: 1px solid var(--grid); padding: 14px; display: grid; gap: 10px; align-content: start; min-width: 0; background: rgba(7,6,15,0.5); }
+dl { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; margin: 0; font-family: var(--f-data); font-size: var(--s-0); }
+dt { color: var(--dim); } dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; }
+.meter { height: 10px; background: #120f26; border: 1px solid var(--grid); position: relative; }
+.meter b { position: absolute; inset: 0 auto 0 0; background: var(--trail); box-shadow: 0 0 10px rgba(182,255,92,0.5); }
+label.sl { display: grid; gap: 4px; font-family: var(--f-data); font-size: var(--s-0); color: var(--dim); }
+label.sl span { display: flex; justify-content: space-between; gap: 8px; }
+label.sl b { color: var(--ink); font-weight: 600; }
+input[type="range"] { width: 100%; accent-color: var(--trail); }
+.tbl { overflow: auto; border: 1px solid var(--grid); font-family: var(--f-data); font-size: var(--s-0); max-height: 460px; }
+table { width: 100%; border-collapse: collapse; }
+th, td { padding: 6px 10px; border-bottom: 1px solid rgba(31,26,61,0.7); text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+th { position: sticky; top: 0; background: var(--panel); color: var(--dim); font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; font-size: 10px; }
+th:nth-child(-n+2), td:nth-child(-n+2) { text-align: left; }
+td:nth-child(2) { white-space: normal; min-width: 180px; color: var(--ink); }
+td { color: var(--dim); } td.m { color: var(--trail); }
+#tip { position: fixed; z-index: 60; pointer-events: none; max-width: 280px; background: rgba(7,6,15,0.94); border: 1px solid var(--trail);
+  box-shadow: 0 0 18px rgba(182,255,92,0.3); font-family: var(--f-data); font-size: var(--s-0); padding: 8px 10px; line-height: 1.45; color: var(--ink); }
+#tip .k { color: var(--dim); } #tip b { color: var(--hot); }
+#boot { font-family: var(--f-data); color: var(--step); }
+footer { color: var(--dim); font-size: var(--s-0); }
+</style>
+
+<div class="wrap">
+  <header>
+    <nav class="site" aria-label="Site"><a href="../">◀ Home</a><a href="../#data">Data</a><a href="../#highlights">Highlights</a></nav>
+    <h1>PCT<span class="sl">//</span>PREP</h1>
+    <p class="lede">Training for a northbound Pacific Crest Trail thru-hike that starts <b>March 1, 2027</b>. The aim is to arrive already used to 150-mile weeks under load. This page shows the <b>plan</b>, the <b>hikes logged</b> so far, what the <i>phone</i> counted all year, and how it measures up to the Appalachian Trail in 2019.</p>
+    <div class="readout" id="kpis"><div id="boot">BOOTING… loading training data</div></div>
+  </header>
+
+  <section id="weeks" aria-labelledby="h-weeks" hidden>
+    <div class="sec-head">
+      <h2 id="h-weeks">The plan, week by week <small>weeks run Sunday to Saturday · pick a week</small></h2>
+      <div class="legend">
+        <span><i style="background:var(--trail)"></i>miles hiked</span>
+        <span><i style="border:1px solid var(--dim)"></i>target</span>
+        <span style="color:var(--climb)"><i class="line"></i>AT 2019 best week</span>
+        <span style="color:var(--step)"><i class="line"></i>AT 2019 average week</span>
+      </div>
+    </div>
+    <div class="split">
+      <div class="chart" id="c-weeks"></div>
+      <div class="card" id="week-card" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <section id="days" aria-labelledby="h-days" hidden>
+    <div class="sec-head">
+      <h2 id="h-days">Day by day <small>the last six weeks</small></h2>
+      <div class="legend">
+        <span><i style="background:var(--trail)"></i>logged hike miles</span>
+        <span><i style="background:rgba(63,240,255,0.35)"></i>all miles the phone counted</span>
+      </div>
+    </div>
+    <div class="chart" id="c-days"></div>
+    <p class="note" id="days-note"></p>
+  </section>
+
+  <section id="year" aria-labelledby="h-year" hidden>
+    <div class="sec-head">
+      <h2 id="h-year">2026 on the phone <small>weekly totals from Apple Health</small></h2>
+      <div class="seg" role="group" aria-label="Metric" id="year-seg">
+        <button type="button" data-k="miles" aria-pressed="true">Miles</button>
+        <button type="button" data-k="steps" aria-pressed="false">Steps</button>
+        <button type="button" data-k="flights" aria-pressed="false">Flights</button>
+        <button type="button" data-k="exercise_min" aria-pressed="false">Exercise</button>
+      </div>
+    </div>
+    <div class="chart" id="c-year"></div>
+    <p class="note" id="year-note"></p>
+  </section>
+
+  <section id="at" aria-labelledby="h-at" hidden>
+    <div class="sec-head">
+      <h2 id="h-at">For scale: the Appalachian Trail <small>miles per week, 2019 southbound</small></h2>
+      <div class="legend">
+        <span><i style="background:rgba(182,255,92,0.55)"></i>AT week</span>
+        <span style="color:var(--hot)"><i class="line"></i>pace needed (from the calculator)</span>
+        <span style="color:var(--climb)"><i class="line"></i>training peak</span>
+      </div>
+    </div>
+    <div class="split">
+      <div class="chart" id="c-at"></div>
+      <div class="card">
+        <h3>Pace calculator</h3>
+        <label class="sl"><span>Finish the PCT in <b id="o-days"></b></span><input type="range" id="i-days" min="85" max="160" step="1" value="111"></label>
+        <label class="sl"><span>Zero days <b id="o-zeros"></b></span><input type="range" id="i-zeros" min="0" max="30" step="1" value="8"></label>
+        <dl id="pace-out"></dl>
+        <p class="note" id="pace-note"></p>
+      </div>
+    </div>
+  </section>
+
+  <section id="log" aria-labelledby="h-log" hidden>
+    <div class="sec-head">
+      <h2 id="h-log">Hike log <small id="log-sub"></small></h2>
+      <button type="button" class="btn" id="log-all" hidden>Show all weeks</button>
+    </div>
+    <div class="tbl"><table><thead><tr><th>Date</th><th>Hike</th><th>Miles</th><th>Time</th><th>Gain</th><th>Pace</th><th>Pack</th></tr></thead><tbody id="log-body"></tbody></table></div>
+  </section>
+
+  <footer id="foot"></footer>
+</div>
+<div id="tip" hidden></div>
+
+<script>
+(async function () {
+  const $ = (s) => document.querySelector(s);
+  const NS = 'http://www.w3.org/2000/svg';
+  const svg = (tag, attrs, text) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (text != null) e.textContent = text; return e; };
+  const el = (tag, props, kids) => { const e = Object.assign(document.createElement(tag), props || {}); if (kids) e.append(...kids); return e; };
+  const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+  const C = { trail: css('--trail'), step: css('--step'), climb: css('--climb'), dim: css('--dim'), grid: css('--grid'), ink: css('--ink'), hot: css('--hot') };
+  const day = (s) => { const [y, m, d] = s.split('-').map(Number); return new Date(Date.UTC(y, m - 1, d)); };
+  const iso = (d) => d.toISOString().slice(0, 10);
+  const addDays = (d, n) => new Date(d.getTime() + n * 864e5);
+  const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'], DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const md = (d) => `${MON[d.getUTCMonth()]} ${d.getUTCDate()}`;
+  const n1 = (v) => v.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+  const n0 = (v) => Math.round(v).toLocaleString('en-US');
+  const hm = (min) => { const m = Math.round(min); return m >= 60 ? `${Math.floor(m / 60)}h ${String(m % 60).padStart(2, '0')}m` : `${m}m`; };
+
+  let T;
+  try { const r = await fetch('data/training.json', { cache: 'no-cache' }); if (!r.ok) throw new Error(r.status); T = await r.json(); }
+  catch (e) { $('#boot').textContent = 'Could not load data/training.json. Run scripts/build_pct_training.py, and preview over http (not file://).'; return; }
+
+  const P = T.plan, W = T.weeks, A = T.activities, H = T.health, AT = T.at;
+  const now = new Date(), today = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
+  const startDay = day(P.start), daysLeft = Math.round((startDay - today) / 864e5);
+  const curIdx = Math.max(0, W.findIndex((w) => iso(today) >= w.start && iso(today) <= w.end));
+  const hasCur = W.some((w) => iso(today) >= w.start && iso(today) <= w.end);
+  let sel = hasCur ? curIdx : W.reduce((b, w, i) => (w.miles > 0 ? i : b), 0);
+
+  /* tooltip */
+  const tip = $('#tip');
+  const showTip = (ev, html) => { tip.innerHTML = html; tip.hidden = false; const r = tip.getBoundingClientRect(); const x = Math.min(ev.clientX + 14, innerWidth - r.width - 8), y = ev.clientY + 16 + r.height > innerHeight ? ev.clientY - r.height - 10 : ev.clientY + 16; tip.style.left = Math.max(8, x) + 'px'; tip.style.top = Math.max(8, y) + 'px'; };
+  const hideTip = () => { tip.hidden = true; };
+  const bindTip = (node, html) => { node.addEventListener('pointermove', (ev) => showTip(ev, html())); node.addEventListener('pointerleave', hideTip); };
+
+  /* shared chart frame: returns {g, x0, w, h, y()} with horizontal gridlines + labels */
+  function frame(host, { height, max, ticks, fmt }) {
+    const width = Math.max(320, host.clientWidth || 800), m = { l: 44, r: 12, t: 12, b: 26 };
+    const s = svg('svg', { viewBox: `0 0 ${width} ${height}`, role: 'img' });
+    const w = width - m.l - m.r, h = height - m.t - m.b, y = (v) => m.t + h - (v / max) * h;
+    for (const t of ticks) {
+      s.append(svg('line', { x1: m.l, x2: m.l + w, y1: y(t), y2: y(t), stroke: C.grid, 'stroke-width': 1 }));
+      s.append(svg('text', { x: m.l - 6, y: y(t) + 4, 'text-anchor': 'end' }, fmt ? fmt(t) : String(t)));
+    }
+    host.replaceChildren(s);
+    return { s, x0: m.l, w, h, y, top: m.t, base: m.t + h, width };
+  }
+  const niceTicks = (max) => { const step = [1, 2, 5, 10, 20, 25, 50, 100, 200, 250, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000].find((s) => max / s <= 5) || max; const out = []; for (let v = 0; v <= max + 1e-9; v += step) out.push(v); return out; };
+  const refLine = (f, v, color, label) => {
+    f.s.append(svg('line', { x1: f.x0, x2: f.x0 + f.w, y1: f.y(v), y2: f.y(v), stroke: color, 'stroke-width': 1.5, 'stroke-dasharray': '6 5', opacity: 0.9 }));
+    if (label) f.s.append(svg('text', { x: f.x0 + f.w, y: f.y(v) - 5, 'text-anchor': 'end', style: `fill:${color}` }, label));
+  };
+
+  /* KPIs */
+  function renderKpis() {
+    const cur = W[curIdx], done = W.reduce((a, w) => a + w.miles, 0), hours = W.reduce((a, w) => a + w.hours, 0);
+    const byDay = {}; for (const a of A) byDay[a.date] = (byDay[a.date] || 0) + a.miles;
+    const best = Object.entries(byDay).sort((a, b) => b[1] - a[1])[0];
+    const packs = A.filter((a) => a.pack_lb).map((a) => a.pack_lb);
+    const k = (label, value, sub, cls) => el('div', {}, [el('span', { textContent: label }), el('strong', { className: cls || '', textContent: value }), el('small', { textContent: sub || '' })]);
+    const tiles = [k(daysLeft >= 0 ? 'Days to the start' : 'Days on trail', n0(Math.abs(daysLeft)), `starts ${md(startDay)}, ${startDay.getUTCFullYear()}`)];
+    if (hasCur && cur.target_miles) tiles.push(k(`Week ${cur.week} so far`, `${n1(cur.miles)} mi`, `of ${n1(cur.target_miles)} planned · ${n0(100 * cur.miles / cur.target_miles)}%`, 'c-trail'));
+    tiles.push(k('Logged since Nov 1', `${n1(done)} mi`, `${n1(hours)} h on foot`, 'c-trail'));
+    if (best) tiles.push(k('Longest day', `${n1(best[1])} mi`, md(day(best[0])), 'c-trail'));
+    if (packs.length) tiles.push(k('Heaviest pack so far', `${Math.max(...packs)} lb`, 'target by February: 30 lb', 'c-climb'));
+    tiles.push(k('Peak week planned', `${P.peak_week_miles} mi`, `AT 2019 best: ${n1(AT.best_week)} mi`));
+    $('#kpis').replaceChildren(...tiles);
+  }
+
+  /* plan vs actual */
+  function renderWeeks() {
+    const host = $('#c-weeks'), max = Math.max(160, ...W.map((w) => Math.max(w.target_miles || 0, w.miles))) * 1.04;
+    const f = frame(host, { height: 300, max, ticks: niceTicks(max), fmt: (t) => t });
+    f.s.setAttribute('aria-label', 'Planned and hiked miles for each training week');
+    const bw = f.w / W.length, pad = Math.min(8, bw * 0.16);
+    refLine(f, AT.best_week, C.climb); refLine(f, AT.avg_full_week, C.step);
+    W.forEach((w, i) => {
+      const x = f.x0 + i * bw;
+      if (w.target_miles) f.s.append(svg('rect', { x: x + pad, y: f.y(w.target_miles), width: bw - 2 * pad, height: f.base - f.y(w.target_miles), fill: 'rgba(138,132,184,0.10)', stroke: C.dim, 'stroke-width': 1 }));
+      if (w.miles > 0) f.s.append(svg('rect', { x: x + pad + 2, y: f.y(w.miles), width: bw - 2 * pad - 4, height: f.base - f.y(w.miles), fill: C.trail, style: 'filter:drop-shadow(0 0 5px rgba(182,255,92,0.55))' }));
+      if (i === curIdx && hasCur) f.s.append(svg('text', { x: x + bw / 2, y: f.top + 2, 'text-anchor': 'middle', style: `fill:${C.hot}` }, 'now'));
+      if (bw > 26 || i % 2 === 0) f.s.append(svg('text', { x: x + bw / 2, y: f.base + 16, 'text-anchor': 'middle', style: i === sel ? `fill:${C.hot};font-weight:600` : '' }, String(w.week)));
+      const hit = svg('rect', { x, y: f.top, width: bw, height: f.h, class: 'hit' + (i === sel ? ' on' : ''), tabindex: 0, role: 'button', 'aria-label': `Week ${w.week}, starts ${md(day(w.start))}` });
+      const pick = () => { sel = i; renderWeeks(); renderWeekCard(); renderLog(true); };
+      hit.addEventListener('click', pick); hit.addEventListener('keydown', (ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); pick(); } });
+      bindTip(hit, () => `<b>Week ${w.week}</b> · ${md(day(w.start))} – ${md(day(w.end))}<br><span class="k">${w.phase}</span><br>` + (w.target_miles ? `target ${n1(w.target_miles)} mi<br>` : '') + `hiked ${n1(w.miles)} mi`);
+      f.s.append(hit);
+    });
+  }
+  function renderWeekCard() {
+    const w = W[sel], pct = w.target_miles ? Math.min(100, 100 * w.miles / w.target_miles) : 0;
+    const rows = [['Dates', `${md(day(w.start))} – ${md(day(w.end))}`], ['Phase', w.phase],
+      ['Target', w.target_miles ? `${n1(w.target_miles)} mi · ${w.target_units} laps` : 'none'], ['Hiked', `${n1(w.miles)} mi · ${n1(w.miles / P.unit_miles)} laps`],
+      ['Time on foot', `${n1(w.hours)} h`], ['Climbed', `${n0(w.gain_ft)} ft`], ['Hikes · days', `${w.hikes} · ${w.active_days}`],
+      ['Pack', (w.max_pack_lb ? `${w.max_pack_lb} lb carried` : 'not noted') + (w.pack_lb != null ? ` · plan ${w.pack_lb} lb` : '')]];
+    const dl = el('dl'); for (const [a, b] of rows) dl.append(el('dt', { textContent: a }), el('dd', { textContent: b }));
+    const kids = [el('h3', { textContent: `Week ${w.week}` + (sel === curIdx && hasCur ? ' · this week' : '') })];
+    if (w.target_miles) kids.push(el('div', { className: 'meter', title: `${n0(100 * w.miles / w.target_miles)}% of target` }, [el('b', { style: `width:${pct}%` })]));
+    kids.push(dl); if (w.note) kids.push(el('p', { className: 'note', textContent: w.note }));
+    $('#week-card').replaceChildren(...kids);
+  }
+
+  /* last six weeks by day */
+  function renderDays() {
+    const end = H ? day(H.through) : day(T.activities_through || A[A.length - 1].date), N = 42, start = addDays(end, -(N - 1));
+    const hike = {}, names = {}; for (const a of A) { hike[a.date] = (hike[a.date] || 0) + a.miles; (names[a.date] = names[a.date] || []).push(a); }
+    const h0 = H ? day(H.start) : null, phone = (d) => { if (!H) return null; const i = Math.round((d - h0) / 864e5); return i >= 0 && i < H.miles.length ? H.miles[i] : null; };
+    const rows = []; for (let i = 0; i < N; i++) { const d = addDays(start, i), k = iso(d); rows.push({ d, k, hike: hike[k] || 0, phone: phone(d) }); }
+    const max = Math.max(4, ...rows.map((r) => Math.max(r.hike, r.phone || 0))) * 1.08;
+    const f = frame($('#c-days'), { height: 240, max, ticks: niceTicks(max), fmt: (t) => t });
+    f.s.setAttribute('aria-label', 'Miles per day over the last six weeks');
+    const bw = f.w / N;
+    rows.forEach((r, i) => {
+      const x = f.x0 + i * bw;
+      if (r.d.getUTCDay() === 0) { f.s.append(svg('line', { x1: x, x2: x, y1: f.top, y2: f.base, stroke: C.grid })); f.s.append(svg('text', { x: x + 3, y: f.base + 16 }, md(r.d))); }
+      if (r.phone) f.s.append(svg('rect', { x: x + 1, y: f.y(r.phone), width: Math.max(1, bw - 2), height: f.base - f.y(r.phone), fill: 'rgba(63,240,255,0.28)' }));
+      if (r.hike) f.s.append(svg('rect', { x: x + bw * 0.22, y: f.y(r.hike), width: Math.max(1, bw * 0.56), height: f.base - f.y(r.hike), fill: C.trail, style: 'filter:drop-shadow(0 0 4px rgba(182,255,92,0.5))' }));
+      const hit = svg('rect', { x, y: f.top, width: bw, height: f.h, class: 'hit' });
+      bindTip(hit, () => `<b>${DOW[r.d.getUTCDay()]} ${md(r.d)}</b><br>` + (names[r.k] || []).map((a) => `${n1(a.miles)} mi · ${hm(a.moving_min)}${a.pack_lb ? ` · ${a.pack_lb} lb` : ''}<br><span class="k">${a.name.replace(/[<&]/g, (c) => ({ '<': '&lt;', '&': '&amp;' }[c]))}</span><br>`).join('') + (r.phone != null ? `<span class="k">phone, whole day:</span> ${n1(r.phone)} mi` : '') + (H && r.k === H.through && H.partial_last_day ? ' <span class="k">(day not finished)</span>' : ''));
+      f.s.append(hit);
+    });
+    $('#days-note').textContent = 'Lime bars are hikes recorded on Strava. The wider cyan bars are every mile the phone counted that day, hike included, so the gap above a lime bar is ordinary walking around.' + (H && H.partial_last_day ? ` Phone data runs through ${md(day(H.through))}; that last day was exported before it ended.` : '');
+  }
+
+  /* 2026 weekly, from Apple Health */
+  const YEAR = { miles: ['miles', n1, 'mi'], steps: ['steps', n0, 'steps'], flights: ['flights', n0, 'flights'], exercise_min: ['exercise_min', (v) => n1(v / 60), 'h'] };
+  let yearKey = 'miles';
+  function renderYear() {
+    const [key, fmt, unit] = YEAR[yearKey], vals = H[key], h0 = day(H.start), wk = [];
+    vals.forEach((v, i) => { const d = addDays(h0, i), s = iso(addDays(d, -d.getUTCDay())); let e = wk[wk.length - 1]; if (!e || e.s !== s) wk.push(e = { s, v: 0, n: 0 }); e.v += v; e.n++; });
+    const scale = yearKey === 'exercise_min' ? 60 : 1, max = Math.max(...wk.map((e) => e.v)) / scale * 1.08;
+    const f = frame($('#c-year'), { height: 240, max, ticks: niceTicks(max), fmt: (t) => t >= 1000 ? `${t / 1000}k` : t });
+    f.s.setAttribute('aria-label', `Weekly ${unit} in 2026`);
+    const bw = f.w / wk.length, t0 = W.find((w) => w.week === 1) || W[0];
+    let lastM = -1;
+    wk.forEach((e, i) => {
+      const x = f.x0 + i * bw, d = day(e.s), v = e.v / scale, training = e.s >= t0.start;
+      if (d.getUTCMonth() !== lastM && (i > 0 || d.getUTCDate() <= 7)) { lastM = d.getUTCMonth(); f.s.append(svg('text', { x: x + 2, y: f.base + 16 }, MON[lastM])); }
+      f.s.append(svg('rect', { x: x + 1.5, y: f.y(v), width: Math.max(1, bw - 3), height: f.base - f.y(v), fill: training ? C.trail : C.step, opacity: training ? 1 : 0.75 }));
+      const hit = svg('rect', { x, y: f.top, width: bw, height: f.h, class: 'hit' });
+      bindTip(hit, () => `<b>Week of ${md(d)}</b><br>${fmt(e.v)} ${unit}` + (e.n < 7 ? ` <span class="k">(${e.n} days)</span>` : '') + `<br><span class="k">${fmt(e.v / e.n)} ${unit} a day</span>`);
+      f.s.append(hit);
+    });
+    const ti = wk.findIndex((e) => e.s >= t0.start);
+    if (ti >= 0) { const x = f.x0 + ti * bw; f.s.append(svg('line', { x1: x, x2: x, y1: f.top, y2: f.base, stroke: C.trail, 'stroke-dasharray': '3 4' })); f.s.append(svg('text', { x: x - 5, y: f.top + 10, 'text-anchor': 'end', style: `fill:${C.trail}` }, 'training starts')); }
+    const full = wk.filter((e) => e.n === 7 && e.s < t0.start), base = full.reduce((a, e) => a + e.v, 0) / (full.length || 1), since = wk.filter((e) => e.s >= t0.start), last = since.filter((e) => e.n === 7).pop() || since[since.length - 1];
+    $('#year-note').textContent = `Before training started, a typical 2026 week was ${fmt(base)} ${unit}.` + (last ? ` The week of ${md(day(last.s))} came to ${fmt(last.v)} ${unit}${last.n < 7 ? ` in ${last.n} days` : ''}.` : '') + ' Counted by the phone and watch, so it includes everything, not only hikes. Flights are Apple’s 10-foot climbs.';
+  }
+
+  /* AT 2019 + pace calculator */
+  function pace() {
+    const days = +$('#i-days').value, zeros = Math.min(+$('#i-zeros').value, days - 1), perWeek = P.trail_miles / days * 7, perWalk = P.trail_miles / (days - zeros);
+    $('#o-days').textContent = `${days} days`; $('#o-zeros').textContent = String(zeros);
+    const fin = addDays(startDay, days - 1), rows = [['Miles a week', n1(perWeek)], ['Miles per walking day', n1(perWalk)], [`Hours on foot at ${P.flat_mph} mph`, n1(perWalk / P.flat_mph)],
+      ['Finish date', `${md(fin)}, ${fin.getUTCFullYear()}`], ['vs AT 2019 average week', `${n1(perWeek / AT.avg_full_week)}×`], ['vs AT 2019 best week', `${n1(perWeek / AT.best_week)}×`], ['vs training peak', `${n1(perWeek / P.peak_week_miles)}×`]];
+    const dl = $('#pace-out'); dl.replaceChildren(); for (const [a, b] of rows) dl.append(el('dt', { textContent: a }), el('dd', { textContent: b }));
+    $('#pace-note').textContent = `Uses ${n0(P.trail_miles)} trail miles and a ${md(startDay)} start. Flat-ground hours only: climbing, snow and town stops add to them.`;
+    return perWeek;
+  }
+  function renderAt() {
+    const need = pace(), max = Math.max(need, P.peak_week_miles, AT.best_week) * 1.1;
+    const f = frame($('#c-at'), { height: 280, max, ticks: niceTicks(max), fmt: (t) => t });
+    f.s.setAttribute('aria-label', 'Appalachian Trail 2019 miles per week');
+    const bw = f.w / AT.weeks.length; let lastM = -1;
+    AT.weeks.forEach((w, i) => {
+      const x = f.x0 + i * bw, d = day(w.start);
+      if (d.getUTCMonth() !== lastM) { lastM = d.getUTCMonth(); f.s.append(svg('text', { x: x + 2, y: f.base + 16 }, MON[lastM])); }
+      f.s.append(svg('rect', { x: x + 2, y: f.y(w.miles), width: Math.max(1, bw - 4), height: f.base - f.y(w.miles), fill: C.trail, opacity: w.days < 7 ? 0.3 : 0.55 }));
+      const hit = svg('rect', { x, y: f.top, width: bw, height: f.h, class: 'hit' });
+      bindTip(hit, () => `<b>Week of ${md(d)}, 2019</b><br>${n1(w.miles)} mi` + (w.days < 7 ? ` <span class="k">(${w.days} days)</span>` : '') + `<br><span class="k">${w.zeros} zero day${w.zeros === 1 ? '' : 's'}</span>`);
+      f.s.append(hit);
+    });
+    refLine(f, P.peak_week_miles, C.climb, `training peak ${P.peak_week_miles}`); refLine(f, need, C.hot, `needed ${n1(need)}`);
+  }
+
+  /* hike log */
+  function renderLog(filtered) {
+    const w = W[sel], rows = (filtered ? A.filter((a) => a.date >= w.start && a.date <= w.end) : A).slice().reverse();
+    $('#log-sub').textContent = filtered ? `week ${w.week} · ${rows.length} hike${rows.length === 1 ? '' : 's'}` : `${A.length} hikes from Strava`;
+    $('#log-all').hidden = !filtered;
+    const body = $('#log-body'); body.replaceChildren();
+    if (!rows.length) { body.append(el('tr', {}, [el('td', { colSpan: 7, textContent: 'No hikes logged in this week yet.', style: 'text-align:left' })])); return; }
+    for (const a of rows) {
+      const d = day(a.date);
+      body.append(el('tr', {}, [el('td', { textContent: `${DOW[d.getUTCDay()]} ${md(d)}` }), el('td', { textContent: a.name }), el('td', { className: 'm', textContent: n1(a.miles) }), el('td', { textContent: hm(a.moving_min) }),
+        el('td', { textContent: `${n0(a.gain_ft)} ft` }), el('td', { textContent: `${n1(a.miles / (a.moving_min / 60))} mph` }), el('td', { textContent: a.pack_lb ? `${a.pack_lb} lb` : '–' })]));
+    }
+  }
+
+  function renderAll() { renderWeeks(); renderDays(); if (H) renderYear(); renderAt(); }
+  renderKpis(); renderWeekCard(); renderLog(false);
+  for (const id of ['weeks', 'days', 'at', 'log']) $('#' + id).hidden = false;
+  if (H) $('#year').hidden = false;
+  renderAll();
+  $('#year-seg').addEventListener('click', (ev) => { const b = ev.target.closest('button'); if (!b) return; yearKey = b.dataset.k; for (const x of $('#year-seg').children) x.setAttribute('aria-pressed', String(x === b)); renderYear(); });
+  $('#i-days').addEventListener('input', renderAt); $('#i-zeros').addEventListener('input', renderAt);
+  $('#log-all').addEventListener('click', () => renderLog(false));
+  let rz; addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(renderAll, 120); });
+  $('#foot').textContent = `Data built ${T.generated} · hikes from Strava through ${T.activities_through}` + (H ? ` · Apple Health ${H.start} → ${H.through}` : '') + ` · ${AT.label}: ${n1(AT.walked_mi)} mi in ${AT.days} days`;
+})();
+</script>
+</html>
