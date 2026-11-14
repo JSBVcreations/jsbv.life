@@ -92,7 +92,12 @@ Fonts: Monoton (titles only), Chakra Petch (UI), JetBrains Mono (data).
   year, a spoke per day; steps / music / photos), What moves together (Spearman correlation matrix of weekly values for the
   metrics in `E_SET`, this year or all years, click a square for the scatter; needs 20+ overlapping weeks), The shape of a
   week (weekday averages against each metric's own mean) and Racing 2019 (cumulative phone miles over the 111 days before
-  the AT vs before the PCT; reads `pct-training/data/training.json`, hidden if that file is missing). To add one: a
+  the AT vs before the PCT; reads `pct-training/data/training.json`, hidden if that file is missing), Tide (`drawTide`:
+  weekly steps above a centre line, weekly listening below, AT weeks in lime, capped so ordinary weeks stay readable) and
+  Any two numbers (`drawPairs`: pick any two day-grain metrics, weeks or days, a From-year filter, every dot coloured by
+  year, the Spearman score plus the score with each year's mean removed, presets in `E_PRESETS` as [label, x, y, from]).
+  Data caveat (found Nov 14, 2026): flights / elevation read 0 for every day before 2018-10-06 because nothing was
+  recording stairs, so all-years stair correlations are inflated; compare stairs from 2019 on. To add one: a
   `section.box` in `#v-experiments`, a draw function, and a call in `renderExperiments()`.
 - `#explore`, `#calendar`, `#watched` are tools reached from Data; they show a sub-nav and keep Data lit in the top nav.
 - Data cards are generated from daily.json; the `DIR` map in index.html gives each dataset its blurb and its own-page
