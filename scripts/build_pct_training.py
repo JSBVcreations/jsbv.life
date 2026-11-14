@@ -9,25 +9,26 @@ Reads
   step-song/data/at2019-log.json      AT 2019 trail log, for the comparison
   <health export folder>              HealthView hourly CSVs. Kept OUTSIDE the repo (*.csv is git-ignored).
 
-Only four movement files are opened: STEPS, DISTANCE (R+W), FLIGHTS CLIMBED, EXERCISE MINUTES.
-Heart rate, HRV, sleep, blood oxygen and every other file in the export are never read, so nothing
-from them can reach the site. Without the folder argument the health block is carried over from the
+The export is read by build_health_log.read_export (see that script for exactly which files are
+opened). This page uses steps, distance, flights, exercise minutes and, for the recovery section,
+resting heart rate, HRV and sleep. Without the folder argument the health block is carried over from the
 existing training.json (or left out), so the plan and activities can be refreshed on their own.
 
 Output layout
   plan        start, trail_miles, unit_miles, peak_week_miles, flat_mph
   weeks[]     plan week + actual miles / hours / gain_ft / hikes / max pack_lb
   activities  rows from activities.json, newest last
-  health      {start, through, partial_last_day, steps[], miles[], flights[], exercise_min[]} one value per day
+  health      {start, through, partial_last_day, steps[], miles[], flights[], exercise_min[],
+              recovery {resting_hr[], hrv[], sleep_h[]}} one value per day, null = nothing recorded
   at          AT 2019 by Sunday-start week {start, miles, days, zeros} + headline stats
 """
-import csv, datetime as dt, json, os, re, sys
+import datetime as dt, json, os, sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from build_health_log import read_export  # noqa: E402  (same folder; one parser for the export)
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(ROOT, 'pct-training', 'data', 'training.json')
-HEALTH_FILES = {  # key -> the name between "HealthView_" and the date range
-    'steps': 'STEPS', 'miles': 'DISTANCE (R+W)', 'flights': 'FLIGHTS CLIMBED', 'exercise_min': 'EXERCISE MINUTES'}
-
 
 def load(*parts):
     with open(os.path.join(ROOT, *parts), encoding='utf-8') as f:
@@ -42,43 +43,14 @@ def sunday(day):
     return day - dt.timedelta(days=(day.weekday() + 1) % 7)
 
 
-def cell(v):
-    """One hourly cell -> number. '' -> 0, '12' -> 12, '1h 5m' / '50m' -> minutes."""
-    v = v.strip()
-    if not v:
-        return 0.0
-    m = re.fullmatch(r'(?:(\d+)h)?\s*(?:(\d+)m)?', v)
-    if m and (m.group(1) or m.group(2)):
-        return int(m.group(1) or 0) * 60 + int(m.group(2) or 0)
-    try:
-        return float(v)
-    except ValueError:
-        return 0.0
-
-
 def read_health(folder):
-    names = os.listdir(folder)
-    days = {}
-    for key, label in HEALTH_FILES.items():
-        hit = [n for n in names if n.startswith('HealthView_' + label + '_') and n.endswith('.csv')]
-        if not hit:
-            sys.exit(f'No HealthView file for {label} in {folder}')
-        with open(os.path.join(folder, sorted(hit)[-1]), newline='', encoding='utf-8-sig') as f:
-            rows = list(csv.reader(f))
-        for r in rows[2:]:  # row 0 = title, row 1 = header
-            if len(r) < 2 or not r[0].strip():
-                continue
-            m, dd, yy = (int(x) for x in r[0].strip().split('/'))
-            day = dt.date(2000 + yy if yy < 100 else yy, m, dd)
-            days.setdefault(day, {})[key] = sum(cell(c) for c in r[1:25])
-    first, last = min(days), max(days)
-    n = (last - first).days + 1
-    out = {'start': first.isoformat(), 'through': last.isoformat(), 'partial_last_day': True,
-           'source': 'Apple Health (HealthView export), movement files only'}
-    for key in HEALTH_FILES:
-        digits = 2 if key == 'miles' else 0
-        vals = [round(days.get(first + dt.timedelta(days=i), {}).get(key, 0), digits) for i in range(n)]
-        out[key] = vals if digits else [int(v) for v in vals]
+    """Movement + recovery from the export, through its last (part) day. Parsing lives in build_health_log.py."""
+    h = read_export(folder, keep_last=True)
+    last = dt.date.fromisoformat(h['start']) + dt.timedelta(days=h['n'] - 1)
+    out = {'start': h['start'], 'through': last.isoformat(), 'partial_last_day': True, 'source': h['source']}
+    for k in ('steps', 'miles', 'flights', 'exercise_min'):
+        out[k] = h[k]
+    out['recovery'] = {k: h['vitals'][k] for k in ('resting_hr', 'hrv', 'sleep_h')}
     return out
 
 

@@ -115,6 +115,20 @@ Fonts: Monoton (titles only), Chakra Petch (UI), JetBrains Mono (data).
   dates year-DAY-month. Only breathing_basics rows are used (cold showers and push-ups are a handful of rows, skipped). The
   Note column is never read (free text naming people and places). avg_hold / best_hold are agg 'mean' with null on days
   without a session. A .numbers source needs `pip3 install numbers-parser`; a .csv needs nothing.
+- Newer health export: `scripts/build_health_log.py "<health export folder>"` → `meta-log/data/health.json` (then rerun
+  build_meta_log.py). Source = HealthView hourly CSVs, kept OUTSIDE the repo. Jack chose (Nov 14, 2026) to publish heart
+  rate, HRV and sleep along with movement. HARD RULE: only the files named in the script's `MOVE` and `VITALS` maps are
+  opened (STEPS, DISTANCE (R+W), FLIGHTS CLIMBED, EXERCISE MINUTES, RESTING HEART RATE, WALKING HEART RATE, HEART RATE
+  VARIABILITY, HEART RATE, SLEEP). Blood oxygen, body temperature and every other file in the export are never read;
+  publishing another one is Jack's call and means adding it to those maps.
+  build_meta_log.py uses health.json to (1) carry the Movement dataset past the end of the STEP//SONG data and replace
+  its days from health.json's start on (checked Nov 14, 2026: identical apart from STEP//SONG's part last day,
+  2026-10-15), (2) add the Exercise dataset (`exercise`, minutes by time of day; blurb in `DIR`), and (3) add Heart + sleep (`body`:
+  resting / walking heart rate, day's lowest and highest, HRV, sleep hours; all agg 'mean' with null on days with nothing
+  recorded; sleep is counted inside the calendar day, so a night is split at midnight). The report card shows resting
+  heart rate, HRV and sleep; the other three are explorer-only (see `tracked()`). The export's last
+  day is a part day and is dropped unless `--keep-last-day`. STEP//SONG's own page still stops where its data does;
+  extending it needs build_step_song.py with the raw Spotify + Health exports.
 - `meta-log/data/life.json` = chapters/events that are published. `meta-log/data/life.private.json` (git-ignored) = entries
   that show only when previewing locally. Same format: `{id, label, color, start, end}` for a period, `{id, label, color, date}`
   for a single day. Jack chose (Nov 13, 2026) to publish every entry, including Emily, Max's illness, Jim and Kyah,
@@ -131,8 +145,8 @@ Fonts: Monoton (titles only), Chakra Petch (UI), JetBrains Mono (data).
   hand or by Claude through the Strava connector) and `step-song/data/at2019-log.json` (AT weeks for the comparison).
   Run it without the folder argument to refresh plan + hikes and keep the existing health block.
 - Health export = HealthView hourly CSVs (one file per metric, one row per day, 24 hour columns), kept OUTSIDE the repo
-  (`*.csv` is git-ignored). HARD RULE: the script opens only STEPS, DISTANCE (R+W), FLIGHTS CLIMBED and EXERCISE MINUTES.
-  Heart rate, HRV, sleep, blood oxygen and the rest of the export are never read and never published.
+  (`*.csv` is git-ignored). The export is parsed by `build_health_log.read_export`; this page uses steps, distance, flights,
+  exercise minutes and, in `#recovery`, resting heart rate, HRV and sleep (daily dots + 7-day average, last 12 weeks).
 - Strava rule: titles and numbers only (date, miles, moving time, gain, pack weight). Descriptions, GPS tracks and
   locations are never copied into the repo; the home loop's location stays off the site.
 - The last health day is usually a part day (exported before midnight); the page labels it.

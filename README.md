@@ -49,6 +49,12 @@ Breathwork (Wim Hof app export; `.numbers` needs `pip3 install numbers-parser`, 
 python3 scripts/build_breath_log.py "/path/to/export_results.numbers"
 python3 scripts/build_meta_log.py
 ```
+Newer Apple Health export (HealthView hourly CSVs; folder stays outside the repo; the script lists exactly which files
+it opens). Carries Movement up to the export date and adds the Exercise and Heart + sleep datasets:
+```
+python3 scripts/build_health_log.py "/path/to/health export 2026-11-14"
+python3 scripts/build_meta_log.py
+```
 The first watch-list command also writes `meta-log/data/watch-titles.json` (the poster wall). Covers are linked from the poster URLs in the workbook, not stored here.
 Life chapters: `meta-log/data/life.json` (published) and `meta-log/data/life.private.json` (git-ignored, shows only on this machine).
 Hand-logged metrics: `meta-log/data/manual.json`.
@@ -58,7 +64,7 @@ Add new hikes to `pct-training/data/activities.json` (and plan changes to `plan.
 ```
 python3 scripts/build_pct_training.py "/path/to/health export 2026-11-14"
 ```
-The health export folder stays outside this repo; only steps, distance, flights and exercise minutes are read.
+The health export folder stays outside this repo; it is read through `build_health_log.py` (movement, plus resting heart rate, HRV and sleep for the recovery section).
 Leave the folder off to refresh just the plan and hikes.
 
 ## Credits

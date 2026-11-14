@@ -9,3 +9,5 @@ meta-log/data/life.private.json
 # source workbooks stay out of the repo (the watch list names people)
 *.xlsx
 *.numbers
+# python bytecode from the scripts folder
+__pycache__/

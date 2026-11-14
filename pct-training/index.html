@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>PCT//PREP</title>
 <meta name="description" content="Jack's training for a northbound Pacific Crest Trail thru-hike starting March 1, 2027: the plan, what has been walked, and how it compares with the Appalachian Trail in 2019.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -10,7 +10,7 @@
 <style>
 /* PCT//PREP: the training build for the Pacific Crest Trail. Same console as STEP//SONG.
    Top to bottom: where things stand, the plan week by week, the last six weeks by day,
-   the whole year on the phone, the Appalachian Trail for scale + a pace calculator, the hike log.
+   the whole year on the phone, recovery (resting heart rate, HRV, sleep), the Appalachian Trail for scale + a pace calculator, the hike log.
    Colors keep their site meaning: cyan = movement (phone), lime = trail (logged hikes),
    amber = load and elevation. Single dark look by choice. */
 :root {
@@ -23,6 +23,7 @@
   --s-0: 0.75rem; --s-1: 0.875rem; --s-2: 1rem; --s-3: 1.25rem; --s-4: 1.75rem;
 }
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
 html, body { background: var(--void); color: var(--ink); margin: 0; }
 body {
   font-family: var(--f-ui); font-size: var(--s-1); line-height: 1.5;
@@ -74,7 +75,7 @@ button:focus-visible, input:focus-visible, [tabindex]:focus-visible { outline: 2
 .legend i { display: inline-block; width: 22px; height: 8px; margin-right: 6px; vertical-align: middle; }
 .legend i.line { height: 0; border-top: 2px dashed currentColor; }
 .chart { min-width: 0; }
-.chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+.chart svg { display: block; width: 100%; height: auto; }
 .chart text { font-family: var(--f-data); font-size: 11px; fill: var(--dim); }
 .chart .hit { fill: transparent; cursor: pointer; }
 .chart .hit:hover, .chart .hit.on { fill: rgba(220,216,255,0.06); }
@@ -151,6 +152,23 @@ footer { color: var(--dim); font-size: var(--s-0); }
     </div>
     <div class="chart" id="c-year"></div>
     <p class="note" id="year-note"></p>
+  </section>
+
+  <section id="recovery" aria-labelledby="h-rec" hidden>
+    <div class="sec-head">
+      <h2 id="h-rec">Recovery <small>the last twelve weeks, from Apple Health</small></h2>
+      <div class="seg" role="group" aria-label="Recovery metric" id="rec-seg">
+        <button type="button" data-k="resting_hr" aria-pressed="true">Resting HR</button>
+        <button type="button" data-k="hrv" aria-pressed="false">HRV</button>
+        <button type="button" data-k="sleep_h" aria-pressed="false">Sleep</button>
+      </div>
+    </div>
+    <div class="legend">
+      <span><i style="background:var(--dim);width:8px;height:8px;border-radius:50%"></i>each day</span>
+      <span style="color:var(--hot)"><i style="height:0;border-top:2px solid currentColor"></i>7-day average</span>
+    </div>
+    <div class="chart" id="c-rec"></div>
+    <p class="note" id="rec-note"></p>
   </section>
 
   <section id="at" aria-labelledby="h-at" hidden>
@@ -264,7 +282,7 @@ footer { color: var(--dim); font-size: var(--s-0); }
     W.forEach((w, i) => {
       const x = f.x0 + i * bw;
       if (w.target_miles) f.s.append(svg('rect', { x: x + pad, y: f.y(w.target_miles), width: bw - 2 * pad, height: f.base - f.y(w.target_miles), fill: 'rgba(138,132,184,0.10)', stroke: C.dim, 'stroke-width': 1 }));
-      if (w.miles > 0) f.s.append(svg('rect', { x: x + pad + 2, y: f.y(w.miles), width: bw - 2 * pad - 4, height: f.base - f.y(w.miles), fill: C.trail, style: 'filter:drop-shadow(0 0 5px rgba(182,255,92,0.55))' }));
+      if (w.miles > 0) f.s.append(svg('rect', { x: x + pad + 2, y: f.y(w.miles), width: bw - 2 * pad - 4, height: f.base - f.y(w.miles), fill: C.trail }));
       if (i === curIdx && hasCur) f.s.append(svg('text', { x: x + bw / 2, y: f.top + 2, 'text-anchor': 'middle', style: `fill:${C.hot}` }, 'now'));
       if (bw > 26 || i % 2 === 0) f.s.append(svg('text', { x: x + bw / 2, y: f.base + 16, 'text-anchor': 'middle', style: i === sel ? `fill:${C.hot};font-weight:600` : '' }, String(w.week)));
       const hit = svg('rect', { x, y: f.top, width: bw, height: f.h, class: 'hit' + (i === sel ? ' on' : ''), tabindex: 0, role: 'button', 'aria-label': `Week ${w.week}, starts ${md(day(w.start))}` });
@@ -301,7 +319,7 @@ footer { color: var(--dim); font-size: var(--s-0); }
       const x = f.x0 + i * bw;
       if (r.d.getUTCDay() === 0) { f.s.append(svg('line', { x1: x, x2: x, y1: f.top, y2: f.base, stroke: C.grid })); f.s.append(svg('text', { x: x + 3, y: f.base + 16 }, md(r.d))); }
       if (r.phone) f.s.append(svg('rect', { x: x + 1, y: f.y(r.phone), width: Math.max(1, bw - 2), height: f.base - f.y(r.phone), fill: 'rgba(63,240,255,0.28)' }));
-      if (r.hike) f.s.append(svg('rect', { x: x + bw * 0.22, y: f.y(r.hike), width: Math.max(1, bw * 0.56), height: f.base - f.y(r.hike), fill: C.trail, style: 'filter:drop-shadow(0 0 4px rgba(182,255,92,0.5))' }));
+      if (r.hike) f.s.append(svg('rect', { x: x + bw * 0.22, y: f.y(r.hike), width: Math.max(1, bw * 0.56), height: f.base - f.y(r.hike), fill: C.trail }));
       const hit = svg('rect', { x, y: f.top, width: bw, height: f.h, class: 'hit' });
       bindTip(hit, () => `<b>${DOW[r.d.getUTCDay()]} ${md(r.d)}</b><br>` + (names[r.k] || []).map((a) => `${n1(a.miles)} mi · ${hm(a.moving_min)}${a.pack_lb ? ` · ${a.pack_lb} lb` : ''}<br><span class="k">${a.name.replace(/[<&]/g, (c) => ({ '<': '&lt;', '&': '&amp;' }[c]))}</span><br>`).join('') + (r.phone != null ? `<span class="k">phone, whole day:</span> ${n1(r.phone)} mi` : '') + (H && r.k === H.through && H.partial_last_day ? ' <span class="k">(day not finished)</span>' : ''));
       f.s.append(hit);
@@ -332,6 +350,32 @@ footer { color: var(--dim); font-size: var(--s-0); }
     if (ti >= 0) { const x = f.x0 + ti * bw; f.s.append(svg('line', { x1: x, x2: x, y1: f.top, y2: f.base, stroke: C.trail, 'stroke-dasharray': '3 4' })); f.s.append(svg('text', { x: x - 5, y: f.top + 10, 'text-anchor': 'end', style: `fill:${C.trail}` }, 'training starts')); }
     const full = wk.filter((e) => e.n === 7 && e.s < t0.start), base = full.reduce((a, e) => a + e.v, 0) / (full.length || 1), since = wk.filter((e) => e.s >= t0.start), last = since.filter((e) => e.n === 7).pop() || since[since.length - 1];
     $('#year-note').textContent = `Before training started, a typical 2026 week was ${fmt(base)} ${unit}.` + (last ? ` The week of ${md(day(last.s))} came to ${fmt(last.v)} ${unit}${last.n < 7 ? ` in ${last.n} days` : ''}.` : '') + ' Counted by the phone and watch, so it includes everything, not only hikes. Flights are Apple’s 10-foot climbs.';
+  }
+
+  /* recovery: daily dots + trailing 7-day average */
+  const REC = { resting_hr: ['Resting heart rate', 'bpm', (v) => n0(v), 'A lower resting heart rate over weeks usually means the heart is adapting to the load; a jump of several beats for a few days can mean fatigue or illness.'],
+    hrv: ['Heart rate variability', 'ms', (v) => n0(v), 'HRV swings a lot from day to day, so the 7-day line is the one to read. A sustained drop alongside harder weeks is a cue to ease off.'],
+    sleep_h: ['Sleep', 'h', (v) => n1(v), 'Hours asleep inside each calendar day, so a night is split at midnight and naps count.'] };
+  let recKey = 'resting_hr';
+  function renderRec() {
+    const R = H.recovery, [name, unit, fmt, blurb] = REC[recKey], all = R[recKey], h0 = day(H.start);
+    const N = Math.min(84, all.length - (H.partial_last_day ? 1 : 0)), endI = all.length - (H.partial_last_day ? 1 : 0), i0 = endI - N;
+    const pts = []; for (let i = i0; i < endI; i++) { let s = 0, c = 0; for (let j = Math.max(0, i - 6); j <= i; j++) if (all[j] != null) { s += all[j]; c++; } pts.push({ d: addDays(h0, i), v: all[i], avg: c >= 4 ? s / c : null }); }
+    const vals = pts.filter((p) => p.v != null).map((p) => p.v); if (!vals.length) { $('#c-rec').textContent = 'No data.'; return; }
+    const lo = Math.min(...vals), hi = Math.max(...vals), padV = (hi - lo) * 0.12 || 1, min = Math.max(0, lo - padV), max = hi + padV;
+    const f = frame($('#c-rec'), { height: 240, max: max - min, ticks: niceTicks(max - min).filter((t) => t <= max - min), fmt: (t) => fmt(t + min) });
+    f.s.setAttribute('aria-label', `${name} per day over the last twelve weeks`);
+    const bw = f.w / N, X = (k) => f.x0 + (k + 0.5) * bw, Y = (v) => f.y(v - min), t0 = W.find((w) => w.week === 1) || W[0];
+    pts.forEach((p, k) => { if (p.d.getUTCDay() === 0 && k % 14 < 7) f.s.append(svg('text', { x: X(k) - bw / 2 + 2, y: f.base + 16 }, md(p.d))); if (p.d.getUTCDay() === 0) f.s.append(svg('line', { x1: X(k) - bw / 2, x2: X(k) - bw / 2, y1: f.top, y2: f.base, stroke: C.grid })); });
+    const ti = pts.findIndex((p) => iso(p.d) >= t0.start);
+    if (ti > 0) { const x = X(ti) - bw / 2; f.s.append(svg('line', { x1: x, x2: x, y1: f.top, y2: f.base, stroke: C.trail, 'stroke-dasharray': '3 4' })); f.s.append(svg('text', { x: x - 5, y: f.top + 10, 'text-anchor': 'end', style: `fill:${C.trail}` }, 'training starts')); }
+    for (const [k, p] of pts.entries()) if (p.v != null) f.s.append(svg('circle', { cx: X(k), cy: Y(p.v), r: 2.4, fill: C.dim }));
+    let dPath = '', pen = false; pts.forEach((p, k) => { if (p.avg == null) { pen = false; return; } dPath += `${pen ? 'L' : 'M'}${X(k).toFixed(1)} ${Y(p.avg).toFixed(1)}`; pen = true; });
+    f.s.append(svg('path', { d: dPath, fill: 'none', stroke: C.hot, 'stroke-width': 2, 'stroke-linejoin': 'round' }));
+    pts.forEach((p, k) => { const hit = svg('rect', { x: f.x0 + k * bw, y: f.top, width: bw, height: f.h, class: 'hit' });
+      bindTip(hit, () => `<b>${DOW[p.d.getUTCDay()]} ${md(p.d)}</b><br>` + (p.v != null ? `${fmt(p.v)} ${unit}` : '<span class="k">nothing recorded</span>') + (p.avg != null ? `<br><span class="k">7-day average</span> ${fmt(p.avg)} ${unit}` : '')); f.s.append(hit); });
+    const mean = (a) => a.length ? a.reduce((x, y) => x + y, 0) / a.length : null, before = mean(pts.filter((p) => p.v != null && iso(p.d) < t0.start).map((p) => p.v)), since = mean(pts.filter((p) => p.v != null && iso(p.d) >= t0.start).map((p) => p.v));
+    $('#rec-note').textContent = (before != null && since != null ? `${name}: ${fmt(before)} ${unit} on average in the weeks before training, ${fmt(since)} ${unit} since it started. ` : '') + blurb;
   }
 
   /* AT 2019 + pace calculator */
@@ -374,12 +418,14 @@ footer { color: var(--dim); font-size: var(--s-0); }
     }
   }
 
-  function renderAll() { renderWeeks(); renderDays(); if (H) renderYear(); renderAt(); }
+  function renderAll() { renderWeeks(); renderDays(); if (H) renderYear(); if (H && H.recovery) renderRec(); renderAt(); }
   renderKpis(); renderWeekCard(); renderLog(false);
   for (const id of ['weeks', 'days', 'at', 'log']) $('#' + id).hidden = false;
   if (H) $('#year').hidden = false;
+  if (H && H.recovery) $('#recovery').hidden = false;
   renderAll();
   $('#year-seg').addEventListener('click', (ev) => { const b = ev.target.closest('button'); if (!b) return; yearKey = b.dataset.k; for (const x of $('#year-seg').children) x.setAttribute('aria-pressed', String(x === b)); renderYear(); });
+  $('#rec-seg').addEventListener('click', (ev) => { const b = ev.target.closest('button'); if (!b) return; recKey = b.dataset.k; for (const x of $('#rec-seg').children) x.setAttribute('aria-pressed', String(x === b)); renderRec(); });
   $('#i-days').addEventListener('input', renderAt); $('#i-zeros').addEventListener('input', renderAt);
   $('#log-all').addEventListener('click', () => renderLog(false));
   let rz; addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(renderAll, 120); });

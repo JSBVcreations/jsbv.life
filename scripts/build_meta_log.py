@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Build meta-log/data/daily.json: one day-indexed file joining every dataset on the site.
 
-Reads only files already in this repo (step-song/data, photo-library/data, meta-log/data/watch.json and calls.json),
-so it never touches raw exports.
+Reads only files already in this repo (step-song/data, photo-library/data, meta-log/data/watch.json, calls.json,
+breath.json and health.json), so it never touches raw exports.
 Run it after build_step_song.py / build_at_log.py / the photo snapshot scripts:
 
     python3 scripts/build_meta_log.py
@@ -46,7 +46,6 @@ hourly = load(os.path.join(SS, 'hourly.json'))
 D = meta['daily']; N = meta['nDays']; ss_off = day(meta['start'])
 
 # movement
-a, b = span(D['steps'], D['miles'], D['flights'])
 def tod_of_hourly(arr):
     out = {k: [0.0] * N for k, _, _ in TOD}
     for d in range(N):
@@ -54,19 +53,58 @@ def tod_of_hourly(arr):
         for p, (k, _, _) in enumerate(TOD): out[k][d] = sum(row[p * 6:(p + 1) * 6])
     return out
 st_tod = tod_of_hourly(hourly['steps']); mi_tod = tod_of_hourly(hourly['miles'])
+mv = {k: list(D[k]) for k in ('steps', 'miles', 'flights', 'elev')}
+# newer HealthView export (scripts/build_health_log.py): same Apple Health numbers, carried past the end of the
+# STEP//SONG data. From its first day on it replaces the STEP//SONG days (STEP//SONG's last day is a part day).
+hp = os.path.join(OUT, 'health.json'); HL = load(hp) if os.path.exists(hp) else None
+move_src = 'Apple Health (STEP//SONG)'
+if HL:
+    ho = day(HL['start']) - ss_off; need = ho + HL['n']
+    if ho < 0: raise SystemExit('health.json starts before the STEP//SONG data; not handled')
+    def put(arr, vals):
+        arr.extend([0] * (need - len(arr))); arr[ho:need] = vals
+    put(mv['steps'], HL['steps']); put(mv['miles'], HL['miles']); put(mv['flights'], HL['flights'])
+    put(mv['elev'], HL['elev_ft'])
+    for k, _, _ in TOD:
+        put(st_tod[k], HL['tod']['steps'][k]); put(mi_tod[k], HL['tod']['miles'][k])
+    move_src = 'Apple Health (STEP//SONG, then HealthView export from ' + HL['start'] + ')'
+a, b = span(mv['steps'], mv['miles'], mv['flights'])
 datasets.append({
-    'id': 'move', 'name': 'Movement', 'source': 'Apple Health (STEP//SONG)', 'grain': 'day',
+    'id': 'move', 'name': 'Movement', 'source': move_src, 'grain': 'day',
     'offset': ss_off + a, 'n': b - a,
     'metrics': [
-        {'id': 'steps', 'name': 'Steps', 'unit': 'steps', 'agg': 'sum', 'color': '#3ff0ff', 'v': D['steps'][a:b]},
-        {'id': 'miles', 'name': 'Distance', 'unit': 'mi', 'agg': 'sum', 'color': '#b6ff5c', 'v': r2(D['miles'][a:b])},
-        {'id': 'flights', 'name': 'Flights climbed', 'unit': 'flights', 'agg': 'sum', 'color': '#ffb347', 'v': r1(D['flights'][a:b])},
-        {'id': 'elev', 'name': 'Elevation gain', 'unit': 'ft', 'agg': 'sum', 'color': '#ffb347', 'v': r1(D['elev'][a:b])},
+        {'id': 'steps', 'name': 'Steps', 'unit': 'steps', 'agg': 'sum', 'color': '#3ff0ff', 'v': mv['steps'][a:b]},
+        {'id': 'miles', 'name': 'Distance', 'unit': 'mi', 'agg': 'sum', 'color': '#b6ff5c', 'v': r2(mv['miles'][a:b])},
+        {'id': 'flights', 'name': 'Flights climbed', 'unit': 'flights', 'agg': 'sum', 'color': '#ffb347', 'v': r1(mv['flights'][a:b])},
+        {'id': 'elev', 'name': 'Elevation gain', 'unit': 'ft', 'agg': 'sum', 'color': '#ffb347', 'v': r1(mv['elev'][a:b])},
     ],
     'dims': [{'id': 'tod', 'name': 'Time of day', 'cats': tod_cats(), 'v': {
         'steps': {k: r1(v[a:b]) for k, v in st_tod.items()},
         'miles': {k: r2(v[a:b]) for k, v in mi_tod.items()}}}],
 })
+if HL:
+    datasets.append({
+        'id': 'exercise', 'name': 'Exercise', 'source': 'Apple Health (HealthView export)', 'grain': 'day',
+        'offset': day(HL['start']), 'n': HL['n'],
+        'metrics': [{'id': 'minutes', 'name': 'Exercise minutes', 'unit': 'min', 'agg': 'sum', 'color': '#b6ff5c', 'v': HL['exercise_min']}],
+        'dims': [{'id': 'tod', 'name': 'Time of day', 'cats': tod_cats(), 'v': {'minutes': HL['tod']['exercise_min']}}],
+    })
+    V = HL.get('vitals')
+    if V:                                                 # agg 'mean': null on days with nothing recorded
+        datasets.append({
+            'id': 'body', 'name': 'Heart + sleep', 'source': 'Apple Health (HealthView export)', 'grain': 'day',
+            'offset': day(HL['start']), 'n': HL['n'],
+            'note': 'Heart + sleep: sleep is counted inside each calendar day, so a night is split at midnight.',
+            'metrics': [
+                {'id': 'resting_hr', 'name': 'Resting heart rate', 'unit': 'bpm', 'agg': 'mean', 'color': '#ff3fb4', 'v': V['resting_hr']},
+                {'id': 'hrv', 'name': 'Heart rate variability', 'unit': 'ms', 'agg': 'mean', 'color': '#3ff0ff', 'v': V['hrv']},
+                {'id': 'sleep_h', 'name': 'Sleep', 'unit': 'h', 'agg': 'mean', 'color': '#9b7bff', 'v': V['sleep_h']},
+                {'id': 'walking_hr', 'name': 'Walking heart rate', 'unit': 'bpm', 'agg': 'mean', 'color': '#ffb347', 'v': V['walking_hr']},
+                {'id': 'hr_low', 'name': 'Lowest heart rate of the day', 'unit': 'bpm', 'agg': 'mean', 'color': '#4fe0c0', 'v': V['hr_low']},
+                {'id': 'hr_high', 'name': 'Highest heart rate of the day', 'unit': 'bpm', 'agg': 'mean', 'color': '#ff3fb4', 'v': V['hr_high']},
+            ],
+            'dims': [],
+        })
 
 # music: genre and time of day come from the per-year play lists [day, startSec, durSec, track, class]
 G = meta['genres']; tracks = meta['tracks']; ag = meta['artistGenre']; SLEEP = 3

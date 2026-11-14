@@ -736,7 +736,7 @@ a.title:focus-visible { outline: none; }
   // ================================================================ REPORT CARD
   const RC = { win: 30 };
   const WINS = [[30, '30 DAYS'], [90, '90 DAYS'], [365, '12 MONTHS'], [0, 'ALL TIME']];
-  const tracked = () => daily.datasets.filter((d) => d.grain === 'day' && d.id !== 'trail').flatMap((d) => d.metrics.filter((m) => !(d.id === 'move' && m.id === 'flights') && !(d.id === 'music' && m.id === 'sleep')).map((m) => [d, m]));
+  const tracked = () => daily.datasets.filter((d) => d.grain === 'day' && d.id !== 'trail').flatMap((d) => d.metrics.filter((m) => !(d.id === 'move' && m.id === 'flights') && !(d.id === 'music' && m.id === 'sleep') && !(d.id === 'body' && (m.id === 'hr_low' || m.id === 'hr_high' || m.id === 'walking_hr'))).map((m) => [d, m]));
   function renderReport() {
     const host = $('#rc-cards'); host.replaceChildren();
     $('#rc-note').textContent = RC.win ? `Each card covers the last ${RC.win === 365 ? '12 months' : RC.win + ' days'} that its dataset has data for, against the same stretch before it. Datasets refresh on different days, so each card says where its data stops.` : 'Everything each dataset has recorded.';
@@ -907,6 +907,8 @@ a.title:focus-visible { outline: none; }
   // Where each dataset's own page lives, and a line about it. A dataset missing here still gets a card with "Chart it".
   const DIR = {
     move: { blurb: 'Steps, distance and stairs from the phone in my pocket.', links: [['step-song/', 'Open STEP//SONG']] },
+    exercise: { blurb: 'Exercise minutes as Apple Health counts them, by time of day. The training build shows up here first.', links: [['pct-training/', 'Open PCT//PREP']] },
+    body: { blurb: 'Resting and walking heart rate, the day\'s lowest and highest, heart rate variability and hours of sleep.', links: [['pct-training/#recovery', 'Open PCT//PREP']] },
     music: { blurb: 'Every Spotify play, by genre, time of day and how much of the track got heard.', links: [['step-song/', 'Open STEP//SONG']] },
     photos: { blurb: 'The photo library by capture date, type and how much of it is sorted. Numbers only.', links: [['photo-library/', 'Open PHOTO//SORT']] },
     lightroom: { blurb: 'The proper photography: frames shot per month and how far the ratings have got.', links: [['photo-library/#proper', 'Open PHOTO//SORT']] },
