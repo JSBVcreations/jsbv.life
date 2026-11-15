@@ -3,6 +3,15 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>JSBV.LIFE</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<meta name="theme-color" content="#07060f">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="JSBV.LIFE">
+<meta property="og:title" content="JSBV.LIFE">
+<meta property="og:description" content="Jack's personal data: a dashboard of the numbers being tracked, every dataset to dig into, and highlights like the 2019 Appalachian Trail.">
+<meta property="og:url" content="https://jsbv.life/">
+<meta property="og:image" content="https://jsbv.life/og.png">
+<meta name="twitter:card" content="summary_large_image">
 <meta name="description" content="Jack's personal data: a dashboard of the numbers being tracked, every dataset to dig into, and highlights like the 2019 Appalachian Trail.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -52,6 +61,7 @@ nav.sub a[aria-current="page"] { color: var(--step); border-bottom-color: var(--
 .card .links a:hover, .card .links button:hover, .card .links a:focus-visible, .card .links button:focus-visible { text-decoration: underline; }
 .cards.wide { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
 section.box { border: 1px solid var(--grid); background: var(--panel); padding: 18px; display: grid; gap: 12px; min-width: 0; }
+section.box > * { min-width: 0; }   /* wide tables scroll inside their box instead of widening the page */
 .view { display: grid; gap: 20px; min-width: 0; }
 h2 { margin: 0; font: 700 var(--s-2)/1.2 var(--f-ui); letter-spacing: 0.18em; text-transform: uppercase; color: var(--hot); }
 h3 { margin: 0; font: 600 var(--s-0)/1.2 var(--f-ui); letter-spacing: 0.14em; text-transform: uppercase; color: var(--dim); }
@@ -169,8 +179,8 @@ a.title:focus-visible { outline: none; }
 .tile-body .val { font: 600 1.35rem/1.1 var(--f-data); color: var(--hot); font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .tile-body .unit { font: 400 10px var(--f-data); color: var(--dim); } .tile-body .dl { font: 400 var(--s-0) var(--f-data); color: var(--dim); } .tile-body .dl.up { color: var(--trail); } .tile-body .dl.dn { color: var(--sound); }
 .tile-body svg { display: block; width: 100%; height: 40px; }
-.tile-foot { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 0 12px 10px; font: 400 10px var(--f-data); color: var(--dim); }
-.tile-foot .stale { color: var(--climb); } .tile-dots { display: flex; gap: 2px; } .tile-dots button { all: unset; cursor: pointer; padding: 6px 4px; display: grid; } .tile-dots button::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--grid); }
+.tile-foot { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 0 6px 4px 12px; font: 400 10px var(--f-data); color: var(--dim); }
+.tile-foot .stale { color: var(--climb); } .tile-dots { display: flex; } .tile-dots button { all: unset; cursor: pointer; width: 24px; height: 24px; display: grid; place-items: center; } .tile-dots button::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--grid); }
 .tile-dots button:hover::before { background: var(--dim); } .tile-dots button.on::before { background: var(--ink); } .tile-dots button:focus-visible { outline: 2px solid var(--step); }
 @media (prefers-reduced-motion: reduce) { .tile-body { transition: none; } }
 /* experiments */
@@ -397,7 +407,7 @@ a.title:focus-visible { outline: none; }
         <div class="e-side" id="e-pair-card" aria-live="polite"></div>
       </div>
       <div class="legend" id="e-pair-legend"></div>
-      <p class="note">The score is a Spearman rank correlation, as in the grid. A long stretch of life (a thru-hike, a quiet year) can make two things look linked that have nothing to do with each other week to week, so the card also gives the score with each year's average taken out, and “From” drops the early years. Stairs were not recorded before October 2018 (they read as zero), so compare stairs or elevation from 2019 on.</p>
+      <p class="note">The score is a Spearman rank correlation, as in the grid. A long stretch of life (a thru-hike, a quiet year) can make two things look linked that have nothing to do with each other week to week, so the card also gives the score with each year's average taken out, and “From” drops the early years. Stairs were not recorded before October 2018; those days are left blank, so stairs and elevation only count from then on.</p>
     </section>
   </div>
 
@@ -476,7 +486,7 @@ a.title:focus-visible { outline: none; }
   let daily, lifeRaw, lifePriv, manual;
   try {
     [daily, lifeRaw, lifePriv, manual] = await Promise.all([
-      get('meta-log/data/daily.json'), get('meta-log/data/life.json'), get('meta-log/data/life.private.json', true), get('meta-log/data/manual.json', true)]);
+      get('meta-log/data/daily.json'), get('meta-log/data/life.json'), (/^(localhost|127\.|\[::1\])/.test(location.host) ? get('meta-log/data/life.private.json', true) : Promise.resolve(null)), get('meta-log/data/manual.json', true)]);
   } catch (e) {
     $('#boot').replaceWith(el('div', { className: 'err', text: 'Could not load the data files (' + e.message + '). Run `python3 scripts/build_meta_log.py`, and preview over http://localhost, not file://.' }));
     return;
@@ -1151,7 +1161,7 @@ a.title:focus-visible { outline: none; }
     ['photos', 'items'], ['watch', 'minutes'], ['calls', 'minutes'], ['breath', 'minutes']].filter(([d, m]) => metricOf(d, m)).map(([d, m]) => ({ key: d + ':' + m, L: asLine(d, m) }));
   const eSpan = () => { const b = Math.max(...E_SET.map((s) => s.L.off + s.L.n - 1)); return EXP.win === 'year' ? [d2i(`${YR[b]}-01-01`), b] : [Math.min(...E_SET.map((s) => s.L.off)), b]; };
   // weekly value per metric: totals become a per-day average (so a short week still compares), levels stay a mean
-  function eWeekly(L, B) { return B.map((k) => { const r = sumRange(L, k.a, k.b); return L.agg === 'mean' ? (r.cnt >= 3 ? r.sum / r.cnt : null) : (r.cov >= 5 ? r.sum / r.cov : null); }); }
+  function eWeekly(L, B) { return B.map((k) => { const r = sumRange(L, k.a, k.b); return L.agg === 'mean' ? (r.cnt >= 3 ? r.sum / r.cnt : null) : (r.cnt >= 5 ? r.sum / r.cnt : null); }); }
   const rankOf = (x, y) => { const p = []; for (let i = 0; i < x.length; i++) if (x[i] != null && y[i] != null) p.push([x[i], y[i]]);
     const rk = (j) => { const o = p.map((q, i) => [q[j], i]).sort((a, b) => a[0] - b[0]), r = new Array(p.length); for (let i = 0; i < o.length;) { let e = i; while (e + 1 < o.length && o[e + 1][0] === o[i][0]) e++; for (let t = i; t <= e; t++) r[o[t][1]] = (i + e) / 2; i = e + 1; } return r; };
     return p.length < 20 ? null : pearson(rk(0), rk(1)); };
@@ -1343,6 +1353,7 @@ a.title:focus-visible { outline: none; }
   }
 
   const VIEWS = { report: renderReport, data: renderData, highlights: renderHighlights, experiments: renderExperiments, explore: renderExplorer, calendar: renderCalendar, ...(WT ? { watched: renderWatched } : {}) };
+  const TITLES = { data: 'Data', highlights: 'Highlights', experiments: 'Experiments', explore: 'Explorer', calendar: 'Calendar', watched: 'Watched' };   // browser tab + history
   const NAV_OF = { report: 'home', data: 'data', highlights: 'highlights', experiments: 'experiments', explore: 'data', calendar: 'data', watched: 'data' };
   function route() {
     const v = VIEWS[location.hash.slice(1)] ? location.hash.slice(1) : 'report';
@@ -1350,6 +1361,7 @@ a.title:focus-visible { outline: none; }
     for (const a of document.querySelectorAll('nav.tabs a')) { if (a.dataset.nav === NAV_OF[v]) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); }
     const tool = v === 'explore' || v === 'calendar' || v === 'watched'; $('#subnav').hidden = !tool;
     for (const a of document.querySelectorAll('#subnav a')) { if (a.getAttribute('href') === '#' + v) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); }
+    document.title = (TITLES[v] ? TITLES[v] + ' · ' : '') + 'JSBV.LIFE';
     VIEWS[v]();
   }
   addSeries('move', 'steps', null, [], false); addSeries('music', 'minutes', null, [], false); applyPreset('ty'); preset.value = 'ty';

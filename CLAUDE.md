@@ -107,8 +107,8 @@ Fonts: Monoton (titles only), Chakra Petch (UI), JetBrains Mono (data).
   weekly steps above a centre line, weekly listening below, AT weeks in lime, capped so ordinary weeks stay readable) and
   Any two numbers (`drawPairs`: pick any two day-grain metrics, weeks or days, a From-year filter, every dot coloured by
   year, the Spearman score plus the score with each year's mean removed, presets in `E_PRESETS` as [label, x, y, from]).
-  Data caveat (found Nov 14, 2026): flights / elevation read 0 for every day before 2018-10-06 because nothing was
-  recording stairs, so all-years stair correlations are inflated; compare stairs from 2019 on. To add one: a
+  Stairs: nothing recorded flights before 2018-10-06. build_meta_log.py stores those days as null (not 0) for flights and
+  elevation, and `eWeekly` needs 5+ recorded days for a weekly total, so all-years stair correlations start in Oct 2018. To add one: a
   `section.box` in `#v-experiments`, a draw function, and a call in `renderExperiments()`.
 - `#explore`, `#calendar`, `#watched` are tools reached from Data; they show a sub-nav and keep Data lit in the top nav.
 - Data cards are generated from daily.json; the `DIR` map in index.html gives each dataset its blurb and its own-page
@@ -199,6 +199,16 @@ Fonts: Monoton (titles only), Chakra Petch (UI), JetBrains Mono (data).
 - Strava rule: titles and numbers only (date, miles, moving time, gain, pack weight). Descriptions, GPS tracks and
   locations are never copied into the repo; the home loop's location stays off the site.
 - The last health day is usually a part day (exported before midnight); the page labels it.
+
+## Site-wide housekeeping (audit of Nov 14, 2026)
+- Every real page carries a favicon link (`favicon.svg` at the root, relative path), `theme-color`, and Open Graph tags
+  pointing at `https://jsbv.life/og.png` (1200×630, made from the site fonts). A new page needs the same block after its
+  `<title>`. `404.html` at the root is the not-found page (absolute links, since it is served from any depth).
+- The root page sets `document.title` per view (`TITLES`), and only requests `life.private.json` on localhost, so the
+  live site makes no request that 404s.
+- `section.box > * { min-width: 0 }` keeps wide tables scrolling inside their box on a phone. Tile dots are 24px targets.
+- Audit script idea (not in the repo): load every view at 1280 and 390 px, collect failed requests, JS errors, sideways
+  overflow, unlabelled controls and broken internal links. All were clean after this pass.
 
 ## Adding a new experiment
 Make `/<slug>/index.html` with its own `data/`, reuse the tokens, add a card to `index.html`.

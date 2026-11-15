@@ -69,14 +69,18 @@ if HL:
         put(st_tod[k], HL['tod']['steps'][k]); put(mi_tod[k], HL['tod']['miles'][k])
     move_src = 'Apple Health (STEP//SONG, then HealthView export from ' + HL['start'] + ')'
 a, b = span(mv['steps'], mv['miles'], mv['flights'])
+# Stairs were not recorded until the first day with a flight (2018-10-06). Before that the source holds zeros that mean
+# "not measured", so those days are stored as null (blank), not 0: totals are unchanged, averages and correlations are not.
+fl0 = next((i for i, x in enumerate(mv['flights']) if x), a)
+def blank_before(vals): return [None] * max(0, fl0 - a) + vals[max(0, fl0 - a):]
 datasets.append({
     'id': 'move', 'name': 'Movement', 'source': move_src, 'grain': 'day',
     'offset': ss_off + a, 'n': b - a,
     'metrics': [
         {'id': 'steps', 'name': 'Steps', 'unit': 'steps', 'agg': 'sum', 'color': '#3ff0ff', 'v': mv['steps'][a:b]},
         {'id': 'miles', 'name': 'Distance', 'unit': 'mi', 'agg': 'sum', 'color': '#b6ff5c', 'v': r2(mv['miles'][a:b])},
-        {'id': 'flights', 'name': 'Flights climbed', 'unit': 'flights', 'agg': 'sum', 'color': '#ffb347', 'v': r1(mv['flights'][a:b])},
-        {'id': 'elev', 'name': 'Elevation gain', 'unit': 'ft', 'agg': 'sum', 'color': '#ffb347', 'v': r1(mv['elev'][a:b])},
+        {'id': 'flights', 'name': 'Flights climbed', 'unit': 'flights', 'agg': 'sum', 'color': '#ffb347', 'v': blank_before(r1(mv['flights'][a:b]))},
+        {'id': 'elev', 'name': 'Elevation gain', 'unit': 'ft', 'agg': 'sum', 'color': '#ffb347', 'v': blank_before(r1(mv['elev'][a:b]))},
     ],
     'dims': [{'id': 'tod', 'name': 'Time of day', 'cats': tod_cats(), 'v': {
         'steps': {k: r1(v[a:b]) for k, v in st_tod.items()},
