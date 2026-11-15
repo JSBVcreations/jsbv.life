@@ -15,16 +15,18 @@
 <meta name="description" content="Jack's training for a northbound Pacific Crest Trail thru-hike starting March 1, 2027: the plan, what has been walked, and how it compares with the Appalachian Trail in 2019.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="../assets/site.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Monoton&family=Chakra+Petch:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
 <style>
 /* PCT//PREP: the training build for the Pacific Crest Trail. Same console as STEP//SONG.
-   Three views: Overview, Calendar (week rows, plan as a dashed silhouette, 2019's pre-AT days by countdown) and
-   Trail weeks (training weeks before departure + trail weeks after it, AT 2019 against a PCT projection).
+   Tabs (assets/site.js): Plan (weeks + hike log), Calendar (week rows, plan as a dashed silhouette, 2019's pre-AT days by
+   countdown), Days (last six weeks + 2026 phone), Recovery, Pace (AT 2019 weeks + calculator), Trail weeks (runway + trail).
    Overview, top to bottom: where things stand, the plan week by week, the last six weeks by day,
    the whole year on the phone, recovery (resting heart rate, HRV, sleep), the Appalachian Trail for scale + a pace calculator, the hike log.
    Colors keep their site meaning: cyan = movement (phone), lime = trail (logged hikes),
    amber = load and elevation. Single dark look by choice. */
 :root {
+  --tab-accent: #b6ff5c;
   color-scheme: dark;
   --void: #07060f; --panel: #0d0b1c; --grid: #1f1a3d; --ink: #dcd8ff; --dim: #8a84b8;
   --step: #3ff0ff; --sound: #ff3fb4; --climb: #ffb347; --trail: #b6ff5c; --hot: #ffffff;
@@ -111,11 +113,6 @@ td:nth-child(2) { white-space: normal; min-width: 180px; color: var(--ink); }
 #tw-table td.at { color: var(--trail); } #tw-table td.pc { color: var(--hot); } #tw-table td.up { color: var(--step); } #tw-table td.dn { color: var(--sound); }
 section h3 { margin: 0; font-size: var(--s-0); letter-spacing: 0.2em; text-transform: uppercase; }
 td { color: var(--dim); } td.m { color: var(--trail); }
-nav.views { display: inline-flex; border: 1px solid var(--grid); justify-self: start; }
-nav.views a { font: 600 var(--s-0)/1 var(--f-ui); letter-spacing: 0.14em; text-transform: uppercase; color: var(--dim); text-decoration: none; padding: 10px 16px; }
-nav.views a + a { border-left: 1px solid var(--grid); }
-nav.views a:hover { color: var(--hot); }
-nav.views a[aria-current="page"] { color: var(--void); background: var(--trail); }
 /* calendar: one row per week = label | 7 days | week summary. Scrolls sideways on narrow screens so cells stay readable. */
 .cal-scroll { overflow-x: auto; }
 .cal { display: grid; grid-template-columns: 84px repeat(7, minmax(96px, 1fr)) minmax(168px, 1.5fr); gap: 4px; min-width: 980px; font-family: var(--f-data); font-size: var(--s-0); }
@@ -152,14 +149,22 @@ footer { color: var(--dim); font-size: var(--s-0); }
 
 <div class="wrap">
   <header>
-    <nav class="site" aria-label="Site"><a href="../">◀ Home</a><a href="../#data">Data</a><a href="../#highlights">Highlights</a><a href="../#experiments">Experiments</a></nav>
+    <nav class="site" data-here="trails" data-crumb="Pacific Crest Trail 2027|PCT//PREP"></nav>
     <h1>PCT<span class="sl">//</span>PREP</h1>
     <p class="lede">Training for a northbound Pacific Crest Trail thru-hike that starts <b>March 1, 2027</b>. The aim is to arrive already used to 150-mile weeks under load. This page shows the <b>plan</b>, the <b>hikes logged</b> so far, what the <i>phone</i> counted all year, and how it measures up to the Appalachian Trail in 2019.</p>
     <div class="readout" id="kpis"><div id="boot">BOOTING… loading training data</div></div>
-    <nav class="views" aria-label="Views" id="views" hidden><a href="#overview" data-v="overview">Overview</a><a href="#calendar" data-v="calendar">Calendar</a><a href="#trail-weeks" data-v="trail">Trail weeks</a></nav>
   </header>
 
-  <section id="trailweeks" aria-labelledby="h-tw" data-view="trail" hidden>
+  <nav class="ptabs" data-default="plan" aria-label="Sections of PCT//PREP">
+    <a href="#plan" data-tab="plan" data-alias="overview weeks log">Plan</a>
+    <a href="#calendar" data-tab="calendar">Calendar</a>
+    <a href="#days" data-tab="days" data-alias="year">Days</a>
+    <a href="#recovery" data-tab="recovery">Recovery</a>
+    <a href="#pace" data-tab="pace" data-alias="at">Pace</a>
+    <a href="#trail-weeks" data-tab="trail-weeks" data-alias="trailweeks">Trail weeks</a>
+  </nav>
+
+  <section id="trailweeks" data-tab="trail-weeks" aria-labelledby="h-tw" hidden>
     <div class="sec-head">
       <h2 id="h-tw">Runway and trail <small>the weeks before leaving, then the weeks on trail · 2019 against this time</small></h2>
       <div class="legend">
@@ -176,7 +181,7 @@ footer { color: var(--dim); font-size: var(--s-0); }
     <p class="note">The PCT columns are a projection, not a plan: the chosen finish spread evenly from the start date, with no allowance for snow, resupply or zeros. Sections are the usual rough splits (desert to mile 702, Sierra to 1,092, Northern California to 1,692, Oregon to 2,147, then Washington).</p>
   </section>
 
-  <section id="calendar" aria-labelledby="h-cal" data-view="calendar" hidden>
+  <section id="calendar" data-tab="calendar" aria-labelledby="h-cal" hidden>
     <div class="sec-head">
       <h2 id="h-cal">Training calendar <small>one row per week · the dashed outline is the plan, the bar is what got walked</small></h2>
       <div class="ctl">
@@ -193,7 +198,7 @@ footer { color: var(--dim); font-size: var(--s-0); }
     <p class="note" id="cal-note"></p>
   </section>
 
-  <section id="weeks" data-view="overview" aria-labelledby="h-weeks" hidden>
+  <section id="weeks" data-tab="plan" aria-labelledby="h-weeks" hidden>
     <div class="sec-head">
       <h2 id="h-weeks">The plan, week by week <small>weeks run Sunday to Saturday · pick a week</small></h2>
       <div class="legend">
@@ -209,7 +214,7 @@ footer { color: var(--dim); font-size: var(--s-0); }
     </div>
   </section>
 
-  <section id="days" data-view="overview" aria-labelledby="h-days" hidden>
+  <section id="days" data-tab="days" aria-labelledby="h-days" hidden>
     <div class="sec-head">
       <h2 id="h-days">Day by day <small>the last six weeks</small></h2>
       <div class="legend">
@@ -221,7 +226,7 @@ footer { color: var(--dim); font-size: var(--s-0); }
     <p class="note" id="days-note"></p>
   </section>
 
-  <section id="year" data-view="overview" aria-labelledby="h-year" hidden>
+  <section id="year" data-tab="days" aria-labelledby="h-year" hidden>
     <div class="sec-head">
       <h2 id="h-year">2026 on the phone <small>weekly totals from Apple Health</small></h2>
       <div class="seg" role="group" aria-label="Metric" id="year-seg">
@@ -235,7 +240,7 @@ footer { color: var(--dim); font-size: var(--s-0); }
     <p class="note" id="year-note"></p>
   </section>
 
-  <section id="recovery" data-view="overview" aria-labelledby="h-rec" hidden>
+  <section id="recovery" data-tab="recovery" aria-labelledby="h-rec" hidden>
     <div class="sec-head">
       <h2 id="h-rec">Recovery <small>the last twelve weeks, from Apple Health</small></h2>
       <div class="seg" role="group" aria-label="Recovery metric" id="rec-seg">
@@ -252,7 +257,7 @@ footer { color: var(--dim); font-size: var(--s-0); }
     <p class="note" id="rec-note"></p>
   </section>
 
-  <section id="at" data-view="overview" aria-labelledby="h-at" hidden>
+  <section id="at" data-tab="pace" aria-labelledby="h-at" hidden>
     <div class="sec-head">
       <h2 id="h-at">For scale: the Appalachian Trail <small>miles per week, 2019 southbound</small></h2>
       <div class="legend">
@@ -273,7 +278,7 @@ footer { color: var(--dim); font-size: var(--s-0); }
     </div>
   </section>
 
-  <section id="log" data-view="overview" aria-labelledby="h-log" hidden>
+  <section id="log" data-tab="plan" aria-labelledby="h-log" hidden>
     <div class="sec-head">
       <h2 id="h-log">Hike log <small id="log-sub"></small></h2>
       <button type="button" class="btn" id="log-all" hidden>Show all weeks</button>
@@ -285,6 +290,7 @@ footer { color: var(--dim); font-size: var(--s-0); }
 </div>
 <div id="tip" hidden></div>
 
+<script src="../assets/site.js"></script>
 <script>
 (async function () {
   const $ = (s) => document.querySelector(s);
@@ -572,7 +578,7 @@ footer { color: var(--dim); font-size: var(--s-0); }
   const sectionAt = (mi) => PCT_SECTIONS.filter((x) => mi >= x[0]).pop()[1];
   let BDW; // week rows from the AT breakdown (states per week); optional
   async function renderTrail() {
-    if (BDW === undefined) { try { const r = await fetch('../step-song/data/at2019-breakdown.json', { cache: 'no-cache' }); BDW = r.ok ? (await r.json()).weeks : null; } catch (e) { BDW = null; } if (view !== 'trail') return; }
+    if (BDW === undefined) { try { const r = await fetch('../step-song/data/at2019-breakdown.json', { cache: 'no-cache' }); BDW = r.ok ? (await r.json()).weeks : null; } catch (e) { BDW = null; } if (view !== 'trail-weeks') return; }
     const days = +$('#tw-days').value, perDay = P.trail_miles / days, perWeek = perDay * 7, nP = Math.ceil(days / 7), atW = AT.weeks, nA = atW.length, nR = Math.max(nA, nP);
     $('#tw-days-o').textContent = `${days} days · ${n1(perWeek)} mi a week`;
     // before departure: plan weeks end the week before the start; 2019 is binned in sevens counting back from the AT start
@@ -600,19 +606,18 @@ footer { color: var(--dim); font-size: var(--s-0); }
     $('#tw-note').textContent = `At ${days} days the PCT needs ${n1(perWeek)} miles every week for ${nP} weeks. On the AT, ${over} of ${fullAt.length} full weeks reached that; the average was ${n1(AT.avg_full_week)} and the best ${n1(AT.best_week)}. The training plan tops out at ${n1(peakW)} a week` + (pre.length ? `, where the last week before the AT in 2019 was ${n1(pre[0])} miles on the phone.` : '.') + ' Left of the line counts down to departure; right of it counts trail weeks.';
   }
 
-  function renderAll() { if (view === 'trail') { renderTrail(); return; } if (view === 'calendar') { renderCal(); return; } renderWeeks(); renderDays(); if (H) renderYear(); if (H && H.recovery) renderRec(); renderAt(); }
-  let view = 'overview';
-  const HAS = { year: !!H, recovery: !!(H && H.recovery) };
-  function route() {
-    view = location.hash === '#calendar' ? 'calendar' : location.hash === '#trail-weeks' ? 'trail' : 'overview';  // any other hash (e.g. #recovery) is the overview
-    for (const sec of document.querySelectorAll('section[data-view]')) sec.hidden = sec.dataset.view !== view || HAS[sec.id] === false;
-    for (const a of $('#views').children) { if (a.dataset.v === view) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); }
-    renderAll();
-  }
+  // only the open tab draws; switching tabs (assets/site.js 'tabchange') draws the new one at its real width
+  const DRAW = { plan: () => renderWeeks(), calendar: () => renderCal(), days: () => { renderDays(); if (H) renderYear(); }, recovery: () => { if (H && H.recovery) renderRec(); }, pace: () => renderAt(), 'trail-weeks': () => renderTrail() };
+  function renderAll() { (DRAW[view] || DRAW.plan)(); }
+  let view = 'plan';
+  // tabs without data stay hidden: recovery needs the health export, the 2026 phone chart needs it too
+  if (!(H && H.recovery)) $('#recovery').dataset.off = '1';
+  if (!H) $('#year').dataset.off = '1';
   renderKpis(); renderWeekCard(); renderLog(false);
-  $('#views').hidden = false; addEventListener('hashchange', route); route();
+  addEventListener('tabchange', (ev) => { view = ev.detail.tab; renderAll(); });
+  if (window.SiteTabs) SiteTabs.start(); else { for (const e of document.querySelectorAll('section[data-tab]')) e.hidden = false; renderWeeks(); renderDays(); renderAt(); }
   $('#cal-fill').addEventListener('click', (ev) => { const b = ev.target.closest('button'); if (!b) return; calFill = b.dataset.k; for (const x of $('#cal-fill').children) x.setAttribute('aria-pressed', String(x === b)); renderCal(); });
-  $('#tw-days').addEventListener('input', () => { if (view === 'trail') renderTrail(); });
+  $('#tw-days').addEventListener('input', () => { if (view === 'trail-weeks') renderTrail(); });
   if (!PA) $('#cal-pre').parentElement.hidden = true;
   $('#cal-pre').addEventListener('click', () => { calPre = !calPre; $('#cal-pre').setAttribute('aria-pressed', String(calPre)); renderCal(); });
   $('#year-seg').addEventListener('click', (ev) => { const b = ev.target.closest('button'); if (!b) return; yearKey = b.dataset.k; for (const x of $('#year-seg').children) x.setAttribute('aria-pressed', String(x === b)); renderYear(); });

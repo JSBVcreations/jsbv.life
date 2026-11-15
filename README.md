@@ -3,10 +3,13 @@
 Personal data experiments at https://jsbv.life — static files, deployed by Vercel from this repo.
 
 ```
-index.html              home dashboard + Data directory + Highlights + explorer/calendar/poster wall (hash views)
+index.html              Home · Trails · Projects · Data · Experiments (hash views)
+assets/                 site.css + site.js: shared nav, breadcrumbs, page tabs (#tab deep links)
 step-song/              STEP//SONG explorer (static: index.html + data/*.json)
 meta-log/               data/*.json for the root page (index.html here only redirects to /)
-data/, highlights/       redirects to /#data and /#highlights
+data/, highlights/      redirects to /#data and /#trails
+trail/                  TRAIL//RADIO (AT 2019 songs by state, day, week)
+photo-library/          PHOTO//SORT
 pct-training/           PCT//PREP training tracker (static: index.html + data/*.json)
 scripts/                data builders (raw exports → step-song/data, site data → meta-log/data)
 ```

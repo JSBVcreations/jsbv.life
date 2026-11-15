@@ -1,0 +1,15 @@
+/* JSBV.LIFE shared navigation styles (pairs with assets/site.js). Uses each page's own colour tokens. */
+nav.site.primary { display: flex; flex-wrap: wrap; gap: 4px; font: 600 var(--s-0, 0.75rem) var(--f-ui, system-ui, sans-serif); letter-spacing: 0.16em; text-transform: uppercase; }
+nav.site.primary a { color: var(--dim, #8a84b8); text-decoration: none; border: 1px solid var(--grid, #1f1a3d); padding: 9px 14px; min-height: 36px; display: inline-flex; align-items: center; }
+nav.site.primary a:hover, nav.site.primary a:focus-visible { color: var(--hot, #fff); border-color: var(--dim, #8a84b8); }
+nav.site.primary a[aria-current] { color: var(--void, #07060f); background: var(--ink, #dcd8ff); border-color: var(--ink, #dcd8ff); }
+.crumbs { display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: baseline; font: 400 var(--s-0, 0.75rem) var(--f-data, ui-monospace, monospace); color: var(--dim, #8a84b8); letter-spacing: 0.04em; }
+.crumbs a { color: var(--dim, #8a84b8); } .crumbs a:hover { color: var(--hot, #fff); } .crumbs b { color: var(--ink, #dcd8ff); font-weight: 600; } .crumbs .sep { opacity: 0.6; }
+/* page tabs: stick to the top while their content scrolls under them */
+nav.ptabs { position: sticky; top: 0; z-index: 40; display: flex; flex-wrap: wrap; gap: 0; background: var(--void, #07060f); border: 1px solid var(--grid, #1f1a3d); box-shadow: 0 6px 18px rgba(0,0,0,0.45); }
+nav.ptabs a { font: 600 var(--s-0, 0.75rem)/1 var(--f-ui, system-ui, sans-serif); letter-spacing: 0.14em; text-transform: uppercase; color: var(--dim, #8a84b8); text-decoration: none; padding: 12px 16px; min-height: 40px; display: inline-flex; align-items: center; border-right: 1px solid var(--grid, #1f1a3d); border-bottom: 2px solid transparent; }
+nav.ptabs a:hover { color: var(--hot, #fff); }
+nav.ptabs a[aria-current] { color: var(--hot, #fff); border-bottom-color: var(--tab-accent, var(--step, #3ff0ff)); background: rgba(220,216,255,0.05); }
+nav.ptabs a:focus-visible { outline: 2px solid var(--step, #3ff0ff); outline-offset: -2px; }
+@media (max-width: 560px) { nav.ptabs { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; } nav.ptabs a { flex: 0 0 auto; padding: 12px 13px; } }
+[data-tab][hidden] { display: none !important; }

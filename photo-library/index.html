@@ -15,10 +15,12 @@
 <meta name="description" content="Tracking the cleanup of a 111,000-item photo library. Numbers only: no photos live here.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="../assets/site.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Monoton&family=Chakra+Petch:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
 <style>
 /* Layout: one CRT console, same tokens as STEP//SONG. Readout on top, then the capture timeline,
-   then the work log (one entry per library snapshot), then type and culling cross-cuts. */
+   then the work log (one entry per library snapshot), then type and culling cross-cuts.
+   Tabs (assets/site.js): Overview (status + taken vs kept), Captured, Work log, Types & space, Lightroom. */
 :root {
   color-scheme: dark;
   --void: #07060f; --panel: #0d0b1c; --grid: #1f1a3d; --ink: #dcd8ff; --dim: #8a84b8;
@@ -79,7 +81,7 @@ nav.site a:hover, nav.site a:focus-visible { color: var(--step); }
 <body>
 <div class="wrap">
   <header>
-    <nav class="site" aria-label="Site"><a href="../">◀ Home</a><a href="../#data">Data</a><a href="../#highlights">Highlights</a><a href="../#experiments">Experiments</a></nav>
+    <nav class="site" data-here="projects" data-crumb="PHOTO//SORT"></nav>
     <h1 style="margin-top:14px">PHOTO<span>//SORT</span></h1>
     <p class="lede">One photo library, far too many items, being sorted and culled a session at a time. This page tracks the numbers. No photos, file names or album names are stored here.</p>
   </header>
@@ -92,12 +94,19 @@ nav.site a:hover, nav.site a:focus-visible { color: var(--step); }
     <div><span>No album</span><strong id="r-unfiled" style="color:var(--sound)">—</strong></div>
     <div><span>Last snapshot</span><strong id="r-date">—</strong></div>
   </div>
-  <section id="status">
+  <nav class="ptabs" data-default="overview" aria-label="Sections of PHOTO//SORT">
+    <a href="#overview" data-tab="overview" data-alias="status culling">Overview</a>
+    <a href="#captured" data-tab="captured" data-alias="timeline">Captured</a>
+    <a href="#worklog" data-tab="worklog">Work log</a>
+    <a href="#space" data-tab="space" data-alias="types storage">Types &amp; space</a>
+    <a href="#lightroom" data-tab="lightroom" data-alias="proper">Lightroom</a>
+  </nav>
+  <section id="status" data-tab="overview">
     <h2>Where it stands</h2>
     <div class="bar" id="status-bar" role="img" aria-label="Share of items sorted, in buckets only, and in no album"></div>
     <div class="chips"><span style="color:var(--trail)"><i></i>Sorted: in a real album</span><span style="color:var(--climb)"><i></i>Bucket only: just catch-all albums</span><span style="color:var(--sound)"><i></i>No album</span></div>
   </section>
-  <section id="timeline">
+  <section id="timeline" data-tab="captured">
     <h2>What gets captured, by date taken</h2>
     <div class="ctl">
       <button data-mode="type" aria-pressed="true">BY TYPE</button><button data-mode="status" aria-pressed="false">BY STATUS</button>
@@ -107,14 +116,14 @@ nav.site a:hover, nav.site a:focus-visible { color: var(--step); }
     <div class="chart" id="tl-chart"></div>
     <div class="read" id="tl-read">Hover or tap a bar.</div>
   </section>
-  <section id="worklog">
+  <section id="worklog" data-tab="worklog">
     <h2>Work log</h2>
     <p class="note">One entry per library snapshot. Added, removed and newly sorted are counted against the snapshot before.</p>
     <div class="chart" id="wl-chart"></div>
     <div class="read" id="wl-read"></div>
     <div class="scroll"><table><thead><tr><th>Snapshot</th><th>Items</th><th>GB</th><th>Sorted</th><th>Bucket</th><th>No album</th><th>Added</th><th>Removed</th><th>Newly sorted</th></tr></thead><tbody id="wl-body"></tbody></table></div>
   </section>
-  <div class="two">
+  <div class="two" data-tab="space">
     <section id="types">
       <h2>Sorted or not, by type</h2>
       <div class="rows" id="type-rows"></div>
@@ -124,7 +133,7 @@ nav.site a:hover, nav.site a:focus-visible { color: var(--step); }
       <div class="rows" id="gb-rows"></div>
     </section>
   </div>
-  <section id="proper" hidden>
+  <section id="proper" data-tab="lightroom" data-off="1" hidden>
     <h2>The proper photography</h2>
     <p class="note">The camera archive, kept in a Lightroom catalog apart from the phone library above. Every frame starts unrated; reviewing means rejecting it or giving it stars.</p>
     <div class="readout" style="border:0;padding:0">
@@ -144,7 +153,7 @@ nav.site a:hover, nav.site a:focus-visible { color: var(--step); }
     <div class="read" id="lr-read">Hover or tap a bar.</div>
     <div class="scroll"><table><thead><tr><th>Snapshot</th><th>Frames</th><th>Unrated</th><th>Rejected</th><th>1–2★</th><th>3★</th><th>4–5★</th><th>Added</th><th>Removed</th><th>Newly reviewed</th></tr></thead><tbody id="lr-body"></tbody></table></div>
   </section>
-  <section id="culling">
+  <section id="culling" data-tab="overview">
     <h2>Taken versus kept</h2>
     <p class="note" id="cull-note">Culling appears after the second snapshot: anything seen in an earlier snapshot and gone from the latest counts as removed, by the month it was taken.</p>
     <div class="chips" id="cull-legend" hidden><span style="color:var(--dim)"><i></i>Still in library</span><span style="color:var(--sound)"><i></i>Removed</span></div>
@@ -153,6 +162,7 @@ nav.site a:hover, nav.site a:focus-visible { color: var(--step); }
   </section>
   <footer>Counts come from a read-only snapshot of the library database. © Jack · jsbv.life</footer>
 </div>
+<script src="../assets/site.js"></script>
 <script>
 (() => {
   const NS = 'http://www.w3.org/2000/svg';
@@ -286,6 +296,7 @@ nav.site a:hover, nav.site a:focus-visible { color: var(--step); }
 
     const drawAll = () => { drawTimeline(); drawLog(); drawCull(); };
     drawAll();
+    if (window.SiteTabs) SiteTabs.start();
     let t; addEventListener('resize', () => { clearTimeout(t); t = setTimeout(drawAll, 150); });
   }
 
@@ -294,7 +305,7 @@ nav.site a:hover, nav.site a:focus-visible { color: var(--step); }
     colors: { high: '--trail', mid: '--step', low: '--climb', rejected: '--sound', unrated: '--violet' } };
   function initLR(d) {
     const snaps = d.snapshots, s = snaps[snaps.length - 1];
-    $('#proper').hidden = false;
+    $('#proper').dataset.off = '0'; if (window.SiteTabs) SiteTabs.refresh();
     $('#lr-total').textContent = F(s.total); $('#lr-reviewed').textContent = Math.round((100 * (s.total - s.unrated)) / s.total) + '%';
     $('#lr-high').textContent = F(s.high); $('#lr-edited').textContent = F(s.edited);
     $('#lr-cloud').textContent = F(s.cloud_linked); $('#lr-saved').textContent = s.catalog_saved;

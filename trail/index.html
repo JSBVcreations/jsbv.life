@@ -15,10 +15,12 @@
 <meta name="description" content="The songs Jack walked the Appalachian Trail to in 2019, by state, week or any stretch of trail, with every day replayed hour by hour.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="../assets/site.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Monoton&family=Chakra+Petch:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
 <style>
 /* TRAIL//RADIO: the AT 2019 soundtrack. Reads data/trail-radio.json (scripts/build_trail_radio.py).
-   1 The trail strip: the whole profile, Katahdin to Springer. Drag across it, or pick a state / week / month, to choose a stretch.
+   1 The trail strip (always shown; it is the selector): the whole profile, Katahdin to Springer. Drag across it, or pick a state / week / month.
+   Tabs under it (assets/site.js): #radio, #replay, #map. A state hash (#me, #tn-nc) opens Radio with that state chosen.
    2 Radio: the stretch's songs (most played, signature to the stretch, or in the order heard) in a Spotify player that moves on by itself.
    3 Day replay: one day, hour by hour: steps under, songs over, where each one played.
    4 Soundtrack map: the top artists week by week down the trail; click one to put only them on the radio.
@@ -26,6 +28,7 @@
    Without the API (blocked, offline) the list still works and each song links to Spotify. Colors: pink = music, cyan = steps,
    lime = trail, amber = climb. */
 :root {
+  --tab-accent: #ff3fb4;
   color-scheme: dark;
   --void: #07060f; --panel: #0d0b1c; --well: #120f26; --grid: #1f1a3d; --ink: #dcd8ff; --dim: #8a84b8;
   --step: #3ff0ff; --sound: #ff3fb4; --climb: #ffb347; --trail: #b6ff5c; --hot: #ffffff;
@@ -124,7 +127,7 @@ footer { color: var(--dim); font-size: var(--s-0); }
 
 <div class="wrap">
   <header>
-    <nav class="site" aria-label="Site"><a href="../">◀ Home</a><a href="../#data">Data</a><a href="../#highlights">Highlights</a><a href="../#experiments">Experiments</a><a href="../step-song/#trail">Trail log</a></nav>
+    <nav class="site" data-here="trails" data-crumb="Appalachian Trail 2019|Trail radio"></nav>
     <h1>TRAIL<span class="sl">//</span>RADIO</h1>
     <p class="lede">What was in my ears on the Appalachian Trail, southbound in 2019. <b>Pick any stretch</b> of trail, a state or a week, and the radio plays the songs I walked it to. Every day can be replayed hour by hour, with each song where it played.</p>
     <div id="boot">TUNING IN… loading 146 days of listening</div>
@@ -143,7 +146,13 @@ footer { color: var(--dim); font-size: var(--s-0); }
     <div class="selbar" id="selbar" aria-live="polite"></div>
   </section>
 
-  <section id="s-radio" aria-labelledby="h-radio" hidden>
+  <nav class="ptabs" data-default="radio" aria-label="Trail radio views" hidden id="trail-tabs">
+    <a href="#radio" data-tab="radio">Radio</a>
+    <a href="#replay" data-tab="replay">Day replay</a>
+    <a href="#map" data-tab="map">Soundtrack map</a>
+  </nav>
+
+  <section id="s-radio" data-tab="radio" aria-labelledby="h-radio" hidden>
     <div class="sec-head">
       <h2 id="h-radio"><em>02</em>Radio <small id="radio-sub"></small></h2>
       <div class="seg" role="group" aria-label="Which songs" id="mode">
@@ -166,7 +175,7 @@ footer { color: var(--dim); font-size: var(--s-0); }
     </div>
   </section>
 
-  <section id="s-replay" aria-labelledby="h-replay" hidden>
+  <section id="s-replay" data-tab="replay" aria-labelledby="h-replay" hidden>
     <div class="sec-head">
       <h2 id="h-replay"><em>03</em>Day replay <small>steps under the line, songs over it, by the clock</small></h2>
       <div class="ctl" style="display:flex;flex-wrap:wrap;gap:6px;min-width:0;max-width:100%"><button type="button" class="btn" id="d-prev" aria-label="Previous day">◀ Day</button><select id="d-pick" aria-label="Choose a day"></select><button type="button" class="btn" id="d-next" aria-label="Next day">Day ▶</button><button type="button" class="btn" id="d-radio">Play this day</button></div>
@@ -176,7 +185,7 @@ footer { color: var(--dim); font-size: var(--s-0); }
     <div class="legend"><span><i style="background:var(--step)"></i>steps in the hour</span><span><i style="background:var(--sound)"></i>song played through</span><span><i style="background:rgba(255,63,180,0.45)"></i>part of a song</span><span><i style="background:#4a4566"></i>skipped</span><span>click a song to play it</span></div>
   </section>
 
-  <section id="s-river" aria-labelledby="h-river" hidden>
+  <section id="s-river" data-tab="map" aria-labelledby="h-river" hidden>
     <div class="sec-head">
       <h2 id="h-river"><em>04</em>Soundtrack map <small>your top artists, week by week down the trail</small></h2>
     </div>
@@ -189,6 +198,7 @@ footer { color: var(--dim); font-size: var(--s-0); }
 </div>
 <div id="tip" hidden></div>
 
+<script src="../assets/site.js"></script>
 <script>
 (async function () {
   const $ = (s) => document.querySelector(s);
@@ -393,7 +403,7 @@ footer { color: var(--dim); font-size: var(--s-0); }
   $('#d-pick').addEventListener('change', () => { curDay = +$('#d-pick').value; renderReplay(); });
   $('#d-prev').addEventListener('click', () => { if (curDay > 0) { curDay--; renderReplay(); } });
   $('#d-next').addEventListener('click', () => { if (curDay < D.length - 1) { curDay++; renderReplay(); } });
-  $('#d-radio').addEventListener('click', () => { const d = D[curDay]; mode = 'order'; for (const x of $('#mode').children) x.setAttribute('aria-pressed', String(x.dataset.k === 'order')); select(`${DOW[day(d.date).getUTCDay()]} ${md(d.date)}, day ${d.day}`, [d.i], null, 'day'); $('#s-radio').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }); });
+  $('#d-radio').addEventListener('click', () => { const d = D[curDay]; mode = 'order'; for (const x of $('#mode').children) x.setAttribute('aria-pressed', String(x.dataset.k === 'order')); select(`${DOW[day(d.date).getUTCDay()]} ${md(d.date)}, day ${d.day}`, [d.i], null, 'day'); if (window.SiteTabs) SiteTabs.show('radio'); });
 
   /* ================================================================ 4 soundtrack map */
   const PAL = ['#ff3fb4', '#3ff0ff', '#b6ff5c', '#ffb347', '#9b7bff', '#4fe0c0', '#ff7a59', '#f5e663'];
@@ -417,14 +427,15 @@ footer { color: var(--dim); font-size: var(--s-0); }
     $('#river').replaceChildren(s);
     $('#alegend').replaceChildren(...TOP.map((a, k) => el('button', { type: 'button', ariaPressed: String(artist === a), onclick: () => setArtist(artist === a ? null : a) }, [el('i', { style: `background:${PAL[k]}` }), `${a} · ${mins(byArtist.get(a))}`])));
   }
-  function setArtist(a) { artist = a; mode = 'top'; for (const x of $('#mode').children) x.setAttribute('aria-pressed', String(x.dataset.k === 'top')); buildList(); renderRiver(); if (a) $('#s-radio').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }); }
+  function setArtist(a) { artist = a; mode = 'top'; for (const x of $('#mode').children) x.setAttribute('aria-pressed', String(x.dataset.k === 'top')); buildList(); renderRiver(); if (a && window.SiteTabs) SiteTabs.show('radio'); }
 
   /* ================================================================ boot */
   $('#sel-all').addEventListener('click', () => select('The whole trail', D.map((d) => d.i), null, 'all'));
-  $('#boot').remove(); for (const id of ['#s-strip', '#s-radio', '#s-replay', '#s-river']) $(id).hidden = false;
+  $('#boot').remove(); $('#s-strip').hidden = false; $('#trail-tabs').hidden = false;
   const h = decodeURIComponent(location.hash.slice(1)), st = R.states.find((x) => x.abbr.toLowerCase().replace('/', '-') === h.toLowerCase());
   curDay = 0; renderReplay();
   if (st) select(st.name, D.filter((d) => d.state === st.abbr).map((d) => d.i), [st.sobo_a, st.sobo_b], 'st:' + st.abbr); else select('The whole trail', D.map((d) => d.i), null, 'all');
+  if (window.SiteTabs) SiteTabs.start(); else for (const id of ['#s-radio', '#s-replay', '#s-river']) $(id).hidden = false;
   let rz; addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { drawStrip(); renderReplay(); renderRiver(); }, 140); });
   const plays = D.reduce((t, d) => t + d.plays.length / 4, 0);
   $('#foot').textContent = `${R.trip} · ${n0(plays)} plays of ${n0(TR.length)} songs on ${D.length} days · music from Spotify, steps from the phone, miles from the trail log · data built ${R.generated}`;

@@ -15,6 +15,7 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="../assets/site.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Monoton&family=Chakra+Petch:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
 <style>
 /* Layout: one long CRT console. Macro on top (decade spectrogram + signal trace),
@@ -222,13 +223,20 @@ nav.site a:hover, nav.site a:focus-visible { color: var(--step); }
 
 <div class="wrap">
   <header>
-    <nav class="site" aria-label="Site"><a href="../">◀ Home</a><a href="../#data">Data</a><a href="../#highlights">Highlights</a><a href="../#experiments">Experiments</a></nav>
+    <nav class="site" data-here="projects" data-crumb="STEP//SONG"></nav>
     <h1>STEP<span class="sl">//</span>SONG</h1>
     <p class="lede">A decade of <b>footsteps</b> and <i>songs</i> on one clock. Start with the whole span, then drill down to a fortnight, a day, and the single track playing during a given hour of walking.</p>
     <div class="readout" id="totals"><div id="boot">BOOTING… loading listening history</div></div>
   </header>
 
-  <section id="decade" aria-labelledby="h-decade">
+  <nav class="ptabs" data-default="decade" aria-label="Sections of STEP//SONG">
+    <a href="#decade" data-tab="decade">Ten years</a>
+    <a href="#trail" data-tab="trail" data-alias="trail-calendar trail-weeks trail-states trail-hours">Appalachian Trail</a>
+    <a href="#day" data-tab="day">Fortnight &amp; day</a>
+    <a href="#cuts" data-tab="cuts">Cross-cuts</a>
+  </nav>
+
+  <section id="decade" data-tab="decade" aria-labelledby="h-decade">
     <div class="sec-head">
       <h2 id="h-decade">Every day since 2016 <small>each row is a year · each thin stripe is one day</small></h2>
       <div class="seg" role="group" aria-label="Heatmap channel">
@@ -242,7 +250,7 @@ nav.site a:hover, nav.site a:focus-visible { color: var(--step); }
     <div class="legend" id="heat-legend"></div>
   </section>
 
-  <section aria-labelledby="h-signal">
+  <section data-tab="decade" aria-labelledby="h-signal">
     <div class="sec-head">
       <h2 id="h-signal">Signal <small>30-day average · bottom strip shows the top artist of each month</small></h2>
       <div class="seg scale-seg" role="group" aria-label="Chart scale"><button type="button" id="sc-lin-sig" data-scale="lin" aria-pressed="true">Linear</button><button type="button" id="sc-log-sig" data-scale="log" aria-pressed="false">Log</button></div>
@@ -252,7 +260,7 @@ nav.site a:hover, nav.site a:focus-visible { color: var(--step); }
   </section>
 
 
-  <section id="trail" aria-labelledby="h-trail">
+  <section id="trail" data-tab="trail" aria-labelledby="h-trail">
     <div class="sec-head">
       <h2 id="h-trail" class="c-trail">Appalachian Trail <small id="trail-sub"></small></h2>
       <div class="seg scale-seg" role="group" aria-label="Chart scale"><button type="button" id="sc-lin-trail" data-scale="lin" aria-pressed="true">Linear</button><button type="button" id="sc-log-trail" data-scale="log" aria-pressed="false">Log</button></div>
@@ -318,7 +326,7 @@ nav.site a:hover, nav.site a:focus-visible { color: var(--step); }
     <p class="note">The phone only counts flights climbed, never descended, so the profile does the rest: each hour's distance moves you along the real trail (Katahdin to Springer), and the trail's elevation at that point gives the climb and descent. Positions are approximate where the phone was off. Capture compares what the phone recorded against official totals; town walking adds some distance back, so distance capture is an upper bound. Profile data: <a href="https://github.com/JasonSanford/every-mile" style="color:var(--dim)">every-mile</a>.</p>
   </section>
 
-  <section id="day" aria-labelledby="h-day">
+  <section id="day" data-tab="day" aria-labelledby="h-day">
     <div class="day-head">
       <div class="day-title" id="h-day"><small id="day-dow">—</small><span id="day-date">—</span></div>
       <div class="nav">
@@ -343,7 +351,7 @@ nav.site a:hover, nav.site a:focus-visible { color: var(--step); }
     </div>
   </section>
 
-  <section aria-labelledby="h-cuts">
+  <section id="cuts" data-tab="cuts" aria-labelledby="h-cuts">
     <div class="sec-head"><h2 id="h-cuts">Cross-cuts <small>where the two signals meet</small></h2></div>
     <div class="cuts">
       <div class="card">
@@ -392,6 +400,7 @@ nav.site a:hover, nav.site a:focus-visible { color: var(--step); }
 </div>
 <div id="tip" hidden></div>
 
+<script src="../assets/site.js"></script>
 <script>
 (() => {
 const $ = id => document.getElementById(id);
@@ -710,7 +719,7 @@ async function select(di, scroll) {
   const y = dateOf(sel).getUTCFullYear(), loads = [loadYear(y)];
   const yp = dateOf(Math.max(0, sel - 7)).getUTCFullYear(); if (yp !== y) loads.push(loadYear(yp));
   drawDay(); if (dayIndex[sel] || !(playsByYear[y] instanceof Promise)) renderTracklist();
-  if (scroll) $('day').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+  if (scroll && window.SiteTabs) SiteTabs.show('day');
   const me = sel; await Promise.all(loads); if (me !== sel) return;
   drawDay(); renderTracklist();
 }
@@ -744,6 +753,7 @@ function renderCuts() {
     circYear = +b.dataset.y; $('circ-years').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b)); drawCirc(); }));
 }
 function drawCirc() {
+  if ($('circ').clientWidth < 80) return;   // its tab is closed; the ResizeObserver draws it when the tab opens
   const [g, w, h] = setup($('circ')), cx = w / 2, cy = h / 2, R = Math.min(w, h) / 2 - 26, r0 = R * 0.18, C = M.circadian[circYear];
   $('circ-yr').textContent = circYear;
   g.strokeStyle = GRIDC; g.lineWidth = 1;
@@ -1248,7 +1258,7 @@ function wire() {
     document.querySelectorAll('#log-view button').forEach(b => b.addEventListener('click', () => setLogView(b.dataset.v)));
     $('st-toggle').addEventListener('click', () => { stOn = !stOn; $('st-toggle').setAttribute('aria-pressed', stOn); drawLogAll(); });
     { const hv = { '#trail-calendar': 'cal', '#trail-weeks': 'weeks', '#trail-states': 'states', '#trail-hours': 'hours' }[location.hash];
-      if (hv) { setLogView(hv); requestAnimationFrame(() => $('log-block').scrollIntoView()); } }
+      if (hv) setLogView(hv); }
     document.querySelectorAll('#ma-seg button').forEach(b => b.addEventListener('click', () => {
       maMode = b.dataset.ma; document.querySelectorAll('#ma-seg button').forEach(x => x.setAttribute('aria-pressed', x === b)); drawLog(); }));
     [['logcv', logTip], ['cumcv', cumTip], ['pacecv', logTip]].forEach(([id, tf]) => { const cv = $(id);
@@ -1273,6 +1283,7 @@ Promise.all([fetch('data/meta.json').then(r => r.json()), fetch('data/hourly.jso
   const j = $('jump'); j.min = M.start; j.max = iso(dateOf(ND - 1));
   computeRoll(); renderTotals(); renderTrail(); if (LG) renderLog(); renderCuts(); wire(); drawCirc();
   select(diOf(M.topStepDays[0][0]));
+  if (window.SiteTabs) SiteTabs.start();
 }).catch(err => { $('boot').textContent = 'Could not load data files: ' + err.message; });
 })();
 </script>
