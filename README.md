@@ -59,6 +59,12 @@ The first watch-list command also writes `meta-log/data/watch-titles.json` (the 
 Life chapters: `meta-log/data/life.json` (published) and `meta-log/data/life.private.json` (git-ignored, shows only on this machine).
 Hand-logged metrics: `meta-log/data/manual.json`.
 
+## Refresh the AT breakdown (weeks, states, hiking hours)
+```
+python3 scripts/build_at_breakdown.py
+```
+Reads only files in this repo (the trail log, hourly steps, the elevation profile). Run it after `build_at_log.py`.
+
 ## Refresh PCT//PREP data
 Add new hikes to `pct-training/data/activities.json` (and plan changes to `plan.json`), then
 ```

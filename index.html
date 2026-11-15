@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Monoton&family=Chakra+Petch:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
 <style>
-/* Layout: one CRT console with three views behind tabs (#report, #explore, #calendar). Same tokens as STEP//SONG
+/* Layout: one CRT console with views behind tabs. Home (#report) is the dashboard: two hero panels and the carousel tiles. Same tokens as STEP//SONG
    and PHOTO//SORT. All three views read data/daily.json (scripts/build_meta_log.py) and data/life.json. */
 :root {
   color-scheme: dark;
@@ -136,6 +136,42 @@ a.title:focus-visible { outline: none; }
 .title small { font: 400 var(--s-0)/1.4 var(--f-data); color: var(--dim); }
 .title small em { font-style: normal; color: var(--ink); }
 @media (max-width: 640px) { input[type="text"] { min-width: 0; width: 100%; } }
+/* home dashboard: two hero panels (PCT//PREP, PHOTO//SORT) over a grid of tiles. A tile is one umbrella (Activity,
+   Health, Music...) and cycles through its metrics; each slide shows the last 7 days and the last 30 side by side. */
+.heroes { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 16px; }
+.hero { border: 1px solid var(--grid); background: linear-gradient(180deg, var(--panel), rgba(13,11,28,0.6)); padding: 18px; display: grid; gap: 12px; align-content: start; min-width: 0; position: relative; }
+.hero.pct { border-top: 2px solid var(--trail); } .hero.photo { border-top: 2px solid var(--climb); }
+.hero h2 { font: 400 clamp(1.5rem, 3.4vw, 2.1rem)/1 var(--f-display); letter-spacing: 0.02em; text-transform: none; }
+.hero.pct h2 { text-shadow: 0 0 6px var(--trail), 0 0 20px rgba(182,255,92,0.6); } .hero.photo h2 { text-shadow: 0 0 6px var(--climb), 0 0 20px rgba(255,179,71,0.6); }
+.hero .tag { font: 600 var(--s-0) var(--f-data); letter-spacing: 0.08em; color: var(--dim); text-transform: uppercase; margin-top: 6px; }
+.hero .top { display: flex; flex-wrap: wrap; gap: 8px 24px; align-items: end; justify-content: space-between; }
+.hero .huge { font: 600 2.6rem/1 var(--f-data); color: var(--hot); font-variant-numeric: tabular-nums; } .hero .huge small { font-size: var(--s-1); color: var(--dim); font-weight: 400; margin-left: 8px; }
+.hero .kv { display: flex; flex-wrap: wrap; gap: 6px 22px; font-family: var(--f-data); font-size: var(--s-0); color: var(--dim); } .hero .kv b { color: var(--ink); font-weight: 600; }
+.hero .meter { position: relative; height: 12px; background: var(--well); border: 1px solid var(--grid); } .hero .meter i { position: absolute; inset: 0 auto 0 0; background: var(--trail); box-shadow: 0 0 10px rgba(182,255,92,0.5); }
+.hero .lab2 { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 8px; font: 400 var(--s-0) var(--f-data); color: var(--ink); } .hero .lab2 span:last-child { color: var(--dim); }
+.hero svg { display: block; width: 100%; height: auto; }
+.hero .links { display: flex; flex-wrap: wrap; gap: 8px 10px; font: 600 var(--s-0) var(--f-data); }
+.hero .links a { all: unset; cursor: pointer; color: var(--ink); border: 1px solid var(--grid); padding: 7px 10px; letter-spacing: 0.06em; }
+.hero.pct .links a:hover, .hero.pct .links a:focus-visible { border-color: var(--trail); color: var(--trail); } .hero.photo .links a:hover, .hero.photo .links a:focus-visible { border-color: var(--climb); color: var(--climb); }
+.tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 14px; }
+.tile { border: 1px solid var(--grid); background: var(--panel); display: grid; grid-template-rows: auto 1fr auto; min-width: 0; }
+.tile-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 12px 0; }
+.tile-head h3 { margin: 0; font: 700 var(--s-2)/1.2 var(--f-ui); letter-spacing: 0.16em; text-transform: uppercase; color: var(--hot); display: flex; align-items: center; gap: 8px; }
+.tile-nav { display: flex; gap: 4px; } .tile-nav button { font: 600 var(--s-1)/1 var(--f-data); color: var(--dim); background: none; border: 1px solid var(--grid); width: 26px; height: 26px; cursor: pointer; }
+.tile-nav button:hover { color: var(--hot); border-color: var(--dim); }
+.tile-body { all: unset; box-sizing: border-box; display: grid; gap: 6px; padding: 8px 12px 10px; cursor: pointer; min-width: 0; transition: opacity 0.28s ease; }
+.tile-body:hover { background: rgba(220,216,255,0.03); } .tile-body:focus-visible { outline: 2px solid var(--step); outline-offset: -2px; }
+.tile-body.out { opacity: 0; }
+.tile-body .mname { font: 600 var(--s-0) var(--f-ui); letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink); }
+.tile-body .two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.tile-body .two > div { display: grid; gap: 2px; min-width: 0; } .tile-body .two > div + div { border-left: 1px solid var(--grid); padding-left: 10px; }
+.tile-body .cap { font: 600 10px var(--f-ui); letter-spacing: 0.14em; text-transform: uppercase; color: var(--dim); }
+.tile-body .val { font: 600 1.35rem/1.1 var(--f-data); color: var(--hot); font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tile-body .unit { font: 400 10px var(--f-data); color: var(--dim); } .tile-body .dl { font: 400 var(--s-0) var(--f-data); color: var(--dim); } .tile-body .dl.up { color: var(--trail); } .tile-body .dl.dn { color: var(--sound); }
+.tile-body svg { display: block; width: 100%; height: 40px; }
+.tile-foot { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 0 12px 10px; font: 400 10px var(--f-data); color: var(--dim); }
+.tile-foot .stale { color: var(--climb); } .tile-dots { display: flex; gap: 5px; } .tile-dots i { width: 6px; height: 6px; border-radius: 50%; background: var(--grid); } .tile-dots i.on { background: var(--ink); }
+@media (prefers-reduced-motion: reduce) { .tile-body { transition: none; } }
 /* experiments */
 #v-experiments .head { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; justify-content: space-between; }
 .e-ring-wrap { display: grid; justify-items: center; } #e-ring-cv { display: block; max-width: 100%; touch-action: manipulation; }
@@ -185,18 +221,15 @@ a.title:focus-visible { outline: none; }
 
   <!-- ============================================================ REPORT CARD -->
   <div class="view" id="v-report" hidden>
+    <div class="heroes">
+      <section class="hero pct" id="hero-pct" aria-labelledby="hp-h"><h2 id="hp-h">PCT//PREP</h2><p class="note">Loading the training tracker…</p></section>
+      <section class="hero photo" id="hero-photo" aria-labelledby="hf-h"><h2 id="hf-h">PHOTO//SORT</h2></section>
+    </div>
     <section class="box">
-      <div class="row" style="justify-content:space-between">
-        <div><h2>Report card</h2><p class="note" id="rc-note"></p></div>
-        <div class="field"><span>Window</span><div class="seg" id="rc-win"></div></div>
-      </div>
+      <h2>Tracking</h2>
+      <p class="note" id="rc-note">Each tile is one area and turns through its numbers. Every number is shown twice: the last 7 days and the last 30 days of that dataset, each against the stretch before it. Use the arrows to step through, or click a number to chart it.</p>
     </section>
-    <div class="cards" id="rc-cards"></div>
-    <section class="box" id="rc-lib">
-      <h2>Library progress</h2>
-      <p class="note">From the latest snapshot of each library. A new snapshot adds a point; the change since the first one shows here once there are two.</p>
-      <div id="rc-libs" style="display:grid;gap:18px"></div>
-    </section>
+    <div class="tiles" id="rc-tiles"></div>
   </div>
 
   <!-- ============================================================ EXPLORER -->
@@ -285,8 +318,10 @@ a.title:focus-visible { outline: none; }
   <!-- ============================================================ DATA DIRECTORY -->
   <div class="view" id="v-data" hidden>
     <section class="box">
-      <h2>Data</h2>
-      <p class="note">Every dataset on the site. Each card opens that dataset on its own, or charts it in the explorer.</p>
+      <div class="row" style="justify-content:space-between">
+        <div><h2>Data</h2><p class="note">Every dataset on the site. Each card opens that dataset on its own, or charts it in the explorer.</p></div>
+        <div class="field"><span>Totals for</span><div class="seg" id="d-span"></div></div>
+      </div>
     </section>
     <div class="cards wide" id="d-cards"></div>
     <section class="box">
@@ -781,12 +816,12 @@ a.title:focus-visible { outline: none; }
   $('#x-from').onchange = (e) => { if (e.target.value) { setRange(d2i(e.target.value), S.b); $('#x-preset').value = ''; renderExplorer(); } };
   $('#x-to').onchange = (e) => { if (e.target.value) { setRange(S.a, d2i(e.target.value)); $('#x-preset').value = ''; renderExplorer(); } };
   const preset = $('#x-preset');
-  preset.append(el('option', { value: '', text: 'Custom range' }), el('option', { value: 'all', text: 'All data for these series' }), el('option', { value: 'y1', text: 'Last 12 months of data' }), el('option', { value: 'd90', text: 'Last 90 days of data' }));
+  preset.append(el('option', { value: '', text: 'Custom range' }), el('option', { value: 'ty', text: `This year (${lastYear})` }), el('option', { value: 'all', text: 'All data for these series' }), el('option', { value: 'y1', text: 'Last 12 months of data' }), el('option', { value: 'd90', text: 'Last 90 days of data' }));
   const og1 = el('optgroup', { label: 'Year' }); for (let y = lastYear; y >= 2015; y--) og1.append(el('option', { value: 'y:' + y, text: String(y) })); preset.append(og1);
   const og2 = el('optgroup', { label: 'Chapter' }); for (const l of LIFE) og2.append(el('option', { value: 'l:' + l.id, text: l.point ? `${l.label} (± 30 days)` : l.label })); preset.append(og2);
   function applyPreset(v) {
     const [a, b] = seriesSpan();
-    if (v === 'all') setRange(a, b); else if (v === 'y1') setRange(b - 364, b); else if (v === 'd90') setRange(b - 89, b);
+    if (v === 'ty') setRange(Math.min(b, Math.max(a, d2i(`${lastYear}-01-01`))), b); else if (v === 'all') setRange(a, b); else if (v === 'y1') setRange(b - 364, b); else if (v === 'd90') setRange(b - 89, b);
     else if (v.startsWith('y:')) setRange(d2i(v.slice(2) + '-01-01'), d2i(v.slice(2) + '-12-31'));
     else if (v.startsWith('l:')) { const l = LIFE.find((x) => x.id === v.slice(2)); setRange(l.a - (l.point ? 30 : 0), l.b + (l.point ? 30 : 0)); }
   }
@@ -812,54 +847,112 @@ a.title:focus-visible { outline: none; }
     const cats = [...$('#x-cats').querySelectorAll('input:checked')].map((i) => i.value);
     if (xdim.value && !cats.length) { $('#x-catlab').textContent = 'Tick at least one to add.'; return; }
     const first = !S.series.length; addSeries(xds.value, xm.value, xdim.value || null, cats, xsplit);
-    if (first) { applyPreset('all'); preset.value = 'all'; }
+    if (first) { applyPreset('ty'); preset.value = 'ty'; }
     renderExplorer();
   };
   function openInExplorer(series, a, b) { S.series = []; for (const s of series) addSeries(...s); setRange(a, b); S.bucket = 'auto'; preset.value = '';
     for (const bt of $('#x-bucket').children) bt.setAttribute('aria-pressed', String(bt.textContent === 'AUTO')); location.hash = '#explore'; }
 
   // ================================================================ REPORT CARD
-  const RC = { win: 30 };
-  const WINS = [[30, '30 DAYS'], [90, '90 DAYS'], [365, '12 MONTHS'], [0, 'ALL TIME']];
-  const tracked = () => daily.datasets.filter((d) => d.grain === 'day' && d.id !== 'trail').flatMap((d) => d.metrics.filter((m) => !(d.id === 'move' && m.id === 'flights') && !(d.id === 'music' && m.id === 'sleep') && !(d.id === 'body' && (m.id === 'hr_low' || m.id === 'hr_high' || m.id === 'walking_hr'))).map((m) => [d, m]));
-  function renderReport() {
-    const host = $('#rc-cards'); host.replaceChildren();
-    $('#rc-note').textContent = RC.win ? `Each card covers the last ${RC.win === 365 ? '12 months' : RC.win + ' days'} that its dataset has data for, against the same stretch before it. Datasets refresh on different days, so each card says where its data stops.` : 'Everything each dataset has recorded.';
-    for (const [ds, m] of tracked()) {
-      const L = asLine(ds.id, m.id), e = ds.end, w = RC.win || ds.n, a = Math.max(ds.offset, e - w + 1);
-      const cur = sumRange(L, a, e), prev = RC.win ? sumRange(L, a - w, a - 1) : null;
-      const val = L.agg === 'mean' ? (cur.cnt ? cur.sum / cur.cnt : null) : cur.sum, pval = prev && prev.cov === w ? (L.agg === 'mean' ? (prev.cnt ? prev.sum / prev.cnt : null) : prev.sum) : null;
-      const g = !RC.win ? 'year' : RC.win === 30 ? 'day' : RC.win === 90 ? 'week' : 'month', B = makeBuckets(a, e, g), cells = bucketize(L, B, 'total'), mx = Math.max(1e-9, ...cells.map((c) => c.v || 0));
-      const sp = svg('svg', { viewBox: `0 0 ${B.length * 10} 44`, preserveAspectRatio: 'none', role: 'img', 'aria-label': `${m.name} by ${g}` });
-      cells.forEach((c, k) => { const h = Math.max(1, ((c.v || 0) / mx) * 42); const r = svg('rect', { x: k * 10 + 1, y: 44 - h, width: 8, height: h, fill: m.color, opacity: c.v ? 0.9 : 0.25 }); r.append(svg('title', {}, `${B[k].label}: ${num(c.v, m.unit)}`)); sp.append(r); });
-      const age = today - e, delta = pval ? ((val - pval) / pval) * 100 : null;
-      host.append(el('div', { className: 'card' }, [
-        el('h3', {}, [sw(m.color), ' ', `${m.name}`]),
-        el('div', { className: 'big' }, [num(val), el('small', { text: m.unit })]),
-        el('div', { className: 'sub', text: L.agg === 'mean' ? `${cur.cnt} entries` : `${num(cur.cov ? cur.sum / cur.cov : null, m.unit)} per day` }),
-        el('div', { className: 'sub dim', text: delta == null ? (RC.win ? 'No earlier stretch to compare' : `${cur.cov.toLocaleString()} days on record`) : `${delta >= 0 ? '▲' : '▼'} ${Math.abs(delta).toFixed(0)}% vs previous ${RC.win === 365 ? '12 months' : RC.win + ' days'} (${num(pval, m.unit)})` }),
-        sp,
-        el('div', { className: 'foot' }, [el('span', { className: age > 21 ? 'stale' : '', text: `${ds.name} · through ${dstr(e)}${age > 21 ? ` · ${age} days old` : ''}` }),
-          el('button', { type: 'button', text: 'EXPLORE ▶', 'aria-label': `Explore ${m.name}`, onclick: () => openInExplorer([[ds.id, m.id, null, [], false]], RC.win ? a - w : ds.offset, e) })]),
-      ]));
-    }
-    // library progress from snapshots
-    const libs = $('#rc-libs'); libs.replaceChildren();
-    const prog = (title, snaps, parts, extra) => { if (!snaps || !snaps.length) return; const s = snaps[snaps.length - 1], f = snaps[0], tot = parts.reduce((t, p) => t + (s[p[0]] || 0), 0) || 1;
-      libs.append(el('div', { style: 'display:grid;gap:6px' }, [
-        el('h3', { text: `${title} · ${s.total.toLocaleString()} items · snapshot ${dstr(d2i(s.date))}` }),
-        el('div', { className: 'bar', role: 'img', 'aria-label': parts.map((p) => `${p[1]} ${Math.round((s[p[0]] / tot) * 100)}%`).join(', ') }, parts.map((p) => el('i', { style: `width:${(s[p[0]] / tot) * 100}%;background:${p[2]}`, title: `${p[1]}: ${s[p[0]].toLocaleString()}` }))),
-        el('div', { className: 'legend' }, parts.map((p) => el('span', {}, [sw(p[2]), `${p[1]} ${s[p[0]].toLocaleString()} (${((s[p[0]] / tot) * 100).toFixed(0)}%)`]))),
-        el('div', { className: 'sub dim', style: 'font-family:var(--f-data);font-size:var(--s-0)', text: extra(s, f, snaps.length) })])); };
-    const sn = daily.snapshots || {};
-    prog('Photo library', sn.photos, [['sorted', 'Sorted', '#b6ff5c'], ['bucket', 'Bucket only', '#ffb347'], ['unfiled', 'No album', '#ff3fb4']],
-      (s, f, n) => `${Math.round(s.gb).toLocaleString()} GB · ${n} snapshot${n === 1 ? '' : 's'}` + (n > 1 ? ` · since ${dstr(d2i(f.date))}: ${(s.sorted - f.sorted >= 0 ? '+' : '') + (s.sorted - f.sorted).toLocaleString()} sorted, ${(s.total - f.total >= 0 ? '+' : '') + (s.total - f.total).toLocaleString()} items` : ''));
-    prog('Proper photography (Lightroom)', sn.lightroom, [['high', '4–5★', '#b6ff5c'], ['mid', '3★', '#3ff0ff'], ['low', '1–2★', '#ffb347'], ['rejected', 'Rejected', '#ff3fb4'], ['unrated', 'Unrated', '#6b6880']],
-      (s, f, n) => `${Math.round(((s.total - s.unrated) / s.total) * 100)}% reviewed · ${n} snapshot${n === 1 ? '' : 's'}` + (n > 1 ? ` · since ${dstr(d2i(f.date))}: ${(f.unrated - s.unrated).toLocaleString()} more reviewed` : ''));
-    $('#rc-lib').hidden = !libs.children.length;
+  // Home dashboard. GROUPS = the umbrellas: [id, title, colour, [[dataset, metric], ...]]. A metric only shows under its
+  // umbrella (Listening and Plays live under Music). PER_DAY metrics read as a daily average; the rest as a total.
+  const GROUPS = [
+    ['activity', 'Activity', '#3ff0ff', [['move', 'steps'], ['move', 'miles'], ['move', 'elev'], ['exercise', 'minutes']]],
+    ['health', 'Health', '#ff3fb4', [['body', 'resting_hr'], ['body', 'hrv'], ['body', 'sleep_h'], ['body', 'walking_hr']]],
+    ['music', 'Music', '#ff3fb4', [['music', 'minutes'], ['music', 'plays']]],
+    ['watching', 'Watching', '#9b7bff', [['watch', 'minutes'], ['watch', 'movies'], ['watch', 'episodes']]],
+    ['calls', 'Calls', '#ffb347', [['calls', 'minutes'], ['calls', 'calls']]],
+    ['breath', 'Breathwork', '#4fe0c0', [['breath', 'sessions'], ['breath', 'minutes'], ['breath', 'avg_hold']]],
+    ['photos', 'Photos', '#ffb347', [['photos', 'items'], ['photos', 'gb']]],
+  ].map(([id, name, color, ms]) => ({ id, name, color, ms: ms.filter(([d, m]) => DS[d] && DS[d].grain === 'day' && metricOf(d, m)) })).filter((g) => g.ms.length);
+  const PER_DAY = new Set(['move:steps', 'move:miles', 'move:elev', 'exercise:minutes', 'music:minutes', 'watch:minutes']);
+  const yearStart = (i) => d2i(`${YR[i]}-01-01`);
+  const RC = { at: {}, tick: -3, timer: null, built: false };
+  function slideOf(g, k) {
+    const [dsId, mId] = g.ms[k], ds = DS[dsId], m = metricOf(dsId, mId), L = asLine(dsId, mId), e = ds.end, perDay = PER_DAY.has(dsId + ':' + mId);
+    const val = (a, b) => { const r = sumRange(L, a, b); if (r.cov < b - a + 1) return null; return L.agg === 'mean' ? (r.cnt ? r.sum / r.cnt : null) : perDay ? r.sum / r.cov : r.sum; };
+    const col = (w, cap) => { const v = val(e - w + 1, e), pv = val(e - 2 * w + 1, e - w), d = v != null && pv ? ((v - pv) / pv) * 100 : null;
+      return el('div', {}, [el('div', { className: 'cap', text: cap }), el('div', { className: 'val', text: v == null ? '—' : num(v) }),
+        el('div', { className: 'unit', text: m.unit + (L.agg === 'mean' ? ' average' : perDay ? ' a day' : ' total') }),
+        el('div', { className: 'dl' + (d == null ? '' : d >= 0 ? ' up' : ' dn'), text: d == null ? 'no earlier stretch' : `${d >= 0 ? '▲' : '▼'} ${Math.abs(d).toFixed(0)}% vs prior ${w}` })]); };
+    const a = Math.max(ds.offset, e - 29), vals = []; for (let i = a; i <= e; i++) vals.push(L.v[i - L.off]);
+    const got = vals.filter((v) => v != null), mx = Math.max(1e-9, ...got), lo = L.agg === 'mean' && got.length ? Math.min(...got) * 0.9 : 0;
+    const sp = svg('svg', { viewBox: `0 0 ${vals.length * 10} 40`, preserveAspectRatio: 'none', role: 'img', 'aria-label': `${m.name}, last 30 days by day` });
+    vals.forEach((v, i) => { if (v == null) return; const h = Math.max(1.5, ((v - lo) / (mx - lo || 1)) * 38); sp.append(svg('rect', { x: i * 10 + 1, y: 40 - h, width: 8, height: h, fill: m.color || g.color, opacity: i >= vals.length - 7 ? 1 : 0.38 })); });
+    const body = el('button', { type: 'button', className: 'tile-body', 'aria-label': `${g.name}: ${m.name}. Chart it in the explorer.`, onclick: () => openInExplorer([[dsId, mId, null, [], false]], Math.max(ds.offset, yearStart(e)), e) },
+      [el('div', { className: 'mname', text: m.name }), el('div', { className: 'two' }, [col(7, 'Last 7 days'), col(30, 'Last 30 days')]), sp]);
+    const age = today - e;
+    return { body, foot: el('span', { className: age > 21 ? 'stale' : '', text: `${ds.name} · through ${dstr(e)}${age > 21 ? ` · ${age} days old` : ''}` }) };
   }
-  $('#rc-win').replaceChildren(...WINS.map(([v, label]) => el('button', { type: 'button', text: label, 'aria-pressed': String(RC.win === v),
-    onclick: (e) => { RC.win = v; for (const b of $('#rc-win').children) b.setAttribute('aria-pressed', String(b === e.target)); renderReport(); } })));
+  function showSlide(g, k, fade) {
+    const tile = document.getElementById('tile-' + g.id); if (!tile) return; RC.at[g.id] = (k + g.ms.length) % g.ms.length;
+    const sl = slideOf(g, RC.at[g.id]), old = tile.querySelector('.tile-body'), put = () => { tile.querySelector('.tile-body').replaceWith(sl.body); tile.querySelector('.tile-foot span').replaceWith(sl.foot);
+      [...tile.querySelectorAll('.tile-dots i')].forEach((d, i) => d.classList.toggle('on', i === RC.at[g.id])); };
+    if (fade && old) { old.classList.add('out'); setTimeout(() => { if (old.isConnected) { sl.body.classList.add('out'); put(); requestAnimationFrame(() => requestAnimationFrame(() => sl.body.classList.remove('out'))); } }, 280); } else put();
+  }
+  function buildTiles() {
+    $('#rc-tiles').replaceChildren(...GROUPS.map((g) => el('div', { className: 'tile', id: 'tile-' + g.id, role: 'group', 'aria-label': g.name }, [
+      el('div', { className: 'tile-head' }, [el('h3', {}, [sw(g.color), g.name]),
+        g.ms.length > 1 ? el('div', { className: 'tile-nav' }, [el('button', { type: 'button', text: '‹', 'aria-label': `Previous ${g.name} number`, onclick: () => showSlide(g, RC.at[g.id] - 1, false) }), el('button', { type: 'button', text: '›', 'aria-label': `Next ${g.name} number`, onclick: () => showSlide(g, RC.at[g.id] + 1, false) })]) : null]),
+      el('div', { className: 'tile-body' }),
+      el('div', { className: 'tile-foot' }, [el('span'), el('div', { className: 'tile-dots', 'aria-hidden': 'true' }, g.ms.map(() => el('i')))])])));
+    for (const g of GROUPS) showSlide(g, RC.at[g.id] || 0, false);
+    // slow carousel: one tile turns every 2 seconds, in order, so each tile changes about every 14 seconds and the first
+    // change comes a few seconds after the page opens. Stops on hover or focus, when the tab or the view is hidden, and entirely for people who ask for reduced motion.
+    if (!RC.timer && !matchMedia('(prefers-reduced-motion: reduce)').matches) RC.timer = setInterval(() => {
+      if (document.hidden || $('#v-report').hidden) return; RC.tick++; if (RC.tick < 0) return; const period = Math.max(7, GROUPS.length), g = GROUPS[RC.tick % period];
+      if (!g || g.ms.length < 2) return; const tile = document.getElementById('tile-' + g.id); if (!tile || tile.matches(':hover') || tile.contains(document.activeElement)) return;
+      showSlide(g, RC.at[g.id] + 1, true); }, 2000);
+  }
+  let TRN; // pct-training/data/training.json, fetched once for the hero
+  async function drawPctHero() {
+    const host = $('#hero-pct');
+    if (TRN === undefined) { try { const r = await fetch('pct-training/data/training.json', { cache: 'no-cache' }); TRN = r.ok ? await r.json() : null; } catch (e) { TRN = null; } }
+    const links = linkRow([['pct-training/', 'Open the tracker'], ['pct-training/#calendar', 'Calendar'], ['pct-training/#trail-weeks', 'Trail weeks']]);
+    if (!TRN) { host.replaceChildren(el('h2', { id: 'hp-h', text: 'PCT//PREP' }), el('p', { className: 'note', text: 'Training for the Pacific Crest Trail.' }), links); return; }
+    const P = TRN.plan, W = TRN.weeks, A = TRN.activities, tISO = iso(today), start = d2i(P.start), left = start - today, cur = W.find((w) => tISO >= w.start && tISO <= w.end) || [...W].reverse().find((w) => w.miles > 0) || W[0];
+    const done = W.reduce((t, w) => t + w.miles, 0), hrs = W.reduce((t, w) => t + w.hours, 0), wk7 = A.filter((x) => d2i(x.date) > d2i(TRN.activities_through) - 7).reduce((t, x) => t + x.miles, 0);
+    const byDay = {}; for (const x of A) byDay[x.date] = (byDay[x.date] || 0) + x.miles; const best = Object.entries(byDay).sort((x, y) => y[1] - x[1])[0], packs = A.filter((x) => x.pack_lb).map((x) => x.pack_lb);
+    const mx = Math.max(...W.map((w) => Math.max(w.target_miles || 0, w.miles))), bw = 600 / W.length, ch = svg('svg', { viewBox: '0 0 600 90', role: 'img', 'aria-label': 'Planned and hiked miles for each training week' });
+    W.forEach((w, i) => { const x = i * bw; if (w.target_miles) { const h = (w.target_miles / mx) * 76; ch.append(svg('rect', { x: x + 3, y: 80 - h, width: bw - 6, height: h, fill: 'rgba(138,132,184,0.10)', stroke: '#8a84b8', 'stroke-dasharray': '3 3' })); }
+      if (w.miles) { const h = Math.max(2, (w.miles / mx) * 76); ch.append(svg('rect', { x: x + 5, y: 80 - h, width: bw - 10, height: h, fill: '#b6ff5c' })); }
+      if (w === cur) ch.append(svg('rect', { x: x + 3, y: 84, width: bw - 6, height: 3, fill: '#fff' })); });
+    const pct = cur.target_miles ? Math.min(100, (100 * cur.miles) / cur.target_miles) : 0;
+    host.replaceChildren(
+      el('div', { className: 'top' }, [el('div', {}, [el('h2', { id: 'hp-h', text: 'PCT//PREP' }), el('div', { className: 'tag', text: `${P.trail} · starts ${dstr(start)}` })]),
+        el('div', { className: 'huge' }, [left >= 0 ? String(left) : String(-left), el('small', { text: left >= 0 ? 'days to go' : 'days on trail' })])]),
+      el('div', { className: 'lab2' }, [el('span', { text: `Week ${cur.week} · ${cur.phase}` }), el('span', { text: cur.target_miles ? `${num(cur.miles)} of ${num(cur.target_miles)} mi · ${Math.round((100 * cur.miles) / cur.target_miles)}%` : `${num(cur.miles)} mi` })]),
+      cur.target_miles ? el('div', { className: 'meter', role: 'img', 'aria-label': `${Math.round(pct)}% of this week's plan` }, [el('i', { style: `width:${pct}%` })]) : null,
+      ch,
+      el('div', { className: 'kv' }, [el('span', {}, ['last 7 days ', el('b', { text: `${num(wk7)} mi` })]), el('span', {}, ['since Nov 1 ', el('b', { text: `${num(done)} mi · ${num(hrs)} h` })]),
+        best ? el('span', {}, ['longest day ', el('b', { text: `${num(best[1])} mi` })]) : null, packs.length ? el('span', {}, ['pack ', el('b', { text: `${Math.max(...packs)} lb` })]) : null,
+        el('span', {}, ['peak week planned ', el('b', { text: `${P.peak_week_miles} mi` })])]),
+      el('p', { className: 'note', text: `Dashed bars are the plan for each week; lime is what has been hiked. Hikes logged through ${dstr(d2i(TRN.activities_through))}.` }),
+      links);
+  }
+  function drawPhotoHero() {
+    const host = $('#hero-photo'), sn = daily.snapshots || {}, ph = sn.photos && sn.photos[sn.photos.length - 1], f = sn.photos && sn.photos[0], lr = sn.lightroom && sn.lightroom[sn.lightroom.length - 1];
+    const links = linkRow([['photo-library/', 'Open the photo tracker']]);
+    if (!ph) { host.replaceChildren(el('h2', { id: 'hf-h', text: 'PHOTO//SORT' }), el('p', { className: 'note', text: 'Sorting the photo library.' }), links); return; }
+    const parts = [['sorted', 'Sorted', '#b6ff5c'], ['bucket', 'Bucket only', '#ffb347'], ['unfiled', 'No album', '#ff3fb4']], tot = parts.reduce((t, p) => t + (ph[p[0]] || 0), 0) || 1, n = sn.photos.length;
+    const kids = [
+      el('div', { className: 'top' }, [el('div', {}, [el('h2', { id: 'hf-h', text: 'PHOTO//SORT' }), el('div', { className: 'tag', text: `Photo library · snapshot ${dstr(d2i(ph.date))}` })]),
+        el('div', { className: 'huge' }, [`${Math.round((ph.sorted / tot) * 100)}%`, el('small', { text: 'sorted' })])]),
+      el('div', { className: 'bar', role: 'img', 'aria-label': parts.map((p) => `${p[1]} ${Math.round((ph[p[0]] / tot) * 100)}%`).join(', ') }, parts.map((p) => el('i', { style: `width:${(ph[p[0]] / tot) * 100}%;background:${p[2]}`, title: `${p[1]}: ${ph[p[0]].toLocaleString()}` }))),
+      el('div', { className: 'legend' }, parts.map((p) => el('span', {}, [sw(p[2]), `${p[1]} ${ph[p[0]].toLocaleString()} (${((ph[p[0]] / tot) * 100).toFixed(0)}%)`]))),
+      el('div', { className: 'kv' }, [el('span', {}, ['items ', el('b', { text: ph.total.toLocaleString() })]), el('span', {}, ['size ', el('b', { text: `${Math.round(ph.gb).toLocaleString()} GB` })]),
+        el('span', {}, ['left to sort ', el('b', { text: (ph.bucket + ph.unfiled).toLocaleString() })]),
+        n > 1 ? el('span', {}, [`since ${dstr(d2i(f.date))} `, el('b', { text: `${(ph.sorted - f.sorted >= 0 ? '+' : '') + (ph.sorted - f.sorted).toLocaleString()} sorted` })]) : el('span', { text: 'first snapshot: change shows after the next one' })])];
+    if (lr) { const rev = lr.total - lr.unrated, lp = [['high', '4–5★', '#b6ff5c'], ['mid', '3★', '#3ff0ff'], ['low', '1–2★', '#ffb347'], ['rejected', 'Rejected', '#ff3fb4'], ['unrated', 'Unrated', '#6b6880']];
+      kids.push(el('div', { className: 'lab2' }, [el('span', { text: 'Proper photography (Lightroom)' }), el('span', { text: `${Math.round((rev / lr.total) * 100)}% reviewed · ${lr.total.toLocaleString()} frames` })]),
+        el('div', { className: 'bar', role: 'img', 'aria-label': lp.map((p) => `${p[1]} ${Math.round((lr[p[0]] / lr.total) * 100)}%`).join(', ') }, lp.map((p) => el('i', { style: `width:${(lr[p[0]] / lr.total) * 100}%;background:${p[2]}`, title: `${p[1]}: ${lr[p[0]].toLocaleString()}` }))),
+        el('div', { className: 'legend' }, lp.map((p) => el('span', {}, [sw(p[2]), `${p[1]} ${lr[p[0]].toLocaleString()}`])))); }
+    kids.push(links); host.replaceChildren(...kids);
+  }
+  function renderReport() {
+    drawPhotoHero(); drawPctHero();
+    if (!RC.built) { RC.built = true; buildTiles(); } else for (const g of GROUPS) showSlide(g, RC.at[g.id] || 0, false);
+  }
 
   // ================================================================ CALENDAR
   const CAL = { metric: 'move:steps', pin: null };
@@ -1007,15 +1100,20 @@ a.title:focus-visible { outline: none; }
   const linkRow = (items) => el('div', { className: 'links' }, items.map(([to, label]) => typeof to === 'function'
     ? el('button', { type: 'button', text: label + ' ▶', onclick: to }) : el('a', { href: to, text: label + ' ▶' })));
   const longDate = (i) => { const s = iso(i); return `${MON[+s.slice(5, 7) - 1]} ${+s.slice(8, 10)}, ${s.slice(0, 4)}`; };
+  const DV = { span: 'year' };   // Data cards total this year by default; 'all' = everything on record
   function renderData() {
+    $('#d-span').replaceChildren(...[['year', String(lastYear)], ['all', 'ALL TIME']].map(([v, label]) => el('button', { type: 'button', text: label, 'aria-pressed': String(DV.span === v), onclick: () => { DV.span = v; renderData(); } })));
     $('#d-cards').replaceChildren(...daily.datasets.filter((d) => !HIDE_IN_DATA.has(d.id)).map((ds) => {
-      const info = DIR[ds.id] || { blurb: '', links: [] };
+      const info = DIR[ds.id] || { blurb: '', links: [] }, a = DV.span === 'year' ? Math.max(ds.offset, d2i(`${lastYear}-01-01`)) : ds.offset, inSpan = a <= ds.end;
       return el('div', { className: 'card' }, [
         el('h3', { text: ds.name }),
         info.blurb ? el('p', { text: info.blurb }) : null,
-        el('dl', {}, ds.metrics.flatMap((m) => [el('dt', { text: m.name }), el('dd', { text: m.agg === 'mean' ? num((() => { const k = m.v.filter((x) => x != null); return k.length ? k.reduce((a, x) => a + x, 0) / k.length : null; })(), m.unit) + ' avg' : num(m.v.reduce((a, x) => a + (x || 0), 0), m.unit) })])
-          .concat([el('dt', { text: 'Covers' }), el('dd', { text: `${longDate(ds.offset)} – ${longDate(ds.end)}` }), el('dt', { text: 'Source' }), el('dd', { text: ds.source || '' })])),
-        linkRow([...info.links, [() => openInExplorer([[ds.id, ds.metrics[0].id, null, [], false]], ds.offset, ds.end), 'Chart it']]),
+        el('dl', {}, (inSpan ? ds.metrics.flatMap((m) => { const k = m.v.slice(a - ds.offset, ds.end - ds.offset + 1), nn = k.filter((x) => x != null);
+            return [el('dt', { text: m.name }), el('dd', { text: m.agg === 'mean' ? num(nn.length ? nn.reduce((t, x) => t + x, 0) / nn.length : null, m.unit) + ' avg' : num(k.reduce((t, x) => t + (x || 0), 0), m.unit) })]; })
+            : [el('dt', { text: String(lastYear) }), el('dd', { text: 'nothing recorded' })])
+          .concat([el('dt', { text: DV.span === 'year' ? 'Showing' : 'Covers' }), el('dd', { text: inSpan ? `${longDate(a)} – ${longDate(ds.end)}` : `ends ${longDate(ds.end)}` }),
+            ...(DV.span === 'year' ? [el('dt', { text: 'On record since' }), el('dd', { text: longDate(ds.offset) })] : []), el('dt', { text: 'Source' }), el('dd', { text: ds.source || '' })])),
+        linkRow([...info.links, [() => openInExplorer([[ds.id, ds.metrics[0].id, null, [], false]], inSpan ? a : ds.offset, ds.end), 'Chart it']]),
       ]);
     }));
     $('#d-tools').replaceChildren(
@@ -1257,7 +1355,7 @@ a.title:focus-visible { outline: none; }
     for (const a of document.querySelectorAll('#subnav a')) { if (a.getAttribute('href') === '#' + v) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); }
     VIEWS[v]();
   }
-  addSeries('move', 'steps', null, [], false); addSeries('music', 'minutes', null, [], false); applyPreset('all'); preset.value = 'all';
+  addSeries('move', 'steps', null, [], false); addSeries('music', 'minutes', null, [], false); applyPreset('ty'); preset.value = 'ty';
   $('#foot').textContent = `Data built ${daily.generated} · ` + daily.datasets.map((d) => `${d.name} ${iso(d.offset)} → ${iso(d.end)}`).join(' · ') + (daily.datasets.some((d) => d.note) ? ' · ' + daily.datasets.map((d) => d.note).filter(Boolean).join(' ') : '');
   $('#boot').remove();
   try { await Promise.race([document.fonts.ready, new Promise((r) => setTimeout(r, 1500))]); } catch (e) {}

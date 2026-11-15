@@ -61,7 +61,18 @@ Fonts: Monoton (titles only), Chakra Petch (UI), JetBrains Mono (data).
   raw_mph = log mi / moving_h; adj_mph = log mi / (moving_h − 0.5 h per 1,000 ft). Only days with capture
   0.8–1.25. Climb per day from at_profile.json by log start/end mile (+4,188 ft Katahdin climb on day 0).
   Jack's stated flat moving pace = 3.2 mph; model_h = mi/3.2 + climb hours.
-- `#log-block` has two views (`#log-view` buttons): Charts (below) and Calendar (`renderLogCal`): one row per week, Sunday
+- Breakdown data: `scripts/build_at_breakdown.py` → `step-song/data/at2019-breakdown.json` (run after build_at_log.py; reads
+  the log, hourly.json and scripts/at_profile.json). `weeks` (Sunday-start rows), `states` (north to south; TN and NC are
+  one entry; borders = Greenbelly northbound mileposts flipped and scaled to 2,192; a day crossing a border is shared by
+  miles; pace from good-capture days; elevation low/high/mean/climb per mile + a 60-point sketch from the profile; WV and
+  72.8 mi of VA sit inside the Skyland skip), `time` (clock stats from hourly steps: an hour with 1,000+ steps = walking;
+  full hiking days with good capture only; start/stop are to the hour) and `sustain` (what followed days bucketed by
+  miles / moving hours / start hour, stretches between zeros, best 7-day windows).
+- `#log-block` views (`#log-view` buttons): Charts, Calendar, Weeks (`renderLogWeeks`), States (`renderLogStates`), Hours
+  (`renderLogHours`). The last three are HTML tables in `.bd` containers, loaded on demand by `loadBD()`. Charts also carry
+  a state overlay (`stateBands()`, toggle `#st-toggle`): alternate shading + state labels on all three day charts.
+  Deep links: `step-song/#trail-calendar`, `#trail-weeks`, `#trail-states`, `#trail-hours`.
+- Calendar (`renderLogCal`): one row per week, Sunday
   to Saturday, 22 rows. Each day cell: date + day number, kind badge (zero / nero / skip), three bars (log miles, phone
   steps, moving hours; each scaled to its own best day, miles capped at 36 with a white cap above), miles, steps · hours,
   where the day ended, climb + end mile. Week total: miles, bar vs best week, steps, moving hours, climb, zeros, mi/day,
@@ -109,10 +120,19 @@ Fonts: Monoton (titles only), Chakra Petch (UI), JetBrains Mono (data).
 - The old landing page of project cards is gone; its links live on the Data cards.
 
 ## META//LOG data + views (app is the root index.html; data in meta-log/data/)
-- Root `index.html` (markup + CSS + JS in one file, no libraries). Views besides the nav ones above: `#report` (report card: each metric's
-  latest window vs the one before, plus library progress), `#explore` (pick dataset → metric → sub-category, date range,
+- Root `index.html` (markup + CSS + JS in one file, no libraries). Views besides the nav ones above: `#report` (the home dashboard,
+  rebuilt Nov 14, 2026: two hero panels, PCT//PREP from `pct-training/data/training.json` and PHOTO//SORT from
+  `daily.snapshots`, over a grid of tiles. One tile per umbrella in `GROUPS` (Activity, Health, Music, Watching, Calls,
+  Breathwork, Photos); a metric appears only under its umbrella (Listening and Plays under Music). Each tile turns through
+  its metrics: one tile every 2 s in order, paused on hover / focus / hidden tab, off under prefers-reduced-motion; arrows
+  step by hand. Every slide shows the last 7 days and the last 30 days of that dataset side by side, each against the
+  stretch before, plus a 30-day sparkline with the last week bright. `PER_DAY` metrics read as a daily average, the rest as
+  totals. Clicking a slide charts that metric for the current year. Jack asked for exactly these two windows; do not add
+  longer ones here), `#explore` (pick dataset → metric → sub-category, date range,
   group by day/week/month/year, line/bar, descriptive statistics, correlation, Save PNG / JPG / CSV), `#calendar` (one row
   per year, one square per day, life chapters as bands, chapter table).
+- Data defaults to the current year, not all time (Jack's rule, Nov 14, 2026): Data cards total `lastYear` with a
+  `2026 | ALL TIME` switch (`DV.span`), "Chart it" opens that span, and the explorer starts on the `ty` preset.
 - `meta-log/data/daily.json` is written by `scripts/build_meta_log.py`, which reads only step-song/data and
   photo-library/data. Run it after any other builder. Layout is documented at the top of the script. To add a dataset,
   append to `datasets` there (metrics + optional dims); the page picks it up without changes.
@@ -172,6 +192,11 @@ Fonts: Monoton (titles only), Chakra Petch (UI), JetBrains Mono (data).
 - Pre-AT comparison: `pre_at` in training.json = phone steps / miles / flights / active hours for the 111 days before the
   AT start (Feb 24 – Jun 14, 2019), read from step-song/data. The calendar lines them up by days-until-departure (pink line
   per day, pink marker + "2019" line in the week total, readout above the grid). 2019 has phone data only.
+- Third view `#trail-weeks` ("Runway and trail", `renderTrail`): one chart with the weeks before departure on the left
+  (training plan outline, hiked miles, 2019 pre-AT phone miles as a pink line) and the weeks on trail on the right (AT 2019
+  weekly miles and a PCT projection line), a finish-days slider, and a week-by-week table (AT dates / miles / zeros /
+  states from at2019-breakdown.json beside PCT dates / miles / mile reached / section). The PCT side is an even-pace
+  projection, not a plan; `PCT_SECTIONS` are rough mile splits.
 - Strava rule: titles and numbers only (date, miles, moving time, gain, pack weight). Descriptions, GPS tracks and
   locations are never copied into the repo; the home loop's location stays off the site.
 - The last health day is usually a part day (exported before midnight); the page labels it.

@@ -90,6 +90,25 @@ h1 .sl { color: var(--hot); text-shadow: 0 0 6px var(--step), 0 0 18px var(--ste
 .log-block[hidden] { display: none; }
 /* trail-log calendar: one row per week = label | 7 days | week summary; scrolls sideways on narrow screens */
 #log-charts { display: grid; gap: 14px; min-width: 0; } #log-charts[hidden], #log-cal[hidden] { display: none; }
+/* trail-log breakdowns (weeks / states / hours): plain tables with small bars, scroll sideways when narrow */
+.bd { display: grid; gap: 14px; min-width: 0; } .bd[hidden] { display: none; }
+.bd h3 { margin: 0; font: 700 var(--s-0) var(--f-ui); letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink); }
+.bd-scroll { overflow-x: auto; border: 1px solid var(--grid); }
+.bd table { width: 100%; border-collapse: collapse; font-family: var(--f-data); font-size: var(--s-0); min-width: 760px; }
+.bd th, .bd td { padding: 6px 9px; border-bottom: 1px solid rgba(31,26,61,0.8); text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; vertical-align: middle; }
+.bd th { color: var(--dim); font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; font-size: 10px; background: var(--panel); position: sticky; top: 0; }
+.bd th:first-child, .bd td:first-child, .bd td.l, .bd th.l { text-align: left; }
+.bd td { color: var(--dim); } .bd td b { color: var(--ink); font-weight: 600; } .bd td.t b { color: var(--trail); } .bd td.c b { color: var(--climb); } .bd td.s b { color: var(--step); }
+.bd tr.skip td { opacity: 0.55; } .bd tr.tot td { border-top: 1px solid var(--dim); color: var(--ink); }
+.bd .mb { display: inline-block; height: 8px; background: var(--trail); vertical-align: middle; margin-left: 8px; min-width: 1px; } .bd .mb.c { background: var(--climb); } .bd .mb.s { background: var(--step); }
+.bd .barcell { text-align: left; min-width: 150px; } .bd .barcell b { display: inline-block; min-width: 42px; text-align: right; }
+.bd svg { display: block; } .bd .charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
+.bd .panel { border: 1px solid var(--grid); padding: 12px; display: grid; gap: 8px; min-width: 0; align-content: start; background: rgba(7,6,15,0.5); }
+.bd .panel svg { width: 100%; height: auto; } .bd .panel text { font-family: var(--f-data); font-size: 10px; fill: var(--dim); }
+.bd ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; color: var(--ink); max-width: 90ch; } .bd ul b { color: var(--trail); font-weight: 600; }
+.bd .k { color: var(--dim); font-weight: 400; }
+.st-key { display: flex; flex-wrap: wrap; gap: 4px; font-family: var(--f-data); font-size: 10px; }
+.st-key span { padding: 2px 6px; border: 1px solid var(--grid); color: var(--dim); }
 #log-cal { display: grid; gap: 12px; min-width: 0; }
 .cal-scroll { overflow-x: auto; }
 .cal { display: grid; grid-template-columns: 74px repeat(7, minmax(112px, 1fr)) minmax(176px, 1.4fr); gap: 4px; min-width: 1060px; font-family: var(--f-data); font-size: var(--s-0); }
@@ -248,13 +267,17 @@ nav.site a:hover, nav.site a:focus-visible { color: var(--step); }
         <h2 class="c-trail" style="font-size:var(--s-1)">Trail log vs phone <small>the log counts every mile walked; the phone is what Apple Health caught</small></h2>
       </div>
       <div class="readout" id="log-stats"></div>
-      <div class="seg" id="log-view" role="group" aria-label="Trail log view" style="justify-self:start"><button type="button" data-v="charts" aria-pressed="true">Charts</button><button type="button" data-v="cal" aria-pressed="false">Calendar</button></div>
+      <div class="seg" id="log-view" role="group" aria-label="Trail log view" style="justify-self:start"><button type="button" data-v="charts" aria-pressed="true">Charts</button><button type="button" data-v="cal" aria-pressed="false">Calendar</button><button type="button" data-v="weeks" aria-pressed="false">Weeks</button><button type="button" data-v="states" aria-pressed="false">States</button><button type="button" data-v="hours" aria-pressed="false">Hours</button></div>
+      <div id="log-weeks" class="bd" hidden></div>
+      <div id="log-states" class="bd" hidden></div>
+      <div id="log-hours" class="bd" hidden></div>
       <div id="log-cal" hidden>
         <div class="legend" id="cal-legend"></div>
         <div class="cal-scroll"><div class="cal" id="cal-grid" role="table" aria-label="Appalachian Trail 2019, one row per week"></div></div>
         <p class="note" id="cal-note"></p>
       </div>
       <div id="log-charts">
+      <div class="seg" style="justify-self:start"><button type="button" id="st-toggle" aria-pressed="true" title="Shade the charts by state">State overlay</button></div>
       <div class="sec-head">
         <h2 style="font-size:var(--s-0)">Miles per day <small>click a day to open it</small></h2>
         <div class="seg" id="ma-seg" role="group" aria-label="Moving average"><button type="button" data-ma="all" aria-pressed="true">7-day avg · all days</button><button type="button" data-ma="hiking" aria-pressed="false">7-day avg · hiking days</button></div>
@@ -962,7 +985,101 @@ function renderLogCal() {
 function setLogView(v) {
   logView = v; document.querySelectorAll('#log-view button').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === v));
   $('log-charts').hidden = v !== 'charts'; $('log-cal').hidden = v !== 'cal';
-  if (v === 'cal') renderLogCal(); else drawLogAll();
+  for (const k of ['weeks', 'states', 'hours']) $('log-' + k).hidden = v !== k;
+  if (v === 'cal') renderLogCal(); else if (v === 'charts') drawLogAll();
+  else loadBD(() => { if (logView === 'weeks') renderLogWeeks(); else if (logView === 'states') renderLogStates(); else if (logView === 'hours') renderLogHours(); });
+}
+
+// ---------- TRAIL LOG breakdowns: data/at2019-breakdown.json (weeks, states, hours on the clock, what was sustainable)
+let BD = null, bdAsked = false, stOn = true;
+function loadBD(then) { if (BD) return then(); if (bdAsked) return; bdAsked = true;
+  fetch('data/at2019-breakdown.json').then(r => r.ok ? r.json() : null).catch(() => null).then(b => { BD = b; bdAsked = false; if (b) then(); }); }
+function stateOfDay(x, prev) { const m = x.end_mile != null && x.kind !== 'skip' ? x.end_mile : null; if (m == null) return prev;
+  for (const st of BD.states) if (m >= st.sobo_a && m < st.sobo_b) return st.abbr; return m < 0 ? 'ME' : 'GA'; }
+// shade the day columns by state and label each band; called by the three day charts after their axes
+function stateBands(g, ph, bw) {
+  if (!stOn || !LG) return; if (!BD) { loadBD(drawLogAll); return; }
+  let cur = null, a = 0, alt = 0; const D = LG.days, flush = k => { if (cur == null) return; const X = LL.left + a * bw, W = (k - a) * bw;
+    if (alt % 2) { g.fillStyle = 'rgba(220,216,255,0.055)'; g.fillRect(X, LL.top, W, ph); }
+    g.strokeStyle = 'rgba(138,132,184,0.35)'; g.lineWidth = 1; g.beginPath(); g.moveTo(X + 0.5, LL.top); g.lineTo(X + 0.5, LL.top + ph); g.stroke();
+    if (W >= 16) { g.fillStyle = '#8a84b8'; g.font = '9px "JetBrains Mono", monospace'; g.textAlign = 'center'; g.fillText(W >= 34 ? cur : cur.split('/')[0], X + W / 2, LL.top + 9); } alt++; };
+  D.forEach((x, k) => { const st = stateOfDay(x, cur || 'ME'); if (st !== cur) { flush(k); cur = st; a = k; } }); flush(D.length);
+}
+const hh = v => v == null ? '—' : `${Math.floor(v)}:${String(Math.round((v % 1) * 60)).padStart(2, '0')}`;
+const md2 = iso => { const d = new Date(iso + 'T00:00:00Z'); return `${MON[d.getUTCMonth()]} ${d.getUTCDate()}`; };
+const mbar = (v, mx, cls, w) => `<i class="mb ${cls || ''}" style="width:${Math.max(1, v / mx * (w || 90))}px"></i>`;
+
+function renderLogWeeks() {
+  const W = BD.weeks, mx = Math.max(...W.map(w => w.miles)), tot = W[W.length - 1].cum_mi;
+  let h = `<p class="note">One row per week, Sunday to Saturday. Pace is flat-ground equivalent (the climb taken out), from the days the phone was on. Start and stop are the hours the day's walking began and ended.</p>
+    <div class="bd-scroll"><table><thead><tr><th>Week</th><th class="l">Dates</th><th class="l">States</th><th class="l">Miles</th><th>Mi / day</th><th>Zeros</th><th>Steps</th><th>Moving</th><th>Climb</th><th>Pace</th><th>Start – stop</th><th>Running total</th></tr></thead><tbody>`;
+  for (const w of W) h += `<tr><td><b>${w.week}</b></td><td class="l">${md2(w.start)} – ${md2(w.end)}${w.days < 7 ? ` <span class="k">(${w.days} d)</span>` : ''}</td><td class="l">${w.states.join(' · ')}</td>
+    <td class="barcell t"><b>${f1(w.miles)}</b>${mbar(w.miles, mx)}</td><td>${f1(w.mi_per_day)}</td><td>${w.zeros || '·'}${w.neros ? ` <span class="k">+${w.neros} nero</span>` : ''}</td>
+    <td class="s"><b>${kfmt(w.steps)}</b></td><td>${f1(w.moving_h)} h</td><td class="c"><b>${fmt(w.gain_ft)}</b> ft</td><td>${w.adj_mph ? w.adj_mph.toFixed(2) + ' mph' : '—'}</td>
+    <td>${w.start_h != null ? hh(w.start_h) + ' – ' + hh(w.stop_h) : '—'}</td><td>${fmt(w.cum_mi)} mi · ${Math.round(w.cum_mi / tot * 100)}%</td></tr>`;
+  const full = W.filter(w => w.days === 7);
+  h += `<tr class="tot"><td colspan="3" class="l">Full weeks (${full.length}): average</td><td class="barcell t"><b>${f1(full.reduce((t, w) => t + w.miles, 0) / full.length)}</b></td><td>${f1(full.reduce((t, w) => t + w.mi_per_day, 0) / full.length)}</td>
+    <td>${W.reduce((t, w) => t + w.zeros, 0)} total</td><td>${kfmt(full.reduce((t, w) => t + w.steps, 0) / full.length)}</td><td>${f1(full.reduce((t, w) => t + w.moving_h, 0) / full.length)} h</td><td>${fmt(full.reduce((t, w) => t + w.gain_ft, 0) / full.length)} ft</td><td colspan="3"></td></tr></tbody></table></div>`;
+  $('log-weeks').innerHTML = h;
+}
+
+function renderLogStates() {
+  const S = BD.states, mxD = Math.max(...S.map(s => s.mi_per_day || 0)), mxG = Math.max(...S.map(s => s.gain_per_mi)), eMax = Math.max(...S.map(s => s.elev_high));
+  const spark = s => { const P = s.profile, w = 120, hgt = 30; return `<svg viewBox="0 0 ${w} ${hgt}" width="${w}" height="${hgt}" role="img" aria-label="Elevation sketch"><path d="M0 ${hgt} ${P.map((v, i) => `L${(i / (P.length - 1) * w).toFixed(1)} ${(hgt - v / eMax * (hgt - 2)).toFixed(1)}`).join(' ')} L${w} ${hgt} Z" fill="rgba(255,179,71,0.35)" stroke="#ffb347" stroke-width="1"/></svg>`; };
+  let h = `<p class="note">North to south, the way you walked it. A day that crossed a border is shared between the two states by miles. Pace is flat-ground equivalent, from days the phone was on; the number of days behind each figure is in brackets, so treat one or two days as a hint. Elevation comes from the trail profile; every sketch is drawn to the same height scale.</p>
+    <div class="bd-scroll"><table><thead><tr><th class="l">State</th><th class="l">In – out</th><th>Trail mi</th><th>Days</th><th class="l">Miles / day</th><th>Per hiking day</th><th>Pace</th><th>Start – stop</th><th class="l">Elevation</th><th>Low – high</th><th class="l">Climb / mile</th></tr></thead><tbody>`;
+  for (const s of S) { const sk = !s.walked_mi;
+    h += `<tr class="${sk ? 'skip' : ''}"><td><b>${esc(s.name)}</b></td><td class="l">${s.date_in ? md2(s.date_in) + ' – ' + md2(s.date_out) : 'skipped'}</td>
+      <td>${f1(s.trail_mi)}${s.skipped_mi ? `<br><span class="k">${f1(s.skipped_mi)} skipped</span>` : ''}</td><td>${sk ? '—' : f1(s.days)}${s.zeros ? `<br><span class="k">${s.zeros} zero${s.zeros > 1 ? 's' : ''}</span>` : ''}</td>
+      <td class="barcell t">${sk ? '—' : `<b>${f1(s.mi_per_day)}</b>${mbar(s.mi_per_day, mxD, '', 70)}`}</td><td>${sk ? '—' : f1(s.mi_per_hiking_day)}</td>
+      <td>${s.adj_mph ? `<b>${s.adj_mph.toFixed(2)}</b> mph <span class="k">(${s.pace_days} d)</span>` : '—'}</td><td>${s.start_h != null ? hh(s.start_h) + ' – ' + hh(s.stop_h) : '—'}</td>
+      <td class="l">${spark(s)}</td><td>${fmt(s.elev_low)} – ${fmt(s.elev_high)} ft<br><span class="k">mean ${fmt(s.elev_mean)}</span></td><td class="barcell c"><b>${s.gain_per_mi}</b> ft${mbar(s.gain_per_mi, mxG, 'c', 60)}</td></tr>`; }
+  h += '</tbody></table></div>';
+  const w = S.filter(s => s.walked_mi && s.days >= 3), fast = [...w].sort((a, b) => b.mi_per_day - a.mi_per_day), steep = [...S].sort((a, b) => b.gain_per_mi - a.gain_per_mi), pace = w.filter(s => s.pace_days >= 5).sort((a, b) => b.adj_mph - a.adj_mph);
+  h += `<ul><li>Most miles a day: <b>${esc(fast[0].name)}</b> at ${f1(fast[0].mi_per_day)}, then ${esc(fast[1].name)} at ${f1(fast[1].mi_per_day)}. Fewest: <b>${esc(fast[fast.length - 1].name)}</b> at ${f1(fast[fast.length - 1].mi_per_day)}${fast[fast.length - 1].zeros ? `, with ${fast[fast.length - 1].zeros} zero days in ${f1(fast[fast.length - 1].days)}` : ''}.</li>
+    <li>Steepest: <b>${esc(steep[0].name)}</b> at ${steep[0].gain_per_mi} ft of climb per mile; gentlest: <b>${esc(steep[steep.length - 1].name)}</b> at ${steep[steep.length - 1].gain_per_mi}.</li>
+    ${pace.length > 1 ? `<li>Fastest walking once the climb is taken out (states with 5+ measured days): <b>${esc(pace[0].name)}</b> at ${pace[0].adj_mph.toFixed(2)} mph; slowest: <b>${esc(pace[pace.length - 1].name)}</b> at ${pace[pace.length - 1].adj_mph.toFixed(2)}.</li>` : ''}
+    <li>West Virginia and the first ${f1(S.find(s => s.abbr === 'VA').skipped_mi)} miles of Virginia fall inside the Skyland skip, so they have no walking days.</li></ul>
+    <p class="note">Borders: ${esc(BD.borders_source)}. Tennessee and North Carolina are one row because the trail follows their border for most of that stretch. The Katahdin climb counts under Maine and the Approach Trail under Georgia.</p>`;
+  $('log-states').innerHTML = h;
+}
+
+function renderLogHours() {
+  const T = BD.time, A = T.all, U = BD.sustain, bars = (vals, color, lab, from, to) => { const w = 360, hgt = 120, n = to - from, bw = (w - 30) / n, mx = Math.max(...vals.slice(from, to), 1);
+    return `<svg viewBox="0 0 ${w} ${hgt + 18}" role="img" aria-label="${lab}">` + vals.slice(from, to).map((v, i) => `<rect x="${30 + i * bw + 1}" y="${hgt - v / mx * (hgt - 8)}" width="${Math.max(1, bw - 2)}" height="${v / mx * (hgt - 8)}" fill="${color}" opacity="0.9"><title>${from + i}:00 · ${fmt(v)}</title></rect>` + ((from + i) % 3 === 0 ? `<text x="${30 + i * bw + bw / 2}" y="${hgt + 13}" text-anchor="middle">${from + i}</text>` : '')).join('') + `<text x="26" y="12" text-anchor="end">${kfmt(mx)}</text><line x1="30" x2="${w}" y1="${hgt}" y2="${hgt}" stroke="#1f1a3d"/></svg>`; };
+  const tbl = (rows, first) => `<div class="bd-scroll"><table style="min-width:560px"><thead><tr><th class="l">${first}</th><th>Days</th><th>Miles</th><th>Moving</th><th>Pace</th><th>Next day</th><th>Next 3 days</th><th>Zero within 2 days</th></tr></thead><tbody>` +
+    rows.filter(r => r.n).map(r => `<tr><td><b>${esc(r.label)}</b></td><td>${r.n}</td><td class="t"><b>${f1(r.miles)}</b></td><td>${f1(r.moving_h)} h</td><td>${r.adj_mph ? r.adj_mph.toFixed(2) + ' mph' : '—'}</td><td>${f1(r.next_day_mi)} mi</td><td>${f1(r.next3_mi)} mi/day</td><td>${r.zero_within_2 == null ? '—' : Math.round(r.zero_within_2 * 100) + '%'}</td></tr>`).join('') + '</tbody></table></div>';
+  const bm = U.by_miles.filter(r => r.n), big = bm[bm.length - 1], mid = bm.find(r => r.label === '20-25 mi') || bm[bm.length - 2], bw = U.best_weeks[0], ss = U.stretch_summary, lng = [...U.stretches].sort((a, b) => b.days - a.days)[0];
+  let h = `<div class="readout">
+      <div><span>Got going</span><strong class="c-trail">${A.start_median}:00 hour</strong><small>average ${hh(A.start_mean)}</small></div>
+      <div><span>Stopped</span><strong class="c-trail">${A.stop_median}:00</strong><small>average ${hh(A.stop_mean)}</small></div>
+      <div><span>First step to last</span><strong>${f1(A.span_h)} h</strong><small>${f1(A.active_h)} of those hours walking</small></div>
+      <div><span>Time actually moving</span><strong class="c-climb">${f1(A.moving_h)} h</strong><small>for ${f1(A.miles)} miles</small></div>
+      <div><span>Typical unbroken stretch</span><strong>${A.stretch_median} h</strong><small>longest of the day ${f1(A.longest_mean)} h</small></div>
+      <div><span>Long breaks a day</span><strong>${f1(A.breaks)}</strong><small>an hour or more off your feet</small></div>
+    </div>
+    <p class="note">${esc(T.rule)} That leaves ${A.n} days. The phone counts by the clock hour, so times are to the hour: “got going in the 6:00 hour” means first real walking between 6 and 7. A stretch ends only when a whole hour passes with under 1,000 steps, so short sit-downs do not break one. “Time actually moving” weights each hour by how much of it was walked.</p>
+    <div class="charts">
+      <div class="panel"><h3>When you walked</h3>${bars(T.hour_profile, '#3ff0ff', 'Average steps in each clock hour', 3, 23)}<p class="note">Average steps in each hour of the day.</p></div>
+      <div class="panel"><h3>Hour you got going</h3>${bars(T.start_hist, '#b6ff5c', 'Days by starting hour', 3, 12)}<p class="note">Number of days by the hour walking began.</p></div>
+      <div class="panel"><h3>Hour you stopped</h3>${bars(T.stop_hist, '#ffb347', 'Days by stopping hour', 12, 25)}<p class="note">Number of days by the hour walking ended.</p></div>
+      <div class="panel"><h3>Length of each stretch</h3>${bars(T.stretch_hist, '#dcd8ff', 'Unbroken stretches by length in hours', 1, 15)}<p class="note">How many unbroken stretches lasted each number of hours.</p></div>
+    </div>
+    <h3>Month by month</h3>
+    <div class="bd-scroll"><table style="min-width:620px"><thead><tr><th class="l">Month</th><th>Days</th><th>Got going</th><th>Stopped</th><th>First to last</th><th>Hours walking</th><th>Moving</th><th>Typical stretch</th><th>Miles</th><th>Pace</th></tr></thead><tbody>` +
+    T.by_month.map(m => `<tr><td><b>${MON[+m.month.slice(5) - 1]}</b></td><td>${m.n}</td><td>${hh(m.start_mean)}</td><td>${hh(m.stop_mean)}</td><td>${f1(m.span_h)} h</td><td>${f1(m.active_h)}</td><td>${f1(m.moving_h)} h</td><td>${m.stretch_median} h</td><td class="t"><b>${f1(m.miles)}</b></td><td>${m.adj_mph ? m.adj_mph.toFixed(2) + ' mph' : '—'}</td></tr>`).join('') + `</tbody></table></div>
+    <h3>What held up</h3>
+    <ul>
+      <li><b>${esc(mid.label)} days were the repeatable ones:</b> ${mid.n} of them, at ${mid.adj_mph ? mid.adj_mph.toFixed(2) : '—'} mph, and the next three days still averaged ${f1(mid.next3_mi)} miles.</li>
+      <li><b>${esc(big.label)} days cost the day after:</b> the next day averaged ${f1(big.next_day_mi)} miles, and ${Math.round(big.zero_within_2 * 100)}% were followed by a zero within two days.</li>
+      <li><b>Your best seven days in a row:</b> ${f1(bw.miles)} miles starting ${md2(bw.start)}, with no zero, a longest day of ${f1(bw.max_day)} and a shortest of ${f1(bw.min_day)}, on ${f1(bw.moving_h)} moving hours a day.</li>
+      <li><b>Between zeros</b> you typically went ${ss.median_days} days (longest ${lng.days}, ${md2(lng.start)} to ${md2(lng.end)}, at ${f1(lng.mi_per_day)} miles a day).</li>
+    </ul>
+    <h3>By the day's miles</h3>${tbl(U.by_miles, 'That day')}
+    <h3>By hours moving</h3>${tbl(U.by_hours, 'Moving time')}
+    <h3>By the hour you got going</h3>${tbl(U.by_start, 'Started')}
+    <p class="note">“Next day” and “next 3 days” are the miles that followed a day of that kind, zeros included. Pace and moving time use only the days the phone was on, so the day counts differ between tables.</p>`;
+  $('log-hours').innerHTML = h;
 }
 
 function drawLog() {
@@ -970,7 +1087,7 @@ function drawLog() {
   const [g, w, h] = setup($('logcv')), { n, pw, bw } = logGeom('logcv'), ph = h - LL.top - LL.bottom, D = LG.days;
   let mx = 0; D.forEach(x => { mx = Math.max(mx, x.log_miles || 0, phoneCmp(x) || 0); }); mx = Math.ceil(mx / 10) * 10;
   const Y = v => LL.top + ph - v / mx * ph;
-  yAxis(g, pw, ph, mx, 10, ''); monthAxis(g, w, h, ph, bw); selMark(g, ph, bw);
+  yAxis(g, pw, ph, mx, 10, ''); monthAxis(g, w, h, ph, bw); stateBands(g, ph, bw); selMark(g, ph, bw);
   const gap = bw > 4 ? 1 : 0.3;
   D.forEach((x, k) => {
     const X = LL.left + k * bw + gap / 2, W = Math.max(1, bw - gap), L = x.log_miles, P = phoneCmp(x), on = x.di === sel;
@@ -1011,7 +1128,7 @@ function drawCum() {
   if (!LG) return;
   const [g, w, h] = setup($('cumcv')), { pw, bw } = logGeom('cumcv'), ph = h - LL.top - LL.bottom, D = LG.days, [Mi, Ov] = cumSeries();
   const mx = Math.ceil(Math.max(Mi[Mi.length - 1], Ov[Ov.length - 1]) / 100) * 100, Y = v => LL.top + ph - v / mx * ph, X = k => LL.left + (k + 1) * bw;
-  yAxis(g, pw, ph, mx, 100, ''); monthAxis(g, w, h, ph, bw); selMark(g, ph, bw);
+  yAxis(g, pw, ph, mx, 100, ''); monthAxis(g, w, h, ph, bw); stateBands(g, ph, bw); selMark(g, ph, bw);
   for (let k = 0; k < D.length; k++) { const ym = Y(Mi[k]), yo = Y(Ov[k]);
     g.fillStyle = Mi[k] > Ov[k] ? 'rgba(255,63,180,0.18)' : 'rgba(63,240,255,0.16)'; g.fillRect(LL.left + k * bw, Math.min(ym, yo), bw + 0.5, Math.abs(ym - yo)); }
   const line = (arr, col) => { g.beginPath(); g.moveTo(LL.left, Y(0)); arr.forEach((v, k) => g.lineTo(X(k), Y(v)));
@@ -1033,7 +1150,7 @@ function drawPace() {
   const Y = v => LL.top + ph - (v - lo) / (mx - lo) * ph;
   g.font = '10px "JetBrains Mono", monospace'; g.textBaseline = 'middle'; g.textAlign = 'right';
   for (let v = lo; v <= mx; v++) { g.fillStyle = GRIDC; g.fillRect(LL.left, Y(v), pw, 1); g.fillStyle = DIM; g.fillText(String(v), LL.left - 6, Y(v)); }
-  monthAxis(g, w, h, ph, bw); selMark(g, ph, bw);
+  monthAxis(g, w, h, ph, bw); stateBands(g, ph, bw); selMark(g, ph, bw);
   g.setLineDash([4, 4]); g.strokeStyle = 'rgba(255,255,255,0.7)'; g.lineWidth = 1; g.beginPath(); g.moveTo(LL.left, Y(flat)); g.lineTo(LL.left + pw, Y(flat)); g.stroke(); g.setLineDash([]);
   g.font = '10px "JetBrains Mono", monospace'; g.fillStyle = '#fff'; g.textAlign = 'right'; g.fillText(w < 560 ? `${flat} mph` : `${flat} mph · your stated pace`, LL.left + pw - 2, Y(flat) - 8);
   const r = Math.max(2, Math.min(3.5, bw * 0.45));
@@ -1044,7 +1161,7 @@ function drawPace() {
   g.fillStyle = DIM; g.textAlign = 'left'; g.fillText('mph', LL.left + 4, LL.top - 6);
 }
 
-const drawLogAll = () => { if (LG && logView === 'cal') { renderLogCal(); return; } drawLog(); drawCum(); drawPace(); };
+const drawLogAll = () => { if (LG && logView === 'cal') { renderLogCal(); return; } if (logView !== 'charts') return; drawLog(); drawCum(); drawPace(); };
 
 // ---------- totals
 function renderTotals() {
@@ -1119,7 +1236,9 @@ function wire() {
     drawSignal(); drawTrail(); drawDay(); }));
   if (LG) {
     document.querySelectorAll('#log-view button').forEach(b => b.addEventListener('click', () => setLogView(b.dataset.v)));
-    if (location.hash === '#trail-calendar') { setLogView('cal'); requestAnimationFrame(() => $('log-block').scrollIntoView()); }
+    $('st-toggle').addEventListener('click', () => { stOn = !stOn; $('st-toggle').setAttribute('aria-pressed', stOn); drawLogAll(); });
+    { const hv = { '#trail-calendar': 'cal', '#trail-weeks': 'weeks', '#trail-states': 'states', '#trail-hours': 'hours' }[location.hash];
+      if (hv) { setLogView(hv); requestAnimationFrame(() => $('log-block').scrollIntoView()); } }
     document.querySelectorAll('#ma-seg button').forEach(b => b.addEventListener('click', () => {
       maMode = b.dataset.ma; document.querySelectorAll('#ma-seg button').forEach(x => x.setAttribute('aria-pressed', x === b)); drawLog(); }));
     [['logcv', logTip], ['cumcv', cumTip], ['pacecv', logTip]].forEach(([id, tf]) => { const cv = $(id);

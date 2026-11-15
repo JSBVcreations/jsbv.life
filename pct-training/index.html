@@ -9,7 +9,8 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Monoton&family=Chakra+Petch:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
 <style>
 /* PCT//PREP: the training build for the Pacific Crest Trail. Same console as STEP//SONG.
-   Two views: Overview and Calendar (week rows, plan as a dashed silhouette, 2019's pre-AT days by countdown).
+   Three views: Overview, Calendar (week rows, plan as a dashed silhouette, 2019's pre-AT days by countdown) and
+   Trail weeks (training weeks before departure + trail weeks after it, AT 2019 against a PCT projection).
    Overview, top to bottom: where things stand, the plan week by week, the last six weeks by day,
    the whole year on the phone, recovery (resting heart rate, HRV, sleep), the Appalachian Trail for scale + a pace calculator, the hike log.
    Colors keep their site meaning: cyan = movement (phone), lime = trail (logged hikes),
@@ -97,6 +98,9 @@ th, td { padding: 6px 10px; border-bottom: 1px solid rgba(31,26,61,0.7); text-al
 th { position: sticky; top: 0; background: var(--panel); color: var(--dim); font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; font-size: 10px; }
 th:nth-child(-n+2), td:nth-child(-n+2) { text-align: left; }
 td:nth-child(2) { white-space: normal; min-width: 180px; color: var(--ink); }
+#tw-table td:nth-child(2), #tw-table td:nth-child(6) { white-space: nowrap; min-width: 0; } #tw-table th, #tw-table td { text-align: right; } #tw-table th:nth-child(-n+2), #tw-table td:nth-child(-n+2), #tw-table td:nth-child(5), #tw-table th:nth-child(5), #tw-table td:nth-child(6), #tw-table th:nth-child(6), #tw-table td:nth-child(9), #tw-table th:nth-child(9) { text-align: left; }
+#tw-table td.at { color: var(--trail); } #tw-table td.pc { color: var(--hot); } #tw-table td.up { color: var(--step); } #tw-table td.dn { color: var(--sound); }
+section h3 { margin: 0; font-size: var(--s-0); letter-spacing: 0.2em; text-transform: uppercase; }
 td { color: var(--dim); } td.m { color: var(--trail); }
 nav.views { display: inline-flex; border: 1px solid var(--grid); justify-self: start; }
 nav.views a { font: 600 var(--s-0)/1 var(--f-ui); letter-spacing: 0.14em; text-transform: uppercase; color: var(--dim); text-decoration: none; padding: 10px 16px; }
@@ -143,8 +147,25 @@ footer { color: var(--dim); font-size: var(--s-0); }
     <h1>PCT<span class="sl">//</span>PREP</h1>
     <p class="lede">Training for a northbound Pacific Crest Trail thru-hike that starts <b>March 1, 2027</b>. The aim is to arrive already used to 150-mile weeks under load. This page shows the <b>plan</b>, the <b>hikes logged</b> so far, what the <i>phone</i> counted all year, and how it measures up to the Appalachian Trail in 2019.</p>
     <div class="readout" id="kpis"><div id="boot">BOOTING… loading training data</div></div>
-    <nav class="views" aria-label="Views" id="views" hidden><a href="#overview" data-v="overview">Overview</a><a href="#calendar" data-v="calendar">Calendar</a></nav>
+    <nav class="views" aria-label="Views" id="views" hidden><a href="#overview" data-v="overview">Overview</a><a href="#calendar" data-v="calendar">Calendar</a><a href="#trail-weeks" data-v="trail">Trail weeks</a></nav>
   </header>
+
+  <section id="trailweeks" aria-labelledby="h-tw" data-view="trail" hidden>
+    <div class="sec-head">
+      <h2 id="h-tw">Runway and trail <small>the weeks before leaving, then the weeks on trail · 2019 against this time</small></h2>
+      <div class="legend">
+        <span><i style="border:1px dashed var(--dim)"></i>training plan</span><span><i style="background:var(--trail)"></i>hiked in training</span>
+        <span style="color:var(--sound)"><i class="line" style="border-top-style:solid"></i>2019, phone miles before the AT</span>
+        <span><i style="background:rgba(182,255,92,0.45)"></i>AT 2019 on trail</span><span style="color:var(--hot)"><i class="line"></i>PCT at the chosen pace</span>
+      </div>
+    </div>
+    <label class="sl" style="max-width:420px"><span>Finish the PCT in <b id="tw-days-o"></b></span><input type="range" id="tw-days" min="85" max="160" step="1" value="111"></label>
+    <div class="chart" id="c-tw"></div>
+    <p class="note" id="tw-note"></p>
+    <h3>Week by week on trail</h3>
+    <div class="tbl" style="max-height:none"><table id="tw-table"><thead><tr><th>Week</th><th>AT 2019</th><th>Miles</th><th>Zeros</th><th>States</th><th>PCT 2027</th><th>Miles</th><th>Mile reached</th><th>Section</th><th>PCT − AT</th></tr></thead><tbody id="tw-body"></tbody></table></div>
+    <p class="note">The PCT columns are a projection, not a plan: the chosen finish spread evenly from the start date, with no allowance for snow, resupply or zeros. Sections are the usual rough splits (desert to mile 702, Sierra to 1,092, Northern California to 1,692, Oregon to 2,147, then Washington).</p>
+  </section>
 
   <section id="calendar" aria-labelledby="h-cal" data-view="calendar" hidden>
     <div class="sec-head">
@@ -537,11 +558,44 @@ footer { color: var(--dim); font-size: var(--s-0); }
     host.replaceChildren(...tiles);
   }
 
-  function renderAll() { if (view === 'calendar') { renderCal(); return; } renderWeeks(); renderDays(); if (H) renderYear(); if (H && H.recovery) renderRec(); renderAt(); }
+  /* runway and trail: training weeks before departure + weeks on trail, 2019 against this time */
+  const PCT_SECTIONS = [[0, 'Desert'], [702, 'Sierra'], [1092, 'Northern California'], [1692, 'Oregon'], [2147, 'Washington']];
+  const sectionAt = (mi) => PCT_SECTIONS.filter((x) => mi >= x[0]).pop()[1];
+  let BDW; // week rows from the AT breakdown (states per week); optional
+  async function renderTrail() {
+    if (BDW === undefined) { try { const r = await fetch('../step-song/data/at2019-breakdown.json', { cache: 'no-cache' }); BDW = r.ok ? (await r.json()).weeks : null; } catch (e) { BDW = null; } if (view !== 'trail') return; }
+    const days = +$('#tw-days').value, perDay = P.trail_miles / days, perWeek = perDay * 7, nP = Math.ceil(days / 7), atW = AT.weeks, nA = atW.length, nR = Math.max(nA, nP);
+    $('#tw-days-o').textContent = `${days} days · ${n1(perWeek)} mi a week`;
+    // before departure: plan weeks end the week before the start; 2019 is binned in sevens counting back from the AT start
+    const pre = []; if (PA) for (let j = 0; j * 7 < PA.n; j++) { let sum = 0, c = 0; for (let k = j * 7 + 1; k <= Math.min(PA.n, (j + 1) * 7); k++) { sum += PA.miles[PA.n - k]; c++; } pre.push((sum / c) * 7); }
+    const nL = Math.max(W.length, pre.length), host = $('#c-tw'), width = Math.max(320, host.clientWidth || 800), max = Math.max(160, perWeek, ...atW.map((w) => w.miles)) * 1.06;
+    const f = frame(host, { height: 320, max, ticks: niceTicks(max), fmt: (t) => t }); f.s.setAttribute('aria-label', 'Weekly miles before departure and on trail, 2019 against this time');
+    const n = nL + nR, bw = f.w / n, X = (rel) => f.x0 + (rel + nL) * bw, pad = Math.min(6, bw * 0.15);
+    f.s.append(svg('line', { x1: X(0), x2: X(0), y1: f.top, y2: f.base, stroke: C.hot, 'stroke-width': 1.5 })); f.s.append(svg('text', { x: X(0) + 5, y: f.top + 10, style: `fill:${C.hot}` }, 'departure'));
+    f.s.append(svg('text', { x: X(0) - 5, y: f.top + 10, 'text-anchor': 'end' }, '◀ training')); 
+    W.forEach((w) => { const rel = w.week - W[W.length - 1].week - 1, x = X(rel);
+      if (w.target_miles) f.s.append(svg('rect', { x: x + pad, y: f.y(w.target_miles), width: bw - 2 * pad, height: f.base - f.y(w.target_miles), fill: 'rgba(138,132,184,0.10)', stroke: C.dim, 'stroke-dasharray': '3 3' }));
+      if (w.miles) f.s.append(svg('rect', { x: x + pad + 1.5, y: f.y(w.miles), width: bw - 2 * pad - 3, height: f.base - f.y(w.miles), fill: C.trail }));
+      const hit = svg('rect', { x, y: f.top, width: bw, height: f.h, class: 'hit' }); bindTip(hit, () => `<b>${-rel} week${rel === -1 ? '' : 's'} before the PCT</b><br>training week ${w.week}, ${md(day(w.start))}<br>` + (w.target_miles ? `plan ${n1(w.target_miles)} mi<br>` : '') + `hiked ${n1(w.miles)} mi` + (pre[-rel - 1] != null ? `<br><span style="color:${css('--sound')}">2019, same week before the AT: ${n1(pre[-rel - 1])} mi on the phone</span>` : '')); f.s.append(hit); });
+    if (pre.length) { let dp = ''; pre.forEach((v, j) => { dp += `${j ? 'L' : 'M'}${(X(-1 - j) + bw / 2).toFixed(1)} ${f.y(v).toFixed(1)}`; }); f.s.append(svg('path', { d: dp, fill: 'none', stroke: css('--sound'), 'stroke-width': 2 })); }
+    atW.forEach((w, i) => { const x = X(i); f.s.append(svg('rect', { x: x + pad, y: f.y(w.miles), width: bw - 2 * pad, height: f.base - f.y(w.miles), fill: C.trail, opacity: w.days < 7 ? 0.25 : 0.45 }));
+      const hit = svg('rect', { x, y: f.top, width: bw, height: f.h, class: 'hit' }); bindTip(hit, () => `<b>Trail week ${i + 1}</b><br>AT 2019, ${md(day(w.start))}: ${n1(w.miles)} mi${w.days < 7 ? ` <span class="k">(${w.days} days)</span>` : ''} · ${w.zeros} zero${w.zeros === 1 ? '' : 's'}` + (i < nP ? `<br>PCT at this pace: ${n1(Math.min(perWeek, P.trail_miles - perWeek * i))} mi` : '')); f.s.append(hit); });
+    f.s.append(svg('line', { x1: X(0), x2: X(Math.min(nR, days / 7)), y1: f.y(perWeek), y2: f.y(perWeek), stroke: C.hot, 'stroke-width': 1.5, 'stroke-dasharray': '6 5' })); f.s.append(svg('text', { x: X(Math.min(nR, days / 7)) - 4, y: f.y(perWeek) - 5, 'text-anchor': 'end', style: `fill:${C.hot}` }, `${n1(perWeek)} a week`));
+    for (let rel = -nL; rel < nR; rel++) if ((rel % 4 === 0) || rel === -1) f.s.append(svg('text', { x: X(rel) + bw / 2, y: f.base + 16, 'text-anchor': 'middle' }, rel < 0 ? String(rel) : String(rel + 1)));
+    const body = $('#tw-body'); body.replaceChildren(); let pm = 0;
+    for (let i = 0; i < nR; i++) { const a = atW[i], b = BDW && BDW[i], pMi = i < nP ? Math.min(perWeek, P.trail_miles - perWeek * i) : null, ps = addDays(startDay, i * 7); if (pMi != null) pm += pMi;
+      const diff = a && pMi != null ? pMi - a.miles : null, td = (t, cls) => el('td', { textContent: t, className: cls || '' });
+      body.append(el('tr', {}, [td(String(i + 1)), td(a ? `${md(day(a.start))}${a.days < 7 ? ` (${a.days} d)` : ''}` : '–'), td(a ? n1(a.miles) : '–', 'at'), td(a ? String(a.zeros) : '–'), td(b ? b.states.join(' · ') : '–'),
+        td(pMi != null ? `${md(ps)} – ${md(addDays(ps, Math.min(6, days - i * 7 - 1)))}` : 'done'), td(pMi != null ? n1(pMi) : '–', 'pc'), td(pMi != null ? n0(pm) : '–'), td(pMi != null ? sectionAt(pm - 0.01) : '–'), td(diff == null ? '–' : (diff >= 0 ? '+' : '−') + n1(Math.abs(diff)), diff == null ? '' : diff >= 0 ? 'up' : 'dn')])); }
+    const fullAt = atW.filter((w) => w.days === 7), over = fullAt.filter((w) => w.miles >= perWeek).length, peakW = W.reduce((b, w) => Math.max(b, w.target_miles || 0), 0);
+    $('#tw-note').textContent = `At ${days} days the PCT needs ${n1(perWeek)} miles every week for ${nP} weeks. On the AT, ${over} of ${fullAt.length} full weeks reached that; the average was ${n1(AT.avg_full_week)} and the best ${n1(AT.best_week)}. The training plan tops out at ${n1(peakW)} a week` + (pre.length ? `, where the last week before the AT in 2019 was ${n1(pre[0])} miles on the phone.` : '.') + ' Left of the line counts down to departure; right of it counts trail weeks.';
+  }
+
+  function renderAll() { if (view === 'trail') { renderTrail(); return; } if (view === 'calendar') { renderCal(); return; } renderWeeks(); renderDays(); if (H) renderYear(); if (H && H.recovery) renderRec(); renderAt(); }
   let view = 'overview';
   const HAS = { year: !!H, recovery: !!(H && H.recovery) };
   function route() {
-    view = location.hash === '#calendar' ? 'calendar' : 'overview';  // any other hash (e.g. #recovery) is the overview
+    view = location.hash === '#calendar' ? 'calendar' : location.hash === '#trail-weeks' ? 'trail' : 'overview';  // any other hash (e.g. #recovery) is the overview
     for (const sec of document.querySelectorAll('section[data-view]')) sec.hidden = sec.dataset.view !== view || HAS[sec.id] === false;
     for (const a of $('#views').children) { if (a.dataset.v === view) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); }
     renderAll();
@@ -549,6 +603,7 @@ footer { color: var(--dim); font-size: var(--s-0); }
   renderKpis(); renderWeekCard(); renderLog(false);
   $('#views').hidden = false; addEventListener('hashchange', route); route();
   $('#cal-fill').addEventListener('click', (ev) => { const b = ev.target.closest('button'); if (!b) return; calFill = b.dataset.k; for (const x of $('#cal-fill').children) x.setAttribute('aria-pressed', String(x === b)); renderCal(); });
+  $('#tw-days').addEventListener('input', () => { if (view === 'trail') renderTrail(); });
   if (!PA) $('#cal-pre').parentElement.hidden = true;
   $('#cal-pre').addEventListener('click', () => { calPre = !calPre; $('#cal-pre').setAttribute('aria-pressed', String(calPre)); renderCal(); });
   $('#year-seg').addEventListener('click', (ev) => { const b = ev.target.closest('button'); if (!b) return; yearKey = b.dataset.k; for (const x of $('#year-seg').children) x.setAttribute('aria-pressed', String(x === b)); renderYear(); });
