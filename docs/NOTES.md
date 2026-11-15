@@ -213,7 +213,7 @@ Rule: a page should be about a screen or two tall per tab. Long pages get tabs, 
     Treasure Hunters mini = 43). The export's "Past Seasons" gives Wins, seasonLevel, bookLevel (battle pass), seasonXp
     and purchasedVIP; nothing for the season in progress. `SUPPLEMENT` fills Chapter 1 and seasons missing from the
     calendar from Epic's public season history.
-  - Chart: one bar per season, as wide as the season ran, coloured by chapter; LEVEL / WINS / WINS-PER-WEEK / BATTLE PASS;
+  - Chart: one bar per season, as wide as the season ran, coloured by chapter; LEVEL / WINS / WINS-PER-WEEK (battle pass dropped: it tracks level and capped at 100 in older seasons);
     "All, from 2017" squeezes the 2019–21 gap.
   - Root Data page: the Video games card (`gamesCard()`), not a daily.json dataset (seasons aren't day-grain).
   - Next: PlayStation trophies as another tab (PSNProfiles has no API; Sony's unofficial API takes an NPSSO token).

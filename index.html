@@ -1161,7 +1161,7 @@ nav.ptabs.inview { margin-top: -4px; }
     const sum = (a, k) => a.reduce((t, s) => t + (s[k] || 0), 0);
     return el('div', { className: 'card' }, [
       el('h3', { text: 'Video games' }),
-      el('p', { text: 'Fortnite season by season on the season calendar: level, wins and battle pass. PlayStation trophies next.' }),
+      el('p', { text: 'Fortnite season by season on the season calendar: level and wins. PlayStation trophies next.' }),
       el('dl', {}, DV.span === 'year'
         ? [el('dt', { text: 'Seasons ended in ' + yr }), el('dd', { text: String(inYr.length) }), el('dt', { text: 'Wins' }), el('dd', { text: num(sum(inYr, 'wins')) }),
            el('dt', { text: 'Levels' }), el('dd', { text: num(sum(inYr, 'level')) }), el('dt', { text: 'Source' }), el('dd', { text: 'Epic Games data export + season calendar' })]

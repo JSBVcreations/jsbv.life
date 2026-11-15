@@ -8,11 +8,11 @@
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="JSBV.LIFE">
 <meta property="og:title" content="Video games · JSBV.LIFE">
-<meta property="og:description" content="Every Fortnite season since 2017 on its calendar: level, wins and battle pass, season by season.">
+<meta property="og:description" content="Every Fortnite season since 2017 on its calendar: level and wins, season by season.">
 <meta property="og:url" content="https://jsbv.life/games/">
 <meta property="og:image" content="https://jsbv.life/og.png">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="description" content="Every Fortnite season since 2017 on its calendar: level, wins and battle pass, season by season.">
+<meta name="description" content="Every Fortnite season since 2017 on its calendar: level and wins, season by season.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="../assets/site.css">
@@ -58,8 +58,8 @@ h2 { margin: 0; font: 700 var(--s-2)/1.2 var(--f-ui); letter-spacing: 0.18em; te
 .chart svg { display: block; width: 100%; height: auto; }
 .chart text { font: 400 11px var(--f-data); fill: var(--dim); }
 .chart .lab { fill: var(--ink); }
-.chart rect.s { cursor: pointer; }
-.chart rect.s:hover, .chart rect.s.on { stroke: var(--hot); stroke-width: 1.5; }
+.chart rect.hit { cursor: pointer; outline: none; }
+.chart rect.s.on { stroke: var(--hot); stroke-width: 1.5; }
 .read { font-family: var(--f-data); font-size: var(--s-0); color: var(--ink); min-height: 3em; }
 .read b { color: var(--hot); }
 .scroll { overflow-x: auto; }
@@ -77,7 +77,7 @@ footer { font-family: var(--f-data); font-size: var(--s-0); color: var(--dim); }
   <header>
     <nav class="site" data-here="data" data-crumb="Video games"></nav>
     <h1 style="margin-top:14px">VIDEO<span>//GAMES</span></h1>
-    <p class="lede">Fortnite, season by season, laid on the season calendar: the level, wins and battle pass each season ended on. Most of it starts with Chapter 3 at the end of 2021; a handful of 2018 matches came first. PlayStation trophies are next.</p>
+    <p class="lede">Fortnite, season by season, laid on the season calendar: the level and wins each season ended on. Most of it starts with Chapter 3 at the end of 2021; a handful of 2018 matches came first. PlayStation trophies are next.</p>
   </header>
   <p class="note" id="err" hidden>Data failed to load.</p>
   <div class="readout">
@@ -95,13 +95,13 @@ footer { font-family: var(--f-data); font-size: var(--s-0); color: var(--dim); }
     <h2>Fortnite, on the season calendar</h2>
     <div class="ctl" id="ctl">
       <button data-m="level" aria-pressed="true">LEVEL</button><button data-m="wins" aria-pressed="false">WINS</button>
-      <button data-m="wpw" aria-pressed="false">WINS / WEEK</button><button data-m="bp_level" aria-pressed="false">BATTLE PASS</button>
+      <button data-m="wpw" aria-pressed="false">WINS / WEEK</button>
       <span class="gap"></span>
       <button data-span="recent" aria-pressed="true">SINCE CHAPTER 3</button><button data-span="all" aria-pressed="false">ALL, FROM 2017</button>
     </div>
     <div class="chart" id="chart"></div>
     <div class="read" id="read" aria-live="polite">Each bar is one season, as wide as the season ran. Hover or tap one.</div>
-    <p class="note">Level, wins and battle pass level are where each season ended, from Epic's data export. Epic records nothing for the season in progress until it ends. Season names, dates and themes come from my season calendar; Chapter 1 and the latest seasons are filled in from Epic's public season history.</p>
+    <p class="note">Level and wins are where each season ended, from Epic's data export. Epic records nothing for the season in progress until it ends. Season names, dates and themes come from my season calendar; Chapter 1 and the latest seasons are filled in from Epic's public season history.</p>
   </section>
   <section data-tab="seasons">
     <h2>Season by season</h2>
@@ -131,19 +131,19 @@ footer { font-family: var(--f-data); font-size: var(--s-0); color: var(--dim); }
   $('#r-seasons').textContent = played.length; $('#r-wins').textContent = n0(D.totals.wins); $('#r-levels').textContent = n0(D.totals.levels);
   $('#r-best').textContent = best ? `${best.name}, level ${best.level}` : '—'; $('#r-now').textContent = cur ? `${cur.name}` : '—';
   const CH_COL = { 'Chapter 1': '#6b6880', 'Chapter 3': '#3ff0ff', 'Chapter 4': '#b6ff5c', 'Chapter 5': '#ffb347', 'Chapter 6': '#ff3fb4', 'Chapter 7': '#9b7bff' };
-  const M = { level: ['Level', 'level'], wins: ['Wins', 'wins'], wpw: ['Wins per week', 'wins / week'], bp_level: ['Battle pass level', 'battle pass'] };
+  const M = { level: ['Level', 'level'], wins: ['Wins', 'wins'], wpw: ['Wins per week', 'wins / week'] };
   const V = { m: 'level', span: 'recent', on: null };
 
   function readOf(s) {
     const weeks = ((s.b - s.a + 1) / 7).toFixed(1);
     if (!s.level) return `<b>${s.chapter} ${s.season}: ${s.name}</b> · ${fmt(s.start)} – ${s.end ? fmt(s.end) : 'now'}${s.current ? ' · in progress, no stats until it ends' : ' · not played'}`;
     return `<b>${s.chapter} ${s.season}: ${s.name}</b> · ${fmt(s.start)} – ${s.end ? fmt(s.end) : 'now'} (${weeks} weeks)<br>`
-      + `Level ${s.level} · ${s.wins} wins (${s.wpw.toFixed(1)} a week) · battle pass ${s.bp_level ?? '—'}${s.paid ? ' · bought the pass' : ''}${s.theme ? ' · ' + s.theme : ''}`;
+      + `Level ${s.level} · ${s.wins} wins (${s.wpw.toFixed(1)} a week)${s.theme ? ' · ' + s.theme : ''}`;
   }
   function draw() {
     const host = $('#chart'), W = host.clientWidth; if (W < 80) return;
     const rows = S.filter((s) => V.span === 'all' || s.a >= day('2021-12-01'));
-    const H = W < 560 ? 260 : 320, padL = 40, padR = 12, top = 30, bot = 26, ih = H - top - bot;
+    const H = W < 560 ? 270 : 330, padL = 40, padR = 12, top = 40, bot = 26, ih = H - top - bot;
     const x0 = Math.min(...rows.map((s) => s.a)), x1 = Math.max(...rows.map((s) => s.b));
     // On "all", squeeze the empty 2019–2021 gap so 2018 doesn't take half the width.
     const gapA = day('2019-03-15'), gapB = day('2021-11-15'), squeeze = V.span === 'all';
@@ -166,6 +166,7 @@ footer { font-family: var(--f-data); font-size: var(--s-0); color: var(--dim); }
       svg.append(sv('line', { x1: padL, x2: W - padR, y1: Y(v), y2: Y(v), stroke: '#1f1a3d' }));
       svg.append(sv('text', { x: padL - 6, y: Y(v) + 4, 'text-anchor': 'end' }, [document.createTextNode(step < 1 ? v.toFixed(1) : String(v))]));
     }
+    svg.append(sv('text', { x: padL, y: 12, fill: '#dcd8ff' }, [document.createTextNode(M[V.m][0].toUpperCase() + ' AT SEASON END')]));
     // years along the bottom
     for (let y = new Date(x0 * 864e5).getUTCFullYear() + 1; y <= new Date(x1 * 864e5).getUTCFullYear(); y++) {
       const d = day(`${y}-01-01`); if (squeeze && d > gapA && d < gapB) continue;
@@ -182,7 +183,7 @@ footer { font-family: var(--f-data); font-size: var(--s-0); color: var(--dim); }
         g.append(sv('rect', { class: 's' + (V.on === s ? ' on' : ''), x, y: Y(v), width: w, height: top + ih - Y(v), fill: col, 'fill-opacity': 0.75 }));
         if (w > 30) g.append(sv('text', { class: 'lab', x: x + w / 2, y: Y(v) - 4, 'text-anchor': 'middle' }, [document.createTextNode(V.m === 'wpw' ? v.toFixed(1) : String(v))]));
       }
-      g.append(sv('rect', { x, y: top, width: w, height: ih, fill: 'transparent', class: 's', tabindex: 0, role: 'button', 'aria-label': `${s.chapter} ${s.season} ${s.name}` }));
+      g.append(sv('rect', { x, y: top, width: w, height: ih, fill: 'transparent', class: 'hit', tabindex: 0, role: 'button', 'aria-label': `${s.chapter} ${s.season} ${s.name}` }));
       const pick = () => { V.on = s; $('#read').innerHTML = readOf(s); for (const r of svg.querySelectorAll('rect.on')) r.classList.remove('on'); g.firstChild.classList.add('on'); };
       g.addEventListener('mouseenter', pick); g.addEventListener('click', pick); g.addEventListener('focusin', pick);
       svg.append(g);
@@ -191,17 +192,17 @@ footer { font-family: var(--f-data); font-size: var(--s-0); color: var(--dim); }
     host.replaceChildren(svg);
   }
   function table() {
-    const head = ['Season', 'Name', 'Dates', 'Weeks', 'Level', 'Wins', 'Wins / wk', 'Battle pass'];
+    const head = ['Season', 'Name', 'Dates', 'Weeks', 'Level', 'Wins', 'Wins / wk'];
     const maxL = Math.max(...played.map((s) => s.level));
     const rows = [], tr = (cells, cls) => { const r = document.createElement('tr'); if (cls) r.className = cls; for (const c of cells) { const td = document.createElement('td'); if (c instanceof Node) td.append(c); else td.textContent = c; r.append(td); } return r; };
     let ch = null;
     for (const s of [...S].reverse()) {
-      if (s.chapter !== ch) { ch = s.chapter; const r = tr([ch, '', '', '', '', '', '', ''], 'ch'); rows.push(r); }
+      if (s.chapter !== ch) { ch = s.chapter; const r = tr([ch, '', '', '', '', '', ''], 'ch'); rows.push(r); }
       const lv = document.createElement('span');
       if (s.level) { const b = document.createElement('i'); b.className = 'b'; b.style.width = Math.round(60 * s.level / maxL) + 'px'; lv.append(b); }
       lv.append(s.level ? String(s.level) : (s.current ? 'in progress' : '—'));
       rows.push(tr([s.season.replace('Season ', 'S').replace('Mini S', 'Mini '), s.name, `${fmt(s.start)} – ${s.end ? fmt(s.end) : 'now'}`, ((s.b - s.a + 1) / 7).toFixed(0),
-        lv, s.wins ?? '—', s.wpw != null && s.level ? s.wpw.toFixed(1) : '—', s.bp_level ?? '—']));
+        lv, s.wins ?? '—', s.wpw != null && s.level ? s.wpw.toFixed(1) : '—']));
     }
     const th = document.createElement('thead'), hr = document.createElement('tr');
     for (const h of head) { const c = document.createElement('th'); c.textContent = h; hr.append(c); }
