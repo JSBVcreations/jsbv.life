@@ -206,6 +206,21 @@ Rule: a page should be about a screen or two tall per tab. Long pages get tabs, 
   to open.spotify.com. Full tracks only when the visitor is signed in to Spotify; otherwise 30-second previews.
 - Linked from the AT card in `renderTrails()` and the trail log's view switcher in STEP//SONG.
 
+## VIDEO//GAMES (games/) and Smoking (Nov 15, 2026)
+- `games/index.html` (Data › Video games; tabs fortnite · seasons) reads `games/data/fortnite.json`, written by
+  `scripts/build_fortnite.py <Epic export .pdf> <Fortnite-Library-Manager.numbers>`.
+  - Epic numbers seasons straight through (`INTERNAL` maps Chapter/Season → number: Ch3 S1 = 19 … Ch7 S4 = 42,
+    Treasure Hunters mini = 43). The export's "Past Seasons" gives Wins, seasonLevel, bookLevel (battle pass), seasonXp
+    and purchasedVIP; nothing for the season in progress. `SUPPLEMENT` fills Chapter 1 and seasons missing from the
+    calendar from Epic's public season history.
+  - Chart: one bar per season, as wide as the season ran, coloured by chapter; LEVEL / WINS / WINS-PER-WEEK / BATTLE PASS;
+    "All, from 2017" squeezes the 2019–21 gap.
+  - Root Data page: the Video games card (`gamesCard()`), not a daily.json dataset (seasons aren't day-grain).
+  - Next: PlayStation trophies as another tab (PSNProfiles has no API; Sony's unofficial API takes an NPSSO token).
+- Smoking: `jsbv data/2026-fall-smoking.xlsx` (tabs How to · Log · Pouches · Summary). `build_smoking_log.py` reads Log's
+  Date, Time, Type → `meta-log/data/smoking.json` (total, cigarettes, spliffs, first_h = hour of the day's first smoke;
+  time-of-day dim). Folded into daily.json; dashboard umbrella "Smoking"; DIR blurb. An empty log writes nothing.
+
 ## Site-wide housekeeping (audit of Nov 14, 2026)
 - Every real page carries a favicon link (`favicon.svg` at the root, relative path), `theme-color`, and Open Graph tags
   pointing at `https://jsbv.life/og.png` (1200×630, made from the site fonts). A new page needs the same block after its

@@ -9,5 +9,7 @@ meta-log/data/life.private.json
 # source workbooks stay out of the repo (the watch list names people)
 *.xlsx
 *.numbers
+# data exports (the Epic Games export holds account details, IPs and purchases)
+*.pdf
 # python bytecode from the scripts folder
 __pycache__/

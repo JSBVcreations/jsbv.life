@@ -20,6 +20,7 @@ Jack's personal data site: a decade of steps, music, photos and trail logs, plus
 | `pct-training/` | PCT//PREP: plan · calendar · days · recovery · pace · trail-weeks | `training.json` (`build_pct_training.py`) from plan.json, activities.json (Strava), Health export |
 | `step-song/` | STEP//SONG: decade · trail (AT log, weeks, states, hours, calendar) · day · cuts | `build_step_song.py`, `build_at_log.py`, `build_at_breakdown.py` |
 | `trail/` | TRAIL//RADIO: AT 2019 songs by stretch, Spotify iFrame player | `build_trail_radio.py` |
+| `games/` | Video games (under Data): fortnite (season timeline) · seasons (table). PSN trophies planned | `games/data/fortnite.json` (`build_fortnite.py`) from the Epic export PDF + season calendar workbook |
 | `photo-library/` | PHOTO//SORT: overview · captured · worklog · space · lightroom | tracker scripts in `~/Documents/01-Projects/photo-library-tracker` |
 | `assets/site.js`, `assets/site.css` | Shared nav, breadcrumbs, page tabs | — |
 | `scripts/update.py`, `Update jsbv.command` | One-click refresh of every source | — |
@@ -33,7 +34,10 @@ Jack's personal data site: a decade of steps, music, photos and trail logs, plus
 - Health: only the files in `build_health_log.py`'s `MOVE` + `VITALS` maps (movement, heart rate, HRV, sleep) are read. Anything else is Jack's call.
 - Strava: titles and numbers only. No descriptions, GPS tracks, or the home loop's location.
 - Photos: counts and GB only. No file names, album names or ids.
-- `meta-log/data/life.private.json` stays git-ignored. Raw workbooks (`*.xlsx`, `*.csv`, `*.numbers`) are git-ignored.
+- Epic Games export (PDF: email, name, IPs, devices, linked accounts, a card purchase): only the "Past Seasons" stats are read.
+  The season calendar's Notes / Group Chat columns name friends and are never read.
+- Smoking log: date, time and type only; the Note column is never read. Public for now by Jack's choice (accounts later).
+- `meta-log/data/life.private.json` stays git-ignored. Raw workbooks and exports (`*.xlsx`, `*.csv`, `*.numbers`, `*.pdf`) are git-ignored.
 
 ## Jack's standing preferences for the site
 - Pages are tabbed, about one or two screens per tab, with no long scrolling. Hashes deep-link to tabs.

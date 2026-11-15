@@ -902,9 +902,10 @@ nav.ptabs.inview { margin-top: -4px; }
     ['watching', 'Watching', '#9b7bff', [['watch', 'minutes'], ['watch', 'movies'], ['watch', 'episodes']]],
     ['calls', 'Calls', '#ffb347', [['calls', 'minutes'], ['calls', 'calls']]],
     ['breath', 'Breathwork', '#4fe0c0', [['breath', 'sessions'], ['breath', 'minutes'], ['breath', 'avg_hold']]],
+    ['smoking', 'Smoking', '#ff7a59', [['smoking', 'total'], ['smoking', 'cigarettes'], ['smoking', 'spliffs'], ['smoking', 'first_h']]],
     ['photos', 'Photos', '#ffb347', [['photos', 'items'], ['photos', 'gb']]],
   ].map(([id, name, color, ms]) => ({ id, name, color, ms: ms.filter(([d, m]) => DS[d] && DS[d].grain === 'day' && metricOf(d, m)) })).filter((g) => g.ms.length);
-  const PER_DAY = new Set(['move:steps', 'move:miles', 'move:elev', 'exercise:minutes', 'music:minutes', 'watch:minutes']);
+  const PER_DAY = new Set(['move:steps', 'move:miles', 'move:elev', 'exercise:minutes', 'music:minutes', 'watch:minutes', 'smoking:total', 'smoking:cigarettes', 'smoking:spliffs']);
   const yearStart = (i) => d2i(`${YR[i]}-01-01`);
   const RC = { at: {}, built: false };
   function slideOf(g, k) {
@@ -1142,6 +1143,7 @@ nav.ptabs.inview { margin-top: -4px; }
     watch: { blurb: 'Movies and TV watched this year, with the covers.', links: [['#watched', 'Open the poster wall']] },
     calls: { blurb: 'Phone calls by count, length and time of day. Not who they were with.', links: [] },
     breath: { blurb: 'Wim Hof breathing sessions: rounds per sitting and how long each breath was held.', links: [] },
+    smoking: { blurb: 'Every cigarette and spliff since Oct 9, 2026, logged by hand with the time. Counts per day and by time of day.', links: [] },
   };
   const HIDE_IN_DATA = new Set(['trail']);               // lives under Highlights
   const totalIn = (dsId, mId, a, b) => { const L = asLine(dsId, mId); if (!L) return null; let t = 0;
@@ -1150,7 +1152,26 @@ nav.ptabs.inview { margin-top: -4px; }
     ? el('button', { type: 'button', text: label + ' ▶', onclick: to }) : el('a', { href: to, text: label + ' ▶' })));
   const longDate = (i) => { const s = iso(i); return `${MON[+s.slice(5, 7) - 1]} ${+s.slice(8, 10)}, ${s.slice(0, 4)}`; };
   const DV = { span: 'year' };   // Data cards total this year by default; 'all' = everything on record
+  // Video games: season-grain data with its own page (games/), so it gets a card here rather than a daily.json dataset.
+  let GAMES;
+  async function gamesCard() {
+    if (GAMES === undefined) { try { const r = await fetch('games/data/fortnite.json', { cache: 'no-cache' }); GAMES = r.ok ? await r.json() : null; } catch (e) { GAMES = null; } }
+    if (!GAMES) return null;
+    const S = GAMES.seasons, played = S.filter((s) => s.level), yr = String(lastYear), inYr = played.filter((s) => (s.end || s.start).slice(0, 4) === yr);
+    const sum = (a, k) => a.reduce((t, s) => t + (s[k] || 0), 0);
+    return el('div', { className: 'card' }, [
+      el('h3', { text: 'Video games' }),
+      el('p', { text: 'Fortnite season by season on the season calendar: level, wins and battle pass. PlayStation trophies next.' }),
+      el('dl', {}, DV.span === 'year'
+        ? [el('dt', { text: 'Seasons ended in ' + yr }), el('dd', { text: String(inYr.length) }), el('dt', { text: 'Wins' }), el('dd', { text: num(sum(inYr, 'wins')) }),
+           el('dt', { text: 'Levels' }), el('dd', { text: num(sum(inYr, 'level')) }), el('dt', { text: 'Source' }), el('dd', { text: 'Epic Games data export + season calendar' })]
+        : [el('dt', { text: 'Seasons played' }), el('dd', { text: String(played.length) }), el('dt', { text: 'Wins' }), el('dd', { text: num(GAMES.totals.wins) }),
+           el('dt', { text: 'Levels' }), el('dd', { text: num(GAMES.totals.levels) }), el('dt', { text: 'Source' }), el('dd', { text: 'Epic Games data export + season calendar' })]),
+      linkRow([['games/', 'Open Video games'], ['games/#seasons', 'Season table']]),
+    ]);
+  }
   function renderData() {
+    gamesCard().then((c) => { const host = $('#d-cards'); host.querySelector('.card.games')?.remove(); if (c) { c.classList.add('games'); host.append(c); } });
     $('#d-span').replaceChildren(...[['year', String(lastYear)], ['all', 'ALL TIME']].map(([v, label]) => el('button', { type: 'button', text: label, 'aria-pressed': String(DV.span === v), onclick: () => { DV.span = v; renderData(); } })));
     $('#d-cards').replaceChildren(...daily.datasets.filter((d) => !HIDE_IN_DATA.has(d.id)).map((ds) => {
       const info = DIR[ds.id] || { blurb: '', links: [] }, a = DV.span === 'year' ? Math.max(ds.offset, d2i(`${lastYear}-01-01`)) : ds.offset, inSpan = a <= ds.end;

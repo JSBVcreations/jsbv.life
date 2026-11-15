@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Video games · JSBV.LIFE</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<meta name="theme-color" content="#07060f">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="JSBV.LIFE">
+<meta property="og:title" content="Video games · JSBV.LIFE">
+<meta property="og:description" content="Every Fortnite season since 2017 on its calendar: level, wins and battle pass, season by season.">
+<meta property="og:url" content="https://jsbv.life/games/">
+<meta property="og:image" content="https://jsbv.life/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="description" content="Every Fortnite season since 2017 on its calendar: level, wins and battle pass, season by season.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="../assets/site.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Monoton&family=Chakra+Petch:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Video games. Data: games/data/fortnite.json (scripts/build_fortnite.py: Epic export "Past Seasons" + the season calendar).
+   Tabs (assets/site.js): Fortnite (season timeline), Seasons (table). PlayStation trophies come later as their own tab. */
+:root {
+  color-scheme: dark;
+  --void: #07060f; --panel: #0d0b1c; --grid: #1f1a3d; --ink: #dcd8ff; --dim: #8a84b8;
+  --step: #3ff0ff; --sound: #ff3fb4; --climb: #ffb347; --trail: #b6ff5c; --violet: #9b7bff; --hot: #fff;
+  --tab-accent: #9b7bff;
+  --f-display: "Monoton", "Chakra Petch", system-ui, sans-serif;
+  --f-ui: "Chakra Petch", "Segoe UI", system-ui, sans-serif;
+  --f-data: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --s-0: 0.75rem; --s-1: 0.875rem; --s-2: 1rem; --s-3: 1.25rem;
+}
+* { box-sizing: border-box; }
+html, body { background: var(--void); color: var(--ink); }
+body { margin: 0; font-family: var(--f-ui); font-size: var(--s-1); line-height: 1.5;
+  padding: 24px max(16px, env(safe-area-inset-right, 0px)) 64px max(16px, env(safe-area-inset-left, 0px));
+  background: radial-gradient(ellipse 80% 40% at 50% 0%, rgba(155,123,255,0.10), transparent 70%), var(--void); }
+body::after { content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 50;
+  background: repeating-linear-gradient(to bottom, rgba(0,0,0,0) 0 2px, rgba(0,0,0,0.18) 2px 3px); }
+.wrap { max-width: 1180px; margin: 0 auto; display: grid; gap: 28px; }
+h1 { font-family: var(--f-display); font-weight: 400; margin: 0; font-size: clamp(2.2rem, 7vw, 4.6rem); line-height: 1;
+  color: var(--hot); text-shadow: 0 0 6px var(--violet), 0 0 18px var(--violet), 0 0 42px rgba(155,123,255,0.5); }
+h1 span { text-shadow: 0 0 6px var(--step), 0 0 18px var(--step), 0 0 42px rgba(63,240,255,0.6); }
+.lede { margin: 12px 0 0; color: var(--dim); max-width: 68ch; font-size: var(--s-2); }
+.readout { display: flex; flex-wrap: wrap; gap: 8px 28px; font-family: var(--f-data); padding: 12px 0; border-block: 1px solid var(--grid); }
+.readout div { display: grid; }
+.readout span { font-size: var(--s-0); text-transform: uppercase; letter-spacing: 0.12em; color: var(--dim); font-family: var(--f-ui); }
+.readout strong { font-size: var(--s-3); font-weight: 600; font-variant-numeric: tabular-nums; }
+section { border: 1px solid var(--grid); background: var(--panel); padding: 18px; display: grid; gap: 12px; min-width: 0; }
+section > * { min-width: 0; }
+h2 { margin: 0; font: 700 var(--s-2)/1.2 var(--f-ui); letter-spacing: 0.18em; text-transform: uppercase; color: var(--hot); }
+.note { margin: 0; color: var(--dim); max-width: 80ch; }
+.ctl { display: flex; flex-wrap: wrap; gap: 8px; }
+.ctl button { font: 600 var(--s-0) var(--f-data); letter-spacing: 0.08em; color: var(--dim); background: none;
+  border: 1px solid var(--grid); padding: 6px 10px; cursor: pointer; min-height: 32px; }
+.ctl button[aria-pressed="true"] { color: var(--void); background: var(--violet); border-color: var(--violet); }
+.ctl .gap { width: 12px; }
+.chart svg { display: block; width: 100%; height: auto; }
+.chart text { font: 400 11px var(--f-data); fill: var(--dim); }
+.chart .lab { fill: var(--ink); }
+.chart rect.s { cursor: pointer; }
+.chart rect.s:hover, .chart rect.s.on { stroke: var(--hot); stroke-width: 1.5; }
+.read { font-family: var(--f-data); font-size: var(--s-0); color: var(--ink); min-height: 3em; }
+.read b { color: var(--hot); }
+.scroll { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-family: var(--f-data); font-size: var(--s-0); font-variant-numeric: tabular-nums; }
+th, td { padding: 6px 10px; border-bottom: 1px solid var(--grid); text-align: right; white-space: nowrap; }
+th { color: var(--dim); font-weight: 400; text-transform: uppercase; letter-spacing: 0.08em; position: sticky; top: 0; background: var(--panel); }
+th:nth-child(-n+3), td:nth-child(-n+3) { text-align: left; }
+tr.ch td { color: var(--violet); font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; border-bottom-color: var(--violet); }
+td .b { display: inline-block; height: 8px; background: var(--violet); vertical-align: middle; margin-right: 6px; box-shadow: 0 0 6px var(--violet); }
+footer { font-family: var(--f-data); font-size: var(--s-0); color: var(--dim); }
+[hidden] { display: none !important; }
+</style>
+<body>
+<div class="wrap">
+  <header>
+    <nav class="site" data-here="data" data-crumb="Video games"></nav>
+    <h1 style="margin-top:14px">VIDEO<span>//GAMES</span></h1>
+    <p class="lede">Fortnite, season by season, laid on the season calendar: the level, wins and battle pass each season ended on. Most of it starts with Chapter 3 at the end of 2021; a handful of 2018 matches came first. PlayStation trophies are next.</p>
+  </header>
+  <p class="note" id="err" hidden>Data failed to load.</p>
+  <div class="readout">
+    <div><span>Seasons played</span><strong id="r-seasons">—</strong></div>
+    <div><span>Wins</span><strong id="r-wins" style="color:var(--trail)">—</strong></div>
+    <div><span>Levels</span><strong id="r-levels" style="color:var(--step)">—</strong></div>
+    <div><span>Best season</span><strong id="r-best" style="color:var(--violet)">—</strong></div>
+    <div><span>Now</span><strong id="r-now">—</strong></div>
+  </div>
+  <nav class="ptabs" data-default="fortnite" aria-label="Sections of Video games">
+    <a href="#fortnite" data-tab="fortnite" data-alias="timeline">Fortnite</a>
+    <a href="#seasons" data-tab="seasons" data-alias="table">Seasons</a>
+  </nav>
+  <section data-tab="fortnite">
+    <h2>Fortnite, on the season calendar</h2>
+    <div class="ctl" id="ctl">
+      <button data-m="level" aria-pressed="true">LEVEL</button><button data-m="wins" aria-pressed="false">WINS</button>
+      <button data-m="wpw" aria-pressed="false">WINS / WEEK</button><button data-m="bp_level" aria-pressed="false">BATTLE PASS</button>
+      <span class="gap"></span>
+      <button data-span="recent" aria-pressed="true">SINCE CHAPTER 3</button><button data-span="all" aria-pressed="false">ALL, FROM 2017</button>
+    </div>
+    <div class="chart" id="chart"></div>
+    <div class="read" id="read" aria-live="polite">Each bar is one season, as wide as the season ran. Hover or tap one.</div>
+    <p class="note">Level, wins and battle pass level are where each season ended, from Epic's data export. Epic records nothing for the season in progress until it ends. Season names, dates and themes come from my season calendar; Chapter 1 and the latest seasons are filled in from Epic's public season history.</p>
+  </section>
+  <section data-tab="seasons">
+    <h2>Season by season</h2>
+    <div class="scroll"><table id="tbl"></table></div>
+  </section>
+  <footer>From Epic Games' data export (the season stats only) and a hand-kept season calendar. © Jack · jsbv.life</footer>
+</div>
+<script src="../assets/site.js"></script>
+<script>
+(async () => {
+  const $ = (s) => document.querySelector(s);
+  const NS = 'http://www.w3.org/2000/svg';
+  const sv = (tag, at, kids) => { const e = document.createElementNS(NS, tag); for (const k in at) e.setAttribute(k, at[k]); if (kids) e.append(...kids); return e; };
+  const day = (s) => Date.UTC(+s.slice(0, 4), +s.slice(5, 7) - 1, +s.slice(8, 10)) / 864e5;
+  const today = Math.floor(Date.now() / 864e5);
+  const fmt = (s) => new Date(day(s) * 864e5).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+  const n0 = (x) => x == null ? '—' : x.toLocaleString('en-US');
+  let D;
+  try { const r = await fetch('data/fortnite.json', { cache: 'no-cache' }); if (!r.ok) throw 0; D = await r.json(); }
+  catch (e) { $('#err').hidden = false; if (window.SiteTabs) SiteTabs.start(); return; }
+  const S = D.seasons.map((s) => ({ ...s, a: day(s.start), b: s.end ? day(s.end) : Math.max(today, day(s.start) + 1) }));
+  for (const s of S) s.wpw = s.wins != null ? s.wins / Math.max(1, (s.b - s.a + 1) / 7) : null;
+  const label = (s) => `${s.chapter.replace('Chapter ', 'Ch ')} · ${s.season.replace('Season ', 'S').replace('Mini S', 'Mini ')}`;
+  const played = S.filter((s) => s.level);
+  const best = played.reduce((m, s) => (s.level > m.level ? s : m), played[0]);
+  const cur = S.find((s) => s.current) || S[S.length - 1];
+  $('#r-seasons').textContent = played.length; $('#r-wins').textContent = n0(D.totals.wins); $('#r-levels').textContent = n0(D.totals.levels);
+  $('#r-best').textContent = best ? `${best.name}, level ${best.level}` : '—'; $('#r-now').textContent = cur ? `${cur.name}` : '—';
+  const CH_COL = { 'Chapter 1': '#6b6880', 'Chapter 3': '#3ff0ff', 'Chapter 4': '#b6ff5c', 'Chapter 5': '#ffb347', 'Chapter 6': '#ff3fb4', 'Chapter 7': '#9b7bff' };
+  const M = { level: ['Level', 'level'], wins: ['Wins', 'wins'], wpw: ['Wins per week', 'wins / week'], bp_level: ['Battle pass level', 'battle pass'] };
+  const V = { m: 'level', span: 'recent', on: null };
+
+  function readOf(s) {
+    const weeks = ((s.b - s.a + 1) / 7).toFixed(1);
+    if (!s.level) return `<b>${s.chapter} ${s.season}: ${s.name}</b> · ${fmt(s.start)} – ${s.end ? fmt(s.end) : 'now'}${s.current ? ' · in progress, no stats until it ends' : ' · not played'}`;
+    return `<b>${s.chapter} ${s.season}: ${s.name}</b> · ${fmt(s.start)} – ${s.end ? fmt(s.end) : 'now'} (${weeks} weeks)<br>`
+      + `Level ${s.level} · ${s.wins} wins (${s.wpw.toFixed(1)} a week) · battle pass ${s.bp_level ?? '—'}${s.paid ? ' · bought the pass' : ''}${s.theme ? ' · ' + s.theme : ''}`;
+  }
+  function draw() {
+    const host = $('#chart'), W = host.clientWidth; if (W < 80) return;
+    const rows = S.filter((s) => V.span === 'all' || s.a >= day('2021-12-01'));
+    const H = W < 560 ? 260 : 320, padL = 40, padR = 12, top = 30, bot = 26, ih = H - top - bot;
+    const x0 = Math.min(...rows.map((s) => s.a)), x1 = Math.max(...rows.map((s) => s.b));
+    // On "all", squeeze the empty 2019–2021 gap so 2018 doesn't take half the width.
+    const gapA = day('2019-03-15'), gapB = day('2021-11-15'), squeeze = V.span === 'all';
+    const t = (d) => squeeze && d > gapA ? (d >= gapB ? d - (gapB - gapA) + 60 : gapA + (d - gapA) * 60 / (gapB - gapA)) : d;
+    const X = (d) => padL + (t(d) - t(x0)) / (t(x1) - t(x0)) * (W - padL - padR);
+    const vals = rows.map((s) => s[V.m]).filter((v) => v != null), vmax = Math.max(1, ...vals) * 1.08;
+    const Y = (v) => top + ih - (v / vmax) * ih;
+    const svg = sv('svg', { viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': `${M[V.m][0]} per Fortnite season` });
+    // chapter bands + labels
+    const chs = []; for (const s of rows) { const c = chs[chs.length - 1]; if (c && c.ch === s.chapter) c.b = s.b; else chs.push({ ch: s.chapter, a: s.a, b: s.b }); }
+    chs.forEach((c, i) => {
+      svg.append(sv('rect', { x: X(c.a), y: top - 18, width: Math.max(1, X(c.b) - X(c.a)), height: ih + 18, fill: i % 2 ? '#120f26' : '#0f0c20' }));
+      const w = X(c.b) - X(c.a);
+      if (w > 36) svg.append(sv('text', { x: X(c.a) + 4, y: top - 6, fill: CH_COL[c.ch] || '#8a84b8' }, [document.createTextNode((w > 90 ? c.ch : c.ch.replace('Chapter ', 'Ch ')).toUpperCase())]));
+    });
+    if (squeeze) { const xa = X(gapA + 1), xb = X(gapB - 1); svg.append(sv('text', { x: (xa + xb) / 2, y: top + ih / 2, 'text-anchor': 'middle' }, [document.createTextNode('2019–21')])); }
+    // gridlines
+    const step = vmax > 150 ? 50 : vmax > 40 ? 10 : vmax > 8 ? 2 : 0.5;
+    for (let v = 0; v <= vmax; v += step) {
+      svg.append(sv('line', { x1: padL, x2: W - padR, y1: Y(v), y2: Y(v), stroke: '#1f1a3d' }));
+      svg.append(sv('text', { x: padL - 6, y: Y(v) + 4, 'text-anchor': 'end' }, [document.createTextNode(step < 1 ? v.toFixed(1) : String(v))]));
+    }
+    // years along the bottom
+    for (let y = new Date(x0 * 864e5).getUTCFullYear() + 1; y <= new Date(x1 * 864e5).getUTCFullYear(); y++) {
+      const d = day(`${y}-01-01`); if (squeeze && d > gapA && d < gapB) continue;
+      svg.append(sv('line', { x1: X(d), x2: X(d), y1: top + ih, y2: top + ih + 5, stroke: '#8a84b8' }));
+      svg.append(sv('text', { x: X(d), y: H - 8, 'text-anchor': 'middle' }, [document.createTextNode(String(y))]));
+    }
+    // season bars
+    for (const s of rows) {
+      const v = s[V.m], x = X(s.a) + 1, w = Math.max(2, X(s.b) - X(s.a) - 2), col = CH_COL[s.chapter] || '#8a84b8';
+      const g = sv('g', {});
+      if (v == null) {
+        g.append(sv('rect', { class: 's' + (V.on === s ? ' on' : ''), x, y: top + ih - 6, width: w, height: 6, fill: 'none', stroke: col, 'stroke-dasharray': '3 3' }));
+      } else {
+        g.append(sv('rect', { class: 's' + (V.on === s ? ' on' : ''), x, y: Y(v), width: w, height: top + ih - Y(v), fill: col, 'fill-opacity': 0.75 }));
+        if (w > 30) g.append(sv('text', { class: 'lab', x: x + w / 2, y: Y(v) - 4, 'text-anchor': 'middle' }, [document.createTextNode(V.m === 'wpw' ? v.toFixed(1) : String(v))]));
+      }
+      g.append(sv('rect', { x, y: top, width: w, height: ih, fill: 'transparent', class: 's', tabindex: 0, role: 'button', 'aria-label': `${s.chapter} ${s.season} ${s.name}` }));
+      const pick = () => { V.on = s; $('#read').innerHTML = readOf(s); for (const r of svg.querySelectorAll('rect.on')) r.classList.remove('on'); g.firstChild.classList.add('on'); };
+      g.addEventListener('mouseenter', pick); g.addEventListener('click', pick); g.addEventListener('focusin', pick);
+      svg.append(g);
+    }
+    if (today <= x1) svg.append(sv('line', { x1: X(today), x2: X(today), y1: top - 18, y2: top + ih, stroke: '#ffffff', 'stroke-dasharray': '2 3', 'stroke-opacity': 0.6 }));
+    host.replaceChildren(svg);
+  }
+  function table() {
+    const head = ['Season', 'Name', 'Dates', 'Weeks', 'Level', 'Wins', 'Wins / wk', 'Battle pass'];
+    const maxL = Math.max(...played.map((s) => s.level));
+    const rows = [], tr = (cells, cls) => { const r = document.createElement('tr'); if (cls) r.className = cls; for (const c of cells) { const td = document.createElement('td'); if (c instanceof Node) td.append(c); else td.textContent = c; r.append(td); } return r; };
+    let ch = null;
+    for (const s of [...S].reverse()) {
+      if (s.chapter !== ch) { ch = s.chapter; const r = tr([ch, '', '', '', '', '', '', ''], 'ch'); rows.push(r); }
+      const lv = document.createElement('span');
+      if (s.level) { const b = document.createElement('i'); b.className = 'b'; b.style.width = Math.round(60 * s.level / maxL) + 'px'; lv.append(b); }
+      lv.append(s.level ? String(s.level) : (s.current ? 'in progress' : '—'));
+      rows.push(tr([s.season.replace('Season ', 'S').replace('Mini S', 'Mini '), s.name, `${fmt(s.start)} – ${s.end ? fmt(s.end) : 'now'}`, ((s.b - s.a + 1) / 7).toFixed(0),
+        lv, s.wins ?? '—', s.wpw != null && s.level ? s.wpw.toFixed(1) : '—', s.bp_level ?? '—']));
+    }
+    const th = document.createElement('thead'), hr = document.createElement('tr');
+    for (const h of head) { const c = document.createElement('th'); c.textContent = h; hr.append(c); }
+    th.append(hr); const tb = document.createElement('tbody'); tb.append(...rows);
+    $('#tbl').replaceChildren(th, tb);
+  }
+  for (const b of $('#ctl').querySelectorAll('button')) b.addEventListener('click', () => {
+    const k = b.dataset.m ? 'm' : 'span'; V[k] = b.dataset[k === 'm' ? 'm' : 'span'];
+    for (const o of $('#ctl').querySelectorAll(`button[data-${k === 'm' ? 'm' : 'span'}]`)) o.setAttribute('aria-pressed', String(o === b));
+    draw(); if (V.on) $('#read').innerHTML = readOf(V.on);
+  });
+  table();
+  addEventListener('tabchange', draw); addEventListener('resize', draw);
+  if (window.SiteTabs) SiteTabs.start(); draw();
+})();
+</script>

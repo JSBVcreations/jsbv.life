@@ -37,6 +37,9 @@ HOW = {
     'watch': 'Log new titles in the watch-list workbook (YYYY-Watch-List.xlsx) and save it in "jsbv data".',
     'calls': 'Save a fresh call-log backup (YYYY-MM-Call-Log-Backup.xlsx) in "jsbv data".',
     'breath': 'Wim Hof app > export results > save export_results.numbers (or .csv) in "jsbv data".',
+    'smoking': 'Type new rows into 2026-fall-smoking.xlsx (Log tab) in "jsbv data" and save.',
+    'fortnite': 'epicgames.com > Account > Privacy > request your data; save the PDF in "jsbv data" as YYYY-MM-DD-jsbv-fortnite-data.pdf '
+                '(keep Fortnite-Library-Manager.numbers there too). Needs: pip3 install pypdf numbers-parser',
     'strava': 'Tell Claude "update Strava" (it adds new hikes to pct-training/data/activities.json), then Update again.',
     'photos': 'Automatic: each Update takes a PHOTO//SORT + Lightroom snapshot (needs the tracker folder).',
     'spotify': 'Rare: request "Extended streaming history" at spotify.com/account/privacy (arrives within ~30 days), '
@@ -123,6 +126,7 @@ def main():
         ('watch', 'Watch list', ['*Watch-List*.xlsx', '*Watch-List*.xlsm'], 'build_watch_log.py'),
         ('calls', 'Call log', ['*Call-Log*.xlsx'], 'build_call_log.py'),
         ('breath', 'Breathwork', ['export_results*.numbers', 'export_results*.csv'], 'build_breath_log.py'),
+        ('smoking', 'Smoking log', ['*smoking*.xlsx', '*smoking*.numbers'], 'build_smoking_log.py'),
     ]:
         f = newest_file(pats)
         used[key] = f
@@ -130,7 +134,11 @@ def main():
         if bad:
             print(f'  ! {label}  {short(f)}\n      skipped: {bad}. The site keeps its last good data.'); failed.append(key); continue
         if f and not run(f'{label}  {short(f)}', [py, os.path.join(S, script), f]): failed.append(key)
-    for key in ('health', 'watch', 'calls', 'breath'):
+    pdf, cal = newest_file(['*fortnite-data*.pdf', '*Epic*Games*.pdf']), newest_file(['*Fortnite-Library-Manager*.numbers'])
+    used['fortnite'] = pdf
+    if pdf and cal:
+        if not run(f'Fortnite  {short(pdf)}', [py, os.path.join(S, 'build_fortnite.py'), pdf, cal]): failed.append('fortnite')
+    for key in ('health', 'watch', 'calls', 'breath', 'smoking', 'fortnite'):
         if not used[key]: print(f'  - {key}: no export found. {HOW[key]}')
 
     print('\n2. Photos (snapshot of the library and the Lightroom catalog)')
@@ -174,10 +182,15 @@ def report(used):
         ends['strava'] = dt.date.fromisoformat(last) if last else None
     except Exception:  # noqa: BLE001
         ends['strava'] = None
+    try:
+        G = json.load(open(os.path.join(ROOT, 'games', 'data', 'fortnite.json'), encoding='utf-8'))
+        ends['fortnite'] = dt.date.fromisoformat(max(s['end'] for s in G['seasons'] if s.get('level') and s.get('end')))
+    except Exception:  # noqa: BLE001
+        ends['fortnite'] = None
     rows = [  # (label, end key, source key, days before it counts as stale; None = historic)
         ('Movement (Apple Health)', 'move', 'health', 7), ('Heart + sleep', 'body', 'health', 7),
         ('Strava hikes', 'strava', 'strava', 7), ('Watching', 'watch', 'watch', 14), ('Phone calls', 'calls', 'calls', 31),
-        ('Breathwork', 'breath', 'breath', 31), ('Photos', 'photos', 'photos', 14), ('Music (Spotify)', 'music', 'spotify', 120),
+        ('Breathwork', 'breath', 'breath', 31), ('Smoking', 'smoking', 'smoking', 7), ('Fortnite seasons', 'fortnite', 'fortnite', 120), ('Photos', 'photos', 'photos', 14), ('Music (Spotify)', 'music', 'spotify', 120),
         ('AT 2019 trail log', 'trail', None, None),
     ]
     todo = []

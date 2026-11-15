@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Build meta-log/data/daily.json: one day-indexed file joining every dataset on the site.
 
-Reads only files already in this repo (step-song/data, photo-library/data, meta-log/data/watch.json, calls.json,
+Reads only files already in this repo (step-song/data, photo-library/data, meta-log/data/watch.json, calls.json, smoking.json,
 breath.json and health.json), so it never touches raw exports.
 Run it after build_step_song.py / build_at_log.py / the photo snapshot scripts:
 
@@ -210,7 +210,7 @@ if os.path.exists(lrp):
         })
 
 # ---------------------------------------------------------------- watch log (built by scripts/build_watch_log.py)
-for extra in ('watch.json', 'calls.json', 'breath.json'):     # built by build_watch_log / build_call_log / build_breath_log
+for extra in ('watch.json', 'calls.json', 'breath.json', 'smoking.json'):   # build_watch_log / build_call_log / build_breath_log / build_smoking_log
     wp = os.path.join(OUT, extra)
     if os.path.exists(wp):
         W = load(wp); W['offset'] = day(W.pop('start'))
