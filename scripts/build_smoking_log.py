@@ -3,7 +3,9 @@
     python3 scripts/build_smoking_log.py "/path/to/2026-fall-smoking.xlsx"     # or the same file saved as .numbers
     python3 scripts/build_meta_log.py                                          # then fold it into the site
 The workbook stays OUTSIDE this repo (in "jsbv data"; *.xlsx / *.numbers are git-ignored).
-Only the Log sheet's Date, Time and Type columns are read. The Note column is never opened.
+Log sheet columns read: Year, Month, Day, Time (hhmm) and Type (or, in the older layout, Date + Time + Type).
+The Pouch / Pack and Note columns are never opened (notes can name people).
+Types: Cigarette, Spliff, Joint, Pen, Pinner, Edible.
 An .xlsx needs nothing beyond the standard library; a .numbers file needs:  pip3 install numbers-parser
 """
 import datetime as dt
@@ -18,8 +20,10 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(ROOT, 'meta-log', 'data', 'smoking.json')
 M = '{http://schemas.openxmlformats.org/spreadsheetml/2006/main}'
 R = '{http://schemas.openxmlformats.org/officeDocument/2006/relationships}'
-WANT = ('Date', 'Time', 'Type')
-TYPES = {'cigarette': 'cigarettes', 'spliff': 'spliffs'}
+TYPES = [('cigarette', 'cigarettes', 'Cigarettes', '#ffb347'), ('spliff', 'spliffs', 'Spliffs', '#ff7a59'),
+         ('joint', 'joints', 'Joints', '#b6ff5c'), ('pinner', 'pinners', 'Pinners', '#4fe0c0'),
+         ('pen', 'pens', 'Pens', '#3ff0ff'), ('edible', 'edibles', 'Edibles', '#ff3fb4')]
+KIND = {t[0]: t[1] for t in TYPES}
 TOD = [('night', 'Night 0–6', '#9b7bff'), ('morning', 'Morning 6–12', '#ffb347'),
        ('afternoon', 'Afternoon 12–18', '#3ff0ff'), ('evening', 'Evening 18–24', '#ff3fb4')]
 EPOCH = dt.datetime(1899, 12, 30)
@@ -84,6 +88,14 @@ def as_date(v):
     return dt.date(a, b, c) if a > 1000 else dt.date(c if c > 100 else 2000 + c, a, b)
 
 
+def hhmm_hour(v):
+    """24-hour hhmm typed as a number (1620, 825) or text ("0730", "16:20") -> fractional hour"""
+    if isinstance(v, (int, float)) and v == int(v) and 0 <= v <= 2359 and int(v) % 100 < 60:
+        return int(v) // 100 + (int(v) % 100) / 60
+    m = re.match(r'\s*(\d{1,2}):?(\d{2})\s*$', str(v))
+    return int(m.group(1)) + int(m.group(2)) / 60 if m and int(m.group(1)) < 24 and int(m.group(2)) < 60 else as_hour(v)
+
+
 def as_hour(v):
     """time of day as a fractional hour"""
     if isinstance(v, dt.datetime): return v.hour + v.minute / 60
@@ -102,23 +114,35 @@ def main():
     if len(sys.argv) != 2: sys.exit(__doc__)
     path = sys.argv[1]
     rows = rows_numbers(path) if path.lower().endswith('.numbers') else rows_xlsx(path)
-    head = {str(v).strip(): i for i, v in rows[0].items()}
-    cols = {k: next((i for h, i in head.items() if h.split(' ')[0] == k), None) for k in WANT}
-    if None in cols.values(): sys.exit(f'missing column(s): {[k for k, v in cols.items() if v is None]}')
+    head = {str(v).strip().lower(): i for i, v in rows[0].items()}
+    col = lambda *names: next((head[n] for n in names if n in head), None)
+    cy, cm, cd, chm, ct = col('year'), col('month'), col('day'), col('time (hhmm)', 'time hhmm', 'hhmm'), col('type')
+    cdate, ctime = col('date'), col('time')
+    split = None not in (cy, cm, cd)
+    if ct is None or not (split or cdate is not None): sys.exit(f'Log sheet needs Year/Month/Day (or Date) and Type columns; found {list(head)}')
+    blank = lambda x: x is None or str(x).strip() == ''
     events, skipped = [], 0
     for r in rows[1:]:
-        d, h, k = as_date(r.get(cols['Date'])) if r.get(cols['Date']) not in (None, '') else None, \
-            as_hour(r.get(cols['Time'])) if r.get(cols['Time']) not in (None, '') else None, \
-            TYPES.get(str(r.get(cols['Type']) or '').strip().lower())
-        if d is None and h is None and k is None: continue
+        keys = (cy, cm, cd, chm, ct) if split else (cdate, ctime, ct)
+        if all(blank(r.get(k)) for k in keys if k is not None): continue     # empty row (formula columns only)
+        if split and all(blank(r.get(k)) for k in (cd, chm, ct) if k is not None): continue   # Year/Month filled down ahead
+        try:
+            d = dt.date(int(r[cy]), int(r[cm]), int(r[cd])) if split else as_date(r.get(cdate))
+        except (KeyError, TypeError, ValueError):
+            d = None
+        if split and chm is not None and not blank(r.get(chm)): h = hhmm_hour(r[chm])
+        elif ctime is not None and not blank(r.get(ctime)): h = as_hour(r[ctime])
+        else: h = None
+        k = KIND.get(str(r.get(ct) or '').strip().lower())
         if d is None or k is None: skipped += 1; continue
         events.append((d, h, k))
     if not events:
         print('smoking  no rows with a date and a type yet; nothing written'); return
     start, end = min(e[0] for e in events), max(e[0] for e in events)
     n = (end - start).days + 1
-    v = {k: [0] * n for k in ('total', 'cigarettes', 'spliffs')}
-    tod = {k: {c: [0] * n for c, _, _ in TOD} for k in v}
+    keys = ['total'] + [t[1] for t in TYPES]
+    v = {k: [0] * n for k in keys}
+    tod = {k: {c: [0] * n for c, _, _ in TOD} for k in keys}
     first = [None] * n
     for d, h, k in events:
         i = (d - start).days
@@ -130,20 +154,18 @@ def main():
     out = {
         'id': 'smoking', 'name': 'Smoking', 'source': 'Hand-kept smoking log (index card, then spreadsheet)', 'grain': 'day',
         'start': start.isoformat(), 'n': n,
-        'note': 'Smoking: one row per cigarette or spliff, logged by hand since Oct 9, 2026. Notes stay off the site.',
-        'metrics': [
-            {'id': 'total', 'name': 'Smoked', 'unit': 'smokes', 'agg': 'sum', 'color': '#ff7a59', 'v': v['total']},
-            {'id': 'cigarettes', 'name': 'Cigarettes', 'unit': 'cigarettes', 'agg': 'sum', 'color': '#ffb347', 'v': v['cigarettes']},
-            {'id': 'spliffs', 'name': 'Spliffs', 'unit': 'spliffs', 'agg': 'sum', 'color': '#b6ff5c', 'v': v['spliffs']},
-            {'id': 'first_h', 'name': 'First smoke of the day', 'unit': 'h', 'agg': 'mean', 'color': '#9b7bff', 'v': first},
-        ],
-        'dims': [{'id': 'tod', 'name': 'Time of day', 'cats': [{'id': c, 'name': nm, 'color': col} for c, nm, col in TOD],
-                  'v': tod}],
+        'note': 'Smoking: one row per cigarette, spliff, joint, pinner, pen hit or edible, logged by hand with the time since Oct 9, 2026. Notes stay off the site.',
+        'metrics': [{'id': 'total', 'name': 'Smoking, all kinds', 'unit': 'times', 'agg': 'sum', 'color': '#ff7a59', 'v': v['total']}]
+                   + [{'id': key, 'name': label, 'unit': key, 'agg': 'sum', 'color': col, 'v': v[key]} for _, key, label, col in TYPES]
+                   + [{'id': 'first_h', 'name': 'First of the day (hour, 24h)', 'unit': 'h', 'agg': 'mean', 'color': '#9b7bff', 'v': first}],
+        'dims': [{'id': 'kind', 'name': 'Kind', 'cats': [{'id': key, 'name': label, 'color': col} for _, key, label, col in TYPES],
+                  'v': {'total': {key: v[key] for _, key, _, _ in TYPES}}},
+                 {'id': 'tod', 'name': 'Time of day', 'cats': [{'id': c, 'name': nm, 'color': col} for c, nm, col in TOD], 'v': tod}],
     }
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
     with open(OUT, 'w') as f: json.dump(out, f, separators=(',', ':'))
-    print(f'smoking  {start} → {end}  cigarettes={sum(v["cigarettes"])} spliffs={sum(v["spliffs"])}'
-          + (f'  ({skipped} rows skipped: no date or type)' if skipped else '') + f'  → {os.path.relpath(OUT, ROOT)}')
+    print(f'smoking  {start} → {end}  ' + ' '.join(f'{key}={sum(v[key])}' for _, key, _, _ in TYPES)
+          + (f'  ({skipped} row{"s" if skipped != 1 else ""} skipped: missing day or type)' if skipped else '') + f'  → {os.path.relpath(OUT, ROOT)}')
 
 
 if __name__ == '__main__':

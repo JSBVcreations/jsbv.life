@@ -37,7 +37,7 @@ HOW = {
     'watch': 'Log new titles in the watch-list workbook (YYYY-Watch-List.xlsx) and save it in "jsbv data".',
     'calls': 'Save a fresh call-log backup (YYYY-MM-Call-Log-Backup.xlsx) in "jsbv data".',
     'breath': 'Wim Hof app > export results > save export_results.numbers (or .csv) in "jsbv data".',
-    'smoking': 'Type new rows into 2026-fall-smoking.xlsx (Log tab) in "jsbv data" and save.',
+    'smoking': 'Add rows to 2026-fall-smoking.xlsx (Log tab: Year, Month, Day, Time hhmm, Type) in "jsbv data" and save.',
     'fortnite': 'epicgames.com > Account > Privacy > request your data; save the PDF in "jsbv data" as YYYY-MM-DD-jsbv-fortnite-data.pdf '
                 '(keep Fortnite-Library-Manager.numbers there too). Needs: pip3 install pypdf numbers-parser',
     'strava': 'Tell Claude "update Strava" (it adds new hikes to pct-training/data/activities.json), then Update again.',

@@ -904,10 +904,10 @@ a.more:hover, a.more:focus-visible { color: var(--trail); }
     ['watching', 'Watching', '#9b7bff', [['watch', 'minutes'], ['watch', 'movies'], ['watch', 'episodes']]],
     ['calls', 'Calls', '#ffb347', [['calls', 'minutes'], ['calls', 'calls']]],
     ['breath', 'Breathwork', '#4fe0c0', [['breath', 'sessions'], ['breath', 'minutes'], ['breath', 'avg_hold']]],
-    ['smoking', 'Smoking', '#ff7a59', [['smoking', 'total'], ['smoking', 'cigarettes'], ['smoking', 'spliffs'], ['smoking', 'first_h']]],
+    ['smoking', 'Smoking', '#ff7a59', [['smoking', 'total'], ['smoking', 'cigarettes'], ['smoking', 'spliffs'], ['smoking', 'pinners'], ['smoking', 'joints'], ['smoking', 'pens'], ['smoking', 'edibles'], ['smoking', 'first_h']]],
     ['photos', 'Photos', '#ffb347', [['photos', 'items'], ['photos', 'gb']]],
   ].map(([id, name, color, ms]) => ({ id, name, color, ms: ms.filter(([d, m]) => DS[d] && DS[d].grain === 'day' && metricOf(d, m)) })).filter((g) => g.ms.length);
-  const PER_DAY = new Set(['move:steps', 'move:miles', 'move:elev', 'exercise:minutes', 'music:minutes', 'watch:minutes', 'smoking:total', 'smoking:cigarettes', 'smoking:spliffs']);
+  const PER_DAY = new Set(['move:steps', 'move:miles', 'move:elev', 'exercise:minutes', 'music:minutes', 'watch:minutes', 'smoking:total', 'smoking:cigarettes', 'smoking:spliffs', 'smoking:pinners', 'smoking:joints', 'smoking:pens', 'smoking:edibles']);
   const yearStart = (i) => d2i(`${YR[i]}-01-01`);
   const RC = { at: {}, built: false };
   function slideOf(g, k) {
@@ -1145,7 +1145,7 @@ a.more:hover, a.more:focus-visible { color: var(--trail); }
     watch: { blurb: 'Movies and TV watched this year, with the covers.', links: [['#watched', 'Open the poster wall']] },
     calls: { blurb: 'Phone calls by count, length and time of day. Not who they were with.', links: [] },
     breath: { blurb: 'Wim Hof breathing sessions: rounds per sitting and how long each breath was held.', links: [] },
-    smoking: { blurb: 'Every cigarette and spliff since Oct 9, 2026, logged by hand with the time. Counts per day and by time of day.', links: [] },
+    smoking: { blurb: 'Every cigarette, spliff, joint, pinner, pen and edible since Oct 9, 2026, logged by hand with the time. Counts per day, by kind and by time of day.', links: [] },
   };
   const HIDE_IN_DATA = new Set(['trail', 'fortnite']);   // trail lives under Trails; fortnite under the Video games card
   const totalIn = (dsId, mId, a, b) => { const L = asLine(dsId, mId); if (!L) return null; let t = 0;
@@ -1264,7 +1264,7 @@ a.more:hover, a.more:focus-visible { color: var(--trail); }
   const E_RINGS = [['move:steps', 'Steps'], ['music:minutes', 'Music'], ['photos:items', 'Photos']].filter(([k]) => asLine(...k.split(':')));
   const E_SET = [['move', 'steps'], ['move', 'elev'], ['exercise', 'minutes'], ['body', 'resting_hr'], ['body', 'hrv'], ['body', 'sleep_h'], ['music', 'minutes'],
     ['photos', 'items'], ['watch', 'minutes'], ['calls', 'minutes'], ['breath', 'minutes'], ['fortnite', 'wins'], ['fortnite', 'level'],
-    ['smoking', 'total'], ['smoking', 'spliffs']].filter(([d, m]) => metricOf(d, m)).map(([d, m]) => ({ key: d + ':' + m, L: asLine(d, m) }));
+    ['smoking', 'total'], ['smoking', 'cigarettes'], ['smoking', 'spliffs']].filter(([d, m]) => metricOf(d, m)).map(([d, m]) => ({ key: d + ':' + m, L: asLine(d, m) }));
   const eSpan = () => { const b = Math.max(...E_SET.map((s) => s.L.off + s.L.n - 1)); return EXP.win === 'year' ? [d2i(`${YR[b]}-01-01`), b] : [Math.min(...E_SET.map((s) => s.L.off)), b]; };
   // weekly value per metric: totals become a per-day average (so a short week still compares), levels stay a mean
   function eWeekly(L, B) { return B.map((k) => { const r = sumRange(L, k.a, k.b); return L.agg === 'mean' ? (r.cnt >= 3 ? r.sum / r.cnt : null) : (r.cnt >= 5 ? r.sum / r.cnt : null); }); }

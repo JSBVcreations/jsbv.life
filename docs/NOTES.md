@@ -226,9 +226,12 @@ Rule: a page should be about a screen or two tall per tab. Long pages get tabs, 
     shorter spans; a shared changeover day carries both seasons' shares). `level` = level the season ended on (agg mean,
     same every day of the season). Wins split by chapter (`chapter` dim). The season in progress is left out until it ends.
   - Next: PlayStation trophies as another tab (PSNProfiles has no API; Sony's unofficial API takes an NPSSO token).
-- Smoking: `jsbv data/2026-fall-smoking.xlsx` (tabs How to · Log · Pouches · Summary). `build_smoking_log.py` reads Log's
-  Date, Time, Type → `meta-log/data/smoking.json` (total, cigarettes, spliffs, first_h = hour of the day's first smoke;
-  time-of-day dim). Folded into daily.json; dashboard umbrella "Smoking"; DIR blurb. An empty log writes nothing.
+- Smoking: `jsbv data/2026-fall-smoking.xlsx` (Jack's layout since Nov 15: How to · Log · Pouches & Packs · Summary).
+  Log columns: Year, Month, Day, Time (hhmm, 24-hour number), Type (Cigarette, Spliff, Joint, Pen, Pinner, Edible),
+  Pouch / Pack, Note, then formula columns Date and Time. `build_smoking_log.py` reads Year/Month/Day/Time (hhmm)/Type
+  (falls back to Date/Time/Type), never Pouch / Pack or Note, and ignores rows where only Year/Month are filled down.
+  → `meta-log/data/smoking.json`: total + one metric per kind + first_h (hour of the day's first), dims `kind` (on total)
+  and `tod`. Dashboard umbrella "Smoking", E_SET (total, cigarettes, spliffs). An empty log writes nothing.
 
 ## Site-wide housekeeping (audit of Nov 14, 2026)
 - Every real page carries a favicon link (`favicon.svg` at the root, relative path), `theme-color`, and Open Graph tags
