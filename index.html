@@ -137,7 +137,7 @@ a.title:focus-visible { outline: none; }
 .title small em { font-style: normal; color: var(--ink); }
 @media (max-width: 640px) { input[type="text"] { min-width: 0; width: 100%; } }
 /* home dashboard: two hero panels (PCT//PREP, PHOTO//SORT) over a grid of tiles. A tile is one umbrella (Activity,
-   Health, Music...) and cycles through its metrics; each slide shows the last 7 days and the last 30 side by side. */
+   Health, Music...) holding several metrics, changed only by its arrows or dots; each slide shows the last 7 days and the last 30 side by side. */
 .heroes { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 16px; }
 .hero { border: 1px solid var(--grid); background: linear-gradient(180deg, var(--panel), rgba(13,11,28,0.6)); padding: 18px; display: grid; gap: 12px; align-content: start; min-width: 0; position: relative; }
 .hero.pct { border-top: 2px solid var(--trail); } .hero.photo { border-top: 2px solid var(--climb); }
@@ -159,7 +159,7 @@ a.title:focus-visible { outline: none; }
 .tile-head h3 { margin: 0; font: 700 var(--s-2)/1.2 var(--f-ui); letter-spacing: 0.16em; text-transform: uppercase; color: var(--hot); display: flex; align-items: center; gap: 8px; }
 .tile-nav { display: flex; gap: 4px; } .tile-nav button { font: 600 var(--s-1)/1 var(--f-data); color: var(--dim); background: none; border: 1px solid var(--grid); width: 26px; height: 26px; cursor: pointer; }
 .tile-nav button:hover { color: var(--hot); border-color: var(--dim); }
-.tile-body { all: unset; box-sizing: border-box; display: grid; gap: 6px; padding: 8px 12px 10px; cursor: pointer; min-width: 0; transition: opacity 0.28s ease; }
+.tile-body { all: unset; box-sizing: border-box; display: grid; gap: 6px; padding: 8px 12px 10px; cursor: pointer; min-width: 0; transition: opacity 0.16s ease; }
 .tile-body:hover { background: rgba(220,216,255,0.03); } .tile-body:focus-visible { outline: 2px solid var(--step); outline-offset: -2px; }
 .tile-body.out { opacity: 0; }
 .tile-body .mname { font: 600 var(--s-0) var(--f-ui); letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink); }
@@ -170,7 +170,8 @@ a.title:focus-visible { outline: none; }
 .tile-body .unit { font: 400 10px var(--f-data); color: var(--dim); } .tile-body .dl { font: 400 var(--s-0) var(--f-data); color: var(--dim); } .tile-body .dl.up { color: var(--trail); } .tile-body .dl.dn { color: var(--sound); }
 .tile-body svg { display: block; width: 100%; height: 40px; }
 .tile-foot { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 0 12px 10px; font: 400 10px var(--f-data); color: var(--dim); }
-.tile-foot .stale { color: var(--climb); } .tile-dots { display: flex; gap: 5px; } .tile-dots i { width: 6px; height: 6px; border-radius: 50%; background: var(--grid); } .tile-dots i.on { background: var(--ink); }
+.tile-foot .stale { color: var(--climb); } .tile-dots { display: flex; gap: 2px; } .tile-dots button { all: unset; cursor: pointer; padding: 6px 4px; display: grid; } .tile-dots button::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--grid); }
+.tile-dots button:hover::before { background: var(--dim); } .tile-dots button.on::before { background: var(--ink); } .tile-dots button:focus-visible { outline: 2px solid var(--step); }
 @media (prefers-reduced-motion: reduce) { .tile-body { transition: none; } }
 /* experiments */
 #v-experiments .head { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; justify-content: space-between; }
@@ -227,7 +228,7 @@ a.title:focus-visible { outline: none; }
     </div>
     <section class="box">
       <h2>Tracking</h2>
-      <p class="note" id="rc-note">Each tile is one area and turns through its numbers. Every number is shown twice: the last 7 days and the last 30 days of that dataset, each against the stretch before it. Use the arrows to step through, or click a number to chart it.</p>
+      <p class="note" id="rc-note">Each tile is one area holding several numbers. Use the arrows or the dots to move between them; nothing changes on its own. Every number is shown twice: the last 7 days and the last 30 days of that dataset, each against the stretch before it. Click a number to chart it.</p>
     </section>
     <div class="tiles" id="rc-tiles"></div>
   </div>
@@ -867,7 +868,7 @@ a.title:focus-visible { outline: none; }
   ].map(([id, name, color, ms]) => ({ id, name, color, ms: ms.filter(([d, m]) => DS[d] && DS[d].grain === 'day' && metricOf(d, m)) })).filter((g) => g.ms.length);
   const PER_DAY = new Set(['move:steps', 'move:miles', 'move:elev', 'exercise:minutes', 'music:minutes', 'watch:minutes']);
   const yearStart = (i) => d2i(`${YR[i]}-01-01`);
-  const RC = { at: {}, tick: -3, timer: null, built: false };
+  const RC = { at: {}, built: false };
   function slideOf(g, k) {
     const [dsId, mId] = g.ms[k], ds = DS[dsId], m = metricOf(dsId, mId), L = asLine(dsId, mId), e = ds.end, perDay = PER_DAY.has(dsId + ':' + mId);
     const val = (a, b) => { const r = sumRange(L, a, b); if (r.cov < b - a + 1) return null; return L.agg === 'mean' ? (r.cnt ? r.sum / r.cnt : null) : perDay ? r.sum / r.cov : r.sum; };
@@ -887,22 +888,18 @@ a.title:focus-visible { outline: none; }
   function showSlide(g, k, fade) {
     const tile = document.getElementById('tile-' + g.id); if (!tile) return; RC.at[g.id] = (k + g.ms.length) % g.ms.length;
     const sl = slideOf(g, RC.at[g.id]), old = tile.querySelector('.tile-body'), put = () => { tile.querySelector('.tile-body').replaceWith(sl.body); tile.querySelector('.tile-foot span').replaceWith(sl.foot);
-      [...tile.querySelectorAll('.tile-dots i')].forEach((d, i) => d.classList.toggle('on', i === RC.at[g.id])); };
-    if (fade && old) { old.classList.add('out'); setTimeout(() => { if (old.isConnected) { sl.body.classList.add('out'); put(); requestAnimationFrame(() => requestAnimationFrame(() => sl.body.classList.remove('out'))); } }, 280); } else put();
+      [...tile.querySelectorAll('.tile-dots button')].forEach((d, i) => { d.classList.toggle('on', i === RC.at[g.id]); d.setAttribute('aria-pressed', String(i === RC.at[g.id])); }); };
+    const tok = (tile._tok = (tile._tok || 0) + 1);   // quick repeat clicks: only the latest one lands
+    if (fade && old) { old.classList.add('out'); setTimeout(() => { if (tile._tok !== tok) return; sl.body.classList.add('out'); put(); requestAnimationFrame(() => requestAnimationFrame(() => sl.body.classList.remove('out'))); }, 160); } else put();
   }
   function buildTiles() {
     $('#rc-tiles').replaceChildren(...GROUPS.map((g) => el('div', { className: 'tile', id: 'tile-' + g.id, role: 'group', 'aria-label': g.name }, [
       el('div', { className: 'tile-head' }, [el('h3', {}, [sw(g.color), g.name]),
-        g.ms.length > 1 ? el('div', { className: 'tile-nav' }, [el('button', { type: 'button', text: '‹', 'aria-label': `Previous ${g.name} number`, onclick: () => showSlide(g, RC.at[g.id] - 1, false) }), el('button', { type: 'button', text: '›', 'aria-label': `Next ${g.name} number`, onclick: () => showSlide(g, RC.at[g.id] + 1, false) })]) : null]),
+        g.ms.length > 1 ? el('div', { className: 'tile-nav' }, [el('button', { type: 'button', text: '‹', 'aria-label': `Previous ${g.name} number`, onclick: () => showSlide(g, RC.at[g.id] - 1, true) }), el('button', { type: 'button', text: '›', 'aria-label': `Next ${g.name} number`, onclick: () => showSlide(g, RC.at[g.id] + 1, true) })]) : null]),
       el('div', { className: 'tile-body' }),
-      el('div', { className: 'tile-foot' }, [el('span'), el('div', { className: 'tile-dots', 'aria-hidden': 'true' }, g.ms.map(() => el('i')))])])));
+      el('div', { className: 'tile-foot' }, [el('span'), el('div', { className: 'tile-dots' }, g.ms.map((mm, i) => el('button', { type: 'button', 'aria-label': `${g.name}: ${metricOf(mm[0], mm[1]).name}`, title: metricOf(mm[0], mm[1]).name, onclick: () => showSlide(g, i, true) })))])])));
     for (const g of GROUPS) showSlide(g, RC.at[g.id] || 0, false);
-    // slow carousel: one tile turns every 2 seconds, in order, so each tile changes about every 14 seconds and the first
-    // change comes a few seconds after the page opens. Stops on hover or focus, when the tab or the view is hidden, and entirely for people who ask for reduced motion.
-    if (!RC.timer && !matchMedia('(prefers-reduced-motion: reduce)').matches) RC.timer = setInterval(() => {
-      if (document.hidden || $('#v-report').hidden) return; RC.tick++; if (RC.tick < 0) return; const period = Math.max(7, GROUPS.length), g = GROUPS[RC.tick % period];
-      if (!g || g.ms.length < 2) return; const tile = document.getElementById('tile-' + g.id); if (!tile || tile.matches(':hover') || tile.contains(document.activeElement)) return;
-      showSlide(g, RC.at[g.id] + 1, true); }, 2000);
+    // Tiles change only when asked (Jack's rule, Nov 14, 2026): the arrows, or the dots under each tile. No timer.
   }
   let TRN; // pct-training/data/training.json, fetched once for the hero
   async function drawPctHero() {

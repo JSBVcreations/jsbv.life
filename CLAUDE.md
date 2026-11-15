@@ -123,9 +123,8 @@ Fonts: Monoton (titles only), Chakra Petch (UI), JetBrains Mono (data).
 - Root `index.html` (markup + CSS + JS in one file, no libraries). Views besides the nav ones above: `#report` (the home dashboard,
   rebuilt Nov 14, 2026: two hero panels, PCT//PREP from `pct-training/data/training.json` and PHOTO//SORT from
   `daily.snapshots`, over a grid of tiles. One tile per umbrella in `GROUPS` (Activity, Health, Music, Watching, Calls,
-  Breathwork, Photos); a metric appears only under its umbrella (Listening and Plays under Music). Each tile turns through
-  its metrics: one tile every 2 s in order, paused on hover / focus / hidden tab, off under prefers-reduced-motion; arrows
-  step by hand. Every slide shows the last 7 days and the last 30 days of that dataset side by side, each against the
+  Breathwork, Photos); a metric appears only under its umbrella (Listening and Plays under Music). Tiles change only when clicked: the
+  arrows or the dots under each tile (Jack asked for no automatic transitions; do not add a timer back). Every slide shows the last 7 days and the last 30 days of that dataset side by side, each against the
   stretch before, plus a 30-day sparkline with the last week bright. `PER_DAY` metrics read as a daily average, the rest as
   totals. Clicking a slide charts that metric for the current year. Jack asked for exactly these two windows; do not add
   longer ones here), `#explore` (pick dataset → metric → sub-category, date range,
