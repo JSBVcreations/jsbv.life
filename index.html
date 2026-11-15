@@ -1137,7 +1137,7 @@ a.title:focus-visible { outline: none; }
         el('dl', {}, [el('dt', { text: 'Dates' }), el('dd', { text: `${longDate(a)} – ${longDate(b)}` }), el('dt', { text: 'Days' }), el('dd', { text: String(b - a + 1) }),
           el('dt', { text: 'Miles in the log' }), el('dd', { text: num(miles, 'mi') }), el('dt', { text: 'Steps on the phone' }), el('dd', { text: num(steps, 'steps') }),
           el('dt', { text: 'Music on trail' }), el('dd', { text: num(listen, 'h') })]),
-        linkRow([['step-song/#trail', 'Open the trail log'], [() => openInExplorer([['trail', 'log_miles', null, [], false], ['move', 'steps', null, [], false]], a, b), 'Chart this stretch']]),
+        linkRow([['step-song/#trail', 'Open the trail log'], ['trail/', 'Trail radio'], [() => openInExplorer([['trail', 'log_miles', null, [], false], ['move', 'steps', null, [], false]], a, b), 'Chart this stretch']]),
       ]));
     }
     cards.push(el('div', { className: 'card' }, [

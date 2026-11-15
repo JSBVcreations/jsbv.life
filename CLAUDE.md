@@ -200,6 +200,23 @@ Fonts: Monoton (titles only), Chakra Petch (UI), JetBrains Mono (data).
   locations are never copied into the repo; the home loop's location stays off the site.
 - The last health day is usually a part day (exported before midnight); the page labels it.
 
+## TRAIL//RADIO (trail/)
+- `trail/index.html` (one file, no libraries) reads `trail/data/trail-radio.json`, written by
+  `scripts/build_trail_radio.py <raw spotify dir>` (the raw dir is ~/Documents/01-Projects/JSBV-Step-Song/JSBV-Spotify-Data-2026-10-11).
+  The raw export is read ONLY for each song's Spotify track ID, matched on (song, artist, album); timing, day and class
+  come from step-song/data/plays-2019.json, so they match STEP//SONG exactly. No IP, platform, country or timestamp from
+  the raw export is written. Rerun after build_at_log.py / build_at_breakdown.py.
+- Four parts: 01 trail strip (profile southbound + music per day; drag to pick miles, click a day, state / month / week
+  chips, arrow keys slide the stretch; `#me`, `#tn-nc`… deep-link a state), 02 radio (Most played / Signature = 60%+ of
+  the song's trail listening fell in this stretch and 2+ plays through / In order heard; shuffle), 03 day replay (hourly
+  steps under a line, each play over it by the clock, click to play; the 26-hour finish runs past midnight),
+  04 soundtrack map (top 8 artists stacked by week; click one to filter the radio).
+- Player: Spotify's iFrame API (`open.spotify.com/embed/iframe-api/v1`), one controller, queue kept in the page; the
+  next song loads when `playback_update` reports the end. Same embed as maxfield.life's EventCard, but NOT its data:
+  maxfield.life/spotify is Max's history (2% overlap with Jack's), never use it here. If the API fails, each song links
+  to open.spotify.com. Full tracks only when the visitor is signed in to Spotify; otherwise 30-second previews.
+- Linked from the Highlights AT card and the trail log's view switcher in STEP//SONG.
+
 ## Site-wide housekeeping (audit of Nov 14, 2026)
 - Every real page carries a favicon link (`favicon.svg` at the root, relative path), `theme-color`, and Open Graph tags
   pointing at `https://jsbv.life/og.png` (1200×630, made from the site fonts). A new page needs the same block after its

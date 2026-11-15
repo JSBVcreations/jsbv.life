@@ -59,6 +59,12 @@ The first watch-list command also writes `meta-log/data/watch-titles.json` (the 
 Life chapters: `meta-log/data/life.json` (published) and `meta-log/data/life.private.json` (git-ignored, shows only on this machine).
 Hand-logged metrics: `meta-log/data/manual.json`.
 
+## Refresh TRAIL//RADIO
+```
+python3 scripts/build_trail_radio.py ~/Documents/01-Projects/JSBV-Step-Song/JSBV-Spotify-Data-2026-10-11
+```
+Reads the raw Spotify export only for track IDs; everything else comes from files in this repo.
+
 ## Refresh the AT breakdown (weeks, states, hiking hours)
 ```
 python3 scripts/build_at_breakdown.py

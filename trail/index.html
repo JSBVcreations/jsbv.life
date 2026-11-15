@@ -1,0 +1,433 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>TRAIL//RADIO</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<meta name="theme-color" content="#07060f">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="JSBV.LIFE">
+<meta property="og:title" content="TRAIL//RADIO · JSBV.LIFE">
+<meta property="og:description" content="The songs Jack walked the Appalachian Trail to in 2019, by state, week or any stretch of trail, with every day replayed hour by hour.">
+<meta property="og:url" content="https://jsbv.life/trail/">
+<meta property="og:image" content="https://jsbv.life/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="description" content="The songs Jack walked the Appalachian Trail to in 2019, by state, week or any stretch of trail, with every day replayed hour by hour.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Monoton&family=Chakra+Petch:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* TRAIL//RADIO: the AT 2019 soundtrack. Reads data/trail-radio.json (scripts/build_trail_radio.py).
+   1 The trail strip: the whole profile, Katahdin to Springer. Drag across it, or pick a state / week / month, to choose a stretch.
+   2 Radio: the stretch's songs (most played, signature to the stretch, or in the order heard) in a Spotify player that moves on by itself.
+   3 Day replay: one day, hour by hour: steps under, songs over, where each one played.
+   4 Soundtrack map: the top artists week by week down the trail; click one to put only them on the radio.
+   Player = Spotify's embed through its iFrame API (the maxfield.life pattern: track ID -> open.spotify.com/embed/track).
+   Without the API (blocked, offline) the list still works and each song links to Spotify. Colors: pink = music, cyan = steps,
+   lime = trail, amber = climb. */
+:root {
+  color-scheme: dark;
+  --void: #07060f; --panel: #0d0b1c; --well: #120f26; --grid: #1f1a3d; --ink: #dcd8ff; --dim: #8a84b8;
+  --step: #3ff0ff; --sound: #ff3fb4; --climb: #ffb347; --trail: #b6ff5c; --hot: #ffffff;
+  --f-display: "Monoton", "Chakra Petch", system-ui, sans-serif;
+  --f-ui: "Chakra Petch", "Segoe UI", system-ui, sans-serif;
+  --f-data: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --s-0: 0.75rem; --s-1: 0.875rem; --s-2: 1rem; --s-3: 1.25rem;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { background: var(--void); color: var(--ink); margin: 0; }
+body { font-family: var(--f-ui); font-size: var(--s-1); line-height: 1.5;
+  padding: 24px max(16px, env(safe-area-inset-right, 0px)) 64px max(16px, env(safe-area-inset-left, 0px));
+  background: radial-gradient(ellipse 80% 40% at 50% 0%, rgba(255,63,180,0.10), transparent 70%), radial-gradient(ellipse 60% 30% at 50% 100%, rgba(182,255,92,0.06), transparent 70%), var(--void);
+  min-height: 100vh; }
+body::after { content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 50; background: repeating-linear-gradient(to bottom, rgba(0,0,0,0) 0 2px, rgba(0,0,0,0.18) 2px 3px); mix-blend-mode: multiply; }
+.wrap { max-width: 1180px; margin: 0 auto; display: grid; gap: 24px; }
+header { display: grid; gap: 12px; }
+nav.site { display: flex; flex-wrap: wrap; gap: 6px 18px; font: 600 var(--s-0) var(--f-data); letter-spacing: 0.08em; text-transform: uppercase; }
+nav.site a { color: var(--dim); text-decoration: none; } nav.site a:hover, nav.site a:focus-visible { color: var(--step); }
+h1 { font-family: var(--f-display); font-weight: 400; margin: 0; font-size: clamp(2rem, 7vw, 4.4rem); line-height: 1; letter-spacing: 0.02em; color: var(--hot);
+  text-shadow: 0 0 6px var(--sound), 0 0 18px var(--sound), 0 0 42px rgba(255,63,180,0.55); overflow-wrap: anywhere; }
+h1 .sl { text-shadow: 0 0 6px var(--trail), 0 0 18px var(--trail), 0 0 42px rgba(182,255,92,0.6); }
+@media (prefers-reduced-motion: no-preference) { h1 { animation: flicker 8s infinite; } @keyframes flicker { 0%,93%,100% { opacity: 1 } 94% { opacity: .55 } 95% { opacity: 1 } 96.5% { opacity: .7 } 97% { opacity: 1 } } }
+.lede { margin: 0; color: var(--dim); max-width: 72ch; font-size: var(--s-2); } .lede b { color: var(--sound); font-weight: 600; }
+section { background: linear-gradient(180deg, var(--panel), rgba(13,11,28,0.6)); border: 1px solid var(--grid); padding: 18px; display: grid; gap: 12px; min-width: 0; }
+section > * { min-width: 0; }
+.sec-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 16px; }
+h2 { margin: 0; font-size: var(--s-2); font-weight: 700; letter-spacing: 0.22em; text-transform: uppercase; }
+h2 em { font-style: normal; color: var(--sound); font-family: var(--f-data); margin-right: 10px; letter-spacing: 0.08em; }
+h2 small { font-weight: 400; color: var(--dim); letter-spacing: 0.08em; text-transform: none; margin-left: 10px; font-size: var(--s-1); }
+h3 { margin: 0; font: 700 var(--s-0) var(--f-ui); letter-spacing: 0.2em; text-transform: uppercase; }
+.note { color: var(--dim); font-size: var(--s-0); margin: 0; max-width: 88ch; }
+.seg { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--grid); }
+.seg button { font: 600 var(--s-0)/1 var(--f-ui); letter-spacing: 0.14em; text-transform: uppercase; background: transparent; color: var(--dim); border: 0; padding: 9px 12px; cursor: pointer; min-height: 32px; }
+.seg button + button { border-left: 1px solid var(--grid); } .seg button:hover { color: var(--hot); } .seg button[aria-pressed="true"] { color: var(--void); background: var(--sound); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.chips .lab { font: 600 10px var(--f-ui); letter-spacing: 0.16em; text-transform: uppercase; color: var(--dim); margin-right: 4px; min-width: 52px; }
+.chips button { font: 600 var(--s-0)/1 var(--f-data); background: transparent; color: var(--ink); border: 1px solid var(--grid); padding: 7px 9px; cursor: pointer; min-height: 30px; }
+.chips button:hover { border-color: var(--dim); color: var(--hot); } .chips button[aria-pressed="true"] { border-color: var(--sound); color: var(--sound); }
+button:focus-visible, select:focus-visible, a:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--step); outline-offset: 2px; }
+.btn { font: 600 var(--s-0)/1 var(--f-ui); letter-spacing: 0.14em; text-transform: uppercase; background: transparent; color: var(--ink); border: 1px solid var(--grid); padding: 9px 12px; cursor: pointer; min-height: 32px; }
+.btn:hover { border-color: var(--sound); color: var(--hot); } .btn.go { background: var(--sound); border-color: var(--sound); color: var(--void); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-family: var(--f-data); font-size: var(--s-0); color: var(--dim); align-items: center; }
+.legend i { display: inline-block; width: 16px; height: 8px; margin-right: 6px; vertical-align: middle; }
+#boot { font-family: var(--f-data); color: var(--sound); }
+
+/* 1 strip */
+#strip { position: relative; touch-action: none; cursor: crosshair; user-select: none; }
+#strip svg { display: block; width: 100%; height: auto; }
+#strip text { font-family: var(--f-data); font-size: 10px; fill: var(--dim); }
+.selbar { display: flex; flex-wrap: wrap; gap: 6px 24px; font-family: var(--f-data); font-size: var(--s-0); color: var(--dim); align-items: baseline; padding: 10px 0 0; border-top: 1px solid var(--grid); }
+.selbar b { color: var(--hot); font-weight: 600; } .selbar .what { font: 700 var(--s-2) var(--f-ui); color: var(--sound); letter-spacing: 0.06em; }
+
+/* 2 radio */
+.radio { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 360px); gap: 16px; align-items: start; }
+@media (max-width: 900px) { .radio { grid-template-columns: minmax(0, 1fr); } }
+.list { border: 1px solid var(--grid); max-height: 520px; overflow: auto; }
+.list ol { list-style: none; margin: 0; padding: 0; }
+.list li { display: grid; grid-template-columns: 28px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 7px 10px; border-bottom: 1px solid rgba(31,26,61,0.8); cursor: pointer; }
+.list li:hover { background: rgba(255,63,180,0.05); } .list li.on { background: rgba(255,63,180,0.12); box-shadow: inset 3px 0 0 var(--sound); }
+.list .n { font: 600 var(--s-0) var(--f-data); color: var(--dim); text-align: right; } .list li.on .n { color: var(--sound); }
+.list .t { min-width: 0; } .list .t b { display: block; color: var(--hot); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.list .t span { display: block; color: var(--dim); font-size: var(--s-0); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.list .m { font: 400 var(--s-0) var(--f-data); color: var(--dim); text-align: right; white-space: nowrap; } .list .m b { color: var(--sound); font-weight: 600; }
+.sig { display: inline-block; font: 600 9px var(--f-ui); letter-spacing: 0.12em; text-transform: uppercase; color: var(--void); background: var(--trail); padding: 1px 5px; margin-left: 6px; vertical-align: 1px; }
+.deck { border: 1px solid var(--grid); padding: 14px; display: grid; gap: 10px; background: rgba(7,6,15,0.55); align-content: start; }
+.deck .now { font: 600 10px var(--f-ui); letter-spacing: 0.16em; text-transform: uppercase; color: var(--sound); }
+.deck .song { font: 700 var(--s-3)/1.2 var(--f-ui); color: var(--hot); overflow-wrap: anywhere; } .deck .who { color: var(--dim); }
+.deck .ctx { font: 400 var(--s-0) var(--f-data); color: var(--dim); } .deck .ctx b { color: var(--ink); font-weight: 600; }
+.deck .ctl { display: flex; gap: 6px; flex-wrap: wrap; }
+#embed { min-height: 152px; border-radius: 12px; overflow: hidden; background: var(--well); display: grid; place-items: center; color: var(--dim); font-size: var(--s-0); text-align: center; padding: 0; }
+#embed iframe { display: block; width: 100%; border: 0; }
+.filt { display: inline-flex; gap: 6px; align-items: center; font: 600 var(--s-0) var(--f-data); color: var(--sound); border: 1px solid var(--sound); padding: 4px 4px 4px 8px; }
+.filt button { all: unset; cursor: pointer; padding: 2px 6px; color: var(--hot); }
+
+/* 3 day replay */
+#replay svg { display: block; width: 100%; height: auto; } #replay text { font-family: var(--f-data); font-size: 10px; fill: var(--dim); }
+#replay .song { cursor: pointer; } #replay .song:hover { stroke: var(--hot); stroke-width: 1.5; }
+#d-pick { font: 600 var(--s-0) var(--f-data); background: var(--void); color: var(--ink); border: 1px solid var(--grid); padding: 7px 8px; min-height: 32px; max-width: min(100%, 420px); min-width: 0; flex: 1 1 200px; }
+.dayhead { display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center; }
+.dayhead .d { font: 700 var(--s-2) var(--f-ui); color: var(--hot); } .dayhead .k { font: 400 var(--s-0) var(--f-data); color: var(--dim); } .dayhead .k b { color: var(--ink); font-weight: 600; }
+
+/* 4 artist map */
+#river svg { display: block; width: 100%; height: auto; } #river text { font-family: var(--f-data); font-size: 10px; fill: var(--dim); }
+#river path { cursor: pointer; } #river path:hover { opacity: 1 !important; }
+.alegend { display: flex; flex-wrap: wrap; gap: 6px; }
+.alegend button { font: 600 var(--s-0)/1 var(--f-data); background: transparent; color: var(--ink); border: 1px solid var(--grid); padding: 6px 9px; cursor: pointer; display: inline-flex; gap: 6px; align-items: center; min-height: 30px; }
+.alegend button i { width: 10px; height: 10px; display: inline-block; } .alegend button:hover, .alegend button[aria-pressed="true"] { border-color: var(--sound); color: var(--hot); }
+
+#tip { position: fixed; z-index: 60; pointer-events: none; max-width: 300px; background: rgba(7,6,15,0.95); border: 1px solid var(--sound); box-shadow: 0 0 18px rgba(255,63,180,0.3);
+  font-family: var(--f-data); font-size: var(--s-0); padding: 8px 10px; line-height: 1.45; color: var(--ink); }
+#tip .k { color: var(--dim); } #tip b { color: var(--hot); }
+footer { color: var(--dim); font-size: var(--s-0); }
+</style>
+
+<div class="wrap">
+  <header>
+    <nav class="site" aria-label="Site"><a href="../">◀ Home</a><a href="../#data">Data</a><a href="../#highlights">Highlights</a><a href="../#experiments">Experiments</a><a href="../step-song/#trail">Trail log</a></nav>
+    <h1>TRAIL<span class="sl">//</span>RADIO</h1>
+    <p class="lede">What was in my ears on the Appalachian Trail, southbound in 2019. <b>Pick any stretch</b> of trail, a state or a week, and the radio plays the songs I walked it to. Every day can be replayed hour by hour, with each song where it played.</p>
+    <div id="boot">TUNING IN… loading 146 days of listening</div>
+  </header>
+
+  <section id="s-strip" aria-labelledby="h-strip" hidden>
+    <div class="sec-head">
+      <h2 id="h-strip"><em>01</em>The trail <small>Katahdin to Springer · drag across it to choose a stretch</small></h2>
+      <button type="button" class="btn" id="sel-all">Whole trail</button>
+    </div>
+    <div class="chips" id="c-states" role="group" aria-label="States"></div>
+    <div class="chips" id="c-months" role="group" aria-label="Months"></div>
+    <div class="chips" id="c-weeks" role="group" aria-label="Weeks"></div>
+    <div id="strip" role="slider" tabindex="0" aria-label="Stretch of trail. Drag to choose; arrow keys move the stretch along the trail."></div>
+    <div class="legend"><span><i style="background:rgba(255,179,71,0.5)"></i>elevation</span><span><i style="background:var(--sound)"></i>music that day (taller = more)</span><span><i style="background:rgba(255,63,180,0.18);border:1px solid var(--sound)"></i>chosen stretch</span><span>the Skyland skip is the gap in Virginia</span></div>
+    <div class="selbar" id="selbar" aria-live="polite"></div>
+  </section>
+
+  <section id="s-radio" aria-labelledby="h-radio" hidden>
+    <div class="sec-head">
+      <h2 id="h-radio"><em>02</em>Radio <small id="radio-sub"></small></h2>
+      <div class="seg" role="group" aria-label="Which songs" id="mode">
+        <button type="button" data-k="top" aria-pressed="true">Most played</button>
+        <button type="button" data-k="sig" aria-pressed="false">Signature</button>
+        <button type="button" data-k="order" aria-pressed="false">In order heard</button>
+      </div>
+    </div>
+    <p class="note" id="mode-note"></p>
+    <div class="radio">
+      <div class="list" id="list" aria-label="Songs for this stretch"></div>
+      <div class="deck" aria-live="polite">
+        <div class="now" id="now-lab">Ready</div>
+        <div><div class="song" id="now-song">Press play</div><div class="who" id="now-who">The radio plays the list on the left, top to bottom.</div></div>
+        <div class="ctx" id="now-ctx"></div>
+        <div class="ctl"><button type="button" class="btn go" id="b-play">▶ Play</button><button type="button" class="btn" id="b-prev" aria-label="Previous song">◀◀</button><button type="button" class="btn" id="b-next" aria-label="Next song">▶▶</button><button type="button" class="btn" id="b-shuf" aria-pressed="false">Shuffle</button></div>
+        <div id="embed">The Spotify player loads when you press play.</div>
+        <p class="note" id="embed-note">Signed in to Spotify in this browser, songs play in full; otherwise Spotify plays 30-second previews. If the first song does not start, press play inside the player once.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="s-replay" aria-labelledby="h-replay" hidden>
+    <div class="sec-head">
+      <h2 id="h-replay"><em>03</em>Day replay <small>steps under the line, songs over it, by the clock</small></h2>
+      <div class="ctl" style="display:flex;flex-wrap:wrap;gap:6px;min-width:0;max-width:100%"><button type="button" class="btn" id="d-prev" aria-label="Previous day">◀ Day</button><select id="d-pick" aria-label="Choose a day"></select><button type="button" class="btn" id="d-next" aria-label="Next day">Day ▶</button><button type="button" class="btn" id="d-radio">Play this day</button></div>
+    </div>
+    <div class="dayhead" id="dayhead"></div>
+    <div id="replay"></div>
+    <div class="legend"><span><i style="background:var(--step)"></i>steps in the hour</span><span><i style="background:var(--sound)"></i>song played through</span><span><i style="background:rgba(255,63,180,0.45)"></i>part of a song</span><span><i style="background:#4a4566"></i>skipped</span><span>click a song to play it</span></div>
+  </section>
+
+  <section id="s-river" aria-labelledby="h-river" hidden>
+    <div class="sec-head">
+      <h2 id="h-river"><em>04</em>Soundtrack map <small>your top artists, week by week down the trail</small></h2>
+    </div>
+    <div id="river"></div>
+    <div class="alegend" id="alegend" role="group" aria-label="Artists: choose one to put only them on the radio"></div>
+    <p class="note">Each band is one of your eight most-played trail artists, hours that week; the percentages over the stack are their share of all the music you played that week (everyone else is left out so the eight stay readable). Choose an artist to fill the radio with only their songs from the stretch you picked above.</p>
+  </section>
+
+  <footer id="foot"></footer>
+</div>
+<div id="tip" hidden></div>
+
+<script>
+(async function () {
+  const $ = (s) => document.querySelector(s);
+  const NS = 'http://www.w3.org/2000/svg';
+  const svg = (tag, attrs, text) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (text != null) e.textContent = text; return e; };
+  const el = (tag, props, kids) => { const e = Object.assign(document.createElement(tag), props || {}); if (kids) e.append(...kids.filter((k) => k != null)); return e; };
+  const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'], DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const day = (s) => new Date(s + 'T00:00:00Z'), md = (s) => { const d = day(s); return `${MON[d.getUTCMonth()]} ${d.getUTCDate()}`; };
+  const n0 = (v) => Math.round(v).toLocaleString('en-US'), n1 = (v) => (Math.round(v * 10) / 10).toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const clock = (sec) => { const h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), hh = h % 24; return `${hh % 12 || 12}:${String(m).padStart(2, '0')} ${hh < 12 ? 'am' : 'pm'}${h >= 24 ? ' (+1 day)' : ''}`; };
+  const mins = (sec) => sec >= 3600 ? `${n1(sec / 3600)} h` : `${Math.round(sec / 60)} min`;
+  const C = { sound: '#ff3fb4', step: '#3ff0ff', trail: '#b6ff5c', climb: '#ffb347', dim: '#8a84b8', grid: '#1f1a3d', hot: '#ffffff', ink: '#dcd8ff', skip: '#4a4566' };
+
+  let R;
+  try { const r = await fetch('data/trail-radio.json', { cache: 'no-cache' }); if (!r.ok) throw new Error(r.status); R = await r.json(); }
+  catch (e) { $('#boot').textContent = 'Could not load data/trail-radio.json (run scripts/build_trail_radio.py; preview over http, not file://).'; return; }
+
+  const TR = R.tracks, D = R.days, AT_MI = (R.profile.ft.length - 1) * R.profile.step_mi;
+  // per-day aggregates: seconds heard per track (full + part plays), full plays, skips
+  for (const d of D) { d.sec = 0; d.full = 0; d.by = new Map();
+    for (let i = 0; i < d.plays.length; i += 4) { const [sod, dur, t, c] = d.plays.slice(i, i + 4); let e = d.by.get(t); if (!e) d.by.set(t, (e = { sec: 0, full: 0, skip: 0, first: sod }));
+      if (c === 2) e.skip++; else { e.sec += dur; d.sec += dur; if (c === 0) { e.full++; d.full++; } } } }
+  const trip = new Map(); for (const d of D) for (const [t, e] of d.by) { let x = trip.get(t); if (!x) trip.set(t, (x = { sec: 0, full: 0 })); x.sec += e.sec; x.full += e.full; }
+  const sunday = (s) => { const d = day(s); d.setUTCDate(d.getUTCDate() - d.getUTCDay()); return d.toISOString().slice(0, 10); };
+  const weeks = []; for (const d of D) { const w = sunday(d.date); if (!weeks.length || weeks[weeks.length - 1].start !== w) weeks.push({ start: w, days: [] }); weeks[weeks.length - 1].days.push(d); }
+  D.forEach((d, i) => { d.i = i; d.week = weeks.findIndex((w) => w.days.includes(d)); });
+
+  const tip = $('#tip');
+  const showTip = (ev, html) => { tip.innerHTML = html; tip.hidden = false; const r = tip.getBoundingClientRect(); const x = Math.min(ev.clientX + 14, innerWidth - r.width - 8), y = ev.clientY + 16 + r.height > innerHeight ? ev.clientY - r.height - 10 : ev.clientY + 16; tip.style.left = Math.max(8, x) + 'px'; tip.style.top = Math.max(8, y) + 'px'; };
+  const hideTip = () => { tip.hidden = true; };
+
+  /* ================================================================ selection */
+  // S = { label, days: Set(day index), range: [mile a, mile b] | null, key }
+  let S = null, artist = null;
+  const daysInRange = (a, b) => D.filter((d) => Math.max(d.a, a) <= Math.min(d.b, b) + (d.a === d.b ? 0.5 : 0) && !(d.kind === 'skip')).map((d) => d.i);
+  function select(label, idx, range, key) {
+    S = { label, days: new Set(idx), range, key }; artist = null; renderChips(); drawStrip(); renderSel(); buildList(); renderRiver();
+    const first = D[[...S.days].sort((a, b) => a - b)[0]]; if (first && !S.days.has(curDay)) { curDay = first.i; renderReplay(); }
+  }
+
+  /* ================================================================ 1 strip */
+  const SW = () => Math.max(320, $('#strip').clientWidth || 900);
+  let geo = null;
+  function drawStrip() {
+    const W = SW(), H = 210, m = { l: 34, r: 8, t: 22, b: 40 }, pw = W - m.l - m.r, ph = H - m.t - m.b, X = (mi) => m.l + (mi / AT_MI) * pw;
+    const ft = R.profile.ft, fmax = 6400, Y = (f) => m.t + ph * 0.62 - (f / fmax) * (ph * 0.62) + 2;
+    const s = svg('svg', { viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': 'Elevation of the whole trail with the music heard each day' });
+    // state bands
+    R.states.forEach((st, k) => { const x0 = X(st.sobo_a), x1 = X(st.sobo_b); if (k % 2) s.append(svg('rect', { x: x0, y: m.t - 12, width: x1 - x0, height: ph + 12, fill: 'rgba(220,216,255,0.035)' }));
+      if (x1 - x0 > 18) s.append(svg('text', { x: (x0 + x1) / 2, y: m.t - 2, 'text-anchor': 'middle' }, x1 - x0 > 40 ? st.abbr : st.abbr.split('/')[0])); });
+    // profile
+    let p = `M${X(0)} ${Y(0)}`; ft.forEach((f, i) => { p += ` L${X(i * R.profile.step_mi).toFixed(1)} ${Y(f).toFixed(1)}`; }); p += ` L${X(AT_MI)} ${Y(0)} Z`;
+    s.append(svg('path', { d: p, fill: 'rgba(255,179,71,0.22)', stroke: C.climb, 'stroke-width': 1 }));
+    // music per day as bars under the profile, at the day's miles
+    const mBase = m.t + ph, mTop = m.t + ph * 0.70, dmax = Math.max(...D.map((d) => d.sec));
+    for (const d of D) { if (!d.sec) continue; const a = Math.min(d.a, d.b), b = Math.max(d.a, d.b), x0 = X(a), w = Math.max(1.5, X(b) - x0 - 0.5), h = (d.sec / dmax) * (mBase - mTop);
+      s.append(svg('rect', { x: x0, y: mBase - h, width: w, height: h, fill: C.sound, opacity: S && S.days.has(d.i) ? 0.95 : 0.45 })); }
+    s.append(svg('line', { x1: m.l, x2: W - m.r, y1: mBase, y2: mBase, stroke: C.grid }));
+    // selection
+    if (S && S.days.size && S.days.size < D.length) { const sel = [...S.days].map((i) => D[i]), a = S.range ? S.range[0] : Math.min(...sel.map((d) => Math.min(d.a, d.b))), b = S.range ? S.range[1] : Math.max(...sel.map((d) => Math.max(d.a, d.b)));
+      s.append(svg('rect', { x: X(a), y: m.t - 12, width: Math.max(2, X(b) - X(a)), height: ph + 12, fill: 'rgba(255,63,180,0.14)', stroke: C.sound, 'stroke-width': 1 })); }
+    // mile axis
+    for (let mi = 0; mi <= AT_MI; mi += 200) { s.append(svg('line', { x1: X(mi), x2: X(mi), y1: mBase, y2: mBase + 4, stroke: C.dim })); s.append(svg('text', { x: X(mi), y: mBase + 16, 'text-anchor': mi === 0 ? 'start' : 'middle' }, mi === 0 ? 'Katahdin' : n0(mi))); }
+    s.append(svg('text', { x: X(AT_MI), y: mBase + 16, 'text-anchor': 'end' }, 'Springer'));
+    s.append(svg('text', { x: m.l + pw / 2, y: H - 6, 'text-anchor': 'middle' }, 'miles walked southbound'));
+    [0, 3000, 6000].forEach((f) => s.append(svg('text', { x: m.l - 4, y: Y(f) + 3, 'text-anchor': 'end' }, f ? `${f / 1000}k` : '0')));
+    $('#strip').replaceChildren(s); geo = { X, m, pw, W, s };
+  }
+  // drag to choose: pointer -> mile; a click with no drag picks that day
+  (function wireStrip() {
+    const host = $('#strip'); let a0 = null;
+    const mileAt = (ev) => { const r = geo.s.getBoundingClientRect(), px = ((ev.clientX - r.left) / r.width) * geo.W; return Math.max(0, Math.min(AT_MI, ((px - geo.m.l) / geo.pw) * AT_MI)); };
+    const dayAt = (mi) => D.filter((d) => d.kind !== 'skip').reduce((b, d) => { const c = (d.a + d.b) / 2; return !b || Math.abs(c - mi) < Math.abs((b.a + b.b) / 2 - mi) ? d : b; }, null);
+    host.addEventListener('pointerdown', (ev) => { a0 = mileAt(ev); host.setPointerCapture(ev.pointerId); });
+    host.addEventListener('pointermove', (ev) => { const mi = mileAt(ev), d = dayAt(mi);
+      if (a0 != null && Math.abs(mi - a0) > 4) { const a = Math.min(a0, mi), b = Math.max(a0, mi); S = { label: `Miles ${n0(a)}–${n0(b)}`, days: new Set(daysInRange(a, b)), range: [a, b], key: 'drag' }; drawStrip(); renderSel(); }
+      else if (a0 == null && d) showTip(ev, `<b>Mile ${n0(mi)}</b> · ${md(d.date)}, day ${d.day}<br>${esc(d.loc)}<br><span class="k">music</span> ${mins(d.sec)}`); });
+    host.addEventListener('pointerleave', hideTip);
+    host.addEventListener('pointerup', (ev) => { if (a0 == null) return; const mi = mileAt(ev);
+      if (Math.abs(mi - a0) <= 4) { const d = dayAt(mi); if (d) { curDay = d.i; renderReplay(); select(`${DOW[day(d.date).getUTCDay()]} ${md(d.date)}, day ${d.day}`, [d.i], null, 'day'); } }
+      else select(S.label, [...S.days], S.range, 'drag');
+      a0 = null; });
+    host.addEventListener('keydown', (ev) => { if (!['ArrowLeft', 'ArrowRight'].includes(ev.key)) return; ev.preventDefault();
+      const r = S && S.range ? S.range : [0, 100], w = r[1] - r[0], step = ev.key === 'ArrowRight' ? 50 : -50, a = Math.max(0, Math.min(AT_MI - w, r[0] + step));
+      select(`Miles ${n0(a)}–${n0(a + w)}`, daysInRange(a, a + w), [a, a + w], 'drag'); });
+  })();
+  function renderSel() {
+    const sel = [...S.days].map((i) => D[i]), mi = sel.reduce((t, d) => t + d.miles, 0), sec = sel.reduce((t, d) => t + d.sec, 0), songs = new Set(); sel.forEach((d) => d.by.forEach((e, t) => { if (e.sec) songs.add(t); }));
+    const dates = sel.map((d) => d.date).sort();
+    $('#selbar').innerHTML = `<span class="what">${esc(S.label)}</span>` + (dates.length ? `<span>${md(dates[0])}${dates.length > 1 ? ' – ' + md(dates[dates.length - 1]) : ''}</span><span><b>${sel.length}</b> day${sel.length === 1 ? '' : 's'}</span><span><b>${n1(mi)}</b> miles</span><span><b>${mins(sec)}</b> of music</span><span><b>${n0(songs.size)}</b> songs</span>` : '<span>no trail days in this stretch</span>');
+  }
+  const MONTHS = [...new Set(D.map((d) => d.date.slice(0, 7)))];
+  function renderChips() {
+    const chip = (label, key, fn, title) => el('button', { type: 'button', textContent: label, title: title || '', ariaPressed: String(!!S && S.key === key), onclick: fn });
+    $('#c-states').replaceChildren(el('span', { className: 'lab', textContent: 'State' }), ...R.states.map((st) => { const idx = D.filter((d) => d.state === st.abbr).map((d) => d.i);
+      return idx.length ? chip(st.abbr, 'st:' + st.abbr, () => select(st.name, idx, [st.sobo_a, st.sobo_b], 'st:' + st.abbr), st.name) : null; }).filter(Boolean));
+    $('#c-months').replaceChildren(el('span', { className: 'lab', textContent: 'Month' }), ...MONTHS.map((mo) => chip(MON[+mo.slice(5) - 1], 'mo:' + mo, () => select(`${MON[+mo.slice(5) - 1]} 2019`, D.filter((d) => d.date.startsWith(mo)).map((d) => d.i), null, 'mo:' + mo))));
+    $('#c-weeks').replaceChildren(el('span', { className: 'lab', textContent: 'Week' }), ...weeks.map((w, k) => chip(String(k + 1), 'wk:' + k, () => select(`Week ${k + 1} · ${md(w.start)}`, w.days.map((d) => d.i), null, 'wk:' + k), `Week of ${md(w.start)}`)));
+  }
+
+  /* ================================================================ 2 radio */
+  let mode = 'top', Q = [], qi = -1, shuffle = false;
+  const MODE_NOTE = { top: 'The songs you spent the most time on in this stretch, played through or most of the way.',
+    sig: 'Songs that belong to this stretch: heard here more than anywhere else on the trail, and more than once. The lime tag marks them in every list.',
+    order: 'Every song you played through in this stretch, in the order you first heard it, so the radio walks the stretch with you.' };
+  function rankFor(idx) {
+    const agg = new Map(); for (const i of idx) for (const [t, e] of D[i].by) { let x = agg.get(t); if (!x) agg.set(t, (x = { t, sec: 0, full: 0, skip: 0, first: null })); x.sec += e.sec; x.full += e.full; x.skip += e.skip; if (x.first == null || D[i].date + e.first < x.first) x.first = D[i].date + String(e.first).padStart(6, '0'); }
+    for (const x of agg.values()) { const tp = trip.get(x.t); x.share = tp && tp.sec ? x.sec / tp.sec : 0; x.signature = x.full >= 2 && x.share >= 0.6 && idx.length < D.length; }
+    return [...agg.values()];
+  }
+  function buildList() {
+    const idx = [...S.days].sort((a, b) => a - b); let rows = rankFor(idx).filter((x) => x.sec > 0 && (!artist || TR[x.t][2] === artist));
+    if (mode === 'top') rows = rows.filter((x) => x.full >= 1).sort((a, b) => b.sec - a.sec).slice(0, 25);
+    else if (mode === 'sig') { rows = rows.filter((x) => x.full >= 2).sort((a, b) => b.sec * b.share * b.share - a.sec * a.share * a.share).slice(0, 25); if (idx.length === D.length) rows = rows.sort((a, b) => b.full - a.full); }
+    else rows = rows.filter((x) => x.full >= 1).sort((a, b) => (a.first < b.first ? -1 : 1)).slice(0, 60);
+    Q = rows; qi = Q.length ? 0 : -1; if (shuffle) shuffleQ();
+    $('#mode-note').textContent = MODE_NOTE[mode] + (idx.length === D.length && mode === 'sig' ? ' For the whole trail there is nothing to compare with, so this shows your most-repeated songs.' : '');
+    $('#radio-sub').textContent = `${S.label}${artist ? ' · ' + artist : ''} · ${Q.length} song${Q.length === 1 ? '' : 's'}`;
+    renderList(); setNow(false);
+  }
+  function shuffleQ() { const cur = Q[qi]; for (let i = Q.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [Q[i], Q[j]] = [Q[j], Q[i]]; } qi = cur ? Q.indexOf(cur) : 0; }
+  function renderList() {
+    const host = $('#list');
+    if (!Q.length) { host.replaceChildren(el('p', { className: 'note', textContent: artist ? `No ${artist} songs played through in this stretch.` : 'No songs played through in this stretch.', style: 'padding:12px' })); return; }
+    const ol = el('ol');
+    if (artist) host.replaceChildren(el('div', { style: 'padding:8px 10px;border-bottom:1px solid var(--grid)' }, [el('span', { className: 'filt' }, [`Only ${artist}`, el('button', { type: 'button', textContent: '✕', ariaLabel: 'Show every artist', onclick: () => { artist = null; buildList(); renderRiver(); } })])]), ol);
+    else host.replaceChildren(ol);
+    Q.forEach((x, k) => { const [, name, who] = TR[x.t];
+      const li = el('li', { className: k === qi ? 'on' : '', tabIndex: 0, ariaLabel: `${name} by ${who}` }, [el('span', { className: 'n', textContent: String(k + 1) }),
+        el('span', { className: 't' }, [el('b', {}, [name, x.signature ? el('span', { className: 'sig', textContent: 'here' }) : null]), el('span', { textContent: who })]),
+        el('span', { className: 'm', innerHTML: mode === 'order' ? `${md(x.first.slice(0, 10))}` : `<b>${x.full}</b>× · ${mins(x.sec)}` })]);
+      const go = () => { qi = k; play(); }; li.addEventListener('click', go); li.addEventListener('keydown', (ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); go(); } });
+      ol.append(li); });
+  }
+  function setNow(playing) {
+    const x = Q[qi]; for (const [k, li] of [...document.querySelectorAll('#list li')].entries()) li.classList.toggle('on', k === qi);
+    if (!x) { $('#now-song').textContent = 'Nothing to play'; $('#now-who').textContent = ''; $('#now-ctx').textContent = ''; return; }
+    const [, name, who, album] = TR[x.t], tp = trip.get(x.t), firstDay = D.find((d) => d.date === x.first.slice(0, 10));
+    $('#now-lab').textContent = playing ? `Now playing · ${qi + 1} of ${Q.length}` : `Up first · 1 of ${Q.length}`;
+    $('#now-song').textContent = name; $('#now-who').textContent = `${who}${album ? ' · ' + album : ''}`;
+    $('#now-ctx').innerHTML = `Here: <b>${x.full}×</b> through, ${mins(x.sec)}` + (S.days.size < D.length ? ` · whole trail: <b>${tp.full}×</b>` : '') + (firstDay ? `<br>First heard here ${md(firstDay.date)} at ${clock(+x.first.slice(10))}, day ${firstDay.day}, ${esc(firstDay.loc)}` : '');
+  }
+
+  // ---- Spotify player (iFrame API). One controller; the queue lives here.
+  let API = null, ctl = null, apiAsked = false, pending = null, lastPos = 0, advancing = false;
+  window.onSpotifyIframeApiReady = (api) => { API = api; if (pending) { const u = pending; pending = null; mount(u); } };
+  function loadAPI() { if (apiAsked) return; apiAsked = true; const sc = el('script', { src: 'https://open.spotify.com/embed/iframe-api/v1', async: true });
+    sc.onerror = () => fallback('The Spotify player could not load here (offline, or blocked by the browser). Each song links to Spotify instead.'); document.head.append(sc);
+    setTimeout(() => { if (!API) fallback('The Spotify player is taking a long time to load. If it never appears, each song still links to Spotify.'); }, 9000); }
+  function fallback(msg) { const x = Q[qi]; $('#embed').replaceChildren(el('div', { style: 'padding:14px' }, [el('p', { className: 'note', textContent: msg }), x ? el('a', { href: `https://open.spotify.com/track/${TR[x.t][0]}`, target: '_blank', rel: 'noopener', textContent: 'Open this song in Spotify ↗', style: 'color:var(--sound)' }) : null])); }
+  function mount(uri) {
+    const host = $('#embed'); host.replaceChildren(el('div', { id: 'embed-slot' }));
+    API.createController($('#embed-slot'), { uri, width: '100%', height: 152, theme: 'dark' }, (c) => { ctl = c;
+      c.addListener('ready', () => { try { c.play(); } catch (e) {} });
+      c.addListener('playback_update', (e) => { const { isPaused, position, duration } = e.data || {};
+        if (!duration) return; const ended = (!isPaused && position >= duration - 600) || (isPaused && position === 0 && lastPos >= duration - 2500);
+        lastPos = position; if (ended && !advancing) { advancing = true; setTimeout(() => { advancing = false; next(); }, 300); } }); });
+  }
+  function play() {
+    const x = Q[qi]; if (!x) return; const uri = `spotify:track:${TR[x.t][0]}`; lastPos = 0; setNow(true);
+    $('#b-play').textContent = '❚❚ Pause'; playing = true;
+    if (ctl) { ctl.loadUri(uri); setTimeout(() => { try { ctl.play(); } catch (e) {} }, 400); } else if (API) mount(uri); else { pending = uri; loadAPI(); }
+    const li = document.querySelectorAll('#list li')[qi]; if (li) li.scrollIntoView({ block: 'nearest' });
+  }
+  let playing = false;
+  function next() { if (!Q.length) return; qi = (qi + 1) % Q.length; play(); }
+  function prev() { if (!Q.length) return; qi = (qi - 1 + Q.length) % Q.length; play(); }
+  $('#b-play').addEventListener('click', () => { if (!Q.length) return; if (!playing || !ctl) { play(); return; } ctl.togglePlay(); playing = !playing; $('#b-play').textContent = playing ? '❚❚ Pause' : '▶ Play'; });
+  $('#b-next').addEventListener('click', next); $('#b-prev').addEventListener('click', prev);
+  $('#b-shuf').addEventListener('click', () => { shuffle = !shuffle; $('#b-shuf').setAttribute('aria-pressed', String(shuffle)); $('#b-shuf').style.borderColor = shuffle ? C.sound : ''; if (shuffle) shuffleQ(); else buildList(); renderList(); setNow(playing); });
+  $('#mode').addEventListener('click', (ev) => { const b = ev.target.closest('button'); if (!b) return; mode = b.dataset.k; for (const x of $('#mode').children) x.setAttribute('aria-pressed', String(x === b)); buildList(); });
+
+  /* ================================================================ 3 day replay */
+  let curDay = 0;
+  function renderReplay() {
+    const d = D[curDay]; $('#d-pick').value = String(curDay);
+    const nh = Math.max(24, Math.ceil(Math.max(d.steps.length, ...d.plays.filter((_, i) => i % 4 === 0).map((s, k) => (s + d.plays[k * 4 + 1]) / 3600)))), hrs = [];
+    let h0 = 24, h1 = 0; d.steps.forEach((v, h) => { if (v >= 200) { h0 = Math.min(h0, h); h1 = Math.max(h1, h + 1); } }); for (let i = 0; i < d.plays.length; i += 4) { h0 = Math.min(h0, Math.floor(d.plays[i] / 3600)); h1 = Math.max(h1, Math.ceil((d.plays[i] + d.plays[i + 1]) / 3600)); }
+    if (h0 >= h1) { h0 = 5; h1 = 22; } h0 = Math.max(0, h0 - 1); h1 = Math.min(nh, h1 + 1);
+    const W = Math.max(320, $('#replay').clientWidth || 900), H = 230, m = { l: 34, r: 10, t: 10, b: 26 }, pw = W - m.l - m.r, X = (h) => m.l + ((h - h0) / (h1 - h0)) * pw, mid = m.t + 92, base = H - m.b;
+    const s = svg('svg', { viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': `Steps and songs by the hour on ${md(d.date)}` });
+    for (let h = Math.ceil(h0); h <= h1; h++) { s.append(svg('line', { x1: X(h), x2: X(h), y1: m.t, y2: base, stroke: C.grid })); if ((h - h0) % (h1 - h0 > 14 ? 2 : 1) === 0) s.append(svg('text', { x: X(h), y: base + 14, 'text-anchor': 'middle' }, h % 24 === 0 ? (h ? 'midn' : '12a') : h % 24 === 12 ? '12p' : `${h % 24 % 12}${h % 24 < 12 ? 'a' : 'p'}`)); }
+    const smax = Math.max(1500, ...d.steps); d.steps.forEach((v, h) => { if (h < h0 || h >= h1 || !v) return; const hh = (v / smax) * (base - mid - 8); const r = svg('rect', { x: X(h) + 1, y: base - hh, width: Math.max(1, X(h + 1) - X(h) - 2), height: hh, fill: C.step, opacity: 0.85 });
+      r.addEventListener('pointermove', (ev) => showTip(ev, `<b>${clock(h * 3600)}–${clock((h + 1) * 3600)}</b><br>${n0(v)} steps`)); r.addEventListener('pointerleave', hideTip); s.append(r); });
+    s.append(svg('line', { x1: m.l, x2: W - m.r, y1: mid, y2: mid, stroke: C.ink, opacity: 0.6 }));
+    // songs: lanes so overlapping plays (rare) stay visible
+    const lanes = [0, 0, 0, 0]; for (let i = 0; i < d.plays.length; i += 4) { const [sod, dur, t, c] = d.plays.slice(i, i + 4), a = sod / 3600, b = (sod + Math.max(dur, 20)) / 3600; if (b < h0 || a > h1) continue;
+      let ln = lanes.findIndex((end) => end <= a); if (ln < 0) ln = 0; lanes[ln] = b; const y = mid - 16 - ln * 18;
+      const r = svg('rect', { x: X(a), y, width: Math.max(1.5, X(b) - X(a) - 0.5), height: 14, fill: c === 2 ? C.skip : C.sound, opacity: c === 1 ? 0.45 : 0.95, class: 'song', tabindex: 0, role: 'button', 'aria-label': `${TR[t][1]} by ${TR[t][2]} at ${clock(sod)}` });
+      r.addEventListener('pointermove', (ev) => showTip(ev, `<b>${esc(TR[t][1])}</b><br>${esc(TR[t][2])}<br><span class="k">${clock(sod)} · ${c === 2 ? 'skipped after ' + Math.round(dur) + ' s' : c === 1 ? 'part, ' + mins(dur) : 'played through'}</span>`)); r.addEventListener('pointerleave', hideTip);
+      const go = () => { Q = [{ t, sec: dur, full: c === 0 ? 1 : 0, skip: c === 2 ? 1 : 0, first: d.date + String(sod).padStart(6, '0'), share: 0 }]; qi = 0; renderList(); play(); $('#radio-sub').textContent = `From ${md(d.date)} · 1 song`; };
+      r.addEventListener('click', go); r.addEventListener('keydown', (ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); go(); } }); s.append(r); }
+    s.append(svg('text', { x: m.l - 4, y: mid - 20, 'text-anchor': 'end' }, '♪')); s.append(svg('text', { x: m.l - 4, y: mid + 18, 'text-anchor': 'end' }, n0(smax / 1000) + 'k')); s.append(svg('text', { x: m.l - 4, y: base - 2, 'text-anchor': 'end' }, '0'));
+    $('#replay').replaceChildren(s);
+    const steps = d.steps.reduce((a, b) => a + b, 0), walkH = d.steps.filter((v) => v >= 1000).length, onWalk = (() => { let t = 0; for (let i = 0; i < d.plays.length; i += 4) { const h = Math.floor(d.plays[i] / 3600); if ((d.steps[h] || 0) >= 1000 && d.plays[i + 3] !== 2) t += d.plays[i + 1]; } return t; })();
+    $('#dayhead').innerHTML = `<span class="d">${DOW[day(d.date).getUTCDay()]} ${md(d.date)}, 2019 · day ${d.day}</span><span class="k">${d.kind === 'zero' ? '<b>zero day</b>' : `<b>${n1(d.miles)}</b> mi`} · ended at <b>${esc(d.loc || '—')}</b> · ${d.state || ''}</span>` +
+      `<span class="k"><b>${n0(steps)}</b> steps · <b>${walkH}</b> walking hours · <b>${mins(d.sec)}</b> of music${d.sec ? `, <b>${Math.round((onWalk / d.sec) * 100)}%</b> of it while walking` : ''}</span>`;
+    $('#d-prev').disabled = curDay === 0; $('#d-next').disabled = curDay === D.length - 1;
+  }
+  $('#d-pick').append(...D.map((d) => el('option', { value: String(d.i), textContent: `Day ${d.day} · ${md(d.date)} · ${d.kind === 'zero' ? 'zero' : n1(d.miles) + ' mi'} · ${d.loc}`.slice(0, 70) })));
+  $('#d-pick').addEventListener('change', () => { curDay = +$('#d-pick').value; renderReplay(); });
+  $('#d-prev').addEventListener('click', () => { if (curDay > 0) { curDay--; renderReplay(); } });
+  $('#d-next').addEventListener('click', () => { if (curDay < D.length - 1) { curDay++; renderReplay(); } });
+  $('#d-radio').addEventListener('click', () => { const d = D[curDay]; mode = 'order'; for (const x of $('#mode').children) x.setAttribute('aria-pressed', String(x.dataset.k === 'order')); select(`${DOW[day(d.date).getUTCDay()]} ${md(d.date)}, day ${d.day}`, [d.i], null, 'day'); $('#s-radio').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }); });
+
+  /* ================================================================ 4 soundtrack map */
+  const PAL = ['#ff3fb4', '#3ff0ff', '#b6ff5c', '#ffb347', '#9b7bff', '#4fe0c0', '#ff7a59', '#f5e663'];
+  const byArtist = new Map(); for (const d of D) for (const [t, e] of d.by) byArtist.set(TR[t][2], (byArtist.get(TR[t][2]) || 0) + e.sec);
+  const TOP = [...byArtist.entries()].sort((a, b) => b[1] - a[1]).slice(0, 8).map((x) => x[0]);
+  function renderRiver() {
+    const W = Math.max(320, $('#river').clientWidth || 900), H = 240, m = { l: 34, r: 10, t: 10, b: 26 }, pw = W - m.l - m.r, ph = H - m.t - m.b;
+    const rows = weeks.map((w) => { const v = Object.fromEntries(TOP.map((a) => [a, 0])); v._other = 0; for (const d of w.days) for (const [t, e] of d.by) { const a = TR[t][2]; if (a in v) v[a] += e.sec; else v._other += e.sec; } return v; });
+    const tot = rows.map((v) => Object.values(v).reduce((a, b) => a + b, 0)), topSum = rows.map((v) => TOP.reduce((t, a) => t + v[a], 0)), mx = Math.max(...topSum) * 1.05, X = (k) => m.l + (k / (weeks.length - 1)) * pw, Y = (v) => m.t + ph - (v / mx) * ph;
+    const s = svg('svg', { viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': 'Weekly listening by top artist across the trail' });
+    weeks.forEach((w, k) => { if (k % 2 === 0) s.append(svg('text', { x: X(k), y: H - 8, 'text-anchor': k === 0 ? 'start' : 'middle' }, md(w.start))); });
+    [0, mx / 2, mx].forEach((v) => s.append(svg('text', { x: m.l - 4, y: Y(v) + 3, 'text-anchor': 'end' }, `${Math.round(v / 3600)}h`)));
+    const keys = TOP, lo = weeks.map(() => 0);
+    keys.forEach((a, ki) => { const hi = rows.map((v, k) => lo[k] + v[a]); let p = ''; hi.forEach((v, k) => { p += `${k ? 'L' : 'M'}${X(k).toFixed(1)} ${Y(v).toFixed(1)}`; }); for (let k = weeks.length - 1; k >= 0; k--) p += `L${X(k).toFixed(1)} ${Y(lo[k]).toFixed(1)}`;
+      const isO = a === '_other', on = !artist || artist === a; const path = svg('path', { d: p + 'Z', fill: isO ? '#2a2546' : PAL[ki], opacity: on ? (isO ? 0.7 : 0.85) : 0.15, stroke: '#07060f', 'stroke-width': 0.5 });
+      path.addEventListener('pointermove', (ev) => { const r = s.getBoundingClientRect(), k = Math.round((((ev.clientX - r.left) / r.width) * W - m.l) / pw * (weeks.length - 1)), kk = Math.max(0, Math.min(weeks.length - 1, k));
+        showTip(ev, `<b>${isO ? 'Everyone else' : esc(a)}</b><br>week of ${md(weeks[kk].start)}: ${mins(rows[kk][a])}<br><span class="k">${Math.round((rows[kk][a] / (tot[kk] || 1)) * 100)}% of that week's music</span>`); });
+      path.addEventListener('pointerleave', hideTip); if (!isO) path.addEventListener('click', () => setArtist(a)); s.append(path); hi.forEach((v, k) => { lo[k] = v; }); });
+    // each week's top-artist share, over the stack
+    topSum.forEach((v, k) => { if (tot[k] && v / tot[k] >= 0.25 && (k % 2 === 0)) s.append(svg('text', { x: X(k), y: Y(v) - 4, 'text-anchor': 'middle', style: 'fill:#dcd8ff' }, `${Math.round((v / tot[k]) * 100)}%`)); });
+    $('#river').replaceChildren(s);
+    $('#alegend').replaceChildren(...TOP.map((a, k) => el('button', { type: 'button', ariaPressed: String(artist === a), onclick: () => setArtist(artist === a ? null : a) }, [el('i', { style: `background:${PAL[k]}` }), `${a} · ${mins(byArtist.get(a))}`])));
+  }
+  function setArtist(a) { artist = a; mode = 'top'; for (const x of $('#mode').children) x.setAttribute('aria-pressed', String(x.dataset.k === 'top')); buildList(); renderRiver(); if (a) $('#s-radio').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }); }
+
+  /* ================================================================ boot */
+  $('#sel-all').addEventListener('click', () => select('The whole trail', D.map((d) => d.i), null, 'all'));
+  $('#boot').remove(); for (const id of ['#s-strip', '#s-radio', '#s-replay', '#s-river']) $(id).hidden = false;
+  const h = decodeURIComponent(location.hash.slice(1)), st = R.states.find((x) => x.abbr.toLowerCase().replace('/', '-') === h.toLowerCase());
+  curDay = 0; renderReplay();
+  if (st) select(st.name, D.filter((d) => d.state === st.abbr).map((d) => d.i), [st.sobo_a, st.sobo_b], 'st:' + st.abbr); else select('The whole trail', D.map((d) => d.i), null, 'all');
+  let rz; addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { drawStrip(); renderReplay(); renderRiver(); }, 140); });
+  const plays = D.reduce((t, d) => t + d.plays.length / 4, 0);
+  $('#foot').textContent = `${R.trip} · ${n0(plays)} plays of ${n0(TR.length)} songs on ${D.length} days · music from Spotify, steps from the phone, miles from the trail log · data built ${R.generated}`;
+})();
+</script>
+</html>
