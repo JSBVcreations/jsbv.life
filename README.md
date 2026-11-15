@@ -11,10 +11,15 @@ data/, highlights/      redirects to /#data and /#trails
 trail/                  TRAIL//RADIO (AT 2019 songs by state, day, week)
 photo-library/          PHOTO//SORT
 pct-training/           PCT//PREP training tracker (static: index.html + data/*.json)
-scripts/                data builders (raw exports → step-song/data, site data → meta-log/data)
+scripts/                data builders + update.py (refresh everything)
+docs/                   UPDATING.md (data sources + flow), NOTES.md (detailed notes) (raw exports → step-song/data, site data → meta-log/data)
 ```
 
 No build step. Edit, commit, push to `main` → Vercel deploys in about a minute.
+
+**Refreshing data:** double-click `Update jsbv.command` (or `python3 scripts/update.py`), then commit + push.
+Every source, where it lives and how to refresh it: [docs/UPDATING.md](docs/UPDATING.md). The per-script commands below are the manual route.
+For Claude / AI sessions: `CLAUDE.md` is the short brief; `docs/NOTES.md` has the detail.
 
 ## Run locally
 ```
