@@ -215,7 +215,12 @@ Rule: a page should be about a screen or two tall per tab. Long pages get tabs, 
     calendar from Epic's public season history.
   - Chart: one bar per season, as wide as the season ran, coloured by chapter; LEVEL / WINS / WINS-PER-WEEK (battle pass dropped: it tracks level and capped at 100 in older seasons);
     "All, from 2017" squeezes the 2019–21 gap.
-  - Root Data page: the Video games card (`gamesCard()`), not a daily.json dataset (seasons aren't day-grain).
+  - Root Data page: the Video games card (`gamesCard()`); the daily `fortnite` dataset is in `HIDE_IN_DATA` so it has no
+    second card.
+  - Explorer / calendar / experiments: `build_meta_log.py` adds a day-grain `fortnite` dataset from fortnite.json. Each
+    ended season's wins and levels are spread over its days in whole numbers (exact per season, even-pace estimate for
+    shorter spans; a shared changeover day carries both seasons' shares). `level` = level the season ended on (agg mean,
+    same every day of the season). Wins split by chapter (`chapter` dim). The season in progress is left out until it ends.
   - Next: PlayStation trophies as another tab (PSNProfiles has no API; Sony's unofficial API takes an NPSSO token).
 - Smoking: `jsbv data/2026-fall-smoking.xlsx` (tabs How to · Log · Pouches · Summary). `build_smoking_log.py` reads Log's
   Date, Time, Type → `meta-log/data/smoking.json` (total, cigarettes, spliffs, first_h = hour of the day's first smoke;

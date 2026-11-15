@@ -1145,7 +1145,7 @@ nav.ptabs.inview { margin-top: -4px; }
     breath: { blurb: 'Wim Hof breathing sessions: rounds per sitting and how long each breath was held.', links: [] },
     smoking: { blurb: 'Every cigarette and spliff since Oct 9, 2026, logged by hand with the time. Counts per day and by time of day.', links: [] },
   };
-  const HIDE_IN_DATA = new Set(['trail']);               // lives under Highlights
+  const HIDE_IN_DATA = new Set(['trail', 'fortnite']);   // trail lives under Trails; fortnite under the Video games card
   const totalIn = (dsId, mId, a, b) => { const L = asLine(dsId, mId); if (!L) return null; let t = 0;
     for (let i = Math.max(a, L.off); i <= Math.min(b, L.off + L.n - 1); i++) t += L.v[i - L.off] || 0; return t; };
   const linkRow = (items) => el('div', { className: 'links' }, items.map(([to, label]) => typeof to === 'function'
@@ -1167,7 +1167,7 @@ nav.ptabs.inview { margin-top: -4px; }
            el('dt', { text: 'Levels' }), el('dd', { text: num(sum(inYr, 'level')) }), el('dt', { text: 'Source' }), el('dd', { text: 'Epic Games data export + season calendar' })]
         : [el('dt', { text: 'Seasons played' }), el('dd', { text: String(played.length) }), el('dt', { text: 'Wins' }), el('dd', { text: num(GAMES.totals.wins) }),
            el('dt', { text: 'Levels' }), el('dd', { text: num(GAMES.totals.levels) }), el('dt', { text: 'Source' }), el('dd', { text: 'Epic Games data export + season calendar' })]),
-      linkRow([['games/', 'Open Video games'], ['games/#seasons', 'Season table']]),
+      linkRow([['games/', 'Open Video games'], ...(DS.fortnite ? [[() => openInExplorer([['fortnite', 'wins', null, [], false], ['fortnite', 'level', null, [], false]], DS.fortnite.offset, DS.fortnite.end), 'Chart it']] : [])]),
     ]);
   }
   function renderData() {

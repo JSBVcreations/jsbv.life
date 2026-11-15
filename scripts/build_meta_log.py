@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Build meta-log/data/daily.json: one day-indexed file joining every dataset on the site.
 
-Reads only files already in this repo (step-song/data, photo-library/data, meta-log/data/watch.json, calls.json, smoking.json,
+Reads only files already in this repo (step-song/data, photo-library/data, games/data/fortnite.json, meta-log/data/watch.json, calls.json, smoking.json,
 breath.json and health.json), so it never touches raw exports.
 Run it after build_step_song.py / build_at_log.py / the photo snapshot scripts:
 
@@ -215,6 +215,39 @@ for extra in ('watch.json', 'calls.json', 'breath.json', 'smoking.json'):   # bu
     if os.path.exists(wp):
         W = load(wp); W['offset'] = day(W.pop('start'))
         datasets.append(W)
+
+# ---------------------------------------------------------------- Fortnite (built by scripts/build_fortnite.py)
+# Epic only keeps season totals, so each ended season's wins and levels are spread evenly (in whole numbers) over its
+# days: sums over whole seasons are exact, anything shorter is an even-pace estimate. "level" is the level the season ended on (same every day).
+fp = os.path.join(ROOT, 'games', 'data', 'fortnite.json')
+if os.path.exists(fp):
+    G = [s for s in load(fp)['seasons'] if s.get('level') and s.get('end')]
+    if G:
+        a = day(G[0]['start']); n = day(G[-1]['end']) - a + 1
+        CH = sorted({s['chapter'] for s in G}, key=lambda c: int(c.split()[-1]))
+        CH_COL = {'Chapter 1': '#6b6880', 'Chapter 2': '#4fe0c0', 'Chapter 3': '#3ff0ff', 'Chapter 4': '#b6ff5c', 'Chapter 5': '#ffb347',
+                  'Chapter 6': '#ff3fb4', 'Chapter 7': '#9b7bff'}
+        wins, levels, level = [0] * n, [0] * n, [None] * n
+        by_ch = {c: [0] * n for c in CH}
+        spread = lambda tot, L, k: (k + 1) * tot // L - k * tot // L     # whole numbers, exact season total
+        for s in G:
+            i, j = day(s['start']) - a, day(s['end']) - a
+            L = j - i + 1
+            for k in range(i, j + 1):          # a changeover day shared by two seasons carries both shares
+                w, lv = spread(s['wins'] or 0, L, k - i), spread(s['level'], L, k - i)
+                wins[k] += w; levels[k] += lv; by_ch[s['chapter']][k] += w; level[k] = s['level']
+        datasets.append({
+            'id': 'fortnite', 'name': 'Fortnite', 'source': 'Epic Games data export, by season (games/)', 'grain': 'day', 'offset': a, 'n': n,
+            'note': 'Fortnite: Epic keeps only season totals, so wins and levels are spread evenly across each season\'s days. '
+                    'Whole seasons add up exactly; shorter spans are an even-pace estimate. The season in progress shows once it ends.',
+            'metrics': [
+                {'id': 'wins', 'name': 'Wins', 'unit': 'wins', 'agg': 'sum', 'color': '#b6ff5c', 'v': wins},
+                {'id': 'levels', 'name': 'Levels gained', 'unit': 'levels', 'agg': 'sum', 'color': '#3ff0ff', 'v': levels},
+                {'id': 'level', 'name': 'Season level reached', 'unit': 'level', 'agg': 'mean', 'color': '#9b7bff', 'v': level},
+            ],
+            'dims': [{'id': 'chapter', 'name': 'Chapter', 'cats': [{'id': c.lower().replace(' ', ''), 'name': c, 'color': CH_COL.get(c, '#8a84b8')} for c in CH],
+                      'v': {'wins': {c.lower().replace(' ', ''): by_ch[c] for c in CH}}}],
+        })
 
 # ---------------------------------------------------------------- library snapshots for the report card
 snap = {'photos': P.get('snapshots', []), 'lightroom': load(lrp).get('snapshots', []) if os.path.exists(lrp) else []}
