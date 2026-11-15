@@ -37,7 +37,7 @@ HOW = {
     'watch': 'Log new titles in the watch-list workbook (YYYY-Watch-List.xlsx) and save it in "jsbv data".',
     'calls': 'Save a fresh call-log backup (YYYY-MM-Call-Log-Backup.xlsx) in "jsbv data".',
     'breath': 'Wim Hof app > export results > save export_results.numbers (or .csv) in "jsbv data".',
-    'smoking': 'Type new rows into 2026-fall-smoking.xlsx (Log tab) in "jsbv data" and save.',
+    'smoking': 'Add rows to 2026-fall-smoking.xlsx (Log tab: Year, Month, Day, Time hhmm, Type) in "jsbv data" and save.',
     'fortnite': 'epicgames.com > Account > Privacy > request your data; save the PDF in "jsbv data" as YYYY-MM-DD-jsbv-fortnite-data.pdf '
                 '(keep Fortnite-Library-Manager.numbers there too). Needs: pip3 install pypdf numbers-parser',
     'strava': 'Tell Claude "update Strava" (it adds new hikes to pct-training/data/activities.json), then Update again.',
@@ -182,6 +182,11 @@ def report(used):
         ends['strava'] = dt.date.fromisoformat(last) if last else None
     except Exception:  # noqa: BLE001
         ends['strava'] = None
+    try:   # private datasets aren't in daily.json; read the local (git-ignored) copy
+        P = json.load(open(os.path.join(ROOT, 'meta-log', 'data', 'private', 'smoking.json'), encoding='utf-8'))
+        ends['smoking'] = dt.date.fromisoformat(P['start']) + dt.timedelta(days=P['n'] - 1)
+    except Exception:  # noqa: BLE001
+        pass
     try:
         G = json.load(open(os.path.join(ROOT, 'games', 'data', 'fortnite.json'), encoding='utf-8'))
         ends['fortnite'] = dt.date.fromisoformat(max(s['end'] for s in G['seasons'] if s.get('level') and s.get('end')))

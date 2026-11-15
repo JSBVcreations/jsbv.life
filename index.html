@@ -133,6 +133,9 @@ td small { color: var(--dim); display: block; }
 .ramp i { width: 11px; height: 11px; display: inline-block; }
 details summary { cursor: pointer; font: 600 var(--s-0) var(--f-ui); letter-spacing: 0.12em; text-transform: uppercase; color: var(--dim); }
 footer { font-family: var(--f-data); font-size: var(--s-0); color: var(--dim); }
+.priv { margin-top: 28px; } .priv form { align-items: end; } .priv .chk { display: inline-flex; gap: 8px; align-items: center; color: var(--dim); font-size: var(--s-1); min-height: 44px; }
+.priv input[type=password] { font: 400 var(--s-1) var(--f-data); background: var(--well, #120f26); color: var(--ink); border: 1px solid var(--grid); padding: 9px 10px; min-width: 16ch; }
+.priv.on { border-color: #ff7a59; } #priv-msg:empty { display: none; }
 .err { border: 1px solid var(--sound); padding: 14px; font-family: var(--f-data); }
 .wall { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 16px 14px; }
 .title { display: grid; gap: 6px; align-content: start; color: inherit; text-decoration: none; min-width: 0; }
@@ -463,6 +466,17 @@ a.more:hover, a.more:focus-visible { color: var(--trail); }
     </section>
   </div>
 
+  <section class="box priv" id="priv" aria-labelledby="priv-h">
+    <h2 id="priv-h">Private data</h2>
+    <p class="note" id="priv-state">Some datasets are private. They're published only in encrypted form and open here with the passphrase. It never leaves this browser.</p>
+    <form id="priv-form" class="row" autocomplete="off">
+      <label class="field"><span>Passphrase</span><input type="password" id="priv-pass" autocomplete="current-password" required></label>
+      <label class="chk"><input type="checkbox" id="priv-keep" checked> Remember on this device</label>
+      <button class="btn go" type="submit">Unlock</button>
+    </form>
+    <p class="note" id="priv-msg" role="status"></p>
+    <button class="btn" type="button" id="priv-lock" hidden>Lock again</button>
+  </section>
   <footer id="foot"></footer>
 </div>
 
@@ -520,6 +534,24 @@ a.more:hover, a.more:focus-visible { color: var(--trail); }
   } catch (e) {
     $('#boot').replaceWith(el('div', { className: 'err', text: 'Could not load the data files (' + e.message + '). Run `python3 scripts/build_meta_log.py`, and preview over http://localhost, not file://.' }));
     return;
+  }
+  // ---------------------------------------------------------------- private datasets
+  // meta-log/data/private.enc.json is sealed by scripts/private_box.py (AES-GCM, PBKDF2-SHA256). The repo is public, so private
+  // datasets are only ever published encrypted. Unlocking derives the key here; "remember" keeps the key (not the passphrase)
+  // in this browser's storage. Nothing is sent anywhere.
+  const PRIV = { box: await get('meta-log/data/private.enc.json', true), ids: [] };
+  const b64d = (s) => Uint8Array.from(atob(s), (c) => c.charCodeAt(0)), b64e = (u) => btoa(String.fromCharCode(...new Uint8Array(u)));
+  const openBox = async (key) => JSON.parse(new TextDecoder().decode(await crypto.subtle.decrypt({ name: 'AES-GCM', iv: b64d(PRIV.box.iv) }, key, b64d(PRIV.box.ct))));
+  const store = { get() { for (const s of [() => localStorage, () => sessionStorage]) { try { const v = JSON.parse(s().getItem('jsbv-key') || 'null'); if (v) return v; } catch (e) {} } return null; },
+    set(v, keep) { try { (keep ? localStorage : sessionStorage).setItem('jsbv-key', JSON.stringify(v)); } catch (e) {} },
+    clear() { for (const s of [() => localStorage, () => sessionStorage]) { try { s().removeItem('jsbv-key'); } catch (e) {} } } };
+  if (PRIV.box && window.crypto && crypto.subtle) {
+    const saved = store.get();
+    if (saved && saved.salt === PRIV.box.salt) {
+      try { const P = await openBox(await crypto.subtle.importKey('raw', b64d(saved.k), 'AES-GCM', false, ['decrypt']));
+        for (const d of P.datasets) { daily.datasets.push(d); PRIV.ids.push(d.id); } }
+      catch (e) { store.clear(); }
+    }
   }
   // Minutes read better as hours once they are summed over months.
   for (const ds of daily.datasets) for (const m of ds.metrics) if (m.unit === 'min') {
@@ -904,10 +936,12 @@ a.more:hover, a.more:focus-visible { color: var(--trail); }
     ['watching', 'Watching', '#9b7bff', [['watch', 'minutes'], ['watch', 'movies'], ['watch', 'episodes']]],
     ['calls', 'Calls', '#ffb347', [['calls', 'minutes'], ['calls', 'calls']]],
     ['breath', 'Breathwork', '#4fe0c0', [['breath', 'sessions'], ['breath', 'minutes'], ['breath', 'avg_hold']]],
-    ['smoking', 'Smoking', '#ff7a59', [['smoking', 'total'], ['smoking', 'cigarettes'], ['smoking', 'spliffs'], ['smoking', 'first_h']]],
     ['photos', 'Photos', '#ffb347', [['photos', 'items'], ['photos', 'gb']]],
+    // private datasets bring their own tile (site.group), so nothing about them is written into this public page
+    ...daily.datasets.filter((d) => d.site && d.site.group).map((d) => [d.id, d.site.group[0], d.site.group[1], d.site.group[2].map((m) => [d.id, m])]),
   ].map(([id, name, color, ms]) => ({ id, name, color, ms: ms.filter(([d, m]) => DS[d] && DS[d].grain === 'day' && metricOf(d, m)) })).filter((g) => g.ms.length);
-  const PER_DAY = new Set(['move:steps', 'move:miles', 'move:elev', 'exercise:minutes', 'music:minutes', 'watch:minutes', 'smoking:total', 'smoking:cigarettes', 'smoking:spliffs']);
+  const PER_DAY = new Set(['move:steps', 'move:miles', 'move:elev', 'exercise:minutes', 'music:minutes', 'watch:minutes']
+    .concat(daily.datasets.flatMap((d) => ((d.site && d.site.per_day) || []).map((m) => d.id + ':' + m))));
   const yearStart = (i) => d2i(`${YR[i]}-01-01`);
   const RC = { at: {}, built: false };
   function slideOf(g, k) {
@@ -1145,8 +1179,8 @@ a.more:hover, a.more:focus-visible { color: var(--trail); }
     watch: { blurb: 'Movies and TV watched this year, with the covers.', links: [['#watched', 'Open the poster wall']] },
     calls: { blurb: 'Phone calls by count, length and time of day. Not who they were with.', links: [] },
     breath: { blurb: 'Wim Hof breathing sessions: rounds per sitting and how long each breath was held.', links: [] },
-    smoking: { blurb: 'Every cigarette and spliff since Oct 9, 2026, logged by hand with the time. Counts per day and by time of day.', links: [] },
   };
+  for (const d of daily.datasets) if (d.site && d.site.blurb && !DIR[d.id]) DIR[d.id] = { blurb: d.site.blurb, links: [] };
   const HIDE_IN_DATA = new Set(['trail', 'fortnite']);   // trail lives under Trails; fortnite under the Video games card
   const totalIn = (dsId, mId, a, b) => { const L = asLine(dsId, mId); if (!L) return null; let t = 0;
     for (let i = Math.max(a, L.off); i <= Math.min(b, L.off + L.n - 1); i++) t += L.v[i - L.off] || 0; return t; };
@@ -1264,7 +1298,7 @@ a.more:hover, a.more:focus-visible { color: var(--trail); }
   const E_RINGS = [['move:steps', 'Steps'], ['music:minutes', 'Music'], ['photos:items', 'Photos']].filter(([k]) => asLine(...k.split(':')));
   const E_SET = [['move', 'steps'], ['move', 'elev'], ['exercise', 'minutes'], ['body', 'resting_hr'], ['body', 'hrv'], ['body', 'sleep_h'], ['music', 'minutes'],
     ['photos', 'items'], ['watch', 'minutes'], ['calls', 'minutes'], ['breath', 'minutes'], ['fortnite', 'wins'], ['fortnite', 'level'],
-    ['smoking', 'total'], ['smoking', 'spliffs']].filter(([d, m]) => metricOf(d, m)).map(([d, m]) => ({ key: d + ':' + m, L: asLine(d, m) }));
+    ...daily.datasets.flatMap((d) => ((d.site && d.site.corr) || []).map((m) => [d.id, m]))].filter(([d, m]) => metricOf(d, m)).map(([d, m]) => ({ key: d + ':' + m, L: asLine(d, m) }));
   const eSpan = () => { const b = Math.max(...E_SET.map((s) => s.L.off + s.L.n - 1)); return EXP.win === 'year' ? [d2i(`${YR[b]}-01-01`), b] : [Math.min(...E_SET.map((s) => s.L.off)), b]; };
   // weekly value per metric: totals become a per-day average (so a short week still compares), levels stay a mean
   function eWeekly(L, B) { return B.map((k) => { const r = sumRange(L, k.a, k.b); return L.agg === 'mean' ? (r.cnt >= 3 ? r.sum / r.cnt : null) : (r.cnt >= 5 ? r.sum / r.cnt : null); }); }
@@ -1482,11 +1516,31 @@ a.more:hover, a.more:focus-visible { color: var(--trail); }
     for (const k in VIEWS) $('#v-' + k).hidden = k !== v;
     for (const a of document.querySelectorAll('nav.tabs a')) { if (a.dataset.nav === NAV_OF[v]) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); }
     const tool = v === 'data' || v === 'explore' || v === 'calendar' || v === 'watched'; $('#subnav').hidden = !tool;
+    $('#priv').hidden = !PRIV.box || !(window.crypto && crypto.subtle) || !(v === 'report' || v === 'data');
     for (const a of document.querySelectorAll('#subnav a')) { if (a.getAttribute('href') === '#' + v) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); }
     document.title = (v === 'experiments' ? (E_TABS.find(([k]) => k === expTab) || [, ''])[1] + ' · ' : '') + (TITLES[v] ? TITLES[v] + ' · ' : '') + 'JSBV.LIFE';
     VIEWS[v]();
   }
   addSeries('move', 'steps', null, [], false); addSeries('music', 'minutes', null, [], false); applyPreset('ty'); preset.value = 'ty';
+  // ---- private data panel
+  (function privPanel() {
+    const sec = $('#priv');
+    if (!PRIV.box || !(window.crypto && crypto.subtle)) { sec.hidden = true; return; }
+    const names = PRIV.ids.map((id) => DS[id] ? DS[id].name : id);
+    if (PRIV.ids.length) { sec.classList.add('on'); $('#priv-form').hidden = true; $('#priv-lock').hidden = false;
+      $('#priv-state').textContent = `Unlocked on this browser: ${names.join(', ')} ${names.length === 1 ? 'now shows' : 'now show'} across the dashboard, Data, the explorer and the experiments.`; }
+    $('#priv-lock').onclick = () => { store.clear(); location.reload(); };
+    $('#priv-form').onsubmit = async (ev) => {
+      ev.preventDefault(); const msg = $('#priv-msg'); msg.textContent = 'Checking…';
+      try {
+        const base = await crypto.subtle.importKey('raw', new TextEncoder().encode($('#priv-pass').value.trim()), 'PBKDF2', false, ['deriveKey']);
+        const key = await crypto.subtle.deriveKey({ name: 'PBKDF2', salt: b64d(PRIV.box.salt), iterations: PRIV.box.iter, hash: 'SHA-256' }, base, { name: 'AES-GCM', length: 256 }, true, ['decrypt']);
+        await openBox(key);
+        store.set({ k: b64e(await crypto.subtle.exportKey('raw', key)), salt: PRIV.box.salt }, $('#priv-keep').checked);
+        msg.textContent = 'Unlocked. Loading…'; location.reload();
+      } catch (e) { msg.textContent = 'That passphrase doesn\'t open it.'; $('#priv-pass').select(); }
+    };
+  })();
   $('#foot').textContent = `Data built ${daily.generated} · ` + daily.datasets.map((d) => `${d.name} ${iso(d.offset)} → ${iso(d.end)}`).join(' · ') + (daily.datasets.some((d) => d.note) ? ' · ' + daily.datasets.map((d) => d.note).filter(Boolean).join(' ') : '');
   $('#boot').remove();
   try { await Promise.race([document.fonts.ready, new Promise((r) => setTimeout(r, 1500))]); } catch (e) {}

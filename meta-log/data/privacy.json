@@ -1,0 +1,4 @@
+{
+  "how": "Dataset ids listed here never go into daily.json. They are sealed into private.enc.json (scripts/private_box.py) and only show on the site after unlocking with the passphrase.",
+  "private": ["smoking"]
+}

@@ -36,7 +36,12 @@ Jack's personal data site: a decade of steps, music, photos and trail logs, plus
 - Photos: counts and GB only. No file names, album names or ids.
 - Epic Games export (PDF: email, name, IPs, devices, linked accounts, a card purchase): only the "Past Seasons" stats are read.
   The season calendar's Notes / Group Chat columns name friends and are never read.
-- Smoking log: date, time and type only; the Note column is never read. Public for now by Jack's choice (accounts later).
+- Smoking log: date, time and kind only; the Pouch / Pack and Note columns are never read (notes name people).
+- **The GitHub repo is PUBLIC: anything committed is public.** Private datasets (ids in `meta-log/data/privacy.json`, now
+  `smoking`) are never committed in plain form: their builders write to the git-ignored `meta-log/data/private/`, and
+  `build_meta_log.py` seals them into `meta-log/data/private.enc.json` (`scripts/private_box.py`: AES-256-GCM, PBKDF2-SHA256
+  600k). The key file `jsbv data/jsbv-private-key.txt` (passphrase + salt) stays outside the repo. The home page's "Private
+  data" panel (Home and Data views) unlocks in the browser; "remember" stores the derived key, not the passphrase.
 - `meta-log/data/life.private.json` stays git-ignored. Raw workbooks and exports (`*.xlsx`, `*.csv`, `*.numbers`, `*.pdf`) are git-ignored.
 
 ## Jack's standing preferences for the site

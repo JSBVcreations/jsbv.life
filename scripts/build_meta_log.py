@@ -16,7 +16,7 @@ A monthly dataset stores each month's value on the 1st and zeros elsewhere.
 Every array in a dataset has length n; day i is start + offset + i. Days after a dataset's last
 record are left out (no data), days inside its span with nothing logged are 0.
 """
-import json, os, datetime as dt, collections
+import json, os, sys, datetime as dt, collections
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SS = os.path.join(ROOT, 'step-song', 'data')
@@ -210,8 +210,8 @@ if os.path.exists(lrp):
         })
 
 # ---------------------------------------------------------------- watch log (built by scripts/build_watch_log.py)
-for extra in ('watch.json', 'calls.json', 'breath.json', 'smoking.json'):   # build_watch_log / build_call_log / build_breath_log / build_smoking_log
-    wp = os.path.join(OUT, extra)
+for extra in ('watch.json', 'calls.json', 'breath.json', 'private/smoking.json'):   # build_watch_log / build_call_log / build_breath_log / build_smoking_log
+    wp = os.path.join(OUT, extra)       # meta-log/data/private/ is git-ignored: plain copies of private datasets stay on this machine
     if os.path.exists(wp):
         W = load(wp); W['offset'] = day(W.pop('start'))
         datasets.append(W)
@@ -252,11 +252,28 @@ if os.path.exists(fp):
 # ---------------------------------------------------------------- library snapshots for the report card
 snap = {'photos': P.get('snapshots', []), 'lightroom': load(lrp).get('snapshots', []) if os.path.exists(lrp) else []}
 
+# ---------------------------------------------------------------- private datasets (see scripts/private_box.py)
+# The GitHub repo is public. Datasets listed in meta-log/data/privacy.json never go into daily.json; they are sealed into
+# meta-log/data/private.enc.json, which only the passphrase opens (in the browser). No key file = they are left out.
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from private_box import seal, KEY_FILE  # noqa: E402
+pp = os.path.join(OUT, 'privacy.json')
+PRIVATE = set(load(pp).get('private', [])) if os.path.exists(pp) else set()
+private = [d for d in datasets if d['id'] in PRIVATE]
+datasets = [d for d in datasets if d['id'] not in PRIVATE]
+if private:
+    box = seal({'start': START.isoformat(), 'datasets': private})
+    if box:
+        with open(os.path.join(OUT, 'private.enc.json'), 'w') as f: json.dump(box, f, separators=(',', ':'))
+        print('private  sealed into private.enc.json:', ', '.join(d['id'] for d in private))
+    else:
+        print(f'private  NOT published (no key file at {KEY_FILE}; run: python3 scripts/private_box.py --init):', ', '.join(d['id'] for d in private))
+
 os.makedirs(OUT, exist_ok=True)
 out = {'generated': dt.date.today().isoformat(), 'start': START.isoformat(), 'datasets': datasets, 'snapshots': snap}
 with open(os.path.join(OUT, 'daily.json'), 'w') as f:
     json.dump(out, f, separators=(',', ':'), ensure_ascii=False)
-for d in datasets:
+for d in datasets + private:
     first = START + dt.timedelta(days=d['offset']); last = first + dt.timedelta(days=d['n'] - 1)
     print(f"{d['id']:10s} {first} → {last}  " + ', '.join(f"{m['id']}={round(sum(x for x in m['v'] if x is not None)):,}" for m in d['metrics']))
 print('check', check, '| daily.json', os.path.getsize(os.path.join(OUT, 'daily.json')) // 1024, 'KB')

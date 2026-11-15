@@ -13,3 +13,5 @@ meta-log/data/life.private.json
 *.pdf
 # python bytecode from the scripts folder
 __pycache__/
+# plain copies of private datasets (published only sealed, as meta-log/data/private.enc.json)
+meta-log/data/private/
