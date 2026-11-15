@@ -85,6 +85,18 @@ def sheets(p):
         return []
 
 
+def offloaded(p):
+    """True when the file can't be read: usually iCloud has moved it to the cloud ("Optimize Mac Storage")."""
+    try:
+        with open(p, 'rb') as f: f.read(1)
+        return False
+    except OSError:
+        return True
+
+
+ICLOUD = 'can\'t be read: iCloud has probably offloaded it. In Finder, right-click it (or the folder) > Download Now, then Update again'
+
+
 def wrong_workbook(key, p):
     """The call log and the watch list are both .xlsx; catch one saved under the other's name."""
     if not p.lower().endswith(('.xlsx', '.xlsm')): return None
@@ -130,13 +142,15 @@ def main():
     ]:
         f = newest_file(pats)
         used[key] = f
-        bad = f and wrong_workbook(key, f)
+        bad = f and (ICLOUD if offloaded(f) else wrong_workbook(key, f))
         if bad:
             print(f'  ! {label}  {short(f)}\n      skipped: {bad}. The site keeps its last good data.'); failed.append(key); continue
         if f and not run(f'{label}  {short(f)}', [py, os.path.join(S, script), f]): failed.append(key)
     pdf, cal = newest_file(['*fortnite-data*.pdf', '*Epic*Games*.pdf']), newest_file(['*Fortnite-Library-Manager*.numbers'])
     used['fortnite'] = pdf
-    if pdf and cal:
+    if pdf and cal and (offloaded(pdf) or offloaded(cal)):
+        print(f'  ! Fortnite  {short(pdf)}\n      skipped: {ICLOUD}.'); failed.append('fortnite')
+    elif pdf and cal:
         if not run(f'Fortnite  {short(pdf)}', [py, os.path.join(S, 'build_fortnite.py'), pdf, cal]): failed.append('fortnite')
     for key in ('health', 'watch', 'calls', 'breath', 'smoking', 'fortnite'):
         if not used[key]: print(f'  - {key}: no export found. {HOW[key]}')

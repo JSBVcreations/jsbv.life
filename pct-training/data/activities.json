@@ -14,6 +14,7 @@
     {"date": "2026-11-12", "name": "12lbs", "miles": 3.75, "moving_min": 67.2, "gain_ft": 334, "pack_lb": 12},
     {"date": "2026-11-13", "name": "Afternoon Hike", "miles": 2.88, "moving_min": 52.6, "gain_ft": 227, "pack_lb": null},
     {"date": "2026-11-14", "name": "12lb ruck, 35°", "miles": 6.37, "moving_min": 112.5, "gain_ft": 576, "pack_lb": 12},
-    {"date": "2026-11-15", "name": "Morning Hike - ankles and shins", "miles": 3.04, "moving_min": 54.5, "gain_ft": 229, "pack_lb": 0}
+    {"date": "2026-11-15", "name": "Morning Hike - ankles and shins", "miles": 3.04, "moving_min": 54.5, "gain_ft": 229, "pack_lb": 0},
+    {"date": "2026-11-15", "name": "Afternoon walk", "miles": 3.86, "moving_min": 69.3, "gain_ft": 344, "pack_lb": 0}
   ]
 }
