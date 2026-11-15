@@ -241,9 +241,9 @@ if os.path.exists(fp):
             'note': 'Fortnite: Epic keeps only season totals, so wins and levels are spread evenly across each season\'s days. '
                     'Whole seasons add up exactly; shorter spans are an even-pace estimate. The season in progress shows once it ends.',
             'metrics': [
-                {'id': 'wins', 'name': 'Wins', 'unit': 'wins', 'agg': 'sum', 'color': '#b6ff5c', 'v': wins},
-                {'id': 'levels', 'name': 'Levels gained', 'unit': 'levels', 'agg': 'sum', 'color': '#3ff0ff', 'v': levels},
-                {'id': 'level', 'name': 'Season level reached', 'unit': 'level', 'agg': 'mean', 'color': '#9b7bff', 'v': level},
+                {'id': 'wins', 'name': 'Fortnite wins', 'unit': 'wins', 'agg': 'sum', 'color': '#b6ff5c', 'v': wins},
+                {'id': 'levels', 'name': 'Fortnite levels gained', 'unit': 'levels', 'agg': 'sum', 'color': '#3ff0ff', 'v': levels},
+                {'id': 'level', 'name': 'Fortnite level', 'unit': 'level', 'agg': 'mean', 'color': '#9b7bff', 'v': level},
             ],
             'dims': [{'id': 'chapter', 'name': 'Chapter', 'cats': [{'id': c.lower().replace(' ', ''), 'name': c, 'color': CH_COL.get(c, '#8a84b8')} for c in CH],
                       'v': {'wins': {c.lower().replace(' ', ''): by_ch[c] for c in CH}}}],

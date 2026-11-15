@@ -200,13 +200,15 @@ nav.ptabs.inview { margin-top: -4px; }
 .pager button:hover:not(:disabled) { color: var(--hot); border-color: var(--dim); } .pager button[aria-current] { color: var(--void); background: var(--ink); border-color: var(--ink); }
 .pager button:disabled { opacity: 0.35; cursor: default; } .pager .lab { color: var(--dim); margin-right: 8px; font-weight: 400; }
 /* experiments */
-#v-experiments .head { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; justify-content: space-between; }
+#v-experiments .head, #r-race .head { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; justify-content: space-between; }
 .e-ring-wrap { display: grid; justify-items: center; } #e-ring-cv { display: block; max-width: 100%; touch-action: manipulation; }
 .e-split { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 18px; align-items: start; }
 @media (max-width: 900px) { .e-split { grid-template-columns: minmax(0, 1fr); } }
 .e-scroll { overflow-x: auto; } .e-side { display: grid; gap: 12px; min-width: 0; }
-#e-matrix svg, #e-scatter svg, #e-race-chart svg, .e-wk svg { display: block; width: 100%; height: auto; }
-#e-matrix svg { min-width: 520px; } #e-matrix text, #e-scatter text, #e-race-chart text, .e-wk text { font-family: var(--f-data); font-size: 11px; fill: var(--dim); }
+#e-matrix svg, #e-scatter svg, #r-race-chart svg, .e-wk svg { display: block; width: 100%; height: auto; }
+a.more { font: 600 var(--s-0) var(--f-data); letter-spacing: 0.08em; color: var(--dim); text-decoration: none; }
+a.more:hover, a.more:focus-visible { color: var(--trail); }
+#e-matrix svg { min-width: 520px; } #e-matrix text, #e-scatter text, #r-race-chart text, .e-wk text { font-family: var(--f-data); font-size: 11px; fill: var(--dim); }
 #e-matrix rect.c { cursor: pointer; } #e-matrix rect.c:hover { stroke: var(--hot); }
 #e-top { display: grid; gap: 4px; font-family: var(--f-data); font-size: var(--s-0); }
 #e-top button { display: grid; grid-template-columns: 52px minmax(0, 1fr); gap: 8px; text-align: left; font: inherit; color: var(--ink); background: none; border: 1px solid var(--grid); padding: 6px 8px; cursor: pointer; }
@@ -253,6 +255,12 @@ nav.ptabs.inview { margin-top: -4px; }
       <section class="hero pct" id="hero-pct" aria-labelledby="hp-h"><h2 id="hp-h">PCT//PREP</h2><p class="note">Loading the training tracker…</p></section>
       <section class="hero photo" id="hero-photo" aria-labelledby="hf-h"><h2 id="hf-h">PHOTO//SORT</h2></section>
     </div>
+    <section class="box" id="r-race" hidden>
+      <div class="head"><h2>Racing 2019</h2><a class="more" href="pct-training/#race">On PCT//PREP ▶</a></div>
+      <p class="note">Miles on the phone, added up over the 111 days before leaving for a long trail: the run-in to the Appalachian Trail in 2019 against the run-in to the Pacific Crest Trail now.</p>
+      <div id="r-race-chart"></div>
+      <p class="note" id="r-race-note"></p>
+    </section>
     <section class="box">
       <h2>Tracking</h2>
       <p class="note" id="rc-note">Each tile is one area holding several numbers. Use the arrows or the dots to move between them; nothing changes on its own. Every number is shown twice: the last 7 days and the last 30 days of that dataset, each against the stretch before it. Click a number to chart it.</p>
@@ -383,13 +391,6 @@ nav.ptabs.inview { margin-top: -4px; }
       <p class="note">Other ways of looking at the same record. Each one is drawn live from the datasets on this site, so it moves when they do.</p>
     </section>
     <nav class="ptabs inview" id="e-tabs" aria-label="Experiments"></nav>
-    <section class="box" id="e-rings">
-      <div class="head"><h2>Year rings</h2>
-        <div class="seg" role="group" aria-label="Ring metric" id="e-ring-seg"></div></div>
-      <p class="note">One ring per year, January at the top, running clockwise. The longer and brighter the spoke, the bigger the day. Hover a day to read it.</p>
-      <div class="e-ring-wrap"><canvas id="e-ring-cv" aria-label="Every day as a spoke, one ring per year"></canvas></div>
-      <p class="note" id="e-ring-note"></p>
-    </section>
     <section class="box" id="e-corr">
       <div class="head"><h2>What moves together</h2>
         <div class="seg" role="group" aria-label="Time span" id="e-win-seg"></div></div>
@@ -400,16 +401,17 @@ nav.ptabs.inview { margin-top: -4px; }
       </div>
       <p class="note">Rank correlation (Spearman) on weekly values; a pair needs at least 20 weeks where both were recorded. A link is not a cause: two things can move together because a third thing, like a season, moves both.</p>
     </section>
+    <section class="box" id="e-rings">
+      <div class="head"><h2>Year rings</h2>
+        <div class="seg" role="group" aria-label="Ring metric" id="e-ring-seg"></div></div>
+      <p class="note">One ring per year, January at the top, running clockwise. The longer and brighter the spoke, the bigger the day. Hover a day to read it.</p>
+      <div class="e-ring-wrap"><canvas id="e-ring-cv" aria-label="Every day as a spoke, one ring per year"></canvas></div>
+      <p class="note" id="e-ring-note"></p>
+    </section>
     <section class="box" id="e-week">
       <div class="head"><h2>The shape of a week</h2></div>
       <p class="note">Each number's average for Monday through Sunday, against its own overall average (the dashed line). The brightest bar is the biggest day. Uses the time span chosen above.</p>
       <div class="e-weeks" id="e-weeks"></div>
-    </section>
-    <section class="box" id="e-race" hidden>
-      <div class="head"><h2>Racing 2019</h2></div>
-      <p class="note">Miles on the phone, added up over the 111 days before leaving for a long trail: the run-in to the Appalachian Trail in 2019 against the run-in to the Pacific Crest Trail now.</p>
-      <div id="e-race-chart"></div>
-      <p class="note" id="e-race-note"></p>
     </section>
     <section class="box" id="e-tide" hidden>
       <div class="head"><h2>Tide</h2>
@@ -986,7 +988,7 @@ nav.ptabs.inview { margin-top: -4px; }
     kids.push(links); host.replaceChildren(...kids);
   }
   function renderReport() {
-    drawPhotoHero(); drawPctHero();
+    drawPhotoHero(); drawPctHero(); drawRace();
     if (!RC.built) { RC.built = true; buildTiles(); } else for (const g of GROUPS) showSlide(g, RC.at[g.id] || 0, false);
   }
 
@@ -1244,15 +1246,15 @@ nav.ptabs.inview { margin-top: -4px; }
 
   // ================================================================ EXPERIMENTS
   // One experiment open at a time (#experiments/<key>), chosen from the tab bar under the intro.
-  const E_TABS = [['rings', 'Year rings'], ['corr', 'What moves together'], ['week', 'Shape of a week'], ['race', 'Racing 2019'], ['tide', 'Tide'], ['pairs', 'Any two numbers']];
-  let expTab = 'rings';
+  const E_TABS = [['corr', 'What moves together'], ['rings', 'Year rings'], ['week', 'Shape of a week'], ['tide', 'Tide'], ['pairs', 'Any two numbers']];
+  let expTab = 'corr';
   function applyExpTab() {
     const ok = (k) => { const e = document.getElementById('e-' + k); return e && e.dataset.off !== '1'; };
     if (!ok(expTab)) expTab = E_TABS.find(([k]) => ok(k))[0];
     for (const [k] of E_TABS) { const e = document.getElementById('e-' + k); if (e) e.hidden = k !== expTab || !ok(k); }
     for (const a of $('#e-tabs').children) { a.hidden = !ok(a.dataset.k); if (a.dataset.k === expTab) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); }
   }
-  // Four views drawn from daily.json (plus pct-training/data/training.json for the race). To add one: a section in
+  // Experiment views drawn from daily.json. drawRace (Racing 2019, training.json) now draws on the home dashboard. To add one: a section in
   // #v-experiments, a draw function, and a call in renderExperiments().
   const EXP = { ring: 'move:steps', win: 'year', pair: null, race: undefined };
   const eTip = el('div', { id: 'e-tip', hidden: true }); document.body.append(eTip);
@@ -1261,7 +1263,8 @@ nav.ptabs.inview { margin-top: -4px; }
   const eTipOff = () => { eTip.hidden = true; };
   const E_RINGS = [['move:steps', 'Steps'], ['music:minutes', 'Music'], ['photos:items', 'Photos']].filter(([k]) => asLine(...k.split(':')));
   const E_SET = [['move', 'steps'], ['move', 'elev'], ['exercise', 'minutes'], ['body', 'resting_hr'], ['body', 'hrv'], ['body', 'sleep_h'], ['music', 'minutes'],
-    ['photos', 'items'], ['watch', 'minutes'], ['calls', 'minutes'], ['breath', 'minutes']].filter(([d, m]) => metricOf(d, m)).map(([d, m]) => ({ key: d + ':' + m, L: asLine(d, m) }));
+    ['photos', 'items'], ['watch', 'minutes'], ['calls', 'minutes'], ['breath', 'minutes'], ['fortnite', 'wins'], ['fortnite', 'level'],
+    ['smoking', 'total'], ['smoking', 'spliffs']].filter(([d, m]) => metricOf(d, m)).map(([d, m]) => ({ key: d + ':' + m, L: asLine(d, m) }));
   const eSpan = () => { const b = Math.max(...E_SET.map((s) => s.L.off + s.L.n - 1)); return EXP.win === 'year' ? [d2i(`${YR[b]}-01-01`), b] : [Math.min(...E_SET.map((s) => s.L.off)), b]; };
   // weekly value per metric: totals become a per-day average (so a short week still compares), levels stay a mean
   function eWeekly(L, B) { return B.map((k) => { const r = sumRange(L, k.a, k.b); return L.agg === 'mean' ? (r.cnt >= 3 ? r.sum / r.cnt : null) : (r.cnt >= 5 ? r.sum / r.cnt : null); }); }
@@ -1349,13 +1352,13 @@ nav.ptabs.inview { margin-top: -4px; }
 
   async function drawRace() {
     if (EXP.race === undefined) { try { const r = await fetch('pct-training/data/training.json', { cache: 'no-cache' }); EXP.race = r.ok ? await r.json() : null; } catch (e) { EXP.race = null; } }
-    const T = EXP.race, sec = $('#e-race'); sec.dataset.off = !T || !T.pre_at || !T.health ? '1' : '0'; applyExpTab(); if (sec.dataset.off === '1') return;
+    const T = EXP.race, sec = $('#r-race'); sec.hidden = !T || !T.pre_at || !T.health; if (sec.hidden) return;
     const P = T.pre_at, N = P.n, startI = d2i(T.plan.start), h0 = d2i(T.health.start), a = startI - N - h0, nowN = Math.max(0, Math.min(N, T.health.miles.length - a));
     const cum = (arr) => { let t = 0; return arr.map((v) => (t += v)); }, then = cum(P.miles), now = cum(T.health.miles.slice(a, a + nowN));
-    const Wd = 900, Hd = 320, m = { l: 48, r: 110, t: 14, b: 30 }, top = Math.max(then[N - 1], now[nowN - 1] || 0) * 1.08, x = (k) => m.l + (k / (N - 1)) * (Wd - m.l - m.r), y = (v) => Hd - m.b - (v / top) * (Hd - m.t - m.b);
+    const Wd = Math.max(320, $('#r-race-chart').clientWidth || 900), Hd = Wd < 560 ? 240 : 300, m = { l: 44, r: Wd < 560 ? 96 : 110, t: 14, b: 30 }, top = Math.max(then[N - 1], now[nowN - 1] || 0) * 1.08, x = (k) => m.l + (k / (N - 1)) * (Wd - m.l - m.r), y = (v) => Hd - m.b - (v / top) * (Hd - m.t - m.b);
     const s = svg('svg', { viewBox: `0 0 ${Wd} ${Hd}`, role: 'img', 'aria-label': 'Cumulative phone miles over the 111 days before each trail' });
     for (let v = 0; v <= top; v += top > 600 ? 200 : 100) { s.append(svg('line', { x1: m.l, x2: Wd - m.r, y1: y(v), y2: y(v), stroke: '#1f1a3d' })); s.append(svg('text', { x: m.l - 6, y: y(v) + 4, 'text-anchor': 'end' }, String(v))); }
-    for (const k of [0, 20, 41, 62, 83, N - 1]) s.append(svg('text', { x: x(k), y: Hd - 10, 'text-anchor': 'middle' }, k === N - 1 ? 'last day' : `${N - k} to go`));
+    for (const k of (Wd < 560 ? [0, 55, N - 1] : [0, 20, 41, 62, 83, N - 1])) s.append(svg('text', { x: x(k), y: Hd - 10, 'text-anchor': 'middle' }, k === N - 1 ? 'last day' : `${N - k} to go`));
     const path = (arr) => arr.map((v, k) => `${k ? 'L' : 'M'}${x(k).toFixed(1)} ${y(v).toFixed(1)}`).join('');
     s.append(svg('path', { d: path(then), fill: 'none', stroke: '#ff3fb4', 'stroke-width': 2 })); s.append(svg('text', { x: x(N - 1) + 8, y: y(then[N - 1]) + 4, style: 'fill:#ff3fb4' }, `2019 · ${num(then[N - 1], 'mi')}`));
     if (nowN) { s.append(svg('path', { d: path(now), fill: 'none', stroke: '#3ff0ff', 'stroke-width': 3 })); s.append(svg('circle', { cx: x(nowN - 1), cy: y(now[nowN - 1]), r: 5, fill: '#3ff0ff' }));
@@ -1363,8 +1366,8 @@ nav.ptabs.inview { margin-top: -4px; }
     const hit = svg('rect', { x: m.l, y: m.t, width: Wd - m.l - m.r, height: Hd - m.t - m.b, fill: 'transparent' });
     hit.addEventListener('mousemove', (ev) => { const b = s.getBoundingClientRect(), k = Math.max(0, Math.min(N - 1, Math.round((((ev.clientX - b.left) / b.width) * Wd - m.l) / ((Wd - m.l - m.r) / (N - 1)))));
       eTipAt(ev, `<b>${N - k} days to go</b><br><span style="color:#ff3fb4">2019:</span> ${num(then[k], 'mi')} so far` + (k < nowN ? `<br><span style="color:#3ff0ff">now:</span> ${num(now[k], 'mi')} so far` : '')); }); hit.addEventListener('mouseleave', eTipOff); s.append(hit);
-    $('#e-race-chart').replaceChildren(s);
-    $('#e-race-note').textContent = nowN ? `${nowN} day${nowN === 1 ? '' : 's'} in: ${num(now[nowN - 1], 'mi')} this time against ${num(then[nowN - 1], 'mi')} at the same point in 2019. The whole 2019 run-in came to ${num(then[N - 1], 'mi')}, about ${num(then[N - 1] / N, 'mi')} a day.` : `The 2019 run-in came to ${num(then[N - 1], 'mi')}. This year's line starts ${N} days before the start.`;
+    $('#r-race-chart').replaceChildren(s);
+    $('#r-race-note').textContent = nowN ? `${nowN} day${nowN === 1 ? '' : 's'} in: ${num(now[nowN - 1], 'mi')} this time against ${num(then[nowN - 1], 'mi')} at the same point in 2019. The whole 2019 run-in came to ${num(then[N - 1], 'mi')}, about ${num(then[N - 1] / N, 'mi')} a day.` : `The 2019 run-in came to ${num(then[N - 1], 'mi')}. This year's line starts ${N} days before the start.`;
   }
 
   // ---- Tide: weekly steps above a centre line, weekly listening below it
@@ -1454,8 +1457,7 @@ nav.ptabs.inview { margin-top: -4px; }
       $('#e-win-seg').replaceChildren(...[['year', 'This year'], ['all', 'All years']].map(([k, label]) => el('button', { type: 'button', text: label, 'aria-pressed': String(EXP.win === k), onclick: (ev) => { EXP.win = k; EXP.pair = null; for (const b of $('#e-win-seg').children) b.setAttribute('aria-pressed', String(b === ev.target)); drawCorr(); drawWeekShape(); } }))); }
     if (!$('#e-tabs').children.length) $('#e-tabs').replaceChildren(...E_TABS.map(([k, label]) => { const a = el('a', { href: '#experiments/' + k, text: label }); a.dataset.k = k; return a; }));
     applyExpTab();   // open the tab first, so the drawing below measures its real width
-    ({ rings: drawRings, corr: drawCorr, week: drawWeekShape, race: drawRace, tide: drawTide, pairs: drawPairs })[expTab]();
-    drawRace();      // also decides whether the Racing 2019 tab exists
+    ({ rings: drawRings, corr: drawCorr, week: drawWeekShape, tide: drawTide, pairs: drawPairs })[expTab]();
   }
 
   const VIEWS = { report: renderReport, trails: renderTrails, projects: renderProjects, data: renderData, experiments: renderExperiments, explore: renderExplorer, calendar: renderCalendar, ...(WT ? { watched: renderWatched } : {}) };
@@ -1463,6 +1465,7 @@ nav.ptabs.inview { margin-top: -4px; }
   const NAV_OF = { report: 'home', trails: 'trails', projects: 'projects', data: 'data', experiments: 'experiments', explore: 'data', calendar: 'data', watched: 'data' };
   function route() {
     const [base, sub] = location.hash.slice(1).split('/'), alias = { highlights: 'trails', report: 'report' }, v = VIEWS[alias[base] || base] ? alias[base] || base : 'report';
+    if (base === 'experiments' && sub === 'race') { location.replace('pct-training/#race'); return; }
     if (v === 'experiments' && E_TABS.some(([k]) => k === sub)) expTab = sub;
     for (const k in VIEWS) $('#v-' + k).hidden = k !== v;
     for (const a of document.querySelectorAll('nav.tabs a')) { if (a.dataset.nav === NAV_OF[v]) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); }
@@ -1476,7 +1479,8 @@ nav.ptabs.inview { margin-top: -4px; }
   $('#boot').remove();
   try { await Promise.race([document.fonts.ready, new Promise((r) => setTimeout(r, 1500))]); } catch (e) {}
   window.addEventListener('hashchange', route);
-  let rz; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { if (!$('#v-explore').hidden) renderExplorer(); if (!$('#v-experiments').hidden) ({ rings: drawRings, corr: drawCorr, week: drawWeekShape, race: drawRace, tide: drawTide, pairs: drawPairs })[expTab](); }, 120); });
+  let rz; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { if (!$('#v-explore').hidden) renderExplorer(); if (!$('#v-experiments').hidden) ({ rings: drawRings, corr: drawCorr, week: drawWeekShape, tide: drawTide, pairs: drawPairs })[expTab]();
+    if (!$('#v-report').hidden) drawRace(); }, 120); });
   route();
 })();
 </script>

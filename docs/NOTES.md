@@ -74,7 +74,9 @@ Rule: a page should be about a screen or two tall per tab. Long pages get tabs, 
   - Projects (`renderProjects()`): STEP//SONG and PHOTO//SORT cards, built the same way.
   - Data family: `#data`, `#explore`, `#calendar`, `#watched` share the `#subnav` tab bar (`nav.ptabs`), with Data lit up top.
   - Experiments: one experiment open at a time, `#experiments/<key>` with keys from `E_TABS`
-    (rings, corr, week, race, tide, pairs). Draw only the open one (resize redraws it too). Optional experiments set
+    (corr first and the default, then rings, week, tide, pairs). Racing 2019 moved out (Nov 15): it is a PCT//PREP tab
+    (`pct-training/#race`, `renderRace`) and a panel on the home dashboard (`drawRace` → `#r-race`); `#experiments/race`
+    redirects to the PCT tab. `E_SET` (What moves together) includes Fortnite wins + level and Smoking total + spliffs. Draw only the open one (resize redraws it too). Optional experiments set
     `dataset.off='1'` instead of `hidden` (race: no training.json; tide: missing lines), and `applyExpTab()` hides their tab.
     To add one: a `section.box#e-<key>` in `#v-experiments`, a draw function, an `E_TABS` entry and an entry in the two
     `{ rings: drawRings, ... }` maps.
@@ -96,7 +98,7 @@ Rule: a page should be about a screen or two tall per tab. Long pages get tabs, 
   | step-song | decade · trail (aliases trail-calendar/-weeks/-states/-hours) · day · cuts |
   | photo-library | overview · captured · worklog · space · lightroom |
   | trail | radio · replay · map (state hashes like `#me` open Radio) |
-  | pct-training | plan · calendar · days · recovery · pace · trail-weeks |
+  | pct-training | plan · calendar · race · days · recovery · pace · trail-weeks |
 
   `--tab-accent` sets each page's tab colour.
 - New page checklist: include site.css + site.js, `nav.site` with data-here/data-crumb, tabs if it runs past ~2 screens,
