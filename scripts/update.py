@@ -145,6 +145,9 @@ def main():
         bad = f and (ICLOUD if offloaded(f) else wrong_workbook(key, f))
         if bad:
             print(f'  ! {label}  {short(f)}\n      skipped: {bad}. The site keeps its last good data.'); failed.append(key); continue
+        if f and key == 'watch' and not CHECK:      # find posters for newly logged titles first (OMDb; may ask for the key once)
+            print('  > Posters (OMDb) for new titles', flush=True)
+            subprocess.run([py, os.path.join(S, 'fill_posters.py'), f], cwd=ROOT)
         if f and not run(f'{label}  {short(f)}', [py, os.path.join(S, script), f]): failed.append(key)
     pdf, cal = newest_file(['*fortnite-data*.pdf', '*Epic*Games*.pdf']), newest_file(['*Fortnite-Library-Manager*.numbers'])
     used['fortnite'] = pdf

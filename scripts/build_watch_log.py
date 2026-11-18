@@ -127,6 +127,12 @@ print(f"watch  {start} → {end}  minutes={round(sum(tot)):,} movies={sum(mov)} 
 
 # ---------------------------------------------------------------- the titles themselves (poster wall)
 def num(x): return x if isinstance(x, float) else None
+# Posters / IMDb ids / ratings found by scripts/fill_posters.py (OMDb) fill any empty cells; the workbook wins when it has one.
+_cp = os.path.join(os.environ.get('JSBV_DATA') or os.path.expanduser('~/Documents/00-Database/jsbv data'), 'omdb-cache.json')
+OMDB = {}
+if os.path.exists(_cp):
+    for c in json.load(open(_cp, encoding='utf-8')).values():
+        if c.get('status') == 'ok': OMDB[c['title']] = c
 titles = []
 for r in S['Titles']:
     t = r.get('Title')
@@ -143,6 +149,11 @@ for r in S['Titles']:
     if isinstance(poster, str) and poster.startswith('https://'): row['poster'] = poster.strip()
     if num(r.get('My Rating')): row['rating'] = r['My Rating']
     if isinstance(r.get('Tier'), str): row['tier'] = r['Tier'].strip()
+    o = OMDB.get(t.strip())
+    if o:
+        if 'poster' not in row and o.get('poster', '').startswith('https://'): row['poster'] = o['poster']
+        if 'id' not in row and re.fullmatch(r'tt\d+', o.get('imdb') or ''): row['id'] = o['imdb']
+        if 'imdb' not in row and o.get('rating'): row['imdb'] = o['rating']
     if a['rewatch']: row['rewatch'] = True
     if a['theater']: row['theater'] = True
     titles.append(row)

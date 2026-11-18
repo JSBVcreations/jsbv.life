@@ -23,7 +23,7 @@ Jack's personal data site: a decade of steps, music, photos and trail logs, plus
 | `games/` | Video games (under Data): fortnite (season timeline) · seasons (table). PSN trophies planned | `games/data/fortnite.json` (`build_fortnite.py`) from the Epic export PDF + season calendar workbook |
 | `photo-library/` | PHOTO//SORT: overview · captured · worklog · space · lightroom | tracker scripts in `~/Documents/01-Projects/photo-library-tracker` |
 | `assets/site.js`, `assets/site.css` | Shared nav, breadcrumbs, page tabs | — |
-| `scripts/update.py`, `Update jsbv.command` | One-click refresh of every source | — |
+| `scripts/update.py`, `Update jsbv.command` | One-click refresh of every source (runs `fill_posters.py` for new watch-list titles first) | — |
 | `meta-log/`, `data/`, `highlights/`, `experiments/` | Redirect stubs (`meta-log/data/` holds the JSON) | — |
 
 ## Hard privacy rules (never break)

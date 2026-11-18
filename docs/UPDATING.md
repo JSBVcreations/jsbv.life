@@ -12,7 +12,7 @@ The script rebuilds every source it finds, then rebuilds PCT//PREP and `daily.js
 | Source | Kind | Raw file (outside the repo) | How to refresh | Builder → repo file |
 |---|---|---|---|---|
 | Apple Health (steps, distance, flights, exercise, HR, HRV, sleep) | manual export | `jsbv data/health export YYYY-MM-DD/` (HealthView hourly CSVs) | iPhone → HealthView → export hourly CSVs from Jan 1 to today → AirDrop → name the folder by date | `build_health_log.py` → `meta-log/data/health.json`; also feeds `build_pct_training.py` |
-| Watch list | manual (you log it) | `jsbv data/YYYY-Watch-List.xlsx` | Log titles, save | `build_watch_log.py` → `watch.json`, `watch-titles.json` |
+| Watch list | manual (you log it) | `jsbv data/YYYY-Watch-List.xlsx` | Log titles, save. Update first runs `fill_posters.py`: OMDb posters / IMDb ids / ratings for new titles go to `jsbv data/omdb-cache.json` (key in `omdb-key.txt`; misses listed in `posters-to-check.csv`: add the IMDb ID in the Titles sheet) | `build_watch_log.py` → `watch.json`, `watch-titles.json` |
 | Call log | manual export | `jsbv data/YYYY-MM-Call-Log-Backup.xlsx` | Save a fresh backup from the call-log app | `build_call_log.py` → `calls.json` |
 | Breathwork | manual export | `jsbv data/export_results.numbers` (or `.csv`) | Wim Hof app → export results | `build_breath_log.py` → `breath.json` |
 | Smoking | manual (you log it) | `jsbv data/2026-fall-smoking.xlsx` (Log tab: Year, Month, Day, Time hhmm, Type) | Type new rows, save | `build_smoking_log.py` → `private/smoking.json` (git-ignored) → sealed into `private.enc.json` (needs `pip3 install cryptography` and the key file) |
