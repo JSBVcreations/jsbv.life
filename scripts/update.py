@@ -36,7 +36,7 @@ HOW = {
               'put the folder in "jsbv data", named "health export YYYY-MM-DD".',
     'watch': 'Log new titles in the watch-list workbook (YYYY-Watch-List.xlsx) and save it in "jsbv data".',
     'calls': 'Save a fresh call-log backup (YYYY-MM-Call-Log-Backup.xlsx) in "jsbv data".',
-    'breath': 'Wim Hof app > export results > save export_results.numbers (or .csv) in "jsbv data".',
+    'breath': 'Wim Hof app > export results > save it in "jsbv data" (as export_results.csv, or a name with "wim hof" in it).',
     'smoking': 'Add rows to 2026-fall-smoking.xlsx (Log tab: Year, Month, Day, Time hhmm, Type) in "jsbv data" and save.',
     'fortnite': 'epicgames.com > Account > Privacy > request your data; save the PDF in "jsbv data" as YYYY-MM-DD-jsbv-fortnite-data.pdf '
                 '(keep Fortnite-Library-Manager.numbers there too). Needs: pip3 install pypdf numbers-parser',
@@ -137,7 +137,7 @@ def main():
     for key, label, pats, script in [
         ('watch', 'Watch list', ['*Watch-List*.xlsx', '*Watch-List*.xlsm'], 'build_watch_log.py'),
         ('calls', 'Call log', ['*Call-Log*.xlsx'], 'build_call_log.py'),
-        ('breath', 'Breathwork', ['export_results*.numbers', 'export_results*.csv'], 'build_breath_log.py'),
+        ('breath', 'Breathwork', ['export_results*.numbers', 'export_results*.csv', '*[Ww]im*[Hh]of*.csv', '*[Ww]im*[Hh]of*.numbers'], 'build_breath_log.py'),
         ('smoking', 'Smoking log', ['*smoking*.xlsx', '*smoking*.numbers'], 'build_smoking_log.py'),
     ]:
         f = newest_file(pats)
