@@ -47,8 +47,12 @@ section section, .card .card, .tile .card { box-shadow: none; backdrop-filter: n
 h2 { letter-spacing: 0.2em; }
 section h2, section.box > h2, .head h2 { display: flex; align-items: center; gap: 10px; }
 section.box > h2::before, .head h2::before, .sec-head h2::before {
-  content: ""; width: 4px; height: 1em; border-radius: 2px; background: linear-gradient(180deg, var(--step), var(--sound)); box-shadow: 0 0 10px rgba(63,240,255,0.5); flex: none;
+  content: ""; width: 4px; height: 1em; border-radius: 2px; background: var(--tab-accent, linear-gradient(180deg, var(--step), var(--sound))); box-shadow: 0 0 10px var(--tab-accent, rgba(63,240,255,0.5)); flex: none;
 }
+/* sub-pages: every section wears the page's accent (PCT lime, STEP//SONG cyan, TRAIL//RADIO magenta, PHOTO//SORT amber, games violet) */
+nav.site ~ * section, .wrap > section[data-tab] { box-shadow: var(--lift), inset 0 2px 0 var(--tab-accent, transparent); }
+.sec-head h2 { color: color-mix(in srgb, var(--tab-accent, #fff) 30%, #fff); }
+nav.ptabs a[aria-current] { color: var(--tab-accent, var(--hot)) !important; }
 
 /* ---- primary nav (root page and sub-pages) */
 nav.tabs, nav.site.primary { gap: 6px; border-bottom: 0 !important; padding: 6px; border-radius: 999px; width: fit-content; max-width: 100%;
