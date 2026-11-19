@@ -238,6 +238,17 @@ a.more:hover, a.more:focus-visible { color: var(--trail); }
 .s-leg button i { width: 10px; height: 10px; border-radius: 3px; background: var(--sc); box-shadow: 0 0 8px var(--sc); }
 .s-leg button.on { color: #07060f; background: var(--sc); border-color: var(--sc); box-shadow: 0 0 16px color-mix(in srgb, var(--sc) 55%, transparent); } .s-leg button.on i { background: #07060f; box-shadow: none; }
 .s-leg button:focus-visible { outline: 2px solid var(--sc); outline-offset: 2px; }
+.s-leg .s-view { margin-left: auto; }
+.s-stacked { display: grid; gap: 7px; }
+.s-grouped { overflow-x: auto; padding-bottom: 4px; scrollbar-width: thin; }
+.s-grouped svg { display: block; width: 100%; min-width: 820px; height: auto; }
+.s-grouped .ax { font: 400 10px var(--f-data); fill: #8a84b8; }
+.s-grouped .gl { font: 700 10.5px var(--f-ui); letter-spacing: 0.1em; }
+.s-grouped .gv { font: 600 9.5px var(--f-data); fill: #8a84b8; } .s-grouped .gv.on { fill: #fff; font-weight: 700; }
+.s-grouped .gd { font: 700 10px var(--f-data); } .s-grouped .gd.up { fill: #5dff8a; } .s-grouped .gd.dn { fill: #ff4d6d; }
+.s-grouped rect.gb { cursor: pointer; transition: opacity .15s; } .s-grouped rect.gb:hover { opacity: 1; }
+.s-grouped rect.gb.on { stroke: #fff; stroke-width: 1.5; filter: drop-shadow(0 0 6px rgba(255,255,255,0.35)); }
+.s-dnote { font-family: var(--f-data); font-size: var(--s-0); }
 .s-srow { display: grid; grid-template-columns: 178px minmax(0, 1fr) 58px; gap: 10px; align-items: center; }
 .s-lab { display: flex; align-items: baseline; white-space: nowrap; gap: 6px; font: 700 var(--s-0) var(--f-ui); letter-spacing: 0.12em; text-transform: uppercase; color: var(--cc); min-width: 0; }
 .s-lab i { width: 8px; height: 8px; border-radius: 50%; background: var(--cc); box-shadow: 0 0 8px var(--cc); flex: none; align-self: center; }
@@ -1067,7 +1078,7 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
     kids.push(links); host.replaceChildren(...kids);
   }
   // ================================================================ SEASONS (meta-log/data/seasons.json, scripts/build_seasons.py)
-  let SEA; const SV = { k: null, tab: 'overview' };
+  let SEA; const SV = { k: null, tab: 'overview', view: 'grouped' };
   // every number as a daily rate, so seasons of different lengths compare fairly
   const S_CMP = [['move.steps', 'Steps', 1, '', 'move'], ['move.miles', 'Miles', 1, 'mi', 'move'], ['move.flights', 'Flights', 1, '', 'climb'],
     ['exercise.minutes', 'Exercise', 1, 'min', 'exercise'], ['body.resting_hr', 'Resting HR', 1, 'bpm', 'heart'], ['body.hrv', 'HRV', 1, 'ms', 'heart'],
@@ -1087,21 +1098,44 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
     if (!SV.k || !L.some((x) => x.id === SV.k)) SV.k = (L.find((x) => tI >= x.start && tI <= x.end) || L[L.length - 1]).id;
     const se = L.find((x) => x.id === SV.k);
     $('#s-title').textContent = `${SEA.year} by season`; box.style.setProperty('--sea', SEASON_C[SV.k] || '#3ff0ff');
-    // comparison: one 100%-stacked bar per number; each season is a segment sized by its share of the four
+    // comparison: grouped bars (one group per number, one bar per season, each group scaled to its best season) or 100%-stacked
     const pick = (x) => { SV.k = x.id; renderSeasons(); };
-    $('#s-compare').replaceChildren(
-      el('div', { className: 's-leg' }, L.map((x) => el('button', { type: 'button', className: x.id === SV.k ? 'on' : '', style: `--sc:${SEASON_C[x.id]}`, onclick: () => pick(x) },
-        [el('i'), x.name + (x.partial ? ' (so far)' : '')]))),
-      ...S_CMP.map(([id, label, f, u, cat]) => {
-        const vs = L.map((x) => { const st = sStat(x, id); return st ? st.mean * f : null; }), tot = vs.reduce((t, v) => t + (v || 0), 0);
-        if (!tot) return null;
-        const k = L.findIndex((x) => x.id === SV.k), prev = k > 0 ? vs[k - 1] : null, d = prev && vs[k] != null ? ((vs[k] - prev) / prev) * 100 : null;
-        return el('div', { className: 's-srow', style: `--cc:${CAT_C[cat]}` }, [
-          el('span', { className: 's-lab' }, [el('i'), label, el('small', { text: u ? `${u} a day` : 'a day' })]),
-          el('div', { className: 's-stack' }, vs.map((v, i) => v == null ? null : el('button', { type: 'button', className: 's-seg' + (L[i].id === SV.k ? ' on' : ''),
-            style: `flex-grow:${v};--sc:${SEASON_C[L[i].id]}`, title: `${L[i].name}: ${num(v)}${u ? ' ' + u : ''} a day`, onclick: () => pick(L[i]) }, [el('b', { text: num(v) })]))),
-          el('span', { className: 's-d ' + (d == null ? '' : d >= 0 ? 'up' : 'dn'), text: d == null ? '' : `${d >= 0 ? '▲' : '▼'}${Math.abs(d).toFixed(0)}%`, title: d == null ? '' : `vs ${L[k - 1].name}` })]);
-      }));
+    const k = L.findIndex((x) => x.id === SV.k);
+    const ROWS = S_CMP.map(([id, label, f, u, cat]) => ({ id, label, u, cat, vs: L.map((x) => { const st = sStat(x, id); return st ? st.mean * f : null; }) }))
+      .filter((r) => r.vs.some((v) => v));
+    ROWS.forEach((r) => { const prev = k > 0 ? r.vs[k - 1] : null; r.d = prev && r.vs[k] != null ? ((r.vs[k] - prev) / prev) * 100 : null; });
+    const legend = el('div', { className: 's-leg' }, [...L.map((x) => el('button', { type: 'button', className: x.id === SV.k ? 'on' : '', style: `--sc:${SEASON_C[x.id]}`, onclick: () => pick(x) },
+        [el('i'), x.name + (x.partial ? ' (so far)' : '')])),
+      el('div', { className: 'seg s-view', role: 'group', 'aria-label': 'Chart type' }, [['grouped', 'Grouped'], ['stacked', 'Stacked']].map(([v, t]) =>
+        el('button', { type: 'button', text: t, 'aria-pressed': String(SV.view === v), onclick: () => { SV.view = v; renderSeasons(); } })))]);
+    let chart;
+    if (SV.view !== 'stacked') {
+      const n = L.length, bw = 17, gap = 3, gw = n * bw + (n - 1) * gap, pad = 30, x0 = 44, top = 62, base = 272, H = 328, W = x0 + ROWS.length * (gw + pad) + 6, h = base - top;
+      const g = svg('svg', { viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': 'Each number by season, each group scaled to its highest season' });
+      for (const t of [0, 25, 50, 75, 100]) { const y = base - (h * t) / 100;
+        g.append(svg('line', { x1: x0, x2: W - 4, y1: y, y2: y, stroke: t ? '#1f1a3d' : '#3a3366', 'stroke-dasharray': t && t < 100 ? '2 4' : '' }), svg('text', { x: x0 - 6, y: y + 3, 'text-anchor': 'end', class: 'ax' }, t + '%')); }
+      g.append(svg('text', { x: 4, y: 14, class: 'ax' }, '% of each number’s best season'));
+      ROWS.forEach((r, gi) => {
+        const gx = x0 + pad / 2 + gi * (gw + pad), mx = Math.max(...r.vs.filter((v) => v != null)), c = CAT_C[r.cat];
+        g.append(svg('rect', { x: gx - pad / 2 + 2, y: top - 26, width: gw + pad - 4, height: base - top + 26, rx: 6, fill: c, opacity: 0.045 }));
+        r.vs.forEach((v, i) => { if (v == null) return; const bh = Math.max(2, (h * v) / mx), x = gx + i * (bw + gap), on = L[i].id === SV.k;
+          const bar = svg('rect', { x, y: base - bh, width: bw, height: bh, rx: 3, fill: SEASON_C[L[i].id], opacity: on ? 1 : 0.72, class: 'gb' + (on ? ' on' : '') });
+          bar.append(svg('title', {}, `${r.label} · ${L[i].name}: ${num(v)}${r.u ? ' ' + r.u : ''} a day`)); bar.addEventListener('click', () => pick(L[i])); g.append(bar);
+          const tx = x + bw / 2 + 3.5, ty = base - bh - 4;
+          g.append(svg('text', { x: tx, y: ty, transform: `rotate(-90 ${tx} ${ty})`, class: 'gv' + (on ? ' on' : '') }, num(v))); });
+        g.append(svg('text', { x: gx + gw / 2, y: base + 17, 'text-anchor': 'middle', class: 'gl', fill: c }, r.label.toUpperCase()),
+          svg('text', { x: gx + gw / 2, y: base + 30, 'text-anchor': 'middle', class: 'ax' }, r.u ? `${r.u} a day` : 'a day'));
+        if (r.d != null) g.append(svg('text', { x: gx + gw / 2, y: base + 46, 'text-anchor': 'middle', class: 'gd ' + (r.d >= 0 ? 'up' : 'dn') }, `${r.d >= 0 ? '▲' : '▼'}${Math.abs(r.d).toFixed(0)}%`));
+      });
+      chart = el('div', { className: 's-grouped' }, [g]);
+    } else {
+      chart = el('div', { className: 's-stacked' }, ROWS.map((r) => el('div', { className: 's-srow', style: `--cc:${CAT_C[r.cat]}` }, [
+        el('span', { className: 's-lab' }, [el('i'), r.label, el('small', { text: r.u ? `${r.u} a day` : 'a day' })]),
+        el('div', { className: 's-stack' }, r.vs.map((v, i) => v == null ? null : el('button', { type: 'button', className: 's-seg' + (L[i].id === SV.k ? ' on' : ''),
+          style: `flex-grow:${v};--sc:${SEASON_C[L[i].id]}`, title: `${L[i].name}: ${num(v)}${r.u ? ' ' + r.u : ''} a day`, onclick: () => pick(L[i]) }, [el('b', { text: num(v) })]))),
+        el('span', { className: 's-d ' + (r.d == null ? '' : r.d >= 0 ? 'up' : 'dn'), text: r.d == null ? '' : `${r.d >= 0 ? '▲' : '▼'}${Math.abs(r.d).toFixed(0)}%` })])));
+    }
+    $('#s-compare').replaceChildren(legend, chart, k > 0 ? el('p', { className: 'note s-dnote', text: `▲▼ ${L[k].name} vs ${L[k - 1].name}` }) : null);
     const TABS = [['overview', 'Overview'], ['music', 'Music'], ['watch', 'Movies + TV'], ['stats', 'Statistics']].filter(([k]) => k !== 'music' || se.music).filter(([k]) => k !== 'watch' || se.watch);
     if (!TABS.some(([k]) => k === SV.tab)) SV.tab = 'overview';
     $('#s-tabs').replaceChildren(...TABS.map(([k, label]) => el('button', { type: 'button', role: 'tab', text: label, 'aria-selected': String(k === SV.tab), onclick: () => { SV.tab = k; renderSeasons(); } })));
