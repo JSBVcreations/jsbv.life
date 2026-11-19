@@ -39,7 +39,7 @@ KATAHDIN_CLIMB_FT = 4188                   # day 0, mile -5..0 (Hunt Trail up), 
 GOOD_CAPTURE = (0.8, 1.25)                 # days the phone was on most of the time: pace is only computed on these
 
 # ------------------------------------------------------------------ elevation (AT profile, SOBO)
-PROF = json.load(open(os.path.join(ROOT, 'scripts', 'at_profile.json')))['elevFt'][::-1]   # Katahdin -> Springer
+PROF = json.load(open(os.path.join(ROOT, 'scripts', 'config', 'at_profile.json')))['elevFt'][::-1]   # Katahdin -> Springer
 CUM_UP = [0.0]
 for i in range(1, len(PROF)): CUM_UP.append(CUM_UP[-1] + max(0, PROF[i] - PROF[i - 1]))
 def idx(mile): return min(len(PROF) - 1, max(0, round(mile / 2192 * (len(PROF) - 1))))

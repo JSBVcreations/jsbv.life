@@ -1,0 +1,108 @@
+/* JSBV.LIFE theme layer. Loaded LAST on every page (after each page's own <style>), so it restyles the shared
+   pieces in one place: background, panels, cards, tiles, nav, controls, tables. Colours stay the CRT/synthwave set
+   (CLAUDE.md); this adds depth, rounding, rhythm and motion. Page-specific layout stays in each page. */
+:root {
+  --r: 14px; --r-sm: 9px;
+  --glass: linear-gradient(180deg, rgba(24,20,52,0.82), rgba(12,10,28,0.78));
+  --edge: rgba(155,123,255,0.16); --edge-hi: rgba(155,123,255,0.34);
+  --lift: 0 1px 0 rgba(255,255,255,0.04) inset, 0 18px 40px -22px rgba(0,0,0,0.85);
+  --ease: cubic-bezier(.2,.7,.2,1);
+}
+html { scroll-behavior: smooth; }
+body {
+  background:
+    radial-gradient(1200px 520px at 12% -8%, rgba(255,63,180,0.10), transparent 60%),
+    radial-gradient(1000px 600px at 92% -12%, rgba(63,240,255,0.09), transparent 60%),
+    radial-gradient(900px 700px at 50% 120%, rgba(155,123,255,0.10), transparent 60%),
+    linear-gradient(rgba(155,123,255,0.035) 1px, transparent 1px) 0 0 / 44px 44px,
+    linear-gradient(90deg, rgba(155,123,255,0.035) 1px, transparent 1px) 0 0 / 44px 44px,
+    var(--void) !important;
+  background-attachment: fixed !important;
+  -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
+}
+/* scanlines: softer than before */
+body::after { opacity: 0.45; }
+::selection { background: rgba(255,63,180,0.35); color: #fff; }
+
+.wrap { gap: 22px; }
+header h1, h1 { letter-spacing: 0.02em; }
+
+/* ---- panels: every page's sections and boxes */
+section, section.box, .hero, .tile, .card, .e-wk, .idx .card, #e-pair-card {
+  background: var(--glass) !important; border: 1px solid var(--edge) !important; border-radius: var(--r);
+  box-shadow: var(--lift); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+}
+section section, .card .card, .tile .card { box-shadow: none; backdrop-filter: none; }
+.hero.pct { border-top: 1px solid var(--edge) !important; box-shadow: var(--lift), inset 0 2px 0 var(--trail); }
+.hero.photo { border-top: 1px solid var(--edge) !important; box-shadow: var(--lift), inset 0 2px 0 var(--climb); }
+.idx .card.at, .idx .card.pct { box-shadow: var(--lift), inset 0 2px 0 var(--trail); border-top: 1px solid var(--edge) !important; }
+.idx .card.ss { box-shadow: var(--lift), inset 0 2px 0 var(--step); border-top: 1px solid var(--edge) !important; }
+.idx .card.ph { box-shadow: var(--lift), inset 0 2px 0 var(--climb); border-top: 1px solid var(--edge) !important; }
+.tile, .card, .idx .card { transition: border-color .2s var(--ease), transform .2s var(--ease), box-shadow .2s var(--ease); }
+.tile:hover, .cards .card:hover, .idx .card:hover { border-color: var(--edge-hi) !important; transform: translateY(-2px); }
+.tile { overflow: hidden; }
+.tile-body:hover { background: rgba(155,123,255,0.06); }
+.tile-body .val { font-size: 1.5rem; letter-spacing: -0.01em; }
+.hero .huge, .idx .big2, .card .big { letter-spacing: -0.02em; }
+h2 { letter-spacing: 0.2em; }
+section h2, section.box > h2, .head h2 { display: flex; align-items: center; gap: 10px; }
+section.box > h2::before, .head h2::before, .sec-head h2::before {
+  content: ""; width: 4px; height: 1em; border-radius: 2px; background: linear-gradient(180deg, var(--step), var(--sound)); box-shadow: 0 0 10px rgba(63,240,255,0.5); flex: none;
+}
+
+/* ---- primary nav (root page and sub-pages) */
+nav.tabs, nav.site.primary { gap: 6px; border-bottom: 0 !important; padding: 6px; border-radius: 999px; width: fit-content; max-width: 100%;
+  background: rgba(13,11,28,0.7); border: 1px solid var(--edge) !important; box-shadow: var(--lift); }
+nav.tabs a, nav.site.primary a { border: 0 !important; border-radius: 999px; padding: 9px 18px; transition: color .18s, background .18s, box-shadow .18s; }
+nav.tabs a[aria-current="page"], nav.site.primary a[aria-current] { color: var(--void) !important; background: linear-gradient(90deg, var(--step), #9b7bff) !important; box-shadow: 0 0 18px rgba(63,240,255,0.35); }
+nav.tabs a:hover:not([aria-current]), nav.site.primary a:hover:not([aria-current]) { background: rgba(220,216,255,0.06); color: var(--hot); }
+
+/* ---- page tabs (sticky) */
+nav.ptabs { border-radius: var(--r); overflow: hidden; background: rgba(10,8,24,0.86) !important; border: 1px solid var(--edge) !important;
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); top: 8px; }
+nav.ptabs a { border-right: 0 !important; transition: color .18s, background .18s; }
+nav.ptabs a[aria-current] { background: rgba(63,240,255,0.08) !important; box-shadow: inset 0 -2px 0 var(--tab-accent, var(--step)); border-bottom-color: transparent !important; }
+nav.ptabs a:hover { background: rgba(220,216,255,0.04); }
+
+/* ---- controls */
+.seg { border-radius: 999px; overflow: hidden; border: 1px solid var(--grid); width: fit-content; }
+.seg button { border: 0 !important; border-radius: 0; padding: 7px 14px; transition: color .15s, background .15s; }
+.seg button + button { box-shadow: inset 1px 0 0 var(--grid); }
+.seg button[aria-pressed="true"] { box-shadow: 0 0 14px rgba(63,240,255,0.35); }
+.seg button:hover:not([aria-pressed="true"]) { color: var(--ink); background: rgba(220,216,255,0.05); }
+button.btn { border-radius: 999px; padding: 7px 14px; transition: all .15s var(--ease); }
+button.btn.go { box-shadow: 0 0 16px rgba(255,63,180,0.3); }
+select, input[type="date"], input[type="text"], input[type="password"], input[type="number"] {
+  border-radius: var(--r-sm) !important; background: rgba(18,15,38,0.9) !important; border: 1px solid var(--grid) !important; transition: border-color .15s; }
+select:hover, input:hover { border-color: var(--edge-hi) !important; }
+.chip { border-radius: 999px; padding: 4px 10px; }
+.tile-nav button { border-radius: 50%; }
+.pager button { border-radius: var(--r-sm); }
+.e-chips button { border-radius: 999px; }
+#e-top button { border-radius: var(--r-sm); }
+
+/* ---- meters, bars, readouts */
+.bar, .hero .meter { border-radius: 999px; overflow: hidden; border: 0 !important; background: rgba(220,216,255,0.06) !important; }
+.read { border-radius: var(--r-sm); background: rgba(18,15,38,0.7) !important; }
+.tip, #e-tip { border-radius: var(--r-sm); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border-color: var(--edge-hi) !important; }
+
+/* ---- tables */
+table { border-collapse: separate; border-spacing: 0; }
+th { position: sticky; top: 0; background: rgba(12,10,28,0.95); }
+tbody tr { transition: background .12s; }
+tbody tr:hover td { background: rgba(155,123,255,0.06); }
+
+/* ---- poster wall */
+.title .cover { border-radius: var(--r-sm); transition: transform .2s var(--ease), box-shadow .2s var(--ease), border-color .2s; }
+a.title:hover .cover { transform: translateY(-3px); }
+
+/* ---- footer */
+footer { opacity: 0.7; line-height: 1.7; }
+
+@media (max-width: 640px) {
+  :root { --r: 12px; }
+  nav.tabs, nav.site.primary { border-radius: var(--r); width: 100%; justify-content: space-between; }
+  nav.tabs, nav.site.primary { flex-wrap: nowrap !important; gap: 2px; padding: 4px; }
+  nav.tabs a, nav.site.primary a { padding: 9px 6px; flex: 1 1 0; min-width: 0; justify-content: center; text-align: center; letter-spacing: 0.08em !important; font-size: 0.7rem !important; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } html { scroll-behavior: auto; } .tile:hover, .card:hover { transform: none; } }

@@ -78,12 +78,12 @@ nav.site { display: flex; flex-wrap: wrap; gap: 6px 18px; font: 600 var(--s-0) v
 nav.site a { color: var(--dim); text-decoration: none; }
 nav.site a:hover, nav.site a:focus-visible { color: var(--step); }
 </style>
+<link rel="stylesheet" href="../assets/theme.css">
 <body>
 <div class="wrap">
   <header>
     <nav class="site" data-here="projects" data-crumb="PHOTO//SORT"></nav>
     <h1 style="margin-top:14px">PHOTO<span>//SORT</span></h1>
-    <p class="lede">One photo library, far too many items, being sorted and culled a session at a time. This page tracks the numbers. No photos, file names or album names are stored here.</p>
   </header>
   <p class="note" id="err" hidden>Data failed to load.</p>
   <div class="readout" id="readout">
@@ -118,7 +118,7 @@ nav.site a:hover, nav.site a:focus-visible { color: var(--step); }
   </section>
   <section id="worklog" data-tab="worklog">
     <h2>Work log</h2>
-    <p class="note">One entry per library snapshot. Added, removed and newly sorted are counted against the snapshot before.</p>
+    
     <div class="chart" id="wl-chart"></div>
     <div class="read" id="wl-read"></div>
     <div class="scroll"><table><thead><tr><th>Snapshot</th><th>Items</th><th>GB</th><th>Sorted</th><th>Bucket</th><th>No album</th><th>Added</th><th>Removed</th><th>Newly sorted</th></tr></thead><tbody id="wl-body"></tbody></table></div>
@@ -135,7 +135,7 @@ nav.site a:hover, nav.site a:focus-visible { color: var(--step); }
   </div>
   <section id="proper" data-tab="lightroom" data-off="1" hidden>
     <h2>The proper photography</h2>
-    <p class="note">The camera archive, kept in a Lightroom catalog apart from the phone library above. Every frame starts unrated; reviewing means rejecting it or giving it stars.</p>
+    
     <div class="readout" style="border:0;padding:0">
       <div><span>Frames</span><strong id="lr-total">—</strong></div>
       <div><span>Reviewed</span><strong id="lr-reviewed" style="color:var(--step)">—</strong></div>
@@ -160,7 +160,7 @@ nav.site a:hover, nav.site a:focus-visible { color: var(--step); }
     <div class="chart" id="cull-chart"></div>
     <div class="read" id="cull-read"></div>
   </section>
-  <footer>Counts come from a read-only snapshot of the library database. © Jack · jsbv.life</footer>
+  <footer>Photos library snapshot · Lightroom catalog</footer>
 </div>
 <script src="../assets/site.js"></script>
 <script>

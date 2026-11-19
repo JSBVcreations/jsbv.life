@@ -11,9 +11,9 @@ Data refresh: `docs/UPDATING.md`.
 - Movers/sitters need ≥3 h listened on ≥5 distinct days.
 - Listen classes: share of track played <⅓ skip, ⅓–⅔ "ADHD listen", >⅔ full. Track length = median of plays that
   ran to the end (Spotify's export has no durations). Plays field 5: 0 full · 1 ADHD · 2 skip · 3 sleep.
-- Sleep audio (scripts/genres.json → "sleep"): kept out of listening stats; shown in its own card.
-- Genres: scripts/genres.json, hand-tagged (~620 artists); untagged = Other. Edit + rebuild to fix.
-- AT terrain: scripts/at_profile.json (every-mile, BSD-3, 0.1-mi steps). Each hour's phone distance places it on
+- Sleep audio (scripts/config/genres.json → "sleep"): kept out of listening stats; shown in its own card.
+- Genres: scripts/config/genres.json, hand-tagged (~620 artists); untagged = Other. Edit + rebuild to fix.
+- AT terrain: scripts/config/at_profile.json (every-mile, BSD-3, 0.1-mi steps). Each hour's phone distance places it on
   the trail (SOBO); the profile gives estimated elevation, climb and descent (the phone never records descent).
 
 ## AT 2019 trail log (scripts/build_at_log.py → step-song/data/at2019-log.json)
@@ -32,7 +32,7 @@ Data refresh: `docs/UPDATING.md`.
   0.8–1.25. Climb per day from at_profile.json by log start/end mile (+4,188 ft Katahdin climb on day 0).
   Jack's stated flat moving pace = 3.2 mph; model_h = mi/3.2 + climb hours.
 - Breakdown data: `scripts/build_at_breakdown.py` → `step-song/data/at2019-breakdown.json` (run after build_at_log.py; reads
-  the log, hourly.json and scripts/at_profile.json). `weeks` (Sunday-start rows), `states` (north to south; TN and NC are
+  the log, hourly.json and scripts/config/at_profile.json). `weeks` (Sunday-start rows), `states` (north to south; TN and NC are
   one entry; borders = Greenbelly northbound mileposts flipped and scaled to 2,192; a day crossing a border is shared by
   miles; pace from good-capture days; elevation low/high/mean/climb per mile + a 60-point sketch from the profile; WV and
   72.8 mi of VA sit inside the Skyland skip), `time` (clock stats from hourly steps: an hour with 1,000+ steps = walking;
@@ -66,7 +66,7 @@ Data refresh: `docs/UPDATING.md`.
 
 ## Site hierarchy + tabs (Nov 15, 2026)
 Rule: a page should be about a screen or two tall per tab. Long pages get tabs, not more scrolling.
-- Five top-level sections, the same everywhere: Home · Trails · Projects · Data · Experiments.
+- Four top-level sections, the same everywhere: Home · Trails · Projects · Data (Nov 19: Experiments became the Lab, a Data sub-tab; `#experiments/<key>` unchanged).
   - Root `index.html` (hash views): Home `#report` (dashboard) · Trails `#trails` · Projects `#projects` · Data `#data`
     · Experiments `#experiments`. `#highlights` is an alias of `#trails` (old links still work).
   - Trails (`renderTrails()`): a PCT 2027 card and an AT 2019 card. Each card is a grid of jump links straight to a tab
@@ -251,3 +251,16 @@ Make `/<slug>/index.html` with its own `data/`, reuse the tokens, follow the new
 A @ → 216.198.79.1 · CNAME www → 6bddc4557fa14d26.vercel-dns-017.com (Vercel's current recommended records;
 legacy 76.76.21.21 / cname.vercel-dns.com also still work)
 Keep the MX / TXT / DKIM / autodiscover records — they run the jsbv.life business email.
+
+## Year by season + manifest (Nov 19, 2026)
+- `scripts/build_seasons.py [YEAR]` → `meta-log/data/seasons.json`: meteorological seasons of the current year. Per season:
+  descriptive stats (mean, median, SD, high + date, total) for steps, miles, flights, exercise, resting HR, HRV, sleep,
+  listening, screen time, calls, call time, breathwork, photos; top 5 artists (hours) / tracks (full listens) / genre split
+  from `plays-YYYY.json`; movies (first watched in the season) and shows (viewing span overlaps it) with posters; Strava
+  hike totals. Reads public repo files only. Each stat stops at its own dataset's last day.
+- Home `#r-seasons` (`renderSeasons()`): season picker, comparison bars (one row per number, one column per season),
+  inner tabs Overview · Music · Movies + TV · Statistics.
+- `scripts/build_manifest.py` reads `scripts/config/registry.json` and writes `meta-log/data/manifest.json` (files, KB,
+  data-through date, stale flag per source). Both run at the end of `update.py`.
+- PCT//PREP Recovery: zero-day call above the chart (`readiness()`): resting HR 5+ bpm over its 28-day mean two mornings
+  running, HRV 3-day mean 15%+ under its 28-day mean, body words in hike titles. 1 flag watch, 2+ take a zero/nero.

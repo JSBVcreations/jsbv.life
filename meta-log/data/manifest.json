@@ -1,0 +1,365 @@
+{
+ "generated": "2026-11-19",
+ "sources": [
+  {
+   "id": "health",
+   "name": "Apple Health",
+   "kind": "manual export",
+   "builder": "build_health_log.py",
+   "pages": [
+    "/#report",
+    "/#explore",
+    "pct-training/#recovery"
+   ],
+   "through": "2026-11-13",
+   "age_days": 6,
+   "stale": false,
+   "files": [
+    {
+     "path": "meta-log/data/health.json",
+     "kb": 28,
+     "through": "2026-11-13"
+    }
+   ]
+  },
+  {
+   "id": "watch",
+   "name": "Watch list",
+   "kind": "manual log",
+   "builder": "build_watch_log.py",
+   "pages": [
+    "/#watched"
+   ],
+   "through": "2026-11-07",
+   "age_days": 12,
+   "stale": false,
+   "files": [
+    {
+     "path": "meta-log/data/watch.json",
+     "kb": 33,
+     "through": "2026-11-07"
+    },
+    {
+     "path": "meta-log/data/watch-titles.json",
+     "kb": 64,
+     "through": "2026-11-07"
+    }
+   ]
+  },
+  {
+   "id": "calls",
+   "name": "Call log",
+   "kind": "manual export",
+   "builder": "build_call_log.py",
+   "pages": [
+    "/#explore"
+   ],
+   "through": "2026-11-07",
+   "age_days": 12,
+   "stale": false,
+   "files": [
+    {
+     "path": "meta-log/data/calls.json",
+     "kb": 14,
+     "through": "2026-11-07"
+    }
+   ]
+  },
+  {
+   "id": "breath",
+   "name": "Breathwork (Wim Hof)",
+   "kind": "manual export",
+   "builder": "build_breath_log.py",
+   "pages": [
+    "/#explore"
+   ],
+   "through": "2026-11-16",
+   "age_days": 3,
+   "stale": false,
+   "files": [
+    {
+     "path": "meta-log/data/breath.json",
+     "kb": 104,
+     "through": "2026-11-16"
+    }
+   ]
+  },
+  {
+   "id": "smoking",
+   "name": "Smoking (private)",
+   "kind": "manual log",
+   "builder": "build_smoking_log.py",
+   "pages": [
+    "/#report (unlocked)"
+   ],
+   "through": null,
+   "age_days": null,
+   "stale": false,
+   "files": [
+    {
+     "path": "meta-log/data/private.enc.json",
+     "kb": 8,
+     "through": null
+    }
+   ]
+  },
+  {
+   "id": "fortnite",
+   "name": "Fortnite",
+   "kind": "manual export, per season",
+   "builder": "build_fortnite.py",
+   "pages": [
+    "games/"
+   ],
+   "through": "2026-11-15",
+   "age_days": 4,
+   "stale": false,
+   "files": [
+    {
+     "path": "games/data/fortnite.json",
+     "kb": 7,
+     "through": "2026-11-15"
+    }
+   ]
+  },
+  {
+   "id": "strava",
+   "name": "Strava hikes",
+   "kind": "ask Claude",
+   "builder": "build_pct_training.py",
+   "pages": [
+    "pct-training/"
+   ],
+   "through": "2026-11-18",
+   "age_days": 1,
+   "stale": false,
+   "files": [
+    {
+     "path": "pct-training/data/activities.json",
+     "kb": 2,
+     "through": "2026-11-18"
+    },
+    {
+     "path": "pct-training/data/training.json",
+     "kb": 22,
+     "through": "2026-11-18"
+    }
+   ]
+  },
+  {
+   "id": "plan",
+   "name": "PCT training plans",
+   "kind": "hand-edited",
+   "builder": "build_pct_training.py",
+   "pages": [
+    "pct-training/#plan"
+   ],
+   "through": "2026-11-18",
+   "age_days": 1,
+   "stale": false,
+   "files": [
+    {
+     "path": "pct-training/data/training.json",
+     "kb": 22,
+     "through": "2026-11-18"
+    }
+   ]
+  },
+  {
+   "id": "photos",
+   "name": "Photos + Lightroom",
+   "kind": "automatic",
+   "builder": "photo_snapshot.py, lightroom_snapshot.py (tracker repo)",
+   "pages": [
+    "photo-library/"
+   ],
+   "through": "2026-11-15",
+   "age_days": 4,
+   "stale": false,
+   "files": [
+    {
+     "path": "photo-library/data/photo-library.json",
+     "kb": 190,
+     "through": "2026-11-15"
+    },
+    {
+     "path": "photo-library/data/lightroom.json",
+     "kb": 9,
+     "through": "2026-11-15"
+    }
+   ]
+  },
+  {
+   "id": "spotify",
+   "name": "Spotify (STEP//SONG)",
+   "kind": "rare request (~30 days)",
+   "builder": "build_step_song.py",
+   "pages": [
+    "step-song/"
+   ],
+   "through": "2026-10-15",
+   "age_days": 35,
+   "stale": false,
+   "files": [
+    {
+     "path": "step-song/data/meta.json",
+     "kb": 2203,
+     "through": "2026-10-15"
+    },
+    {
+     "path": "step-song/data/hourly.json",
+     "kb": 1290,
+     "through": null
+    },
+    {
+     "path": "step-song/data/plays-2016.json",
+     "kb": 759,
+     "through": null
+    },
+    {
+     "path": "step-song/data/plays-2017.json",
+     "kb": 484,
+     "through": null
+    },
+    {
+     "path": "step-song/data/plays-2018.json",
+     "kb": 470,
+     "through": null
+    },
+    {
+     "path": "step-song/data/plays-2019.json",
+     "kb": 421,
+     "through": null
+    },
+    {
+     "path": "step-song/data/plays-2020.json",
+     "kb": 373,
+     "through": null
+    },
+    {
+     "path": "step-song/data/plays-2021.json",
+     "kb": 293,
+     "through": null
+    },
+    {
+     "path": "step-song/data/plays-2022.json",
+     "kb": 201,
+     "through": null
+    },
+    {
+     "path": "step-song/data/plays-2023.json",
+     "kb": 183,
+     "through": null
+    },
+    {
+     "path": "step-song/data/plays-2024.json",
+     "kb": 312,
+     "through": null
+    },
+    {
+     "path": "step-song/data/plays-2025.json",
+     "kb": 514,
+     "through": null
+    },
+    {
+     "path": "step-song/data/plays-2026.json",
+     "kb": 444,
+     "through": null
+    }
+   ]
+  },
+  {
+   "id": "at2019",
+   "name": "AT 2019 (frozen)",
+   "kind": "historic",
+   "builder": "build_at_log.py, build_at_breakdown.py, build_trail_radio.py",
+   "pages": [
+    "step-song/#trail",
+    "trail/"
+   ],
+   "through": "2026-11-15",
+   "age_days": 4,
+   "stale": false,
+   "files": [
+    {
+     "path": "step-song/data/at2019-log.json",
+     "kb": 79,
+     "through": null
+    },
+    {
+     "path": "step-song/data/at2019-breakdown.json",
+     "kb": 33,
+     "through": "2026-11-15"
+    },
+    {
+     "path": "trail/data/trail-radio.json",
+     "kb": 376,
+     "through": "2026-11-15"
+    }
+   ]
+  },
+  {
+   "id": "life",
+   "name": "Life chapters + hand metrics",
+   "kind": "hand-edited",
+   "builder": "build_meta_log.py",
+   "pages": [
+    "/#calendar",
+    "/#explore"
+   ],
+   "through": null,
+   "age_days": null,
+   "stale": false,
+   "files": [
+    {
+     "path": "meta-log/data/life.json",
+     "kb": 1,
+     "through": null
+    },
+    {
+     "path": "meta-log/data/manual.json",
+     "kb": 0,
+     "through": null
+    }
+   ]
+  },
+  {
+   "id": "daily",
+   "name": "Combined daily table",
+   "kind": "derived",
+   "builder": "build_meta_log.py",
+   "pages": [
+    "/ (all views)"
+   ],
+   "through": "2026-11-19",
+   "age_days": 0,
+   "stale": false,
+   "files": [
+    {
+     "path": "meta-log/data/daily.json",
+     "kb": 912,
+     "through": "2026-11-19"
+    }
+   ]
+  },
+  {
+   "id": "seasons",
+   "name": "Year by season",
+   "kind": "derived",
+   "builder": "build_seasons.py",
+   "pages": [
+    "/#report"
+   ],
+   "through": "2026-11-16",
+   "age_days": 3,
+   "stale": false,
+   "files": [
+    {
+     "path": "meta-log/data/seasons.json",
+     "kb": 30,
+     "through": "2026-11-16"
+    }
+   ]
+  }
+ ]
+}

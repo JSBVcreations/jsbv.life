@@ -72,12 +72,12 @@ td .b { display: inline-block; height: 8px; background: var(--violet); vertical-
 footer { font-family: var(--f-data); font-size: var(--s-0); color: var(--dim); }
 [hidden] { display: none !important; }
 </style>
+<link rel="stylesheet" href="../assets/theme.css">
 <body>
 <div class="wrap">
   <header>
     <nav class="site" data-here="data" data-crumb="Video games"></nav>
     <h1 style="margin-top:14px">VIDEO<span>//GAMES</span></h1>
-    <p class="lede">Fortnite, season by season, laid on the season calendar: the level and wins each season ended on. Most of it starts with Chapter 3 at the end of 2021; a handful of 2018 matches came first. PlayStation trophies are next.</p>
   </header>
   <p class="note" id="err" hidden>Data failed to load.</p>
   <div class="readout">
@@ -101,13 +101,13 @@ footer { font-family: var(--f-data); font-size: var(--s-0); color: var(--dim); }
     </div>
     <div class="chart" id="chart"></div>
     <div class="read" id="read" aria-live="polite">Each bar is one season, as wide as the season ran. Hover or tap one.</div>
-    <p class="note">Level and wins are where each season ended, from Epic's data export. Epic records nothing for the season in progress until it ends. Season names, dates and themes come from my season calendar; Chapter 1 and the latest seasons are filled in from Epic's public season history.</p>
+    
   </section>
   <section data-tab="seasons">
     <h2>Season by season</h2>
     <div class="scroll"><table id="tbl"></table></div>
   </section>
-  <footer>From Epic Games' data export (the season stats only) and a hand-kept season calendar. © Jack · jsbv.life</footer>
+  <footer>Epic Games data export · season calendar</footer>
 </div>
 <script src="../assets/site.js"></script>
 <script>

@@ -220,12 +220,12 @@ nav.site { display: flex; flex-wrap: wrap; gap: 6px 18px; font: 600 var(--s-0) v
 nav.site a { color: var(--dim); text-decoration: none; }
 nav.site a:hover, nav.site a:focus-visible { color: var(--step); }
 </style>
+<link rel="stylesheet" href="../assets/theme.css">
 
 <div class="wrap">
   <header>
     <nav class="site" data-here="projects" data-crumb="STEP//SONG"></nav>
     <h1>STEP<span class="sl">//</span>SONG</h1>
-    <p class="lede">A decade of <b>footsteps</b> and <i>songs</i> on one clock. Start with the whole span, then drill down to a fortnight, a day, and the single track playing during a given hour of walking.</p>
     <div class="readout" id="totals"><div id="boot">BOOTING… loading listening history</div></div>
   </header>
 
@@ -323,7 +323,7 @@ nav.site a:hover, nav.site a:focus-visible { color: var(--step); }
       </div>
       <p class="note" id="log-note"></p>
     </div>
-    <p class="note">The phone only counts flights climbed, never descended, so the profile does the rest: each hour's distance moves you along the real trail (Katahdin to Springer), and the trail's elevation at that point gives the climb and descent. Positions are approximate where the phone was off. Capture compares what the phone recorded against official totals; town walking adds some distance back, so distance capture is an upper bound. Profile data: <a href="https://github.com/JasonSanford/every-mile" style="color:var(--dim)">every-mile</a>.</p>
+    
   </section>
 
   <section id="day" data-tab="day" aria-labelledby="h-day">
@@ -361,14 +361,14 @@ nav.site a:hover, nav.site a:focus-visible { color: var(--step); }
       </div>
       <div class="card">
         <h3 class="c-sound">Artists you sit with</h3>
-        <p class="note">Lowest average steps per hour while playing. Sleep audio is counted separately.</p>
+        
         <div class="rows" id="sitters"></div>
       </div>
       <div class="card">
         <h3>Circadian <span id="circ-yr" class="c-step"></span></h3>
         <div class="seg" role="group" aria-label="Year" id="circ-years"></div>
         <div class="cv" style="max-width:340px;justify-self:center;width:100%"><canvas id="circ" data-h="340" aria-label="24-hour profile of steps and listening"></canvas></div>
-        <p class="note">Average steps (cyan) and listening (magenta) by hour of day. Each is scaled to its own peak.</p>
+        
       </div>
       <div class="card">
         <h3 class="c-climb">Biggest days on foot</h3>
@@ -376,7 +376,7 @@ nav.site a:hover, nav.site a:focus-visible { color: var(--step); }
       </div>
       <div class="card">
         <h3 class="c-sound">Earworms</h3>
-        <p class="note">Most repeats of one track in a single day.</p>
+        
         <div class="rows" id="worms"></div>
       </div>
       <div class="card">
@@ -386,7 +386,7 @@ nav.site a:hover, nav.site a:focus-visible { color: var(--step); }
       </div>
       <div class="card">
         <h3>How you listen</h3>
-        <p class="note">Share of each track played: under ⅓ is a skip, ⅓–⅔ an ADHD listen, over ⅔ a full listen.</p>
+        
         <div class="rows" id="classes"></div>
       </div>
       <div class="card">
@@ -396,7 +396,7 @@ nav.site a:hover, nav.site a:focus-visible { color: var(--step); }
     </div>
   </section>
 
-  <footer>Spotify timestamps are UTC and are converted to local time using the country each track was played in (US plays use Eastern time). Apple Health data is hourly in device time, starting July 2016. Flights of stairs start October 2018; elevation gain is flights × 10 ft. Plays downloaded for offline listening are placed at the time they were played, not when the phone synced. Genres are hand-tagged for about 620 artists; the rest show as Other.</footer>
+  <footer>Spotify · Apple Health</footer>
 </div>
 <div id="tip" hidden></div>
 
@@ -797,7 +797,7 @@ function renderTrail() {
       .map(([g, x]) => `<b title="${esc(M.genres[+g].name)} ${Math.round(x / tot * 100)}%" style="width:${x / tot * 100}%;background:${M.genres[+g].color}"></b>`).join('');
     const music = Math.round((1 - (v.silence || 0) / tot) * 100);
     return `<div class="slope-row"><span class="lab">${lab}</span><div class="stack">${segs}</div><span class="v">${music}% music</span></div>`;
-  }).join('') + `<p class="note">${rows.map(([k, lab]) => `${lab.toLowerCase()} ${t.bySlope[k]._hours} h`).join(' · ')}. An hour counts as climbing or descending when the profile changes by more than 250 ft. Bars show the mix of what played; the rest of the time you hiked without music.</p>`;
+  }).join('') + `<p class="note">${rows.map(([k, lab]) => `${lab.toLowerCase()} ${t.bySlope[k]._hours} h`).join(' · ')}</p>`;
 }
 // ---- profile chart
 const PL = { left: 52, right: 14, top: 18, bottom: 24 };
@@ -931,7 +931,7 @@ function renderLog() {
     const miss = b.log ? b.missed / b.log : 0;
     return `<div class="row"><span class="nm">${MON[+m.slice(5) - 1]} <span style="color:var(--dim)">· ${fmt(b.log)} mi</span></span><span class="v"><span class="c-sound">${fmt(b.missed)} missed</span> · ${pct(b.capture)} net</span>` +
       `<div class="bar"><b style="width:${Math.min(100, miss * 100 * 3)}%;background:${SND}"></b></div></div>`; }).join('') +
-    '<p class="note">Bar = share of the month\'s miles the phone missed (scaled ×3).</p>';
+    '';
   // distribution + biggest days
   const A = S.per_day_all, Z = S.per_day_no_zeros, C = S.counts;
   $('log-dist').innerHTML = `<div class="dist"><span></span><span class="hd">mean</span><span class="hd">median</span><span class="hd">sd</span>` +
@@ -939,7 +939,7 @@ function renderLog() {
     `<span class="lb">Without zeros (${Z.n})</span><b>${f1(Z.mean)}</b><b>${f1(Z.median)}</b><b>${f1(Z.sd)}</b>` +
     `<span class="lb">Moving mph, raw</span><b>${Pc.raw_mph.mean.toFixed(2)}</b><b>${Pc.raw_mph.median.toFixed(2)}</b><b>${Pc.raw_mph.sd.toFixed(2)}</b>` +
     `<span class="lb">Moving mph, adjusted</span><b>${Pc.adj_mph.mean.toFixed(2)}</b><b>${Pc.adj_mph.median.toFixed(2)}</b><b>${Pc.adj_mph.sd.toFixed(2)}</b></div>` +
-    `<p class="note">${C.hike} full days · ${C.nero} neros · ${C.zero} zeros · ${C.skip} skip. Pace uses the ${Pc.days_used} days the phone was on most of the time.</p>`;
+    `<p class="note">${C.hike} full days · ${C.nero} neros · ${C.zero} zeros · ${C.skip} skip · pace from ${Pc.days_used} days</p>`;
   $('log-big').innerHTML = S.biggest_days.slice(0, 6).map(([d, mi, loc]) =>
     `<div class="row click" tabindex="0" role="button" data-date="${d}"><span class="nm">${d.slice(5).replace('-', '/')} · ${esc(loc)}</span><span class="v c-trail">${f1(mi)} mi</span></div>`).join('');
   document.querySelectorAll('#log-big .row').forEach(r => { const go = () => select(diOf(r.dataset.date), true);
@@ -1031,7 +1031,7 @@ const mbar = (v, mx, cls, w) => `<i class="mb ${cls || ''}" style="width:${Math.
 
 function renderLogWeeks() {
   const W = BD.weeks, mx = Math.max(...W.map(w => w.miles)), tot = W[W.length - 1].cum_mi;
-  let h = `<p class="note">One row per week, Sunday to Saturday. Pace is flat-ground equivalent (the climb taken out), from the days the phone was on. Start and stop are the hours the day's walking began and ended.</p>
+  let h = `
     <div class="bd-scroll"><table><thead><tr><th>Week</th><th class="l">Dates</th><th class="l">States</th><th class="l">Miles</th><th>Mi / day</th><th>Zeros</th><th>Steps</th><th>Moving</th><th>Climb</th><th>Pace</th><th>Start – stop</th><th>Running total</th></tr></thead><tbody>`;
   for (const w of W) h += `<tr><td><b>${w.week}</b></td><td class="l">${md2(w.start)} – ${md2(w.end)}${w.days < 7 ? ` <span class="k">(${w.days} d)</span>` : ''}</td><td class="l">${w.states.join(' · ')}</td>
     <td class="barcell t"><b>${f1(w.miles)}</b>${mbar(w.miles, mx)}</td><td>${f1(w.mi_per_day)}</td><td>${w.zeros || '·'}${w.neros ? ` <span class="k">+${w.neros} nero</span>` : ''}</td>
@@ -1046,7 +1046,7 @@ function renderLogWeeks() {
 function renderLogStates() {
   const S = BD.states, mxD = Math.max(...S.map(s => s.mi_per_day || 0)), mxG = Math.max(...S.map(s => s.gain_per_mi)), eMax = Math.max(...S.map(s => s.elev_high));
   const spark = s => { const P = s.profile, w = 120, hgt = 30; return `<svg viewBox="0 0 ${w} ${hgt}" width="${w}" height="${hgt}" role="img" aria-label="Elevation sketch"><path d="M0 ${hgt} ${P.map((v, i) => `L${(i / (P.length - 1) * w).toFixed(1)} ${(hgt - v / eMax * (hgt - 2)).toFixed(1)}`).join(' ')} L${w} ${hgt} Z" fill="rgba(255,179,71,0.35)" stroke="#ffb347" stroke-width="1"/></svg>`; };
-  let h = `<p class="note">North to south, the way you walked it. A day that crossed a border is shared between the two states by miles. Pace is flat-ground equivalent, from days the phone was on; the number of days behind each figure is in brackets, so treat one or two days as a hint. Elevation comes from the trail profile; every sketch is drawn to the same height scale.</p>
+  let h = `
     <div class="bd-scroll"><table><thead><tr><th class="l">State</th><th class="l">In – out</th><th>Trail mi</th><th>Days</th><th class="l">Miles / day</th><th>Per hiking day</th><th>Pace</th><th>Start – stop</th><th class="l">Elevation</th><th>Low – high</th><th class="l">Climb / mile</th></tr></thead><tbody>`;
   for (const s of S) { const sk = !s.walked_mi;
     h += `<tr class="${sk ? 'skip' : ''}"><td><b>${esc(s.name)}</b></td><td class="l">${s.date_in ? md2(s.date_in) + ' – ' + md2(s.date_out) : 'skipped'}</td>
@@ -1060,7 +1060,7 @@ function renderLogStates() {
     <li>Steepest: <b>${esc(steep[0].name)}</b> at ${steep[0].gain_per_mi} ft of climb per mile; gentlest: <b>${esc(steep[steep.length - 1].name)}</b> at ${steep[steep.length - 1].gain_per_mi}.</li>
     ${pace.length > 1 ? `<li>Fastest walking once the climb is taken out (states with 5+ measured days): <b>${esc(pace[0].name)}</b> at ${pace[0].adj_mph.toFixed(2)} mph; slowest: <b>${esc(pace[pace.length - 1].name)}</b> at ${pace[pace.length - 1].adj_mph.toFixed(2)}.</li>` : ''}
     <li>West Virginia and the first ${f1(S.find(s => s.abbr === 'VA').skipped_mi)} miles of Virginia fall inside the Skyland skip, so they have no walking days.</li></ul>
-    <p class="note">Borders: ${esc(BD.borders_source)}. Tennessee and North Carolina are one row because the trail follows their border for most of that stretch. The Katahdin climb counts under Maine and the Approach Trail under Georgia.</p>`;
+    `;
   $('log-states').innerHTML = h;
 }
 
@@ -1078,12 +1078,12 @@ function renderLogHours() {
       <div><span>Typical unbroken stretch</span><strong>${A.stretch_median} h</strong><small>longest of the day ${f1(A.longest_mean)} h</small></div>
       <div><span>Long breaks a day</span><strong>${f1(A.breaks)}</strong><small>an hour or more off your feet</small></div>
     </div>
-    <p class="note">${esc(T.rule)} That leaves ${A.n} days. The phone counts by the clock hour, so times are to the hour: “got going in the 6:00 hour” means first real walking between 6 and 7. A stretch ends only when a whole hour passes with under 1,000 steps, so short sit-downs do not break one. “Time actually moving” weights each hour by how much of it was walked.</p>
+    <p class="note">${A.n} days</p>
     <div class="charts">
-      <div class="panel"><h3>When you walked</h3>${bars(T.hour_profile, '#3ff0ff', 'Average steps in each clock hour', 3, 23)}<p class="note">Average steps in each hour of the day.</p></div>
-      <div class="panel"><h3>Hour you got going</h3>${bars(T.start_hist, '#b6ff5c', 'Days by starting hour', 3, 12)}<p class="note">Number of days by the hour walking began.</p></div>
-      <div class="panel"><h3>Hour you stopped</h3>${bars(T.stop_hist, '#ffb347', 'Days by stopping hour', 12, 25)}<p class="note">Number of days by the hour walking ended.</p></div>
-      <div class="panel"><h3>Length of each stretch</h3>${bars(T.stretch_hist, '#dcd8ff', 'Unbroken stretches by length in hours', 1, 15)}<p class="note">How many unbroken stretches lasted each number of hours.</p></div>
+      <div class="panel"><h3>When you walked</h3>${bars(T.hour_profile, '#3ff0ff', 'Average steps in each clock hour', 3, 23)}</div>
+      <div class="panel"><h3>Hour you got going</h3>${bars(T.start_hist, '#b6ff5c', 'Days by starting hour', 3, 12)}</div>
+      <div class="panel"><h3>Hour you stopped</h3>${bars(T.stop_hist, '#ffb347', 'Days by stopping hour', 12, 25)}</div>
+      <div class="panel"><h3>Length of each stretch</h3>${bars(T.stretch_hist, '#dcd8ff', 'Unbroken stretches by length in hours', 1, 15)}</div>
     </div>
     <h3>Month by month</h3>
     <div class="bd-scroll"><table style="min-width:620px"><thead><tr><th class="l">Month</th><th>Days</th><th>Got going</th><th>Stopped</th><th>First to last</th><th>Hours walking</th><th>Moving</th><th>Typical stretch</th><th>Miles</th><th>Pace</th></tr></thead><tbody>` +
@@ -1098,7 +1098,7 @@ function renderLogHours() {
     <h3>By the day's miles</h3>${tbl(U.by_miles, 'That day')}
     <h3>By hours moving</h3>${tbl(U.by_hours, 'Moving time')}
     <h3>By the hour you got going</h3>${tbl(U.by_start, 'Started')}
-    <p class="note">“Next day” and “next 3 days” are the miles that followed a day of that kind, zeros included. Pace and moving time use only the days the phone was on, so the day counts differ between tables.</p>`;
+    `;
   $('log-hours').innerHTML = h;
 }
 

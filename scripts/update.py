@@ -171,6 +171,8 @@ def main():
     cmd = [py, os.path.join(S, 'build_pct_training.py')] + ([health] if health else [])
     if not run('PCT//PREP training.json', cmd): failed.append('pct')
     if not run('daily.json', [py, os.path.join(S, 'build_meta_log.py')]): failed.append('daily')
+    if 'daily' not in failed and not run('seasons.json', [py, os.path.join(S, 'build_seasons.py')]): failed.append('seasons')
+    if not run('manifest.json', [py, os.path.join(S, 'build_manifest.py')]): failed.append('manifest')
 
     report(used)
     if not CHECK:

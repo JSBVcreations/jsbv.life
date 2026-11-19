@@ -1,6 +1,6 @@
 /* JSBV.LIFE shared navigation for the project pages (the root page has its own router, kept in step with this).
-   1 Primary menu: every <nav class="site" data-here="trails" data-crumb="AT 2019|Trail radio"> becomes the same five
-     links (Home · Trails · Projects · Data · Experiments) with the current section marked, and a breadcrumb under it.
+   1 Primary menu: every <nav class="site" data-here="trails" data-crumb="AT 2019|Trail radio"> becomes the same four
+     links (Home · Trails · Projects · Data; the Lab of experiments lives under Data) with the current section marked, and a breadcrumb under it.
    2 Page tabs: <nav class="ptabs" data-default="key"> holding <a href="#key" data-tab="key" data-alias="old-hash other">.
      Every element with data-tab="key" shows only while that tab is open. An element with data-off="1" stays hidden
      (no data), and a tab whose elements are all off is hidden too. Opening a tab pushes #key to the address, so back,
@@ -9,13 +9,14 @@
    A 'resize' event follows every switch, so charts that measure their box redraw at their real width. */
 (function () {
   const ROOT = new URL('../', document.currentScript.src).href.replace(location.origin, '');
-  const PRIMARY = [['home', 'Home', ''], ['trails', 'Trails', '#trails'], ['projects', 'Projects', '#projects'], ['data', 'Data', '#data'], ['experiments', 'Experiments', '#experiments']];
+  const PRIMARY = [['home', 'Home', ''], ['trails', 'Trails', '#trails'], ['projects', 'Projects', '#projects'], ['data', 'Data', '#data']];
+  const ALIAS = { experiments: 'data' };   // the Lab (experiments) sits under Data
   const SECTION_HREF = Object.fromEntries(PRIMARY.map(([k, , h]) => [k, ROOT + h]));
   const mk = (tag, props, kids) => { const e = Object.assign(document.createElement(tag), props || {}); if (kids) e.append(...kids); return e; };
 
   function primary() {
     for (const nav of document.querySelectorAll('nav.site[data-here]')) {
-      const here = nav.dataset.here; nav.setAttribute('aria-label', 'Site'); nav.classList.add('primary');
+      const here = ALIAS[nav.dataset.here] || nav.dataset.here; nav.setAttribute('aria-label', 'Site'); nav.classList.add('primary');
       nav.replaceChildren(...PRIMARY.map(([k, label, h]) => { const a = mk('a', { href: ROOT + h, textContent: label }); if (k === here) a.setAttribute('aria-current', 'location'); return a; }));
       const crumbs = (nav.dataset.crumb || '').split('|').filter(Boolean);
       if (crumbs.length) {

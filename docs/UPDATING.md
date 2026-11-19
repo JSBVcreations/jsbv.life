@@ -5,7 +5,7 @@
 2. Double-click **`Update jsbv.command`** in the repo folder. Or run `python3 scripts/update.py`; add `--check` to only see what's stale.
 3. Commit and push in GitHub Desktop. Vercel publishes in about a minute.
 
-The script rebuilds every source it finds, then rebuilds PCT//PREP and `daily.json`. It ends with a freshness table: `!!` marks a stale source, and the steps to fix it are printed under the table. If a source fails, the site keeps that source's last good data.
+The script rebuilds every source it finds, then rebuilds PCT//PREP, `daily.json`, `seasons.json` (year by season) and `manifest.json` (what's fresh). It ends with a freshness table: `!!` marks a stale source, and the steps to fix it are printed under the table. If a source fails, the site keeps that source's last good data.
 
 ## Sources
 

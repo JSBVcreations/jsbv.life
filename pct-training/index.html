@@ -88,6 +88,15 @@ h3 { margin: 0; font-size: var(--s-0); letter-spacing: 0.2em; text-transform: up
 .btn:hover, .seg button:hover { color: var(--hot); }
 .seg button[aria-pressed="true"]:hover { color: var(--void); }
 button:focus-visible, input:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--step); outline-offset: 2px; }
+.ready { display: grid; gap: 10px; }
+.ready .call { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--call); background: color-mix(in srgb, var(--call) 10%, transparent); }
+.ready .call b { font: 700 var(--s-2) var(--f-ui); letter-spacing: 0.14em; text-transform: uppercase; color: var(--call); }
+.ready .call span { font: 400 var(--s-0) var(--f-data); color: var(--ink); }
+.ready .days { display: grid; grid-template-columns: repeat(14, minmax(0, 1fr)); gap: 4px; }
+.ready .dd { display: grid; gap: 4px; justify-items: center; cursor: default; } .ready .dd i { width: 100%; height: 10px; border-radius: 4px; background: var(--c); opacity: 0.85; }
+.ready .dd.nh i { opacity: 0.35; background: repeating-linear-gradient(45deg, var(--c) 0 3px, transparent 3px 6px); }
+.ready .dd small { font: 400 10px var(--f-data); color: var(--dim); white-space: nowrap; }
+@media (max-width: 560px) { .ready .dd small { font-size: 8px; } }
 .legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-family: var(--f-data); font-size: var(--s-0); color: var(--dim); align-items: center; }
 .legend i { display: inline-block; width: 22px; height: 8px; margin-right: 6px; vertical-align: middle; }
 .legend i.line { height: 0; border-top: 2px dashed currentColor; }
@@ -150,12 +159,12 @@ td { color: var(--dim); } td.m { color: var(--trail); }
 #boot { font-family: var(--f-data); color: var(--step); }
 footer { color: var(--dim); font-size: var(--s-0); }
 </style>
+<link rel="stylesheet" href="../assets/theme.css">
 
 <div class="wrap">
   <header>
     <nav class="site" data-here="trails" data-crumb="Pacific Crest Trail 2027|PCT//PREP"></nav>
     <h1>PCT<span class="sl">//</span>PREP</h1>
-    <p class="lede">Training for a northbound Pacific Crest Trail thru-hike that starts <b>March 1, 2027</b>. The aim is to arrive already used to 150-mile weeks under load. This page shows the <b>plan</b>, the <b>hikes logged</b> so far, what the <i>phone</i> counted all year, and how it measures up to the Appalachian Trail in 2019.</p>
     <div class="readout" id="kpis"><div id="boot">BOOTING… loading training data</div></div>
     <div class="planpick" id="planpick" hidden>
       <span class="lab">Plan</span>
@@ -188,7 +197,7 @@ footer { color: var(--dim); font-size: var(--s-0); }
     <p class="note" id="tw-note"></p>
     <h3>Week by week on trail</h3>
     <div class="tbl" style="max-height:none"><table id="tw-table"><thead><tr><th>Week</th><th>AT 2019</th><th>Miles</th><th>Zeros</th><th>States</th><th>PCT 2027</th><th>Miles</th><th>Mile reached</th><th>Section</th><th>PCT − AT</th></tr></thead><tbody id="tw-body"></tbody></table></div>
-    <p class="note">The PCT columns are a projection, not a plan: the chosen finish spread evenly from the start date, with no allowance for snow, resupply or zeros. Sections are the usual rough splits (desert to mile 702, Sierra to 1,092, Northern California to 1,692, Oregon to 2,147, then Washington).</p>
+    
   </section>
 
   <section id="calendar" data-tab="calendar" aria-labelledby="h-cal" hidden>
@@ -263,6 +272,7 @@ footer { color: var(--dim); font-size: var(--s-0); }
       <span><i style="background:var(--dim);width:8px;height:8px;border-radius:50%"></i>each day</span>
       <span style="color:var(--hot)"><i style="height:0;border-top:2px solid currentColor"></i>7-day average</span>
     </div>
+    <div class="ready" id="rec-ready" aria-live="polite"></div>
     <div class="chart" id="c-rec"></div>
     <p class="note" id="rec-note"></p>
   </section>
@@ -276,7 +286,7 @@ footer { color: var(--dim); font-size: var(--s-0); }
         <span style="color:var(--step)"><i class="line" style="border-top-width:3px"></i>Strava hikes only, until the next Health export</span>
       </div>
     </div>
-    <p class="note">My walking in the 111 days before the Appalachian Trail is the low-tide mark: every mile, added up day by day. The PCT countdown runs against it; training should keep the blue line well above the pink one.</p>
+    
     <div class="chart" id="c-race"></div>
     <p class="note" id="race-note"></p>
   </section>
@@ -352,8 +362,11 @@ footer { color: var(--dim); font-size: var(--s-0); }
     P.peak_week_miles = planKey === 'orig' ? ORIG_PEAK : (PLANS[planKey].peak_week_miles || ORIG_PEAK);
     try { localStorage.setItem('jsbv-pct-plan', planKey); } catch (e) {}
     for (const b of $$('#planpick button')) { b.hidden = b.dataset.p !== 'orig' && !PLANS[b.dataset.p]; b.setAttribute('aria-pressed', String(b.dataset.p === planKey)); }
-    $('#plan-how').textContent = planKey !== 'orig' ? PLANS[planKey].how
-      : `The original plan: builds to two ${ORIG_PEAK}-mile weeks in February.` + (PLANS.alt ? ` "${PLANS.alt.short || 'Adjusted'}" is a second plan matched to the training so far` : '') + (PLANS.proj ? `; "Projected" carries your current rate of increase forward` : '') + '. All are kept.';
+    const pp = PLANS[planKey];
+    $('#plan-how').textContent = planKey === 'orig' ? `peak ${ORIG_PEAK} mi/week`
+      : planKey === 'proj' ? `${pp.base_week_miles} mi/week now · ${pp.rate_per_week >= 0 ? '+' : ''}${pp.rate_per_week} mi/week per week · pack ${pp.pack_rate_per_week >= 0 ? '+' : ''}${pp.pack_rate_per_week} lb/week · peak ${Math.round(pp.peak_week_miles)} mi/week`
+      : `peak ${pp.peak_week_miles} mi/week`;
+    $('#plan-how').title = planKey === 'orig' ? '' : pp.how || '';
   }
 
   const now = new Date(), today = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
@@ -488,6 +501,7 @@ footer { color: var(--dim); font-size: var(--s-0); }
     sleep_h: ['Sleep', 'h', (v) => n1(v), 'Hours asleep inside each calendar day, so a night is split at midnight and naps count.'] };
   let recKey = 'resting_hr';
   function renderRec() {
+    try { readiness(); } catch (e) { $('#rec-ready').hidden = true; }
     const R = H.recovery, [name, unit, fmt, blurb] = REC[recKey], all = R[recKey], h0 = day(H.start);
     const N = Math.min(84, all.length - (H.partial_last_day ? 1 : 0)), endI = all.length - (H.partial_last_day ? 1 : 0), i0 = endI - N;
     const pts = []; for (let i = i0; i < endI; i++) { let s = 0, c = 0; for (let j = Math.max(0, i - 6); j <= i; j++) if (all[j] != null) { s += all[j]; c++; } pts.push({ d: addDays(h0, i), v: all[i], avg: c >= 4 ? s / c : null }); }
@@ -505,7 +519,33 @@ footer { color: var(--dim); font-size: var(--s-0); }
     pts.forEach((p, k) => { const hit = svg('rect', { x: f.x0 + k * bw, y: f.top, width: bw, height: f.h, class: 'hit' });
       bindTip(hit, () => `<b>${DOW[p.d.getUTCDay()]} ${md(p.d)}</b><br>` + (p.v != null ? `${fmt(p.v)} ${unit}` : '<span class="k">nothing recorded</span>') + (p.avg != null ? `<br><span class="k">7-day average</span> ${fmt(p.avg)} ${unit}` : '')); f.s.append(hit); });
     const mean = (a) => a.length ? a.reduce((x, y) => x + y, 0) / a.length : null, before = mean(pts.filter((p) => p.v != null && iso(p.d) < t0.start).map((p) => p.v)), since = mean(pts.filter((p) => p.v != null && iso(p.d) >= t0.start).map((p) => p.v));
-    $('#rec-note').textContent = (before != null && since != null ? `${name}: ${fmt(before)} ${unit} on average in the weeks before training, ${fmt(since)} ${unit} since it started. ` : '') + blurb;
+    $('#rec-note').textContent = before != null && since != null ? `${name}: ${fmt(before)} ${unit} before training · ${fmt(since)} ${unit} since` : '';
+  }
+
+  /* zero-day call: resting HR 5+ bpm over its 28-day average two mornings running, HRV's 3-day average 15%+ under its
+     28-day average, or a body word in a hike title (shins, ankle, sore...). One flag = watch, two or more = take a zero/nero. */
+  const BODY = /\b(shins?|ankles?|knees?|achilles|hips?|feet|foot|heels?|sore|pain|hurts?|aching|blisters?|tweak\w*|limp\w*)\b/i;
+  function readiness() {
+    const R = H.recovery, h0 = day(H.start), n = R.resting_hr.length, mean = (a) => { const v = a.filter((x) => x != null); return v.length >= 10 ? v.reduce((x, y) => x + y, 0) / v.length : null; };
+    const bodyDays = {}; for (const a of A) if (BODY.test(a.name)) (bodyDays[a.date] = bodyDays[a.date] || []).push(a.name.match(BODY)[0].toLowerCase());
+    const lastHealth = n - (H.partial_last_day ? 1 : 0) - 1, lastDay = Math.max(lastHealth, Math.round((day(T.activities_through) - h0) / 864e5)), out = [];
+    for (let i = lastDay - 13; i <= lastDay; i++) {
+      const d = addDays(h0, i), k = iso(d), flags = [];
+      if (i <= lastHealth) {
+        const base = mean(R.resting_hr.slice(Math.max(0, i - 29), i - 1)), r0 = R.resting_hr[i], r1 = R.resting_hr[i - 1];
+        if (base != null && r0 != null && r1 != null && r0 >= base + 5 && r1 >= base + 5) flags.push(`resting HR ${r0} vs ${Math.round(base)}`);
+        const hb = mean(R.hrv.slice(Math.max(0, i - 30), i - 2)), h3 = R.hrv.slice(i - 2, i + 1).filter((x) => x != null);
+        if (hb != null && h3.length >= 2) { const a3 = h3.reduce((x, y) => x + y, 0) / h3.length; if (a3 <= hb * 0.85) flags.push(`HRV ${Math.round(a3)} vs ${Math.round(hb)} ms`); }
+      }
+      if (bodyDays[k]) flags.push(`hike title: ${[...new Set(bodyDays[k])].join(', ')}`);
+      out.push({ d, flags, health: i <= lastHealth });
+    }
+    const last = out[out.length - 1], lvl = (o) => (o.flags.length >= 2 ? 2 : o.flags.length), recent = out.slice(-2), worst = Math.max(...recent.map(lvl));
+    const CALL = [['Good to train', C.trail], ['Watch', C.climb], ['Take a zero or nero', C.sound || '#ff3fb4']][worst];
+    const box = $('#rec-ready'); box.style.setProperty('--call', CALL[1]);
+    box.replaceChildren(el('div', { className: 'call' }, [el('b', { textContent: CALL[0] }), el('span', { textContent: (recent.flatMap((o) => o.flags.map((f) => `${md(o.d)}: ${f}`)).join(' · ') || 'no flags in the last two days') + (last.health ? '' : ` · heart data through ${md(addDays(h0, lastHealth))}`) })]),
+      el('div', { className: 'days' }, out.map((o) => { const c = [C.trail, C.climb, C.sound || '#ff3fb4'][lvl(o)], cell = el('span', { className: 'dd' + (o.health ? '' : ' nh'), style: `--c:${c}` }, [el('i'), el('small', { textContent: `${DOW[o.d.getUTCDay()][0]} ${o.d.getUTCDate()}` })]);
+        bindTip(cell, () => `<b>${DOW[o.d.getUTCDay()]} ${md(o.d)}</b><br>` + (o.flags.length ? o.flags.join('<br>') : 'no flags') + (o.health ? '' : '<br><span class="k">no Apple Health data yet</span>')); return cell; })));
   }
 
   /* AT 2019 + pace calculator */

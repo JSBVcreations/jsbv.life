@@ -32,7 +32,7 @@ TRIPS = [
      'ends': ['Katahdin', 'Springer Mtn']},
 ]
 HERE = os.path.dirname(os.path.abspath(__file__))
-GENRES = json.load(open(os.path.join(HERE, 'genres.json'), encoding='utf-8'))
+GENRES = json.load(open(os.path.join(HERE, 'config', 'genres.json'), encoding='utf-8'))
 
 # Listen classes (share of the track actually played)
 FULL, ADHD, SKIP, SLEEP = 0, 1, 2, 3
@@ -271,7 +271,7 @@ def terrain(tr):
     # Position = cumulative phone distance, scaled so the trip covers the whole trail.
     # Gives an estimated elevation, climb and descent for each hour, which the phone
     # cannot record (Apple Health only counts flights climbed, never descended).
-    prof = json.load(open(os.path.join(HERE, tr['profile'])))['elevFt']
+    prof = json.load(open(os.path.join(HERE, 'config', tr['profile'])))['elevFt']
     if tr.get('direction') == 'SOBO': prof = prof[::-1]
     n = len(prof)
     up = [0.0] * n; dn = [0.0] * n

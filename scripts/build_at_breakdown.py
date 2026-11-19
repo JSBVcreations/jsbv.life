@@ -5,7 +5,7 @@
 
 Reads only files already in the repo: step-song/data/at2019-log.json (trail log joined with the phone,
 built by build_at_log.py), step-song/data/hourly.json (phone steps per clock hour) and
-scripts/at_profile.json (elevation every 0.1 mi). Rerun after build_at_log.py.
+scripts/config/at_profile.json (elevation every 0.1 mi). Rerun after build_at_log.py.
 
 Output
   weeks[]   one per Sunday-start week: miles, days, zeros, neros, steps, moving hours, climb, pace,
@@ -51,7 +51,7 @@ def load(*p):
 
 LOG = load(DATA, 'at2019-log.json'); DAYS = LOG['days']
 HOURLY = load(DATA, 'hourly.json')['steps']
-PROF = load(ROOT, 'scripts', 'at_profile.json')['elevFt'][::-1]                     # Katahdin -> Springer
+PROF = load(ROOT, 'scripts', 'config', 'at_profile.json')['elevFt'][::-1]                     # Katahdin -> Springer
 pidx = lambda mile: min(len(PROF) - 1, max(0, round(mile / AT_MILES * (len(PROF) - 1))))
 mean = lambda xs: (sum(xs) / len(xs)) if xs else None
 r1 = lambda x: None if x is None else round(x, 1)

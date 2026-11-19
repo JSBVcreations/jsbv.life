@@ -11,7 +11,7 @@ Inputs (all but the first are already in this repo)
   step-song/data/hourly.json       phone steps per clock hour
   step-song/data/at2019-log.json   the trail log (day kind, start/end mile, where the day ended)
   step-song/data/at2019-breakdown.json   state borders (southbound miles)
-  scripts/at_profile.json          elevation every 0.1 mi (northbound), thinned here to every 2 mi
+  scripts/config/at_profile.json          elevation every 0.1 mi (northbound), thinned here to every 2 mi
 
 Sleep audio (class 3) is left out. Skips stay in, flagged, so the page can tell a song you heard from one you passed over.
 
@@ -46,7 +46,7 @@ def main():
     bd = load(SS, 'at2019-breakdown.json')
     hourly = load(SS, 'hourly.json')['steps']
     ext = {int(k): v for k, v in meta.get('ext', {}).items()}
-    prof = load(ROOT, 'scripts', 'at_profile.json')['elevFt'][::-1]               # Katahdin -> Springer
+    prof = load(ROOT, 'scripts', 'config', 'at_profile.json')['elevFt'][::-1]               # Katahdin -> Springer
     d0, d1 = log[0]['di'], log[-1]['di']
     years = sorted({dt.date.fromisoformat(log[0]['date']).year, dt.date.fromisoformat(log[-1]['date']).year})
 

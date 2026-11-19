@@ -2,6 +2,7 @@
 
 Jack's personal data site: a decade of steps, music, photos and trail logs, plus training for a PCT thru-hike
 (northbound, starts 2027-03-01). This brief covers most tasks. Read further only when a task needs it:
+- `docs/BLUEPRINT.md`: the whole site on one page (map, pipeline, data shapes, workflow). Paste it into a new chat.
 - `docs/NOTES.md`: per-page and per-dataset detail. Jump to the heading you need; don't read it all.
 - `docs/UPDATING.md`: every data source, where it lives, and how it's refreshed.
 
@@ -16,13 +17,15 @@ Jack's personal data site: a decade of steps, music, photos and trail logs, plus
 ## Map
 | Path | What | Data (builder) |
 |---|---|---|
-| `index.html` | Hash views: Home `#report` dashboard · `#trails` · `#projects` · Data (`#data` `#explore` `#calendar` `#watched`) · `#experiments/<key>` | `meta-log/data/daily.json` (`build_meta_log.py`, reads only repo files) + `training.json` |
+| `index.html` | Hash views: Home `#report` (heroes, year by season, low tide, tiles) · `#trails` · `#projects` · Data (`#data` `#explore` `#calendar` `#watched` and the Lab `#experiments/<key>`) | `daily.json` (`build_meta_log.py`), `seasons.json` (`build_seasons.py`), `training.json` |
 | `pct-training/` | PCT//PREP: plan · calendar · low-tide (2019 pre-AT walking as the floor) · days · recovery · pace · trail-weeks | `training.json` (`build_pct_training.py`) from plan.json (original plan, never edited by Claude), plan-adjusted.json (toggleable second plan, Nov 18), a "Projected" third option computed by the build from the last 14 days' rate of increase (never hand-edited), activities.json (Strava), Health export |
 | `step-song/` | STEP//SONG: decade · trail (AT log, weeks, states, hours, calendar) · day · cuts | `build_step_song.py`, `build_at_log.py`, `build_at_breakdown.py` |
 | `trail/` | TRAIL//RADIO: AT 2019 songs by stretch, Spotify iFrame player | `build_trail_radio.py` |
 | `games/` | Video games (under Data): fortnite (season timeline) · seasons (table). PSN trophies planned | `games/data/fortnite.json` (`build_fortnite.py`) from the Epic export PDF + season calendar workbook |
 | `photo-library/` | PHOTO//SORT: overview · captured · worklog · space · lightroom | tracker scripts in `~/Documents/01-Projects/photo-library-tracker` |
-| `assets/site.js`, `assets/site.css` | Shared nav, breadcrumbs, page tabs | — |
+| `assets/site.js`, `assets/site.css` | Shared nav (Home · Trails · Projects · Data), breadcrumbs, page tabs | — |
+| `assets/theme.css` | Shared look, loaded last on every page (glass panels, pill nav, controls, tables) | — |
+| `scripts/config/` | `registry.json` (every source; `build_manifest.py` → `meta-log/data/manifest.json`), `genres.json`, `at_profile.json` | — |
 | `scripts/update.py`, `Update jsbv.command` | One-click refresh of every source (runs `fill_posters.py` for new watch-list titles first) | — |
 | `meta-log/`, `data/`, `highlights/`, `experiments/` | Redirect stubs (`meta-log/data/` holds the JSON) | — |
 
@@ -51,13 +54,14 @@ Jack's personal data site: a decade of steps, music, photos and trail logs, plus
 - Metrics are nested under umbrellas (Listening and Plays sit under Music, etc.).
 - Heart rate, HRV and sleep are published and interactive.
 - Copy is plain and specific. Numbers come from the data, never estimated in prose.
+- No explanatory filler under charts or datasets (Jack, Nov 19): titles, labels and numbers only.
 
 ## Conventions
 - **Design:** dark CRT/synthwave. Colours: void #07060f, panel #0d0b1c, grid #1f1a3d, ink #dcd8ff, dim #8a84b8,
   cyan #3ff0ff (movement), magenta #ff3fb4 (music), amber #ffb347 (stairs/elevation), lime #b6ff5c (trail).
   Fonts: Monoton for titles, Chakra Petch for UI, JetBrains Mono for data.
-- **Sub-pages:** load `../assets/site.css` and `../assets/site.js` before their own script, and declare
-  `<nav class="site" data-here="trails|projects|data|experiments" data-crumb="Section|Page">`.
+- **Sub-pages:** load `../assets/site.css` and `../assets/site.js` before their own script, `../assets/theme.css` right after their own `<style>`, and declare
+  `<nav class="site" data-here="trails|projects|data" data-crumb="Section|Page">`.
 - **Tabs:**
   - Markup: `<nav class="ptabs" data-default="k"><a href="#k" data-tab="k" data-alias="old">`; panels carry `data-tab="k"`.
   - `data-off="1"` means no data and hides the tab.
@@ -66,7 +70,7 @@ Jack's personal data site: a decade of steps, music, photos and trail logs, plus
 - **New page:** add the favicon, theme-color and OG block after `<title>`, plus site.css/js, tabs if it runs past about 2 screens,
   and a card or jump link in `renderTrails()` or `renderProjects()`.
 - **New dataset:** write a builder in `scripts/` (stdlib only, so it runs on stock macOS python3), output numbers-only JSON,
-  register it in `build_meta_log.py`'s `datasets`, then add it to `scripts/update.py` and `docs/UPDATING.md`.
+  register it in `build_meta_log.py`'s `datasets`, add a row to `scripts/config/registry.json`, then add it to `scripts/update.py` and `docs/UPDATING.md`.
 
 ## Working from Claude (cloud session linked to the Mac)
 - Make a scratch copy of the repo, edit and test there, then write to the Mac folder through the device tools.

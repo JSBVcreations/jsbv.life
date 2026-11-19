@@ -228,12 +228,51 @@ a.more:hover, a.more:focus-visible { color: var(--trail); }
 #e-pair-card .rho { font-size: 2.2rem; font-weight: 600; line-height: 1; font-variant-numeric: tabular-nums; } #e-pair-card p { margin: 0; }
 #e-pair-card dl { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; margin: 0; } #e-pair-card dt { color: var(--dim); } #e-pair-card dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; }
 #e-tip { position: fixed; z-index: 70; pointer-events: none; max-width: 260px; background: rgba(7,6,15,0.95); border: 1px solid var(--step); font-family: var(--f-data); font-size: var(--s-0); padding: 6px 9px; line-height: 1.4; color: var(--ink); }
+
+/* seasons */
+.seasons .head { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; justify-content: space-between; }
+.s-compare { display: grid; gap: 4px; overflow-x: auto; }
+.s-row { display: grid; grid-template-columns: minmax(96px, 130px) repeat(var(--n, 4), minmax(92px, 1fr)); gap: 6px; align-items: center; }
+.s-hd .s-col { all: unset; cursor: pointer; font: 600 10px var(--f-ui); letter-spacing: 0.16em; text-transform: uppercase; color: var(--dim); padding: 2px 0; }
+.s-hd .s-col.on, .s-hd .s-col:hover { color: var(--hot); }
+.s-lab { font: 600 10px var(--f-ui); letter-spacing: 0.12em; text-transform: uppercase; color: var(--dim); }
+.s-cell { position: relative; height: 26px; border-radius: 6px; background: rgba(220,216,255,0.035); overflow: hidden; display: flex; align-items: center; }
+.s-cell i { position: absolute; inset: 0 auto 0 0; background: linear-gradient(90deg, rgba(155,123,255,0.18), rgba(155,123,255,0.42)); border-radius: 6px; }
+.s-cell.on i { background: linear-gradient(90deg, rgba(63,240,255,0.25), rgba(63,240,255,0.6)); box-shadow: 0 0 14px rgba(63,240,255,0.25); }
+.s-cell b { position: relative; padding: 0 8px; font: 600 var(--s-0) var(--f-data); color: var(--ink); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.s-tabs { display: flex; gap: 4px; flex-wrap: wrap; border-bottom: 1px solid var(--grid); }
+.s-tabs button { all: unset; cursor: pointer; font: 600 var(--s-0) var(--f-ui); letter-spacing: 0.14em; text-transform: uppercase; color: var(--dim); padding: 9px 12px; border-bottom: 2px solid transparent; }
+.s-tabs button[aria-selected="true"] { color: var(--hot); border-bottom-color: var(--step); } .s-tabs button:hover { color: var(--ink); }
+.s-tabs button:focus-visible { outline: 2px solid var(--step); outline-offset: -2px; }
+.s-when { font: 400 var(--s-0) var(--f-data); color: var(--dim); margin-bottom: 12px; } .s-when b { color: var(--hot); font: 700 var(--s-1) var(--f-ui); letter-spacing: 0.14em; text-transform: uppercase; }
+.s-kpis { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px; }
+.s-kpi { display: grid; gap: 2px; align-content: start; padding: 12px 14px; border-radius: 10px; background: linear-gradient(180deg, rgba(220,216,255,0.05), rgba(220,216,255,0.015)); border: 1px solid rgba(220,216,255,0.07); }
+.s-kpi span { font: 600 10px var(--f-ui); letter-spacing: 0.14em; text-transform: uppercase; color: var(--dim); }
+.s-kpi b { font: 600 1.5rem/1.1 var(--f-data); color: var(--hot); font-variant-numeric: tabular-nums; } .s-kpi small { font: 400 10px var(--f-data); color: var(--dim); }
+.s-kpi em { font: normal 400 var(--s-0)/1.35 var(--f-data); color: var(--ink); opacity: 0.8; overflow-wrap: anywhere; }
+.s-split { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 16px 24px; } .s-split h3 { margin-bottom: 8px; } .s-wide { grid-column: 1 / -1; display: grid; gap: 8px; }
+.s-bars, .s-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; font: 400 var(--s-0) var(--f-data); }
+.s-bars li { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) auto; gap: 10px; align-items: center; }
+.s-bars span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink); } .s-bars i { height: 8px; border-radius: 4px; background: linear-gradient(90deg, #ff3fb4, #9b7bff); box-shadow: 0 0 10px rgba(255,63,180,0.35); }
+.s-bars b, .s-list b { color: var(--hot); font-variant-numeric: tabular-nums; }
+.s-list li { display: flex; justify-content: space-between; gap: 12px; padding: 6px 0; border-bottom: 1px solid rgba(31,26,61,0.8); } .s-list span { min-width: 0; color: var(--ink); } .s-list small { display: block; color: var(--dim); }
+.s-watch { display: grid; gap: 10px; }
+.s-posts { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(96px, 112px); gap: 10px; overflow-x: auto; padding-bottom: 6px; scrollbar-width: thin; }
+.s-post { position: relative; aspect-ratio: 2 / 3; border-radius: 8px; overflow: hidden; background: var(--well); border: 1px solid var(--grid); display: grid; place-items: center; color: var(--dim); text-decoration: none; font: 600 10px/1.3 var(--f-ui); text-align: center; padding: 0; transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease; }
+.s-post img { width: 100%; height: 100%; object-fit: cover; display: block; } .s-post span { padding: 8px; }
+.s-post em { position: absolute; right: 4px; bottom: 4px; font: normal 600 10px var(--f-data); color: var(--hot); background: rgba(7,6,15,0.85); border-radius: 4px; padding: 1px 5px; } .s-post em:empty { display: none; }
+a.s-post:hover, a.s-post:focus-visible { transform: translateY(-3px); border-color: var(--sound); box-shadow: 0 8px 22px rgba(255,63,180,0.25); outline: none; }
+.s-table td small { display: inline; margin-left: 8px; }
+@media (max-width: 640px) { .s-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } .s-kpi { padding: 10px; } .s-kpi b { font-size: 1.25rem; }
+  .s-row { grid-template-columns: 64px repeat(var(--n, 4), minmax(58px, 1fr)); gap: 4px; } .s-cell b { padding: 0 5px; font-size: 10px; } .s-lab { font-size: 9px; letter-spacing: 0.06em; } }
+.s-bars i { justify-self: start; }
+h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(--dim); margin: 8px 0 -8px; }
 </style>
+<link rel="stylesheet" href="assets/theme.css">
 
 <div class="wrap">
   <header>
     <h1>JSBV<span>.LIFE</span></h1>
-    <p class="lede">A decade of logs from my phone, my headphones and my feet. Home is the dashboard. Trails holds the Appalachian Trail I walked and the Pacific Crest Trail I'm training for, Projects the long-running pieces, and Data every dataset behind them.</p>
   </header>
 
   <nav class="tabs" aria-label="Site">
@@ -241,13 +280,13 @@ a.more:hover, a.more:focus-visible { color: var(--trail); }
     <a href="#trails" data-nav="trails">Trails</a>
     <a href="#projects" data-nav="projects">Projects</a>
     <a href="#data" data-nav="data">Data</a>
-    <a href="#experiments" data-nav="experiments">Experiments</a>
   </nav>
   <nav class="ptabs inview" id="subnav" aria-label="Data views" hidden>
     <a href="#data">All data</a>
     <a href="#explore">Explorer</a>
     <a href="#calendar">Calendar</a>
     <a href="#watched" id="tab-watched" hidden>Watched</a>
+    <a href="#experiments">Lab</a>
   </nav>
 
   <div id="boot" class="note">Loading data…</div>
@@ -258,16 +297,18 @@ a.more:hover, a.more:focus-visible { color: var(--trail); }
       <section class="hero pct" id="hero-pct" aria-labelledby="hp-h"><h2 id="hp-h">PCT//PREP</h2><p class="note">Loading the training tracker…</p></section>
       <section class="hero photo" id="hero-photo" aria-labelledby="hf-h"><h2 id="hf-h">PHOTO//SORT</h2></section>
     </div>
+    <section class="box seasons" id="r-seasons" hidden>
+      <div class="head"><h2 id="s-title">The year</h2><div class="seg" id="s-pick" role="group" aria-label="Season"></div></div>
+      <div class="s-compare" id="s-compare"></div>
+      <div class="s-tabs" id="s-tabs" role="tablist"></div>
+      <div id="s-body"></div>
+    </section>
     <section class="box" id="r-race" hidden>
       <div class="head"><h2>Low tide: the 2019 AT run-in as the floor</h2><a class="more" href="pct-training/#low-tide">On PCT//PREP ▶</a></div>
-      <p class="note">My walking in the 111 days before the Appalachian Trail in 2019 is the low-tide mark: every mile, added up day by day. The PCT countdown runs against it; training should keep the blue line well above the pink one.</p>
       <div id="r-race-chart"></div>
       <p class="note" id="r-race-note"></p>
     </section>
-    <section class="box">
-      <h2>Tracking</h2>
-      <p class="note" id="rc-note">Each tile is one area holding several numbers. Use the arrows or the dots to move between them; nothing changes on its own. Every number is shown twice: the last 7 days and the last 30 days of that dataset, each against the stretch before it. Click a number to chart it.</p>
-    </section>
+    <h2 class="sec">Last 7 · last 30 days</h2>
     <div class="tiles" id="rc-tiles"></div>
   </div>
 
@@ -337,7 +378,6 @@ a.more:hover, a.more:focus-visible { color: var(--trail); }
   <div class="view" id="v-calendar" hidden>
     <section class="box">
       <h2>Life calendar</h2>
-      <p class="note">One square per day, one row per year. The bands under each year are the chapters and events. Hover a square for that day, point at a chapter to light up its days.</p>
       <div class="row">
         <label class="field"><span>Colour days by</span><select id="c-metric"></select></label>
         <label class="field"><span>Find a day</span><input type="date" id="c-date"></label>
@@ -358,75 +398,57 @@ a.more:hover, a.more:focus-visible { color: var(--trail); }
   <!-- ============================================================ DATA DIRECTORY -->
   <div class="view" id="v-data" hidden>
     <section class="box">
-      <div class="row" style="justify-content:space-between">
-        <div><h2>Data</h2><p class="note">Every dataset on the site. Each card opens that dataset on its own, or charts it in the explorer.</p></div>
+      <div class="row" style="justify-content:space-between;align-items:center">
+        <h2>Data</h2>
         <div class="field"><span>Totals for</span><div class="seg" id="d-span"></div></div>
       </div>
     </section>
     <div class="cards wide" id="d-cards"></div>
-    <section class="box">
-      <h2>Tools</h2>
-      <p class="note">For looking across datasets at once.</p>
-    </section>
+    <h2 class="sec">Tools</h2>
     <div class="cards wide" id="d-tools"></div>
   </div>
 
   <!-- ============================================================ TRAILS + PROJECTS (section indexes) -->
   <div class="view" id="v-trails" hidden>
-    <section class="box">
-      <h2>Trails</h2>
-      <p class="note">The Appalachian Trail, walked southbound in 2019, and the Pacific Crest Trail, northbound from March 1, 2027. Every link goes straight to that part of the page.</p>
-    </section>
+    <h2 class="sec">Trails</h2>
     <div class="idx" id="t-cards"></div>
   </div>
   <div class="view" id="v-projects" hidden>
-    <section class="box">
-      <h2>Projects</h2>
-      <p class="note">The long-running pieces, each with a page of its own.</p>
-    </section>
+    <h2 class="sec">Projects</h2>
     <div class="idx" id="p-cards"></div>
   </div>
 
   <!-- ============================================================ EXPERIMENTS -->
   <div class="view" id="v-experiments" hidden>
-    <section class="box">
-      <h2>Experiments</h2>
-      <p class="note">Other ways of looking at the same record. Each one is drawn live from the datasets on this site, so it moves when they do.</p>
-    </section>
+    <h2 class="sec">Lab</h2>
     <nav class="ptabs inview" id="e-tabs" aria-label="Experiments"></nav>
     <section class="box" id="e-corr">
       <div class="head"><h2>What moves together</h2>
         <div class="seg" role="group" aria-label="Time span" id="e-win-seg"></div></div>
-      <p class="note">Every pair of weekly numbers, scored from −1 (one goes up when the other goes down) to +1 (they rise and fall together). Click a square to see the weeks behind it.</p>
       <div class="e-split">
         <div class="e-scroll"><div id="e-matrix"></div></div>
         <div class="e-side"><div id="e-scatter"></div><div id="e-top"></div></div>
       </div>
-      <p class="note">Rank correlation (Spearman) on weekly values; a pair needs at least 20 weeks where both were recorded. A link is not a cause: two things can move together because a third thing, like a season, moves both.</p>
     </section>
     <section class="box" id="e-rings">
       <div class="head"><h2>Year rings</h2>
         <div class="seg" role="group" aria-label="Ring metric" id="e-ring-seg"></div></div>
-      <p class="note">One ring per year, January at the top, running clockwise. The longer and brighter the spoke, the bigger the day. Hover a day to read it.</p>
       <div class="e-ring-wrap"><canvas id="e-ring-cv" aria-label="Every day as a spoke, one ring per year"></canvas></div>
       <p class="note" id="e-ring-note"></p>
     </section>
     <section class="box" id="e-week">
       <div class="head"><h2>The shape of a week</h2></div>
-      <p class="note">Each number's average for Monday through Sunday, against its own overall average (the dashed line). The brightest bar is the biggest day. Uses the time span chosen above.</p>
       <div class="e-weeks" id="e-weeks"></div>
     </section>
     <section class="box" id="e-tide" hidden>
       <div class="head"><h2>Tide</h2>
         <div class="legend"><span><i class="sw" style="background:#3ff0ff"></i>steps a day</span><span><i class="sw" style="background:#ff3fb4"></i>hours of music a day</span><span><i class="sw" style="background:#b6ff5c"></i>Appalachian Trail</span></div></div>
-      <p class="note">Steps rise above the line and listening sinks below it, one column per week since 2016. Look for tall weeks sitting over deep ones.</p>
       <div id="e-tide-chart"></div>
       <p class="note" id="e-tide-note"></p>
     </section>
     <section class="box" id="e-pairs">
       <div class="head"><h2>Any two numbers</h2>
         <div class="seg" role="group" aria-label="Weeks or days" id="e-pair-grain"></div></div>
-      <p class="note">The grid above scores a fixed set of weekly numbers. This one takes any two metrics on the site, by week or by day, from any starting year, and shows every dot behind the score.</p>
       <div class="e-chips" id="e-pair-presets" role="group" aria-label="Pairs worth a look"></div>
       <div class="row">
         <label class="e-pick">Across<select id="e-pair-x"></select></label>
@@ -438,7 +460,6 @@ a.more:hover, a.more:focus-visible { color: var(--trail); }
         <div class="e-side" id="e-pair-card" aria-live="polite"></div>
       </div>
       <div class="legend" id="e-pair-legend"></div>
-      <p class="note">The score is a Spearman rank correlation, as in the grid. A long stretch of life (a thru-hike, a quiet year) can make two things look linked that have nothing to do with each other week to week, so the card also gives the score with each year's average taken out, and “From” drops the early years. Stairs were not recorded before October 2018; those days are left blank, so stairs and elevation only count from then on.</p>
     </section>
   </div>
 
@@ -468,7 +489,7 @@ a.more:hover, a.more:focus-visible { color: var(--trail); }
 
   <section class="box priv" id="priv" aria-labelledby="priv-h">
     <h2 id="priv-h">Private data</h2>
-    <p class="note" id="priv-state">Some datasets are private. They're published only in encrypted form and open here with the passphrase. It never leaves this browser.</p>
+    <p class="note" id="priv-state"></p>
     <form id="priv-form" class="row" autocomplete="off">
       <label class="field"><span>Passphrase</span><input type="password" id="priv-pass" autocomplete="current-password" required></label>
       <label class="chk"><input type="checkbox" id="priv-keep" checked> Remember on this device</label>
@@ -772,7 +793,7 @@ a.more:hover, a.more:focus-visible { color: var(--trail); }
 
   function renderStats(M) {
     const per = M.g, t = $('#x-stats'); t.replaceChildren();
-    $('#x-statnote').textContent = M.shown.length ? `Each row summarises one series over ${M.B.length.toLocaleString()} ${per}${M.B.length === 1 ? '' : 's'}. Mean, median, spread, low and high describe the ${S.mode === 'avg' ? 'daily average in each ' + per : per + ' totals'}; days outside a dataset’s coverage are left out, not counted as zero.` : 'Add a series to see its numbers.';
+    $('#x-statnote').textContent = M.shown.length ? `${M.B.length.toLocaleString()} ${per}${M.B.length === 1 ? '' : 's'} · ${S.mode === 'avg' ? 'daily average per ' + per : per + ' totals'}` : 'Add a series.';
     if (!M.shown.length) { $('#x-corr').replaceChildren(); return; }
     t.append(el('thead', {}, el('tr', {}, ['Series', 'Total', 'Per day', `Mean / ${per}`, 'Median', 'Std dev', 'Low', 'High'].map((h) => el('th', { text: h, scope: 'col' })))));
     const tb = el('tbody'); t.append(tb);
@@ -999,7 +1020,6 @@ a.more:hover, a.more:focus-visible { color: var(--trail); }
       el('div', { className: 'kv' }, [el('span', {}, ['last 7 days ', el('b', { text: `${num(wk7)} mi` })]), el('span', {}, ['since Nov 1 ', el('b', { text: `${num(done)} mi · ${num(hrs)} h` })]),
         best ? el('span', {}, ['longest day ', el('b', { text: `${num(best[1])} mi` })]) : null, packs.length ? el('span', {}, ['pack ', el('b', { text: `${Math.max(...packs)} lb` })]) : null,
         el('span', {}, ['peak week planned ', el('b', { text: `${P.peak_week_miles} mi` })])]),
-      el('p', { className: 'note', text: `Dashed bars are the plan for each week; lime is what has been hiked. Hikes logged through ${dstr(d2i(TRN.activities_through))}.` }),
       links);
   }
   function drawPhotoHero() {
@@ -1021,8 +1041,74 @@ a.more:hover, a.more:focus-visible { color: var(--trail); }
         el('div', { className: 'legend' }, lp.map((p) => el('span', {}, [sw(p[2]), `${p[1]} ${lr[p[0]].toLocaleString()}`])))); }
     kids.push(links); host.replaceChildren(...kids);
   }
+  // ================================================================ SEASONS (meta-log/data/seasons.json, scripts/build_seasons.py)
+  let SEA; const SV = { k: null, tab: 'overview' };
+  const S_CMP = [['move.steps', 'Steps a day', 'mean', 1, ''], ['move.miles', 'Miles', 'total', 1, 'mi'], ['music.minutes', 'Music a day', 'mean', 1 / 60, 'h'],
+    ['watch.minutes', 'Screen a day', 'mean', 1 / 60, 'h'], ['body.sleep_h', 'Sleep', 'mean', 1, 'h'], ['body.resting_hr', 'Resting HR', 'mean', 1, 'bpm'],
+    ['photos.items', 'Photos', 'total', 1, ''], ['calls.calls', 'Calls', 'total', 1, '']];
+  const sStat = (se, id) => se.stats.find((x) => x.id === id);
+  const sDate = (s) => `${MON[+s.slice(5, 7) - 1]} ${+s.slice(8, 10)}`;
+  async function renderSeasons() {
+    if (SEA === undefined) SEA = await get('meta-log/data/seasons.json', true);
+    const box = $('#r-seasons'); if (!SEA || !SEA.seasons.length) { box.hidden = true; return; }
+    box.hidden = false; const L = SEA.seasons, tI = iso(today);
+    if (!SV.k || !L.some((x) => x.id === SV.k)) SV.k = (L.find((x) => tI >= x.start && tI <= x.end) || L[L.length - 1]).id;
+    const se = L.find((x) => x.id === SV.k);
+    $('#s-title').textContent = `${SEA.year} by season`;
+    $('#s-pick').replaceChildren(...L.map((x) => el('button', { type: 'button', text: x.name, 'aria-pressed': String(x.id === SV.k), onclick: () => { SV.k = x.id; renderSeasons(); } })));
+    // comparison: one row per number, one bar per season
+    $('#s-compare').style.setProperty('--n', L.length);
+    $('#s-compare').replaceChildren(el('div', { className: 's-row s-hd' }, [el('span'), ...L.map((x) => el('button', { type: 'button', className: 's-col' + (x.id === SV.k ? ' on' : ''), text: x.name + (x.partial ? ' •' : ''), title: x.partial ? `in progress, through ${sDate(x.through)}` : '', onclick: () => { SV.k = x.id; renderSeasons(); } }))]),
+      ...S_CMP.map(([id, label, kind, f, u]) => { const vs = L.map((x) => { const st = sStat(x, id); return st ? (kind === 'total' ? st.total : st.mean) * f : null; }), mx = Math.max(1e-9, ...vs.filter((v) => v != null));
+        return el('div', { className: 's-row' }, [el('span', { className: 's-lab', text: label }), ...vs.map((v, i) => el('div', { className: 's-cell' + (L[i].id === SV.k ? ' on' : '') }, [
+          el('i', { style: `width:${v == null ? 0 : Math.max(3, (100 * v) / mx)}%` }), el('b', { text: v == null ? '—' : num(v) + (u ? ' ' + u : '') })]))]); }));
+    const TABS = [['overview', 'Overview'], ['music', 'Music'], ['watch', 'Movies + TV'], ['stats', 'Statistics']].filter(([k]) => k !== 'music' || se.music).filter(([k]) => k !== 'watch' || se.watch);
+    if (!TABS.some(([k]) => k === SV.tab)) SV.tab = 'overview';
+    $('#s-tabs').replaceChildren(...TABS.map(([k, label]) => el('button', { type: 'button', role: 'tab', text: label, 'aria-selected': String(k === SV.tab), onclick: () => { SV.tab = k; renderSeasons(); } })));
+    const head = el('div', { className: 's-when' }, [el('b', { text: se.name }), ` ${sDate(se.start)} – ${sDate(se.end)} · ${se.days} days`, se.partial ? el('span', { className: 'stale', text: ` · through ${sDate(se.through)}` }) : null]);
+    const kpi = (label, v, unit, sub) => el('div', { className: 's-kpi' }, [el('span', { text: label }), el('b', { text: v }), unit ? el('small', { text: unit }) : null, sub ? el('em', { text: sub }) : null]);
+    let body;
+    if (SV.tab === 'overview') {
+      const g = (id) => sStat(se, id), k = [];
+      const st = g('move.steps'); if (st) k.push(kpi('Steps a day', num(st.mean), '', `best ${num(st.max)} · ${sDate(st.max_date)}`));
+      const mi = g('move.miles'); if (mi) k.push(kpi('Walked', num(mi.total), 'mi', `${num(mi.mean)} a day`));
+      const fl = g('move.flights'); if (fl) k.push(kpi('Flights', num(fl.total), '', `${num(fl.mean)} a day`));
+      const ex = g('exercise.minutes'); if (ex) k.push(kpi('Exercise', num(ex.mean), 'min a day', `${num(ex.total / 60)} h total`));
+      if (se.hikes) k.push(kpi('Training hikes', String(se.hikes.n), '', `${num(se.hikes.miles)} mi · ${num(se.hikes.gain_ft)} ft`));
+      const hr = g('body.resting_hr'); if (hr) k.push(kpi('Resting HR', num(hr.mean), 'bpm', `median ${num(hr.median)}`));
+      const hv = g('body.hrv'); if (hv) k.push(kpi('HRV', num(hv.mean), 'ms', `median ${num(hv.median)}`));
+      const sl = g('body.sleep_h'); if (sl) k.push(kpi('Sleep', num(sl.mean), 'h a night', `longest ${num(sl.max)} h`));
+      if (se.music) k.push(kpi('Music', num(se.music.hours), 'h', `${num(se.music.plays)} plays · top ${se.music.artists[0] ? se.music.artists[0][0] : '—'}`));
+      if (se.watch) k.push(kpi('Watched', `${se.watch.movies} + ${se.watch.shows}`, 'movies + shows', se.watch.best ? `top rated ${se.watch.best.t}` : ''));
+      const ca = g('calls.calls'); if (ca) k.push(kpi('Calls', num(ca.total), '', `${num((g('calls.minutes') || {}).total / 60)} h on the phone`));
+      const ph = g('photos.items'); if (ph) k.push(kpi('Photos', num(ph.total), '', `most ${num(ph.max)} · ${sDate(ph.max_date)}`));
+      const br = g('breath.sessions'); if (br) k.push(kpi('Breathwork', num(br.total), 'sessions'));
+      body = el('div', { className: 's-kpis' }, k);
+    } else if (SV.tab === 'music') {
+      const M = se.music, mxA = Math.max(...M.artists.map((a) => a[1]));
+      body = el('div', { className: 's-split' }, [
+        el('div', {}, [el('h3', { text: 'Top artists · hours' }), el('ol', { className: 's-bars' }, M.artists.map(([n, h]) => el('li', {}, [el('span', { text: n }), el('i', { style: `width:${(100 * h) / mxA}%` }), el('b', { text: num(h) })])))]),
+        el('div', {}, [el('h3', { text: 'Most played · full listens' }), el('ol', { className: 's-list' }, M.tracks.map(([t, a, n]) => el('li', {}, [el('span', {}, [t, el('small', { text: a })]), el('b', { text: String(n) })])))]),
+        el('div', { className: 's-wide' }, [el('h3', { text: 'Genres · share of time' }), el('div', { className: 'bar' }, M.genres.map(([n, c, p]) => el('i', { style: `width:${p}%;background:${c}`, title: `${n} ${p}%` }))),
+          el('div', { className: 'legend' }, M.genres.map(([n, c, p]) => el('span', {}, [sw(c), `${n} ${p}%`]))),
+          el('p', { className: 'note', text: `${num(M.hours)} h · ${num(M.plays)} plays${M.through < se.through ? ` · Spotify through ${sDate(M.through)}` : ''}` })])]);
+    } else if (SV.tab === 'watch') {
+      const W = se.watch, card = (t) => { const a = el(t.id ? 'a' : 'div', { className: 's-post', ...(t.id ? { href: `https://www.imdb.com/title/${t.id}/`, target: '_blank', rel: 'noopener' } : {}), title: t.t },
+        [t.poster ? el('img', { src: t.poster, alt: t.t, loading: 'lazy', onerror: (ev) => ev.target.replaceWith(el('span', { text: t.t })) }) : el('span', { text: t.t }), el('em', { text: t.imdb ? `★ ${t.imdb}` : '' })]); return a; };
+      body = el('div', { className: 's-watch' }, [
+        el('h3', { text: `Movies · ${W.movies}` }), el('div', { className: 's-posts' }, W.movie_list.map(card)),
+        el('h3', { text: `Shows · ${W.shows} (${W.new_shows} new)` }), el('div', { className: 's-posts' }, W.show_list.map(card))]);
+    } else {
+      body = el('div', { className: 'scroll' }, [el('table', { className: 's-table' }, [
+        el('thead', {}, [el('tr', {}, ['Number', 'Mean', 'Median', 'SD', 'High', 'Total'].map((h) => el('th', { text: h })))]),
+        el('tbody', {}, se.stats.map((x) => el('tr', {}, [el('td', {}, [x.label, el('small', { text: x.unit + (x.agg === 'sum' ? ' a day' : '') + (x.note ? ' · ' + x.note : '') })]),
+          el('td', { text: num(x.mean) }), el('td', { text: num(x.median) }), el('td', { text: x.sd == null ? '—' : num(x.sd) }),
+          el('td', {}, [num(x.max), el('small', { text: sDate(x.max_date) })]), el('td', { text: x.total == null ? '—' : num(x.total) })])))])]);
+    }
+    $('#s-body').replaceChildren(head, body);
+  }
   function renderReport() {
-    drawPhotoHero(); drawPctHero(); drawRace();
+    drawPhotoHero(); drawPctHero(); renderSeasons(); drawRace();
     if (!RC.built) { RC.built = true; buildTiles(); } else for (const g of GROUPS) showSlide(g, RC.at[g.id] || 0, false);
   }
 
@@ -1103,7 +1189,7 @@ a.more:hover, a.more:focus-visible { color: var(--trail); }
   function renderChapters(L) {
     const t = $('#c-table'); t.replaceChildren();
     const M = L || asLine('move', 'steps'), all = sumRange(M, M.off, M.off + M.n - 1), base = M.agg === 'mean' ? (all.cnt ? all.sum / all.cnt : 0) : all.sum / all.cov;
-    $('#c-tnote').textContent = `${M.name} inside each chapter, against the all-time average of ${num(base, M.unit)} per day. Change the metric with “Colour days by” above. Chapters overlap, so their totals are not meant to add up.`;
+    $('#c-tnote').textContent = `${M.name} · all-time average ${num(base, M.unit)} a day`;
     t.append(el('thead', {}, el('tr', {}, ['Chapter', 'From', 'To', 'Days', `${M.name} total`, 'Per day', 'vs all-time', ''].map((h) => el('th', { text: h, scope: 'col' })))));
     const tb = el('tbody'); t.append(tb);
     for (const l of LIFE) { const r = sumRange(M, l.a, l.b), per = !r.cov ? null : M.agg === 'mean' ? (r.cnt ? r.sum / r.cnt : null) : r.sum / r.cov;
@@ -1144,7 +1230,7 @@ a.more:hover, a.more:focus-visible { color: var(--trail); }
       hours: (a, b) => b.min - a.min, imdb: (a, b) => (b.imdb || 0) - (a.imdb || 0), year: (a, b) => (b.year || 0) - (a.year || 0), title: (a, b) => a.t.localeCompare(b.t) };
     rows = rows.slice().sort(by[WV.sort]);
     const mv = rows.filter((t) => t.type === 'movie').length;
-    $('#w-note').textContent = `${rows.length} title${rows.length === 1 ? '' : 's'} (${mv} movie${mv === 1 ? '' : 's'}, ${rows.length - mv} show${rows.length - mv === 1 ? '' : 's'}), ${hrs(rows.reduce((a, t) => a + t.min, 0))} watched, logged through ${dshort(WT.through)}. A cover opens the title on IMDb; titles without a cover link yet show their name.`;
+    $('#w-note').textContent = `${rows.length} title${rows.length === 1 ? '' : 's'} (${mv} movie${mv === 1 ? '' : 's'}, ${rows.length - mv} show${rows.length - mv === 1 ? '' : 's'}), ${hrs(rows.reduce((a, t) => a + t.min, 0))} watched, through ${dshort(WT.through)}`;
     const pages = Math.max(1, Math.ceil(rows.length / W_PER)); WV.page = Math.min(WV.page, pages - 1);
     $('#w-wall').replaceChildren(...(rows.length ? rows.slice(WV.page * W_PER, (WV.page + 1) * W_PER).map(titleCard) : [el('p', { className: 'note', text: 'Nothing matches those filters.' })]));
     const pager = (bottom) => { if (pages < 2) return [];
@@ -1197,7 +1283,6 @@ a.more:hover, a.more:focus-visible { color: var(--trail); }
     const sum = (a, k) => a.reduce((t, s) => t + (s[k] || 0), 0);
     return el('div', { className: 'card' }, [
       el('h3', { text: 'Video games' }),
-      el('p', { text: 'Fortnite season by season on the season calendar: level and wins. PlayStation trophies next.' }),
       el('dl', {}, DV.span === 'year'
         ? [el('dt', { text: 'Seasons ended in ' + yr }), el('dd', { text: String(inYr.length) }), el('dt', { text: 'Wins' }), el('dd', { text: num(sum(inYr, 'wins')) }),
            el('dt', { text: 'Levels' }), el('dd', { text: num(sum(inYr, 'level')) }), el('dt', { text: 'Source' }), el('dd', { text: 'Epic Games data export + season calendar' })]
@@ -1213,7 +1298,6 @@ a.more:hover, a.more:focus-visible { color: var(--trail); }
       const info = DIR[ds.id] || { blurb: '', links: [] }, a = DV.span === 'year' ? Math.max(ds.offset, d2i(`${lastYear}-01-01`)) : ds.offset, inSpan = a <= ds.end;
       return el('div', { className: 'card' }, [
         el('h3', { text: ds.name }),
-        info.blurb ? el('p', { text: info.blurb }) : null,
         el('dl', {}, (inSpan ? ds.metrics.flatMap((m) => { const k = m.v.slice(a - ds.offset, ds.end - ds.offset + 1), nn = k.filter((x) => x != null);
             return [el('dt', { text: m.name }), el('dd', { text: m.agg === 'mean' ? num(nn.length ? nn.reduce((t, x) => t + x, 0) / nn.length : null, m.unit) + ' avg' : num(k.reduce((t, x) => t + (x || 0), 0), m.unit) })]; })
             : [el('dt', { text: String(lastYear) }), el('dd', { text: 'nothing recorded' })])
@@ -1223,8 +1307,8 @@ a.more:hover, a.more:focus-visible { color: var(--trail); }
       ]);
     }));
     $('#d-tools').replaceChildren(
-      el('div', { className: 'card' }, [el('h3', { text: 'Explorer' }), el('p', { text: 'Put any datasets on one chart, pick the dates, break them down by sub-category, read the statistics and save the picture.' }), linkRow([['#explore', 'Open the explorer']])]),
-      el('div', { className: 'card' }, [el('h3', { text: 'Calendar' }), el('p', { text: 'One square per day, one row per year, coloured by any metric, with life chapters laid over the days.' }), linkRow([['#calendar', 'Open the calendar']])]));
+      el('div', { className: 'card' }, [el('h3', { text: 'Explorer' }), linkRow([['#explore', 'Open the explorer']])]),
+      el('div', { className: 'card' }, [el('h3', { text: 'Calendar' }), linkRow([['#calendar', 'Open the calendar']])]));
   }
   // ================================================================ TRAILS + PROJECTS
   // Section indexes. Each card's links open the target page on the right tab (see assets/site.js on those pages).
@@ -1237,7 +1321,7 @@ a.more:hover, a.more:focus-visible { color: var(--trail); }
       cards.push(el('div', { className: 'card pct' }, [
         el('h3', { text: 'Pacific Crest Trail 2027' }),
         el('div', { className: 'big2' }, [String(Math.abs(left)), el('small', { text: left >= 0 ? `days to the northbound start, ${dstr(start)}` : 'days on trail' })]),
-        el('p', { className: 'note', text: cur ? `Training week ${cur.week} (${cur.phase}): ${num(cur.miles)} of ${num(cur.target_miles || 0)} planned miles.` : 'Training for 150-mile weeks under load before the start.' }),
+        cur ? el('div', { className: 'kv' }, [el('span', {}, [`week ${cur.week} · ${cur.phase} `, el('b', { text: `${num(cur.miles)} / ${num(cur.target_miles || 0)} mi` })])]) : null,
         jump([['pct-training/#plan', 'Plan', 'weekly targets + hike log'], ['pct-training/#calendar', 'Calendar', 'week rows, plan vs walked'], ['pct-training/#low-tide', 'Low tide', '2019 pre-AT walking as the floor'], ['pct-training/#days', 'Days', 'last six weeks, 2026'],
           ['pct-training/#recovery', 'Recovery', 'heart rate, HRV, sleep'], ['pct-training/#pace', 'Pace', 'AT weeks + calculator'], ['pct-training/#trail-weeks', 'Trail weeks', 'runway and projection']]),
       ]));
@@ -1247,7 +1331,7 @@ a.more:hover, a.more:focus-visible { color: var(--trail); }
       cards.push(el('div', { className: 'card at' }, [
         el('h3', { text: 'Appalachian Trail 2019' }),
         el('div', { className: 'big2' }, [num(miles), el('small', { text: `miles southbound in ${b - a + 1} days, ${longDate(a)} – ${longDate(b)}` })]),
-        el('p', { className: 'note', text: `The hand-kept trail log set against what the phone recorded, plus ${num(listen / 60)} hours of music.` }),
+        el('div', { className: 'kv' }, [el('span', {}, ['music ', el('b', { text: `${num(listen / 60)} h` })])]),
         jump([['step-song/#trail', 'Trail log', 'day by day, charts'], ['step-song/#trail-weeks', 'Weeks', 'week by week'], ['step-song/#trail-states', 'States', 'pace, elevation, by state'],
           ['step-song/#trail-hours', 'Hiking hours', 'start, stop, stretches'], ['step-song/#trail-calendar', 'Calendar', 'every day in a grid'], ['trail/', 'Trail radio', 'the songs, any stretch'],
           ['trail/#replay', 'Day replay', 'steps + songs by the hour'], ['trail/#map', 'Soundtrack map', 'top artists by week']]),
@@ -1263,7 +1347,6 @@ a.more:hover, a.more:focus-visible { color: var(--trail); }
       cards.push(el('div', { className: 'card ss' }, [
         el('h3', { text: 'STEP//SONG' }),
         el('div', { className: 'big2' }, [num(steps / 1e6, '') + 'M', el('small', { text: `steps and ${num(hrs)} hours of music on one clock` })]),
-        el('p', { className: 'note', text: 'Ten years of Apple Health steps and Spotify plays, from the whole span down to a single hour of walking.' }),
         jump([['step-song/#decade', 'Ten years', 'every day since 2016'], ['step-song/#day', 'Fortnight & day', 'hour by hour, track list'], ['step-song/#cuts', 'Cross-cuts', 'where the two meet'], ['step-song/#trail', 'Appalachian Trail', 'the 2019 log']]),
       ]));
     }
@@ -1271,7 +1354,6 @@ a.more:hover, a.more:focus-visible { color: var(--trail); }
     cards.push(el('div', { className: 'card ph' }, [
       el('h3', { text: 'PHOTO//SORT' }),
       ph ? el('div', { className: 'big2' }, [`${Math.round((ph.sorted / (ph.sorted + ph.bucket + ph.unfiled)) * 100)}%`, el('small', { text: `of ${ph.total.toLocaleString()} items sorted, snapshot ${dstr(d2i(ph.date))}` })]) : null,
-      el('p', { className: 'note', text: 'Sorting and culling one very large photo library, a session at a time. Numbers only.' }),
       jump([['photo-library/#overview', 'Overview', 'where it stands'], ['photo-library/#captured', 'Captured', 'by date taken'], ['photo-library/#worklog', 'Work log', 'one row per snapshot'],
         ['photo-library/#space', 'Types & space', 'what is sorted, what is big'], ['photo-library/#lightroom', 'Lightroom', 'the proper photography']]),
     ]));
@@ -1330,7 +1412,7 @@ a.more:hover, a.more:focus-visible { color: var(--trail); }
     cv.onmouseleave = eTipOff;
     const byY = {}; for (let j = 0; j < L.n; j++) { const y = YR[L.off + j]; (byY[y] = byY[y] || [0, 0]); byY[y][0] += L.v[j] || 0; byY[y][1]++; }
     const full = Object.entries(byY).filter(([, v]) => v[1] >= 300 || +v[1] === L.n).map(([y, v]) => [y, v[0] / v[1]]).sort((a, b) => b[1] - a[1]);
-    $('#e-ring-note').textContent = full.length > 1 ? `${L.name}: the biggest year on record is ${full[0][0]} at ${num(full[0][1], L.unit)} a day, the quietest ${full[full.length - 1][0]} at ${num(full[full.length - 1][1], L.unit)}. Spokes are drawn on a square-root scale and the top half-percent of days are clipped, so ordinary days stay visible next to the biggest ones.` : '';
+    $('#e-ring-note').textContent = full.length > 1 ? `${L.name}: the biggest year on record is ${full[0][0]} at ${num(full[0][1], L.unit)} a day, the quietest ${full[full.length - 1][0]} at ${num(full[full.length - 1][1], L.unit)}.` : '';
   }
 
   function drawCorr() {
@@ -1412,8 +1494,8 @@ a.more:hover, a.more:focus-visible { color: var(--trail); }
       eTipAt(ev, `<b>${N - k} days to go</b><br><span style="color:#ff3fb4">2019:</span> ${num(then[k], 'mi')} so far` + (k < nowN ? `<br><span style="color:#3ff0ff">now:</span> ${num(now[k], 'mi')} so far${est[k] ? ' (Strava hikes only)' : ''}` : '')); }); hit.addEventListener('mouseleave', eTipOff); s.append(hit);
     $('#r-race-chart').replaceChildren(s);
     const ahead = nowN ? now[nowN - 1] - then[nowN - 1] : 0;
-    $('#r-race-note').textContent = nowN ? `${nowN} day${nowN === 1 ? '' : 's'} into the countdown: ${num(now[nowN - 1], 'mi')} against ${num(then[nowN - 1], 'mi')} at the same point before the AT, ${num(Math.abs(ahead), 'mi')} ${ahead >= 0 ? 'above' : 'below'} the low-tide mark. The whole 2019 run-in came to ${num(then[N - 1], 'mi')}, about ${num(then[N - 1] / N, 'mi')} a day.`
-      + (firstEst >= 0 ? ` The dashed stretch counts Strava hikes only, until the next Apple Health export fills in all the walking.` : '') : `The 2019 run-in came to ${num(then[N - 1], 'mi')}. This year's line starts ${N} days before the start.`;
+    $('#r-race-note').textContent = nowN ? `${nowN} day${nowN === 1 ? '' : 's'} into the countdown: ${num(now[nowN - 1], 'mi')} against ${num(then[nowN - 1], 'mi')} at the same point before the AT, ${num(Math.abs(ahead), 'mi')} ${ahead >= 0 ? 'above' : 'below'} the low-tide mark. 2019 run-in total ${num(then[N - 1], 'mi')}.`
+      + (firstEst >= 0 ? ` Dashed: Strava only.` : '') : `The 2019 run-in came to ${num(then[N - 1], 'mi')}. This year's line starts ${N} days before the start.`;
   }
 
   // ---- Tide: weekly steps above a centre line, weekly listening below it
@@ -1439,7 +1521,7 @@ a.more:hover, a.more:focus-visible { color: var(--trail); }
     hit.addEventListener('mouseleave', () => { eTipOff(); cur.setAttribute('opacity', 0); });
     s.append(cur, hit); host.replaceChildren(s);
     const xs = [], ys = []; B.forEach((_, j) => { if (S[j] != null && M[j] != null) { xs.push(S[j]); ys.push(M[j]); } }); const rho = eRho(xs, ys);
-    $('#e-tide-note').textContent = rho == null ? '' : `Across ${xs.length} weeks, steps and listening rank together at ${rho >= 0 ? '+' : '−'}${Math.abs(rho).toFixed(2)}. The trail weeks are capped at the top of the scale so the rest stay readable.`;
+    $('#e-tide-note').textContent = rho == null ? '' : `Across ${xs.length} weeks, steps and listening rank together at ${rho >= 0 ? '+' : '−'}${Math.abs(rho).toFixed(2)}.`;
   }
 
   // ---- Any two numbers: every week (or day) as a dot, the rank correlation, and the same with each year's mean removed
@@ -1507,15 +1589,15 @@ a.more:hover, a.more:focus-visible { color: var(--trail); }
   }
 
   const VIEWS = { report: renderReport, trails: renderTrails, projects: renderProjects, data: renderData, experiments: renderExperiments, explore: renderExplorer, calendar: renderCalendar, ...(WT ? { watched: renderWatched } : {}) };
-  const TITLES = { trails: 'Trails', projects: 'Projects', data: 'Data', experiments: 'Experiments', explore: 'Explorer', calendar: 'Calendar', watched: 'Watched' };   // browser tab + history
-  const NAV_OF = { report: 'home', trails: 'trails', projects: 'projects', data: 'data', experiments: 'experiments', explore: 'data', calendar: 'data', watched: 'data' };
+  const TITLES = { trails: 'Trails', projects: 'Projects', data: 'Data', experiments: 'Lab', explore: 'Explorer', calendar: 'Calendar', watched: 'Watched' };   // browser tab + history
+  const NAV_OF = { report: 'home', trails: 'trails', projects: 'projects', data: 'data', experiments: 'data', explore: 'data', calendar: 'data', watched: 'data' };
   function route() {
     const [base, sub] = location.hash.slice(1).split('/'), alias = { highlights: 'trails', report: 'report' }, v = VIEWS[alias[base] || base] ? alias[base] || base : 'report';
     if (base === 'experiments' && sub === 'race') { location.replace('pct-training/#low-tide'); return; }
     if (v === 'experiments' && E_TABS.some(([k]) => k === sub)) expTab = sub;
     for (const k in VIEWS) $('#v-' + k).hidden = k !== v;
     for (const a of document.querySelectorAll('nav.tabs a')) { if (a.dataset.nav === NAV_OF[v]) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); }
-    const tool = v === 'data' || v === 'explore' || v === 'calendar' || v === 'watched'; $('#subnav').hidden = !tool;
+    const tool = v === 'data' || v === 'explore' || v === 'calendar' || v === 'watched' || v === 'experiments'; $('#subnav').hidden = !tool;
     $('#priv').hidden = !PRIV.box || !(window.crypto && crypto.subtle) || !(v === 'report' || v === 'data');
     for (const a of document.querySelectorAll('#subnav a')) { if (a.getAttribute('href') === '#' + v) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); }
     document.title = (v === 'experiments' ? (E_TABS.find(([k]) => k === expTab) || [, ''])[1] + ' · ' : '') + (TITLES[v] ? TITLES[v] + ' · ' : '') + 'JSBV.LIFE';
@@ -1541,7 +1623,7 @@ a.more:hover, a.more:focus-visible { color: var(--trail); }
       } catch (e) { msg.textContent = 'That passphrase doesn\'t open it.'; $('#priv-pass').select(); }
     };
   })();
-  $('#foot').textContent = `Data built ${daily.generated} · ` + daily.datasets.map((d) => `${d.name} ${iso(d.offset)} → ${iso(d.end)}`).join(' · ') + (daily.datasets.some((d) => d.note) ? ' · ' + daily.datasets.map((d) => d.note).filter(Boolean).join(' ') : '');
+  $('#foot').textContent = `Data built ${daily.generated} · ` + daily.datasets.map((d) => `${d.name} ${iso(d.offset)} → ${iso(d.end)}`).join(' · ') ;
   $('#boot').remove();
   try { await Promise.race([document.fonts.ready, new Promise((r) => setTimeout(r, 1500))]); } catch (e) {}
   window.addEventListener('hashchange', route);
