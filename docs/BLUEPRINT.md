@@ -31,6 +31,7 @@ Primary nav, the same on every page: **Home · Trails · Projects · Data** (`as
 | PCT//PREP | `pct-training/` | tabs plan · calendar · low-tide · days · recovery (with zero-day call) · pace · trail-weeks; plan toggle Original / Adjusted / Projected |
 | STEP//SONG | `step-song/` | tabs decade · trail · day · cuts |
 | TRAIL//RADIO | `trail/` | tabs radio · replay · map |
+| Timelines | `timelines/` | overview · compare (together vs apart) · after (breakup) · map; also the Explorer overlay |
 | Video games | `games/` | fortnite · seasons |
 | PHOTO//SORT | `photo-library/` | overview · captured · worklog · space · lightroom |
 | Stubs | `meta-log/ data/ highlights/ experiments/` | redirects only (`meta-log/data/` holds JSON) |
@@ -64,6 +65,7 @@ and prints a freshness table. `--check` reports only.
 | Call log | `YYYY-MM-Call-Log-Backup.xlsx` | build_call_log.py | calls.json |
 | Wim Hof | `*wim*hof*.csv` / export_results.* | build_breath_log.py | breath.json |
 | Smoking (private) | `2026-fall-smoking.xlsx` | build_smoking_log.py | private/smoking.json (git-ignored) → private.enc.json |
+| Timelines | `Timeline-*.xlsx` (config `scripts/config/timelines.json`) | build_timelines.py | meta-log/data/timelines.json |
 | Fortnite | Epic PDF + Fortnite-Library-Manager.numbers | build_fortnite.py | games/data/fortnite.json |
 | Strava hikes | Strava connector (Claude) | rows appended to pct-training/data/activities.json | training.json |
 | PCT plans | plan.json (never edit), plan-adjusted.json | build_pct_training.py | training.json (`w.alt`, `w.proj`, `plan_alt`, `plan_proj`) |
@@ -90,6 +92,7 @@ fresh each output is. Add a source: builder → registry row → `build_meta_log
   recovery:{resting_hr[], hrv[], sleep_h[]}}}`. 1 lap = 3.7 mi (`plan.unit_miles`).
 - **step-song meta.json**: `artists[]`, `tracks[[name, artistIdx, album, len, _]]`, `artistGenre[]`, `genres[]`, `daily{}`
   from 2016-01-01. **plays-YYYY.json**: flat `[dayIdx(2016-01-01), secOfDay, durSec, trackIdx, class(0 full,1 adhd,2 skip,3 sleep)] × n`.
+- **timelines.json**: `{timelines:[{id, name, kind, life_id, start, end, end_event, statuses:{id:{label,color}}, segments:[{a, b, s, p}] (inclusive dates, status, place), places:{name:[lat,lon]}, music:{windows:[{label, a, b, hours, plays, artists, tracks}]}}]}`. New timeline = a workbook + a config entry (+ coordinates for new places); the page needs no code.
 - **watch-titles.json**: `{through, titles:[{t, type, min, n, first, last, year, genre[], imdb, id, poster}]}`.
 
 ## 6. Front-end conventions

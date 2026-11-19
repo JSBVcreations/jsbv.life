@@ -323,6 +323,7 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
     <a href="#calendar">Calendar</a>
     <a href="#watched" id="tab-watched" hidden>Watched</a>
     <a href="#experiments">Lab</a>
+    <a href="timelines/">Timelines</a>
   </nav>
 
   <div id="boot" class="note">Loading data…</div>
@@ -584,10 +585,10 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
   const POOL = ['#3ff0ff', '#ff3fb4', '#ffb347', '#b6ff5c', '#9b7bff', '#4ea8ff', '#ff6fd8', '#ffd84a'];
 
   // ---------------------------------------------------------------- load
-  let daily, lifeRaw, lifePriv, manual;
+  let daily, lifeRaw, lifePriv, manual, TLS;
   try {
-    [daily, lifeRaw, lifePriv, manual] = await Promise.all([
-      get('meta-log/data/daily.json'), get('meta-log/data/life.json'), (/^(localhost|127\.|\[::1\])/.test(location.host) ? get('meta-log/data/life.private.json', true) : Promise.resolve(null)), get('meta-log/data/manual.json', true)]);
+    [daily, lifeRaw, lifePriv, manual, TLS] = await Promise.all([
+      get('meta-log/data/daily.json'), get('meta-log/data/life.json'), (/^(localhost|127\.|\[::1\])/.test(location.host) ? get('meta-log/data/life.private.json', true) : Promise.resolve(null)), get('meta-log/data/manual.json', true), get('meta-log/data/timelines.json', true)]);
   } catch (e) {
     $('#boot').replaceWith(el('div', { className: 'err', text: 'Could not load the data files (' + e.message + '). Run `python3 scripts/build_meta_log.py`, and preview over http://localhost, not file://.' }));
     return;
@@ -627,7 +628,11 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
     }
   }
   const DS = {}; for (const ds of daily.datasets) { ds.end = ds.offset + ds.n - 1; DS[ds.id] = ds; }
-  const LIFE = [...lifeRaw, ...(Array.isArray(lifePriv) ? lifePriv : [])].map((x) => ({ ...x, point: !x.end, a: d2i(x.start || x.date), b: d2i(x.end || x.date) }))
+  // A chapter backed by a timeline (timelines.json, life_id) carries its stretches: the overlay paints them by status.
+  const TL_BY_LIFE = {}; for (const t of (TLS && TLS.timelines) || []) if (t.life_id) TL_BY_LIFE[t.life_id] = t;
+  const LIFE = [...lifeRaw, ...(Array.isArray(lifePriv) ? lifePriv : [])].map((x) => { const t = TL_BY_LIFE[x.id];
+      return { ...x, point: !x.end, a: d2i(x.start || x.date), b: d2i(x.end || x.date),
+        segs: t ? t.segments.map((g) => ({ a: d2i(g.a), b: d2i(g.b), color: t.statuses[g.s].color, first: g.s === Object.keys(t.statuses)[0] })) : null }; })
     .sort((p, q) => p.a - q.a);
   const today = Math.round((Date.UTC(new Date().getFullYear(), new Date().getMonth(), new Date().getDate()) - T0) / DAY);
   const DATA_A = Math.min(...daily.datasets.map((d) => d.offset)), DATA_B = Math.max(...daily.datasets.map((d) => d.end));
@@ -762,7 +767,9 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
     if (!M.panels.length) { ctx.fillStyle = C.dim; ctx.font = `400 13px ${FD}`; ctx.textAlign = 'center';
       ctx.fillText(M.lines.length ? 'No data in this range.' : 'Add a series to start.', px + pw / 2, top + panelH / 2); ctx.textAlign = 'left'; return geo; }
     // life bands behind everything
-    for (const it of ov.items) if (!it.l.point) { ctx.fillStyle = it.l.color; ctx.globalAlpha = 0.09; ctx.fillRect(px + it.x1, top, it.x2 - it.x1, totalH); ctx.globalAlpha = 1; }
+    for (const it of ov.items) if (!it.l.point) {
+      if (it.l.segs) { for (const g of it.l.segs) { if (!g.first || g.b < M.a || g.a > M.b) continue; const x1 = dayX(M, g.a, pw), x2 = Math.max(x1 + 1, dayX(M, g.b + 1, pw)); ctx.fillStyle = g.color; ctx.globalAlpha = 0.1; ctx.fillRect(px + x1, top, x2 - x1, totalH); } ctx.globalAlpha = 1; continue; }
+      ctx.fillStyle = it.l.color; ctx.globalAlpha = 0.09; ctx.fillRect(px + it.x1, top, it.x2 - it.x1, totalH); ctx.globalAlpha = 1; }
     M.panels.forEach((P, pi) => {
       const y0 = top + pi * (panelH + GAP), h = panelH - 16, yb = y0 + panelH;   // 16px for the unit label
       const groups = [...new Set(P.lines.map((l) => l.group))];
@@ -800,6 +807,8 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
     for (const it of ov.items) { const y = Y + it.lane * LANE + 4, l = it.l;
       if (l.point) { const x = px + it.x1; ctx.strokeStyle = l.color; ctx.globalAlpha = 0.7; ctx.setLineDash([3, 3]); ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x + 0.5, y + 6); ctx.lineTo(x + 0.5, geo.bottom); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha = 1;
         ctx.fillStyle = l.color; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + 5, y + 6); ctx.lineTo(x, y + 12); ctx.lineTo(x - 5, y + 6); ctx.closePath(); ctx.fill(); }
+      else if (l.segs) { for (const g of l.segs) { if (g.b < M.a || g.a > M.b) continue; const x1 = dayX(M, g.a, pw), x2 = Math.max(x1 + 1, dayX(M, g.b + 1, pw)); ctx.fillStyle = g.color; ctx.globalAlpha = 0.6; ctx.fillRect(px + x1, y, x2 - x1, 12); }
+        ctx.globalAlpha = 1; ctx.strokeStyle = l.color; ctx.lineWidth = 1; ctx.strokeRect(px + it.x1 + 0.5, y + 0.5, Math.max(1, it.x2 - it.x1 - 1), 11); }
       else { ctx.fillStyle = l.color; ctx.globalAlpha = 0.3; ctx.fillRect(px + it.x1, y, it.x2 - it.x1, 12); ctx.globalAlpha = 1; ctx.strokeStyle = l.color; ctx.lineWidth = 1; ctx.strokeRect(px + it.x1 + 0.5, y + 0.5, Math.max(1, it.x2 - it.x1 - 1), 11); }
       ctx.font = `600 10px ${FD}`; ctx.fillStyle = C.ink; ctx.textAlign = 'left'; ctx.fillText(l.label, px + it.tx, y + 6.5); }
     return geo;
@@ -1383,6 +1392,7 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
     }));
     $('#d-tools').replaceChildren(
       el('div', { className: 'card' }, [el('h3', { text: 'Explorer' }), linkRow([['#explore', 'Open the explorer']])]),
+      el('div', { className: 'card', style: '--acc:#ff6fd8' }, [el('h3', { text: 'Timelines' }), ...(TLS && TLS.timelines.length ? [el('dl', {}, TLS.timelines.flatMap((t) => [el('dt', { text: t.name }), el('dd', { text: `${t.start} → ${t.end}` })]))] : []), linkRow([['timelines/', 'Open Timelines']])]),
       el('div', { className: 'card' }, [el('h3', { text: 'Calendar' }), linkRow([['#calendar', 'Open the calendar']])]));
   }
   // ================================================================ TRAILS + PROJECTS

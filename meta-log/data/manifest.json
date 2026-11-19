@@ -324,6 +324,26 @@
    ]
   },
   {
+   "id": "timelines",
+   "name": "Timelines (relationship, trips, moves...)",
+   "kind": "manual log",
+   "builder": "build_timelines.py",
+   "pages": [
+    "timelines/",
+    "/#explore (overlay)"
+   ],
+   "through": "2026-11-19",
+   "age_days": 0,
+   "stale": false,
+   "files": [
+    {
+     "path": "meta-log/data/timelines.json",
+     "kb": 7,
+     "through": "2026-11-19"
+    }
+   ]
+  },
+  {
    "id": "daily",
    "name": "Combined daily table",
    "kind": "derived",

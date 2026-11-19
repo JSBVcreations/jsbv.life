@@ -21,6 +21,7 @@ Jack's personal data site: a decade of steps, music, photos and trail logs, plus
 | `pct-training/` | PCT//PREP: plan · calendar · low-tide (2019 pre-AT walking as the floor) · days · recovery · pace · trail-weeks | `training.json` (`build_pct_training.py`) from plan.json (original plan, never edited by Claude), plan-adjusted.json (toggleable second plan, Nov 18), a "Projected" third option computed by the build from the last 14 days' rate of increase (never hand-edited), activities.json (Strava), Health export |
 | `step-song/` | STEP//SONG: decade · trail (AT log, weeks, states, hours, calendar) · day · cuts | `build_step_song.py`, `build_at_log.py`, `build_at_breakdown.py` |
 | `trail/` | TRAIL//RADIO: AT 2019 songs by stretch, Spotify iFrame player | `build_trail_radio.py` |
+| `timelines/` | TIME//LINES (under Data): overview (stretch strip + table) · compare (status vs status, raw and against the usual for the date, weekly Welch t) · after (end event: windows, 14-day curves, music) · map. Also paints the Explorer's life overlay for chapters with a `life_id` | `meta-log/data/timelines.json` (`build_timelines.py`) from `jsbv data/Timeline-*.xlsx` per `scripts/config/timelines.json`; places in `scripts/config/places.json`; base map `assets/maps/na.json` |
 | `games/` | Video games (under Data): fortnite (season timeline) · seasons (table). PSN trophies planned | `games/data/fortnite.json` (`build_fortnite.py`) from the Epic export PDF + season calendar workbook |
 | `photo-library/` | PHOTO//SORT: overview · captured · worklog · space · lightroom | tracker scripts in `~/Documents/01-Projects/photo-library-tracker` |
 | `assets/site.js`, `assets/site.css` | Shared nav (Home · Trails · Projects · Data), breadcrumbs, page tabs | — |
@@ -39,6 +40,7 @@ Jack's personal data site: a decade of steps, music, photos and trail logs, plus
 - Photos: counts and GB only. No file names, album names or ids.
 - Epic Games export (PDF: email, name, IPs, devices, linked accounts, a card purchase): only the "Past Seasons" stats are read.
   The season calendar's Notes / Group Chat columns name friends and are never read.
+- Timeline workbooks: only the columns named in `scripts/config/timelines.json` are read (dates, Jack's place, status). Other people's places, travel notes and other notes are never read. Jack made the Emily timeline public (Nov 19).
 - Smoking log: date, time and kind only; the Pouch / Pack and Note columns are never read (notes name people).
 - **The GitHub repo is PUBLIC: anything committed is public.** Private datasets (ids in `meta-log/data/privacy.json`, now
   `smoking`) are never committed in plain form: their builders write to the git-ignored `meta-log/data/private/`, and

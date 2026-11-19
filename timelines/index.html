@@ -1,0 +1,418 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Timelines · JSBV.LIFE</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<meta name="theme-color" content="#07060f">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="JSBV.LIFE">
+<meta property="og:title" content="Timelines · JSBV.LIFE">
+<meta property="og:description" content="Stretches of life laid over the daily numbers: together and apart, where in the world, and what changed after.">
+<meta property="og:url" content="https://jsbv.life/timelines/">
+<meta property="og:image" content="https://jsbv.life/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="description" content="Stretches of life laid over the daily numbers: together and apart, where in the world, and what changed after.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="../assets/site.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Monoton&family=Chakra+Petch:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* TIME//LINES. Data: meta-log/data/timelines.json (scripts/build_timelines.py, config in scripts/config/timelines.json),
+   meta-log/data/daily.json for the numbers, assets/maps/na.json for the base map. Every comparison is computed here from
+   daily.json, so a new timeline workbook needs no code. Tabs: overview · together (statuses compared) · after (the end event)
+   · map. */
+:root {
+  color-scheme: dark;
+  --void: #07060f; --panel: #0d0b1c; --well: #120f26; --grid: #1f1a3d; --ink: #dcd8ff; --dim: #8a84b8;
+  --step: #3ff0ff; --sound: #ff3fb4; --climb: #ffb347; --trail: #b6ff5c; --violet: #9b7bff; --hot: #fff;
+  --tab-accent: #ff6fd8; --s1c: #ff6fd8; --s2c: #5fb8ff;
+  --f-display: "Monoton", "Chakra Petch", system-ui, sans-serif;
+  --f-ui: "Chakra Petch", "Segoe UI", system-ui, sans-serif;
+  --f-data: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --s-0: 0.75rem; --s-1: 0.875rem; --s-2: 1rem; --s-3: 1.25rem;
+}
+* { box-sizing: border-box; }
+html, body { background: var(--void); color: var(--ink); }
+body { margin: 0; font-family: var(--f-ui); font-size: var(--s-1); line-height: 1.5;
+  padding: 24px max(16px, env(safe-area-inset-right, 0px)) 64px max(16px, env(safe-area-inset-left, 0px)); }
+body::after { content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 50;
+  background: repeating-linear-gradient(to bottom, rgba(0,0,0,0) 0 2px, rgba(0,0,0,0.18) 2px 3px); }
+.wrap { max-width: 1180px; margin: 0 auto; display: grid; gap: 24px; }
+h1 { font-family: var(--f-display); font-weight: 400; margin: 14px 0 0; font-size: clamp(2.2rem, 7vw, 4.6rem); line-height: 1;
+  color: var(--hot); text-shadow: 0 0 6px var(--s1c), 0 0 18px var(--s1c), 0 0 42px rgba(255,111,216,0.5); }
+h1 span { text-shadow: 0 0 6px var(--s2c), 0 0 18px var(--s2c), 0 0 42px rgba(95,184,255,0.6); }
+.pick { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; }
+.pick select { font: 600 var(--s-1) var(--f-data); color: var(--ink); background: var(--well); border: 1px solid var(--grid); padding: 8px 10px; }
+.readout { display: flex; flex-wrap: wrap; gap: 8px 28px; font-family: var(--f-data); padding: 12px 0; border-block: 1px solid var(--grid); }
+.readout div { display: grid; }
+.readout span { font-size: var(--s-0); text-transform: uppercase; letter-spacing: 0.12em; color: var(--dim); font-family: var(--f-ui); }
+.readout strong { font-size: var(--s-3); font-weight: 600; font-variant-numeric: tabular-nums; }
+.readout small { font-size: var(--s-0); color: var(--dim); }
+section { border: 1px solid var(--grid); background: var(--panel); padding: 18px; display: grid; gap: 12px; min-width: 0; }
+section > * { min-width: 0; }
+h2 { margin: 0; font: 700 var(--s-2)/1.2 var(--f-ui); letter-spacing: 0.18em; text-transform: uppercase; color: var(--hot); }
+h3 { margin: 0; font: 700 var(--s-0)/1.2 var(--f-ui); letter-spacing: 0.16em; text-transform: uppercase; color: var(--dim); }
+.head { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; justify-content: space-between; }
+.note { margin: 0; color: var(--dim); font-family: var(--f-data); font-size: var(--s-0); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font: 600 var(--s-0) var(--f-data); align-items: center; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+.seg { display: flex; }
+.seg button { font: 600 var(--s-0) var(--f-data); letter-spacing: 0.08em; color: var(--dim); background: none; border: 1px solid var(--grid); padding: 7px 12px; min-height: 32px; cursor: pointer; }
+.seg button[aria-pressed="true"] { color: var(--void); background: var(--s1c); border-color: var(--s1c); }
+.chart { overflow-x: auto; scrollbar-width: thin; }
+.chart svg { display: block; width: 100%; height: auto; }
+.chart text { font: 400 10px var(--f-data); fill: var(--dim); }
+.chart .gl { font: 700 10.5px var(--f-ui); letter-spacing: 0.1em; }
+.chart .gv { font: 600 9.5px var(--f-data); fill: var(--ink); }
+.chart .up { fill: #5dff8a; font-weight: 700; } .chart .dn { fill: #ff4d6d; font-weight: 700; }
+.chart rect.hit { fill: transparent; cursor: crosshair; }
+.strip svg { min-width: 760px; }
+.scroll { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-family: var(--f-data); font-size: var(--s-0); font-variant-numeric: tabular-nums; }
+th, td { padding: 6px 10px; border-bottom: 1px solid var(--grid); text-align: right; white-space: nowrap; }
+th { color: var(--dim); font-weight: 400; text-transform: uppercase; letter-spacing: 0.08em; }
+th:first-child, td:first-child { text-align: left; }
+td.m { color: var(--cc); font-weight: 600; } td .cdot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--cc); margin-right: 8px; box-shadow: 0 0 6px var(--cc); }
+td.up { color: #5dff8a; } td.dn { color: #ff4d6d; } td.dim { color: var(--dim); }
+.str { letter-spacing: 1px; } .str.s3 { color: #fff; } .str.s2 { color: var(--ink); } .str.s1 { color: var(--dim); } .str.s0 { color: #3a3366; }
+.kpis { display: grid; grid-template-columns: repeat(auto-fill, minmax(165px, 1fr)); gap: 10px; }
+.kpi { display: grid; gap: 2px; padding: 12px 14px; border-radius: 10px; border-left: 3px solid var(--cc); background: linear-gradient(135deg, color-mix(in srgb, var(--cc) 16%, transparent), transparent 75%); }
+.kpi span { font: 600 10px var(--f-ui); letter-spacing: 0.14em; text-transform: uppercase; color: color-mix(in srgb, var(--cc) 70%, #dcd8ff); }
+.kpi b { font: 600 1.5rem/1.1 var(--f-data); color: var(--cc); font-variant-numeric: tabular-nums; } .kpi em { font: normal 400 var(--s-0) var(--f-data); color: var(--ink); opacity: 0.85; }
+.two { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 16px 24px; }
+.mus { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr)); gap: 12px; }
+.mcard { border: 1px solid var(--grid); border-top: 3px solid var(--cc); border-radius: 10px; padding: 12px; display: grid; gap: 6px; align-content: start; background: color-mix(in srgb, var(--cc) 7%, transparent); }
+.mcard h3 { color: var(--cc); } .mcard ol { margin: 0; padding-left: 18px; font: 400 var(--s-0)/1.6 var(--f-data); }
+.mcard li small { color: var(--dim); } .mcard .tot { font: 600 var(--s-0) var(--f-data); color: var(--ink); }
+.map { position: relative; }
+.map svg { min-width: 640px; background: #0b0920; border-radius: 10px; }
+.map .land { fill: #17133a; stroke: #2f2860; } .map .states { fill: none; stroke: #2a2352; } .map .border { fill: none; stroke: #463c86; }
+.map .route { fill: none; stroke: rgba(220,216,255,0.28); }
+.map .pl { cursor: pointer; } .map .pl text { font-family: var(--f-data); font-weight: 600; fill: var(--ink); paint-order: stroke; stroke: #07060f; }
+.map .pl.on circle.o { stroke: #fff; }
+#tip { position: fixed; z-index: 80; pointer-events: none; max-width: 300px; background: rgba(7,6,15,0.96); border: 1px solid var(--dim); border-radius: 8px; padding: 8px 10px; font: 400 var(--s-0)/1.5 var(--f-data); }
+#tip b { color: var(--hot); }
+footer { font-family: var(--f-data); font-size: var(--s-0); color: var(--dim); }
+[hidden] { display: none !important; }
+@media (max-width: 640px) { .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } .kpi b { font-size: 1.2rem; } }
+</style>
+<link rel="stylesheet" href="../assets/theme.css">
+<body>
+<div class="wrap">
+  <header>
+    <nav class="site" data-here="data" data-crumb="Timelines"></nav>
+    <h1>TIME<span>//LINES</span></h1>
+  </header>
+  <div class="pick"><select id="t-pick" aria-label="Timeline"></select><div class="legend" id="t-legend"></div></div>
+  <div class="readout" id="kpis"><div id="boot">Loading…</div></div>
+  <p class="note" id="err" hidden>Data failed to load.</p>
+
+  <nav class="ptabs" data-default="overview" aria-label="Sections of Timelines">
+    <a href="#overview" data-tab="overview">Overview</a>
+    <a href="#compare" data-tab="compare" data-alias="together">Together vs apart</a>
+    <a href="#after" data-tab="after" data-alias="breakup">After</a>
+    <a href="#map" data-tab="map">Map</a>
+  </nav>
+
+  <section data-tab="overview">
+    <div class="head"><h2 id="h-ov">The whole stretch</h2></div>
+    <div class="chart strip" id="c-strip"></div>
+    <div class="kpis" id="ov-kpis"></div>
+    <div class="scroll" style="max-height:420px;overflow:auto"><table id="ov-table"></table></div>
+  </section>
+
+  <section data-tab="compare">
+    <div class="head"><h2 id="h-cmp">Together vs apart</h2>
+      <div class="seg" role="group" aria-label="Values" id="cmp-mode"></div></div>
+    <div class="legend" id="cmp-legend"></div>
+    <div class="chart" id="c-cmp"></div>
+    <div class="scroll"><table id="cmp-table"></table></div>
+    <p class="note" id="cmp-note"></p>
+  </section>
+
+  <section data-tab="after">
+    <div class="head"><h2 id="h-after">After</h2></div>
+    <div class="legend" id="after-legend"></div>
+    <div class="chart" id="c-after"></div>
+    <div class="scroll"><table id="after-table"></table></div>
+    <h3 id="h-curve">14-day average, from 4 months before</h3>
+    <div class="two" id="c-curves"></div>
+    <h3 id="h-mus">Music</h3>
+    <div class="mus" id="c-mus"></div>
+  </section>
+
+  <section data-tab="map">
+    <div class="head"><h2>Where</h2><div class="legend" id="map-legend"></div></div>
+    <div class="chart map" id="c-map"></div>
+    <div class="scroll"><table id="map-table"></table></div>
+  </section>
+
+  <footer id="foot"></footer>
+</div>
+<div id="tip" hidden></div>
+<script src="../assets/site.js"></script>
+<script>
+(async function () {
+  'use strict';
+  const $ = (s) => document.querySelector(s);
+  const el = (tag, props = {}, kids = []) => { const e = document.createElement(tag); for (const k in props) { if (k === 'style') e.style.cssText = props[k]; else if (k.startsWith('on')) e.addEventListener(k.slice(2), props[k]); else if (k === 'text') e.textContent = props[k]; else if (k in e) e[k] = props[k]; else e.setAttribute(k, props[k]); } for (const c of [].concat(kids)) if (c != null) e.append(c); return e; };
+  const svg = (tag, a = {}, text) => { const e = document.createElementNS('http://www.w3.org/2000/svg', tag); for (const k in a) e.setAttribute(k, a[k]); if (text != null) e.textContent = text; return e; };
+  const DAY = 864e5, T0 = Date.UTC(2015, 0, 1);
+  const d2i = (s) => Math.round((Date.UTC(+s.slice(0, 4), +s.slice(5, 7) - 1, +s.slice(8, 10)) - T0) / DAY);
+  const iso = (i) => new Date(T0 + i * DAY).toISOString().slice(0, 10);
+  const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const md = (i) => { const d = new Date(T0 + i * DAY); return `${MON[d.getUTCMonth()]} ${d.getUTCDate()}`; };
+  const mdy = (i) => { const d = new Date(T0 + i * DAY); return `${MON[d.getUTCMonth()]} ${d.getUTCDate()}, ${d.getUTCFullYear()}`; };
+  const num = (v) => v == null || !isFinite(v) ? '—' : Math.abs(v) >= 100 ? Math.round(v).toLocaleString('en-US') : Math.abs(v) >= 10 ? v.toFixed(1) : v.toFixed(2).replace(/0$/, '');
+  const pct = (v) => v == null || !isFinite(v) ? '—' : `${v >= 0 ? '+' : '−'}${Math.abs(v).toFixed(0)}%`;
+  const tip = $('#tip'), showTip = (ev, h) => { tip.innerHTML = h; tip.hidden = false; const r = tip.getBoundingClientRect(); tip.style.left = Math.max(6, Math.min(innerWidth - r.width - 6, ev.clientX + 14)) + 'px'; tip.style.top = (ev.clientY + 16 + r.height > innerHeight ? ev.clientY - r.height - 10 : ev.clientY + 16) + 'px'; };
+  const hideTip = () => { tip.hidden = true; };
+  const bindTip = (n, f) => { n.addEventListener('pointermove', (ev) => showTip(ev, f())); n.addEventListener('pointerleave', hideTip); };
+
+  let daily, TL, MAP;
+  try {
+    [daily, TL, MAP] = await Promise.all(['../meta-log/data/daily.json', '../meta-log/data/timelines.json', '../assets/maps/na.json'].map((u) => fetch(u, { cache: 'no-cache' }).then((r) => { if (!r.ok) throw new Error(u); return r.json(); })));
+  } catch (e) { $('#err').hidden = false; $('#boot').remove(); if (window.SiteTabs) SiteTabs.start(); return; }
+  if (!TL.timelines.length) { $('#err').hidden = false; $('#err').textContent = 'No timelines yet.'; return; }
+
+  // ---- the numbers compared (dataset, metric, label, unit, scale, colour)
+  const METRICS = [['move', 'steps', 'Steps', '', 1, '#3ff0ff'], ['move', 'miles', 'Miles', 'mi', 1, '#3ff0ff'], ['move', 'flights', 'Flights', '', 1, '#ffb347'],
+    ['exercise', 'minutes', 'Exercise', 'min', 1, '#00e59b'], ['body', 'resting_hr', 'Resting HR', 'bpm', 1, '#ff4d6d'], ['body', 'hrv', 'HRV', 'ms', 1, '#ff4d6d'],
+    ['body', 'sleep_h', 'Sleep', 'h', 1, '#9b7bff'], ['music', 'minutes', 'Music', 'h', 1 / 60, '#ff3fb4'], ['music', 'plays', 'Plays', '', 1, '#ff3fb4'],
+    ['watch', 'minutes', 'Screen', 'h', 1 / 60, '#4ea8ff'], ['calls', 'minutes', 'Calls', 'min', 1, '#ff8a3d'], ['photos', 'items', 'Photos', '', 1, '#ffd84a'],
+    ['breath', 'sessions', 'Breathwork', '', 1, '#4fe0c0']];
+  const DS = Object.fromEntries(daily.datasets.map((d) => [d.id, d]));
+  const S0 = d2i(daily.start);
+  const LINES = METRICS.map(([ds, m, label, unit, f, color]) => { const D = DS[ds]; if (!D) return null; const M = D.metrics.find((x) => x.id === m); if (!M) return null;
+    const off = S0 + D.offset, v = M.v.map((x) => (x == null ? null : x * f));
+    // month-of-year baseline over the whole record: how this number usually runs at that time of year
+    const ms = Array(12).fill(0), mc = Array(12).fill(0);
+    v.forEach((x, k) => { if (x == null) return; const mo = new Date(T0 + (off + k) * DAY).getUTCMonth(); ms[mo] += x; mc[mo]++; });
+    return { id: ds + '.' + m, label, unit, color, off, v, n: v.length, moy: ms.map((s, i) => (mc[i] ? s / mc[i] : null)), years: new Set(v.map((x, k) => (x == null ? null : new Date(T0 + (off + k) * DAY).getUTCFullYear()))).size - 1 }; }).filter(Boolean);
+  const at = (L, i) => (i < L.off || i >= L.off + L.n ? null : L.v[i - L.off]);
+  const mean = (a) => (a.length ? a.reduce((x, y) => x + y, 0) / a.length : null);
+  const median = (a) => { if (!a.length) return null; const s = [...a].sort((x, y) => x - y), h = s.length >> 1; return s.length % 2 ? s[h] : (s[h - 1] + s[h]) / 2; };
+  const lastData = Math.max(...LINES.map((L) => { for (let k = L.n - 1; k >= 0; k--) if (L.v[k] != null) return L.off + k; return 0; }));
+
+  let T, segs, status;   // current timeline
+  const pick = $('#t-pick');
+  pick.replaceChildren(...TL.timelines.map((t) => el('option', { value: t.id, text: `${t.name} · ${t.start.slice(0, 4)}–${t.end.slice(0, 4)}` })));
+  pick.hidden = TL.timelines.length < 2;
+  pick.addEventListener('change', () => { use(pick.value); renderAll(); });
+  function use(id) {
+    T = TL.timelines.find((t) => t.id === id) || TL.timelines[0];
+    segs = T.segments.map((s) => ({ ...s, ai: d2i(s.a), bi: d2i(s.b) }));
+    status = Object.entries(T.statuses).map(([id, s]) => ({ id, ...s }));
+    document.documentElement.style.setProperty('--s1c', status[0].color); document.documentElement.style.setProperty('--s2c', (status[1] || status[0]).color);
+    $('#t-legend').replaceChildren(...status.map((s) => el('span', {}, [el('i', { style: `background:${s.color};box-shadow:0 0 8px ${s.color}` }), s.label])));
+    for (const a of document.querySelectorAll('[data-tab="after"]')) if (!a.closest('nav')) a.dataset.off = T.end_event ? '' : '1';
+    if (window.SiteTabs) SiteTabs.refresh();
+  }
+  const SC = (id) => (T.statuses[id] || {}).color || '#888';
+  const dayStatus = () => { const m = new Map(); for (const s of segs) for (let i = s.ai; i <= s.bi; i++) m.set(i, s); return m; };
+
+  // ---------------------------------------------------------------- KPIs + overview
+  function renderTop() {
+    const tot = {}; let longest = {};
+    for (const s of segs) { const n = s.bi - s.ai + 1; tot[s.s] = (tot[s.s] || 0) + n; if (!longest[s.s] || n > longest[s.s].n) longest[s.s] = { n, s }; }
+    const all = Object.values(tot).reduce((a, b) => a + b, 0), a = d2i(T.start), b = d2i(T.end);
+    const yrs = Math.floor(all / 365.25), wks = Math.round((all - yrs * 365.25) / 7);
+    $('#kpis').replaceChildren(
+      el('div', {}, [el('span', { text: T.name }), el('strong', { text: `${all.toLocaleString()} days` }), el('small', { text: `${mdy(a)} – ${mdy(b)} · ${yrs} y ${wks} wk` })]),
+      ...status.map((st) => el('div', {}, [el('span', { text: st.label }), el('strong', { style: `color:${st.color}`, text: `${(tot[st.id] || 0).toLocaleString()} d` }), el('small', { text: `${Math.round((100 * (tot[st.id] || 0)) / all)}% · ${segs.filter((s) => s.s === st.id).length} stretches` })])),
+      el('div', {}, [el('span', { text: 'Places' }), el('strong', { text: String(new Set(segs.map((s) => s.p)).size) }), el('small', { text: 'cities' })]),
+      T.end_event ? el('div', {}, [el('span', { text: T.end_event }), el('strong', { text: mdy(b) }), el('small', { text: `${(Math.min(lastData, d2i(new Date().toISOString().slice(0, 10))) - b).toLocaleString()} days ago` })]) : null);
+    $('#h-ov').textContent = `${T.name}, stretch by stretch`;
+    // strip: one row per year, a cell per day coloured by status
+    const y0 = +T.start.slice(0, 4), y1 = +T.end.slice(0, 4), RH = 26, LW = 44, PW = 732, W = LW + PW + 4, H = (y1 - y0 + 1) * RH + 24, map = dayStatus();
+    const g = svg('svg', { viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': `${T.name}: every day by status` });
+    MON.forEach((m, k) => g.append(svg('text', { x: LW + (k / 12) * PW + 2, y: 12 }, m)));
+    for (let y = y0; y <= y1; y++) { const r = y - y0, top = 18 + r * RH, j1 = d2i(`${y}-01-01`), nd = d2i(`${y + 1}-01-01`) - j1, dw = PW / nd;
+      g.append(svg('text', { x: 0, y: top + 15, style: 'fill:#dcd8ff;font-weight:600' }, String(y)));
+      g.append(svg('rect', { x: LW, y: top + 2, width: PW, height: RH - 8, fill: '#120f26', rx: 3 }));
+      let run = null; const flush = () => { if (!run) return; const x = LW + run.k0 * dw, w = (run.k1 - run.k0 + 1) * dw, s = run.s;
+          const r_ = svg('rect', { x, y: top + 2, width: Math.max(1, w), height: RH - 8, fill: SC(s.s), opacity: 0.88 });
+          bindTip(r_, () => `<b>${T.statuses[s.s].label}</b> · ${s.p}<br>${mdy(s.ai)} – ${mdy(s.bi)} · ${(s.bi - s.ai + 1)} days`); g.append(r_); run = null; };
+      for (let k = 0; k < nd; k++) { const s = map.get(j1 + k); if (run && run.s === s) { run.k1 = k; continue; } flush(); if (s) run = { s, k0: k, k1: k }; }
+      flush();
+      if (T.end_event && d2i(T.end) >= j1 && d2i(T.end) < j1 + nd) { const x = LW + (d2i(T.end) - j1 + 1) * dw; g.append(svg('line', { x1: x, x2: x, y1: top - 2, y2: top + RH - 4, stroke: '#fff', 'stroke-width': 2 }), svg('text', { x: x + 4, y: top + 15, style: 'fill:#fff;font-weight:700' }, T.end_event)); }
+    }
+    $('#c-strip').replaceChildren(g);
+    // KPIs per status
+    const k = [];
+    for (const st of status) { const ss = segs.filter((s) => s.s === st.id), lens = ss.map((s) => s.bi - s.ai + 1), lg = longest[st.id];
+      k.push(el('div', { className: 'kpi', style: `--cc:${st.color}` }, [el('span', { text: `${st.label}: average stretch` }), el('b', { text: `${Math.round(mean(lens) || 0)} d` }), el('em', { text: `median ${Math.round(median(lens) || 0)} d · ${ss.length} stretches` })]),
+        el('div', { className: 'kpi', style: `--cc:${st.color}` }, [el('span', { text: `${st.label}: longest` }), el('b', { text: `${lg ? lg.n : 0} d` }), el('em', { text: lg ? `${mdy(lg.s.ai)} – ${md(lg.s.bi)} · ${lg.s.p}` : '' })])); }
+    $('#ov-kpis').replaceChildren(...k);
+    $('#ov-table').replaceChildren(el('thead', {}, [el('tr', {}, ['From', 'To', 'Days', 'Status', 'Where'].map((h) => el('th', { text: h })))]),
+      el('tbody', {}, [...segs].reverse().map((s) => el('tr', {}, [el('td', { text: mdy(s.ai) }), el('td', { text: mdy(s.bi) }), el('td', { text: String(s.bi - s.ai + 1) }),
+        el('td', { style: `color:${SC(s.s)};font-weight:600`, text: T.statuses[s.s].label }), el('td', { style: 'text-align:right', text: s.p })]))));
+  }
+
+  // ---------------------------------------------------------------- statuses compared
+  // Raw: mean per day in each status. "Usual for the date": each day minus that number's average for its calendar month
+  // over the whole record, so a status that happened to fall in summer is not credited with summer. Weekly check: weeks
+  // that sit entirely in one status, compared with Welch's t on the weekly means.
+  const CMP = { mode: 'raw' };
+  function compareRows() {
+    const map = dayStatus(), [A, B] = status;
+    return LINES.map((L) => {
+      const vals = { [A.id]: [], [B.id]: [] }, res = { [A.id]: [], [B.id]: [] }, wk = {};
+      for (const s of segs) for (let i = s.ai; i <= s.bi; i++) { const x = at(L, i); if (x == null) continue; vals[s.s].push(x);
+        const b = L.moy[new Date(T0 + i * DAY).getUTCMonth()]; if (b != null) res[s.s].push(x - b);
+        const w = i - ((new Date(T0 + i * DAY).getUTCDay()) % 7); (wk[w] = wk[w] || []).push([s.s, x]); }
+      if (vals[A.id].length < 7 || vals[B.id].length < 7) return null;
+      const mA = mean(vals[A.id]), mB = mean(vals[B.id]), base = mean([...vals[A.id], ...vals[B.id]]);
+      const wA = [], wB = []; for (const w in wk) { const r = wk[w]; if (r.length < 5) continue; const st = r[0][0]; if (r.some((x) => x[0] !== st)) continue; (st === A.id ? wA : wB).push(mean(r.map((x) => x[1]))); }
+      let t = null; if (wA.length >= 3 && wB.length >= 3) { const va = wA.reduce((s, x) => s + (x - mean(wA)) ** 2, 0) / (wA.length - 1), vb = wB.reduce((s, x) => s + (x - mean(wB)) ** 2, 0) / (wB.length - 1); t = (mean(wA) - mean(wB)) / Math.sqrt(va / wA.length + vb / wB.length || 1e-9); }
+      const adj = base ? ((mean(res[A.id]) - mean(res[B.id])) / Math.abs(base)) * 100 : null;
+      return { L, mA, mB, nA: vals[A.id].length, nB: vals[B.id].length, medA: median(vals[A.id]), medB: median(vals[B.id]), diff: mB ? ((mA - mB) / Math.abs(mB)) * 100 : null, adj, t, wA: wA.length, wB: wB.length };
+    }).filter(Boolean);
+  }
+  const strength = (t) => { const a = Math.abs(t || 0); return a >= 3 ? 3 : a >= 2 ? 2 : a >= 1 ? 1 : 0; };
+  function renderCompare() {
+    const [A, B] = status, rows = compareRows();
+    $('#h-cmp').textContent = `${A.label} vs ${B.label}`;
+    $('#cmp-mode').replaceChildren(...[['raw', 'Average a day'], ['adj', 'Against the usual for the date']].map(([k, t]) => el('button', { type: 'button', text: t, 'aria-pressed': String(CMP.mode === k), onclick: () => { CMP.mode = k; renderCompare(); } })));
+    $('#cmp-legend').replaceChildren(...status.map((s) => el('span', {}, [el('i', { style: `background:${s.color}` }), s.label])));
+    // grouped bars: two bars per number, each group scaled to its larger bar (raw), or a centred bar for the adjusted difference
+    const gw = 2 * 22 + 4, pad = 34, x0 = 44, top = 52, base = 250, H = 312, W = x0 + rows.length * (gw + pad) + 6, h = base - top;
+    const g = svg('svg', { viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': `${A.label} vs ${B.label}, each number` });
+    if (CMP.mode === 'raw') {
+      for (const tk of [0, 25, 50, 75, 100]) { const y = base - (h * tk) / 100; g.append(svg('line', { x1: x0, x2: W - 4, y1: y, y2: y, stroke: tk ? '#1f1a3d' : '#3a3366', 'stroke-dasharray': tk && tk < 100 ? '2 4' : '' }), svg('text', { x: x0 - 6, y: y + 3, 'text-anchor': 'end' }, tk + '%')); }
+      g.append(svg('text', { x: 4, y: 12 }, '% of the higher of the two, a day'));
+      rows.forEach((r, gi) => { const gx = x0 + pad / 2 + gi * (gw + pad), mx = Math.max(r.mA, r.mB) || 1;
+        g.append(svg('rect', { x: gx - pad / 2 + 2, y: top - 30, width: gw + pad - 4, height: base - top + 30, rx: 6, fill: r.L.color, opacity: 0.05 }));
+        [[r.mA, A], [r.mB, B]].forEach(([v, st], i) => { const bh = Math.max(2, (h * v) / mx), x = gx + i * 26;
+          const bar = svg('rect', { x, y: base - bh, width: 22, height: bh, rx: 3, fill: st.color }); bindTip(bar, () => `<b>${r.L.label}</b> · ${st.label}<br>${num(v)}${r.L.unit ? ' ' + r.L.unit : ''} a day · ${(i ? r.nB : r.nA).toLocaleString()} days`); g.append(bar);
+          const tx = x + 11 + 3.5, ty = base - bh - 4; g.append(svg('text', { x: tx, y: ty, transform: `rotate(-90 ${tx} ${ty})`, class: 'gv' }, num(v))); });
+        g.append(svg('text', { x: gx + gw / 2, y: base + 16, 'text-anchor': 'middle', class: 'gl', fill: r.L.color }, r.L.label.toUpperCase()),
+          svg('text', { x: gx + gw / 2, y: base + 29, 'text-anchor': 'middle' }, r.L.unit ? `${r.L.unit} a day` : 'a day'),
+          svg('text', { x: gx + gw / 2, y: base + 45, 'text-anchor': 'middle', class: r.diff >= 0 ? 'up' : 'dn' }, pct(r.diff))); });
+    } else {
+      const mid = (top + base) / 2, mx = Math.max(10, ...rows.map((r) => Math.abs(r.adj || 0)));
+      for (const tk of [-1, -0.5, 0, 0.5, 1]) { const y = mid - (tk * h) / 2; g.append(svg('line', { x1: x0, x2: W - 4, y1: y, y2: y, stroke: tk ? '#1f1a3d' : '#5a5196', 'stroke-dasharray': tk ? '2 4' : '' }), svg('text', { x: x0 - 6, y: y + 3, 'text-anchor': 'end' }, pct(tk * mx))); }
+      g.append(svg('text', { x: 4, y: 12 }, `${A.label} minus ${B.label}, after taking out the time of year (% of the usual day)`));
+      rows.forEach((r, gi) => { const gx = x0 + pad / 2 + gi * (gw + pad), v = r.adj || 0, bh = (Math.abs(v) / mx) * (h / 2), y = v >= 0 ? mid - bh : mid;
+        const bar = svg('rect', { x: gx + 6, y, width: gw - 12, height: Math.max(1.5, bh), rx: 3, fill: v >= 0 ? A.color : B.color, opacity: 0.35 + 0.22 * strength(r.t) });
+        bindTip(bar, () => `<b>${r.L.label}</b><br>${A.label} ${pct(r.adj)} vs ${B.label}, against the usual for the date<br>weekly check: ${r.wA} + ${r.wB} weeks, t = ${r.t == null ? '—' : r.t.toFixed(1)}`); g.append(bar);
+        g.append(svg('text', { x: gx + gw / 2, y: v >= 0 ? y - 5 : y + bh + 12, 'text-anchor': 'middle', class: 'gv' }, pct(v)),
+          svg('text', { x: gx + gw / 2, y: base + 16, 'text-anchor': 'middle', class: 'gl', fill: r.L.color }, r.L.label.toUpperCase()),
+          svg('text', { x: gx + gw / 2, y: base + 30, 'text-anchor': 'middle', class: 'str' }, '●'.repeat(strength(r.t)) || '○')); });
+    }
+    $('#c-cmp').replaceChildren(g);
+    $('#cmp-table').replaceChildren(el('thead', {}, [el('tr', {}, ['Number', A.label + ' a day', B.label + ' a day', 'Difference', 'Against the usual for the date', 'Weekly check', 'Days'].map((h) => el('th', { text: h })))]),
+      el('tbody', {}, rows.map((r) => el('tr', { style: `--cc:${r.L.color}` }, [el('td', { className: 'm' }, [el('i', { className: 'cdot' }), r.L.label + (r.L.unit ? ` (${r.L.unit})` : '')]),
+        el('td', { style: `color:${A.color}`, text: num(r.mA) }), el('td', { style: `color:${B.color}`, text: num(r.mB) }), el('td', { className: r.diff >= 0 ? 'up' : 'dn', text: pct(r.diff) }),
+        el('td', { className: r.adj >= 0 ? 'up' : 'dn', text: pct(r.adj) }), el('td', {}, [el('span', { className: 'str s' + strength(r.t), text: ['○○○', '●○○', '●●○', '●●●'][strength(r.t)] }), ` t ${r.t == null ? '—' : r.t.toFixed(1)}`]),
+        el('td', { className: 'dim', text: `${r.nA.toLocaleString()} + ${r.nB.toLocaleString()}` })]))));
+    $('#cmp-note').textContent = `●●● clear (|t| ≥ 3) · ●● likely (≥ 2) · ● weak (≥ 1) · ○ no difference — Welch's t on weekly averages of whole weeks in one status. Heart, sleep, screen and calls start Jan 2026.`;
+  }
+
+  // ---------------------------------------------------------------- after the end event
+  const WIN = [['before', '90 days before', -89, 0, '#ff6fd8'], ['w1', 'Weeks 1–4 after', 1, 28, '#c77dff'], ['w2', 'Weeks 5–12 after', 29, 84, '#7c8cff'], ['w3', 'Months 3–6 after', 85, 182, '#5fb8ff']];
+  function renderAfter() {
+    if (!T.end_event) return;
+    const E = d2i(T.end), now = lastData;
+    $('#h-after').textContent = `After the ${T.end_event.toLowerCase()}, ${mdy(E)}`;
+    const wins = WIN.filter(([, , a]) => E + a <= now);
+    $('#after-legend').replaceChildren(...wins.map(([, label, a, b, c]) => el('span', {}, [el('i', { style: `background:${c}` }), label + (E + b > now ? ' (so far)' : '')])));
+    const rows = LINES.map((L) => { const ms = wins.map(([, , a, b]) => { const xs = []; for (let i = E + a; i <= Math.min(E + b, now); i++) { const x = at(L, i); if (x != null) xs.push(x); } return xs.length >= 5 ? mean(xs) : null; });
+      return ms[0] == null || ms.slice(1).every((x) => x == null) ? null : { L, ms }; }).filter(Boolean);
+    const n = wins.length, bw = 15, gap = 3, gw = n * bw + (n - 1) * gap, pad = 30, x0 = 44, top = 60, base = 262, H = 318, W = x0 + rows.length * (gw + pad) + 6, h = base - top;
+    const g = svg('svg', { viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': 'Each number before and after' });
+    for (const tk of [0, 25, 50, 75, 100]) { const y = base - (h * tk) / 100; g.append(svg('line', { x1: x0, x2: W - 4, y1: y, y2: y, stroke: tk ? '#1f1a3d' : '#3a3366', 'stroke-dasharray': tk && tk < 100 ? '2 4' : '' }), svg('text', { x: x0 - 6, y: y + 3, 'text-anchor': 'end' }, tk + '%')); }
+    g.append(svg('text', { x: 4, y: 12 }, '% of each number’s highest stretch, a day'));
+    rows.forEach((r, gi) => { const gx = x0 + pad / 2 + gi * (gw + pad), mx = Math.max(...r.ms.filter((x) => x != null)) || 1;
+      g.append(svg('rect', { x: gx - pad / 2 + 2, y: top - 30, width: gw + pad - 4, height: base - top + 30, rx: 6, fill: r.L.color, opacity: 0.05 }));
+      r.ms.forEach((v, i) => { if (v == null) return; const bh = Math.max(2, (h * v) / mx), x = gx + i * (bw + gap);
+        const bar = svg('rect', { x, y: base - bh, width: bw, height: bh, rx: 3, fill: wins[i][4] }); bindTip(bar, () => `<b>${r.L.label}</b> · ${wins[i][1]}<br>${num(v)}${r.L.unit ? ' ' + r.L.unit : ''} a day` + (i ? `<br>${pct(((v - r.ms[0]) / Math.abs(r.ms[0])) * 100)} vs before` : '')); g.append(bar);
+        const tx = x + bw / 2 + 3.5, ty = base - bh - 4; g.append(svg('text', { x: tx, y: ty, transform: `rotate(-90 ${tx} ${ty})`, class: 'gv' }, num(v))); });
+      const d1 = r.ms[1] != null ? ((r.ms[1] - r.ms[0]) / Math.abs(r.ms[0])) * 100 : null;
+      g.append(svg('text', { x: gx + gw / 2, y: base + 16, 'text-anchor': 'middle', class: 'gl', fill: r.L.color }, r.L.label.toUpperCase()),
+        svg('text', { x: gx + gw / 2, y: base + 29, 'text-anchor': 'middle' }, r.L.unit ? `${r.L.unit} a day` : 'a day'),
+        svg('text', { x: gx + gw / 2, y: base + 45, 'text-anchor': 'middle', class: d1 >= 0 ? 'up' : 'dn' }, d1 == null ? '' : 'wk 1–4 ' + pct(d1))); });
+    $('#c-after').replaceChildren(g);
+    $('#after-table').replaceChildren(el('thead', {}, [el('tr', {}, ['Number', ...wins.map((w) => w[1]), ...wins.slice(1).map((w) => w[1].replace(' after', '') + ' vs before')].map((h) => el('th', { text: h })))]),
+      el('tbody', {}, rows.map((r) => el('tr', { style: `--cc:${r.L.color}` }, [el('td', { className: 'm' }, [el('i', { className: 'cdot' }), r.L.label + (r.L.unit ? ` (${r.L.unit})` : '')]),
+        ...r.ms.map((v) => el('td', { text: num(v) })), ...r.ms.slice(1).map((v) => { const d = v == null ? null : ((v - r.ms[0]) / Math.abs(r.ms[0])) * 100; return el('td', { className: d == null ? 'dim' : d >= 0 ? 'up' : 'dn', text: pct(d) }); })]))));
+    // curves: 14-day trailing average from 120 days before to the latest data, before-average dashed
+    const a = E - 120, b = now, curves = [];
+    for (const r of rows) { const L = r.L, pts = []; for (let i = a; i <= b; i++) { const xs = []; for (let j = i - 13; j <= i; j++) { const x = at(L, j); if (x != null) xs.push(x); } pts.push(xs.length >= 7 ? mean(xs) : null); }
+      const got = pts.filter((x) => x != null); if (got.length < 20) continue;
+      const lo = Math.min(...got) * 0.92, hi = Math.max(...got) * 1.04, W2 = 360, H2 = 120, X = (k) => 46 + (k / (pts.length - 1)) * (W2 - 52), Y = (v) => 14 + (1 - (v - lo) / (hi - lo || 1)) * (H2 - 30);
+      const s = svg('svg', { viewBox: `0 0 ${W2} ${H2}`, role: 'img', 'aria-label': `${L.label}, 14-day average` });
+      s.append(svg('text', { x: 0, y: 10, class: 'gl', fill: L.color }, L.label.toUpperCase() + (L.unit ? ` · ${L.unit} a day` : ' · a day')));
+      const ex = X(E - a); s.append(svg('rect', { x: ex, y: 14, width: Math.max(0, X(Math.min(E + 84, b) - a) - ex), height: H2 - 30, fill: '#c77dff', opacity: 0.08 }));
+      s.append(svg('line', { x1: ex, x2: ex, y1: 12, y2: H2 - 16, stroke: '#fff', 'stroke-width': 1.5 }));
+      const bm = r.ms[0]; s.append(svg('line', { x1: 46, x2: W2 - 6, y1: Y(bm), y2: Y(bm), stroke: '#ff6fd8', 'stroke-dasharray': '4 4', opacity: 0.8 }));
+      let d = '', pen = false; pts.forEach((v, k) => { if (v == null) { pen = false; return; } d += `${pen ? 'L' : 'M'}${X(k).toFixed(1)},${Y(v).toFixed(1)}`; pen = true; });
+      s.append(svg('path', { d, fill: 'none', stroke: L.color, 'stroke-width': 2, 'stroke-linejoin': 'round' }));
+      s.append(svg('text', { x: 42, y: Y(hi / 1.04) + 4, 'text-anchor': 'end' }, num(hi / 1.04)), svg('text', { x: 42, y: Y(lo / 0.92) + 4, 'text-anchor': 'end' }, num(lo / 0.92)));
+      for (const [k, t] of [[0, md(a)], [E - a, md(E)], [pts.length - 1, md(b)]]) s.append(svg('text', { x: X(k), y: H2 - 3, 'text-anchor': k ? (k === pts.length - 1 ? 'end' : 'middle') : 'start' }, t));
+      const hit = svg('rect', { x: 46, y: 12, width: W2 - 52, height: H2 - 28, class: 'hit' }); hit.addEventListener('pointermove', (ev) => { const r_ = s.getBoundingClientRect(), k = Math.round(((ev.clientX - r_.left) / r_.width * W2 - 46) / (W2 - 52) * (pts.length - 1)); if (k < 0 || k >= pts.length) return; showTip(ev, `<b>${mdy(a + k)}</b><br>${L.label}: ${num(pts[k])}${L.unit ? ' ' + L.unit : ''} a day (14-day avg)<br>${k + a <= E ? `${E - a - k} days before` : `${a + k - E} days after`}`); });
+      hit.addEventListener('pointerleave', hideTip); s.append(hit);
+      curves.push(el('div', { className: 'chart' }, [s])); }
+    $('#c-curves').replaceChildren(...curves);
+    $('#h-curve').textContent = `14-day average · white line ${mdy(E)} · dashed: 90 days before · shaded: first 12 weeks`;
+    const MU = T.music; $('#h-mus').hidden = !MU;
+    $('#c-mus').replaceChildren(...(MU ? MU.windows.map((w, i) => el('div', { className: 'mcard', style: `--cc:${WIN[i] ? WIN[i][4] : '#ff3fb4'}` }, [el('h3', { text: w.label }),
+      el('div', { className: 'tot', text: `${num(w.hours / w.days)} h a day · ${w.plays.toLocaleString()} plays · ${md(d2i(w.a))} – ${md(d2i(w.b))}` }),
+      el('ol', {}, w.artists.map(([n, hr]) => el('li', {}, [n, el('small', { text: ` · ${num(hr)} h` })]))),
+      el('h3', { text: 'Most played' }), el('ol', {}, w.tracks.map(([t, ar, c]) => el('li', {}, [t, el('small', { text: ` · ${ar} · ${c}×` })])))])) : []));
+  }
+
+  // ---------------------------------------------------------------- map
+  const MV = { on: null, zoom: 'fit' };
+  function renderMap() {
+    const P = MAP.proj, X = (lon) => (lon - P.lon0) * P.c * P.k, Y = (lat) => (P.lat1 - lat) * P.k;
+    const places = {}; for (const s of segs) { const p = (places[s.p] = places[s.p] || { name: s.p, days: {}, first: s.ai, last: s.bi, n: 0 }); p.days[s.s] = (p.days[s.s] || 0) + s.bi - s.ai + 1; p.n++; p.first = Math.min(p.first, s.ai); p.last = Math.max(p.last, s.bi); }
+    const tot = (p) => Object.values(p.days).reduce((a, b) => a + b, 0);
+    const list = Object.values(places).filter((p) => T.places[p.name]).sort((a, b) => tot(b) - tot(a));
+    for (const p of list) { const [lat, lon] = T.places[p.name]; p.x = X(lon); p.y = Y(lat); }
+    // view: every place, or only the places with a month or more of days
+    const core = list.filter((p) => tot(p) >= 30);   // places with a month or more
+    const inView = MV.zoom === 'all' ? list : core.length ? core : list;
+    let x0 = Math.min(...inView.map((p) => p.x)), x1 = Math.max(...inView.map((p) => p.x)), y0 = Math.min(...inView.map((p) => p.y)), y1 = Math.max(...inView.map((p) => p.y));
+    const padX = Math.max(40, (x1 - x0) * 0.18), padY = Math.max(30, (y1 - y0) * 0.25); x0 -= padX; x1 += padX; y0 -= padY; y1 += padY;
+    const ar = 1.9; if ((x1 - x0) / (y1 - y0) < ar) { const w = (y1 - y0) * ar, c = (x0 + x1) / 2; x0 = c - w / 2; x1 = c + w / 2; } else { const h = (x1 - x0) / ar, c = (y0 + y1) / 2; y0 = c - h / 2; y1 = c + h / 2; }
+    const vw = x1 - x0, sc = vw / 760;     // sc keeps dots and labels the same size on screen at any zoom
+    const g = svg('svg', { viewBox: `${x0.toFixed(1)} ${y0.toFixed(1)} ${vw.toFixed(1)} ${(y1 - y0).toFixed(1)}`, role: 'img', 'aria-label': `${T.name}: where, sized by days` });
+    g.append(svg('path', { d: MAP.land, class: 'land', 'stroke-width': 0.8 * sc }), svg('path', { d: MAP.states, class: 'states', 'stroke-width': 0.6 * sc }), svg('path', { d: MAP.border, class: 'border', 'stroke-width': sc }));
+    let d = '', prev = null; for (const s of segs) { const c = T.places[s.p]; if (!c) continue; const pt = [X(c[1]), Y(c[0])]; if (prev && (prev[0] !== pt[0] || prev[1] !== pt[1])) { const mx = (prev[0] + pt[0]) / 2, my = (prev[1] + pt[1]) / 2 - Math.hypot(pt[0] - prev[0], pt[1] - prev[1]) * 0.18; d += `M${prev[0].toFixed(1)},${prev[1].toFixed(1)}Q${mx.toFixed(1)},${my.toFixed(1)} ${pt[0].toFixed(1)},${pt[1].toFixed(1)}`; } prev = pt; }
+    g.append(svg('path', { d, class: 'route', 'stroke-width': sc, 'stroke-dasharray': `${3 * sc} ${3 * sc}` }));
+    const R = (n) => (4 + Math.sqrt(n) * 0.75) * sc, fs = 11 * sc, boxes = [];
+    const dots = svg('g'), labels = svg('g');
+    for (const p of [...list].reverse()) { const r = R(tot(p)), cx = p.x, cy = p.y, grp = svg('g', { class: 'pl' + (MV.on === p.name ? ' on' : '') });
+      let ang = -Math.PI / 2; for (const st of status) { const v = p.days[st.id] || 0; if (!v) continue; const a2 = ang + (v / tot(p)) * Math.PI * 2;
+        if (v === tot(p)) grp.append(svg('circle', { cx, cy, r, fill: st.color, opacity: 0.82 }));
+        else grp.append(svg('path', { d: `M${cx},${cy}L${cx + r * Math.cos(ang)},${cy + r * Math.sin(ang)}A${r},${r} 0 ${a2 - ang > Math.PI ? 1 : 0} 1 ${cx + r * Math.cos(a2)},${cy + r * Math.sin(a2)}Z`, fill: st.color, opacity: 0.82 }));
+        ang = a2; }
+      grp.append(svg('circle', { cx, cy, r, class: 'o', fill: 'none', stroke: 'rgba(7,6,15,0.9)', 'stroke-width': 1.2 * sc }));
+      bindTip(grp, () => `<b>${p.name}</b><br>` + status.map((st) => `<span style="color:${st.color}">${st.label}</span> ${(p.days[st.id] || 0).toLocaleString()} days`).join('<br>') + `<br>${p.n} stretch${p.n > 1 ? 'es' : ''} · ${mdy(p.first)} – ${mdy(p.last)}`);
+      grp.addEventListener('click', () => { MV.on = MV.on === p.name ? null : p.name; renderMap(); });
+      dots.append(grp); }
+    // labels, biggest first, at the first free spot around the dot
+    for (const p of list) { const r = R(tot(p)), t = p.name.split(',')[0], w = t.length * fs * 0.62, h = fs * 1.1;
+      const cand = [[p.x + r + 3 * sc, p.y + fs * 0.35, 'start'], [p.x - r - 3 * sc, p.y + fs * 0.35, 'end'], [p.x, p.y - r - 4 * sc, 'middle'], [p.x, p.y + r + fs, 'middle']];
+      for (const [lx, ly, an] of cand) { const bx = an === 'start' ? lx : an === 'end' ? lx - w : lx - w / 2, b = [bx, ly - h * 0.8, bx + w, ly + h * 0.2];
+        if (boxes.some((o) => !(b[2] < o[0] || b[0] > o[2] || b[3] < o[1] || b[1] > o[3])) || list.some((q) => q !== p && Math.hypot(q.x - Math.min(Math.max(q.x, b[0]), b[2]), q.y - Math.min(Math.max(q.y, b[1]), b[3])) < R(tot(q)) * 0.8)) continue;
+        boxes.push(b); labels.append(svg('text', { x: lx, y: ly, 'text-anchor': an, style: `font-size:${fs}px;stroke-width:${3 * sc}px` }, t)); break; } }
+    g.append(dots, labels); labels.setAttribute('class', 'pl'); labels.style.pointerEvents = 'none';
+    $('#c-map').replaceChildren(g);
+    $('#map-legend').replaceChildren(...status.map((s) => el('span', {}, [el('i', { style: `background:${s.color};border-radius:50%` }), s.label])), el('span', { className: 'note', text: 'dot area = days' }),
+      el('div', { className: 'seg', role: 'group', 'aria-label': 'Map view' }, [['fit', 'Most days'], ['all', 'Everywhere']].map(([k, t]) => el('button', { type: 'button', text: t, 'aria-pressed': String(MV.zoom === k), onclick: () => { MV.zoom = k; renderMap(); } }))));
+    $('#map-table').replaceChildren(el('thead', {}, [el('tr', {}, ['Place', ...status.map((s) => s.label + ' (days)'), 'Total', 'Stretches', 'First', 'Last'].map((h) => el('th', { text: h })))]),
+      el('tbody', {}, list.map((p) => el('tr', { style: MV.on === p.name ? 'background:rgba(255,255,255,0.06)' : '' }, [el('td', { style: 'color:var(--ink);font-weight:600', text: p.name }), ...status.map((s) => el('td', { style: `color:${s.color}`, text: (p.days[s.id] || 0).toLocaleString() })),
+        el('td', { text: tot(p).toLocaleString() }), el('td', { text: String(p.n) }), el('td', { className: 'dim', text: mdy(p.first) }), el('td', { className: 'dim', text: mdy(p.last) })]))));
+  }
+
+  function renderAll() { renderTop(); renderCompare(); renderAfter(); renderMap(); }
+  use(TL.timelines[0].id);
+  renderAll();
+  $('#foot').textContent = `Built ${TL.generated} · timelines: ${TL.timelines.map((t) => `${t.name} ${t.start} → ${t.end}`).join(' · ')} · numbers: daily.json ${daily.generated} · map: Natural Earth, US Census`;
+  if (window.SiteTabs) SiteTabs.start();
+})();
+</script>

@@ -264,3 +264,18 @@ Keep the MX / TXT / DKIM / autodiscover records — they run the jsbv.life busin
   data-through date, stale flag per source). Both run at the end of `update.py`.
 - PCT//PREP Recovery: zero-day call above the chart (`readiness()`): resting HR 5+ bpm over its 28-day mean two mornings
   running, HRV 3-day mean 15%+ under its 28-day mean, body words in hike titles. 1 flag watch, 2+ take a zero/nero.
+
+## TIME//LINES (timelines/, Nov 19, 2026)
+- Workbooks `jsbv data/Timeline-*.xlsx`, one per timeline, each listed in `scripts/config/timelines.json` (file, sheet, the four
+  column names, statuses with colours, `trim_leading` status, `end_event`, `life_id`). Only those columns are read.
+  Emily: sheet "Timeline", Date 1 / Date 2 / Jack Location / Status; leading "Apart" rows (before the relationship) dropped;
+  a row's Date 2 equals the next row's Date 1, so each range ends the day before the next begins. 59 stretches,
+  2020-09-28 → 2026-05-23 (breakup), 895 days together / 1,169 apart. life.json's "emily" chapter now ends 2026-05-23.
+- `build_timelines.py` also stores music for the end event: top artists / tracks in the 30 days before and 1–30, 31–90,
+  91–180 days after (STEP//SONG plays; sleep audio left out).
+- Page maths (all client-side from daily.json): compare = mean a day per status; "against the usual for the date" = each
+  day minus that number's calendar-month average over its whole record, difference as % of the overall mean; weekly check =
+  Welch's t on means of whole Sunday weeks in one status (●●● |t|≥3, ●● ≥2, ● ≥1). After = 90 days before vs weeks 1–4,
+  5–12 and months 3–6 after; curves are 14-day trailing means from 120 days before.
+- Map: `assets/maps/na.json` (Natural Earth 50m land, US Census state lines; projection x=(lon+125)·cos40°·14, y=(52−lat)·14).
+  "Most days" zooms to places with ≥ 30 days; dots are pies by status, area ∝ days.

@@ -1,0 +1,17 @@
+{
+  "how": "City-level coordinates for timeline places (lat, lon). Add a row for each new place name exactly as written in a timeline workbook.",
+  "places": {
+    "Ann Arbor, Michigan": [42.2808, -83.7430],
+    "Adrian, Michigan": [41.8975, -84.0372],
+    "Madison, Connecticut": [41.2795, -72.5984],
+    "Litchfield, Connecticut": [41.7473, -73.1887],
+    "New York City, New York": [40.7128, -74.0060],
+    "Richmond, Maine": [44.0873, -69.7989],
+    "Old Town, Maine": [44.9342, -68.6453],
+    "Glenwood, Nova Scotia": [43.8800, -65.9200],
+    "Grand Canyon": [36.0544, -112.1401],
+    "Denver, Colorado": [39.7392, -104.9903],
+    "Pictured Rocks, Michigan": [46.5617, -86.3164],
+    "Boyne City, Michigan": [45.2167, -85.0139]
+  }
+}

@@ -42,6 +42,7 @@ HOW = {
                 '(keep Fortnite-Library-Manager.numbers there too). Needs: pip3 install pypdf numbers-parser',
     'strava': 'Tell Claude "update Strava" (it adds new hikes to pct-training/data/activities.json), then Update again.',
     'photos': 'Automatic: each Update takes a PHOTO//SORT + Lightroom snapshot (needs the tracker folder).',
+    'timelines': 'Keep timeline workbooks (Timeline-*.xlsx, listed in scripts/config/timelines.json) in "jsbv data" and save.',
     'spotify': 'Rare: request "Extended streaming history" at spotify.com/account/privacy (arrives within ~30 days), '
                'then ask Claude to rebuild STEP//SONG.',
 }
@@ -170,6 +171,7 @@ def main():
     print('\n3. Site data (PCT//PREP, then the day-by-day file every page reads)')
     cmd = [py, os.path.join(S, 'build_pct_training.py')] + ([health] if health else [])
     if not run('PCT//PREP training.json', cmd): failed.append('pct')
+    if not run('timelines.json', [py, os.path.join(S, 'build_timelines.py'), DATA]): failed.append('timelines')
     if not run('daily.json', [py, os.path.join(S, 'build_meta_log.py')]): failed.append('daily')
     if 'daily' not in failed and not run('seasons.json', [py, os.path.join(S, 'build_seasons.py')]): failed.append('seasons')
     if not run('manifest.json', [py, os.path.join(S, 'build_manifest.py')]): failed.append('manifest')

@@ -1,0 +1,14 @@
+{
+  "how": "One entry per timeline workbook in 'jsbv data' (Timeline-*.xlsx). build_timelines.py reads ONLY the columns named here (dates, Jack's place, status); every other column (other people's places, travel and other notes) is never read. Places need coordinates in places.json.",
+  "timelines": [
+    {
+      "id": "emily", "name": "Emily", "kind": "relationship", "life_id": "emily",
+      "file": "Timeline-Emily-Relationship.xlsx", "sheet": "Timeline",
+      "cols": {"start": "Date 1", "end": "Date 2", "place": "Jack Location", "status": "Status"},
+      "statuses": {"Together": {"id": "together", "label": "Together", "color": "#ff6fd8"},
+                   "Apart": {"id": "apart", "label": "Apart", "color": "#5fb8ff"}},
+      "trim_leading": "Apart",
+      "end_event": "Breakup"
+    }
+  ]
+}
