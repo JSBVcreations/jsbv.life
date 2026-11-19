@@ -130,19 +130,19 @@
    "pages": [
     "pct-training/"
    ],
-   "through": "2026-11-18",
-   "age_days": 1,
+   "through": "2026-11-19",
+   "age_days": 0,
    "stale": false,
    "files": [
     {
      "path": "pct-training/data/activities.json",
-     "kb": 2,
-     "through": "2026-11-18"
+     "kb": 3,
+     "through": "2026-11-19"
     },
     {
      "path": "pct-training/data/training.json",
      "kb": 22,
-     "through": "2026-11-18"
+     "through": "2026-11-19"
     }
    ]
   },
@@ -154,14 +154,14 @@
    "pages": [
     "pct-training/#plan"
    ],
-   "through": "2026-11-18",
-   "age_days": 1,
+   "through": "2026-11-19",
+   "age_days": 0,
    "stale": false,
    "files": [
     {
      "path": "pct-training/data/training.json",
      "kb": 22,
-     "through": "2026-11-18"
+     "through": "2026-11-19"
     }
    ]
   },
