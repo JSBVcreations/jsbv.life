@@ -159,7 +159,7 @@ footer { color: var(--dim); font-size: var(--s-0); }
     <div class="readout" id="kpis"><div id="boot">BOOTING… loading training data</div></div>
     <div class="planpick" id="planpick" hidden>
       <span class="lab">Plan</span>
-      <div class="seg" role="group" aria-label="Which training plan to show"><button type="button" data-p="orig" aria-pressed="true">Original</button><button type="button" data-p="alt" aria-pressed="false">Adjusted</button></div>
+      <div class="seg" role="group" aria-label="Which training plan to show"><button type="button" data-p="orig" aria-pressed="true">Original</button><button type="button" data-p="alt" aria-pressed="false">Adjusted</button><button type="button" data-p="proj" aria-pressed="false">Projected</button></div>
       <p class="note" id="plan-how"></p>
     </div>
   </header>
@@ -341,17 +341,21 @@ footer { color: var(--dim); font-size: var(--s-0); }
   // Switching swaps the target fields on every week in place, so every chart and tab follows; the original is kept in ORIG.
   const $$ = (q) => document.querySelectorAll(q);
   const ORIG = W.map((w) => ({ phase: w.phase, note: w.note, target_units: w.target_units, target_miles: w.target_miles, pack_lb: w.pack_lb }));
-  const ORIG_PEAK = P.peak_week_miles, ALT = T.plan_alt && W.some((w) => w.alt) ? T.plan_alt : null;
+  const ORIG_PEAK = P.peak_week_miles;
+  // Other plans: 'alt' (plan-adjusted.json) and 'proj' (the projection the build script makes from the log).
+  const PLANS = { alt: T.plan_alt && W.some((w) => w.alt) ? T.plan_alt : null, proj: T.plan_proj && W.some((w) => w.proj) ? T.plan_proj : null };
+  const ALT = PLANS.alt || PLANS.proj;
   let planKey = 'orig';
   function applyPlan(k) {
-    planKey = ALT && k === 'alt' ? 'alt' : 'orig';
-    W.forEach((w, i) => Object.assign(w, planKey === 'alt' && w.alt ? w.alt : ORIG[i]));
-    P.peak_week_miles = planKey === 'alt' ? (ALT.peak_week_miles || ORIG_PEAK) : ORIG_PEAK;
+    planKey = PLANS[k] ? k : 'orig';
+    W.forEach((w, i) => Object.assign(w, ORIG[i], planKey !== 'orig' && w[planKey] ? w[planKey] : {}));
+    P.peak_week_miles = planKey === 'orig' ? ORIG_PEAK : (PLANS[planKey].peak_week_miles || ORIG_PEAK);
     try { localStorage.setItem('jsbv-pct-plan', planKey); } catch (e) {}
-    for (const b of $$('#planpick button')) b.setAttribute('aria-pressed', String(b.dataset.p === planKey));
-    $('#plan-how').textContent = planKey === 'alt' ? ALT.how
-      : `The original plan: builds to two ${ORIG_PEAK}-mile weeks in February.` + (ALT ? ` "${ALT.short || 'Adjusted'}" is a second plan matched to the training so far; both are kept.` : '');
+    for (const b of $$('#planpick button')) { b.hidden = b.dataset.p !== 'orig' && !PLANS[b.dataset.p]; b.setAttribute('aria-pressed', String(b.dataset.p === planKey)); }
+    $('#plan-how').textContent = planKey !== 'orig' ? PLANS[planKey].how
+      : `The original plan: builds to two ${ORIG_PEAK}-mile weeks in February.` + (PLANS.alt ? ` "${PLANS.alt.short || 'Adjusted'}" is a second plan matched to the training so far` : '') + (PLANS.proj ? `; "Projected" carries your current rate of increase forward` : '') + '. All are kept.';
   }
+
   const now = new Date(), today = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
   const startDay = day(P.start), daysLeft = Math.round((startDay - today) / 864e5);
   const curIdx = Math.max(0, W.findIndex((w) => iso(today) >= w.start && iso(today) <= w.end));

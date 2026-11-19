@@ -77,6 +77,55 @@ def pre_at(depart):
             'flights': [round(x) for x in D['flights'][a:a + PRE_DAYS]], 'active_h': act}
 
 
+def project(weeks, rows, plan, through):
+    """Third, toggleable plan: where the current rate of increase leads. Rebuilt from the log on every run.
+    Rate = least-squares slope of the rolling 7-day mileage over the last 14 days (miles/week gained per week).
+    Pack = slope of the heaviest pack per week across the weeks that logged one. Weeks already past show what was hiked."""
+    if not rows:
+        return None
+    end = d(through) if through else d(rows[-1]['date'])
+    daily = {}
+    for x in rows:
+        daily[x['date']] = daily.get(x['date'], 0) + x['miles']
+    roll = lambda day: sum(daily.get((day - dt.timedelta(days=i)).isoformat(), 0) for i in range(7))
+    n = 14
+    ys = [roll(end - dt.timedelta(days=n - 1 - i)) for i in range(n)]
+    mx, my = (n - 1) / 2, sum(ys) / n
+    rate = 7 * sum((i - mx) * (y - my) for i, y in enumerate(ys)) / sum((i - mx) ** 2 for i in range(n))
+    base = ys[-1]
+    pk = [(w['week'], w['max_pack_lb']) for w in weeks if w['max_pack_lb'] and w['week'] >= 1]
+    if len(pk) >= 2:
+        a = sum(x for x, _ in pk) / len(pk); b = sum(y for _, y in pk) / len(pk)
+        prate = sum((x - a) * (y - b) for x, y in pk) / sum((x - a) ** 2 for x, _ in pk)
+    else:
+        prate = 0.0
+    last_pack = pk[-1][1] if pk else 0
+    unit, cur, cross, peak = plan['unit_miles'], sunday(end), {}, 0
+    for w in weeks:
+        k = (d(w['start']) - cur).days // 7
+        if w['target_units'] is None and k < 0:
+            continue
+        if k < 0:
+            mi, pack, phase, note = w['miles'], w['max_pack_lb'], 'Logged', 'Already hiked'
+        else:
+            mi = max(0.0, base + rate * k)
+            pack = max(0, round(last_pack + prate * k))
+            phase, note = 'Projected', 'This week, at the current 7-day pace' if k == 0 else ''
+            for lim in (100, 150):
+                if mi >= lim and lim not in cross:
+                    cross[lim] = w['start']
+            peak = max(peak, mi)
+        w['proj'] = {'phase': phase, 'note': note, 'target_miles': round(mi, 1), 'target_units': round(mi / unit), 'pack_lb': pack}
+    fmt = lambda s: d(s).strftime('%b %-d')
+    bits = [f"Projected {end.strftime('%b %-d')} from the log, and redone every time the tracker rebuilds.",
+            f"Right now you're walking {base:.1f} miles a week (the last 7 days), and that number has been growing by about {rate:+.1f} miles a week over the last two weeks.",
+            f"Your heaviest pack is growing about {prate:+.1f} lb a week." if pk else '',
+            'Carried forward in a straight line, ' + ('; '.join(f"you'd pass {lim} mi/week the week of {fmt(s)}" for lim, s in sorted(cross.items())) if cross else f"you'd peak at {peak:.0f} mi/week") + '.',
+            "Most of that rate is the jump from ~7 to ~32 miles a week in early November, so it's a picture of the trend, not a schedule to follow."]
+    return {'label': f"Projected ({end.strftime('%b %-d')})", 'short': 'Projected', 'how': ' '.join(b for b in bits if b),
+            'peak_week_miles': round(peak, 1), 'rate_per_week': round(rate, 1), 'pack_rate_per_week': round(prate, 1), 'base_week_miles': round(base, 1)}
+
+
 def main():
     plan = load('pct-training', 'data', 'plan.json')
     acts = load('pct-training', 'data', 'activities.json')
@@ -109,6 +158,8 @@ def main():
                             'target_miles': None if x['target_units'] is None else round(x['target_units'] * unit, 1)}
         alt_meta = {k: alt.get(k) for k in ('label', 'short', 'how', 'peak_week_miles')}
 
+    proj_meta = project(weeks, rows, plan, acts.get('through'))
+
     at_src = load('step-song', 'data', 'at2019-log.json')
     by_week = {}
     for day in at_src['days']:
@@ -137,6 +188,8 @@ def main():
            'weeks': weeks, 'activities': rows, 'activities_through': acts.get('through'), 'at': at}
     if alt_meta:
         out['plan_alt'] = alt_meta
+    if proj_meta:
+        out['plan_proj'] = proj_meta
     pre = pre_at(at['start'])
     if pre:
         out['pre_at'] = pre
