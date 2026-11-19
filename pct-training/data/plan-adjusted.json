@@ -1,0 +1,25 @@
+{
+  "label": "Adjusted (Nov 18)",
+  "short": "Adjusted",
+  "how": "Built Nov 18 from what the first two weeks show: about 31 miles a week (32.0 in week 1, 17.3 by Wednesday of week 2), a pack already at 12–13 lb (ahead of the original), and an 'ankles and shins' hike on Nov 15. It grows about 10% a week from there with a deload every fourth week, and peaks near 100 miles (27 laps) instead of 150. The first weeks on trail carry the build the rest of the way. Edit pct-training/data/plan-adjusted.json and rerun scripts/build_pct_training.py.",
+  "peak_week_miles": 99.9,
+  "weeks": [
+    {"week": 0, "start": "2026-11-01", "phase": "Pre-plan", "target_units": null, "pack_lb": null, "note": "Before the plan started; no target"},
+    {"week": 1, "start": "2026-11-08", "phase": "Base", "target_units": 8, "pack_lb": 0, "note": "Same as the original: 32.0 mi walked"},
+    {"week": 2, "start": "2026-11-15", "phase": "Base", "target_units": 9, "pack_lb": 12, "note": "Holds the ~31 mi/week of week 1; pack already 12–13 lb"},
+    {"week": 3, "start": "2026-11-22", "phase": "Base", "target_units": 10, "pack_lb": 13, "note": ""},
+    {"week": 4, "start": "2026-11-29", "phase": "Base", "target_units": 8, "pack_lb": 13, "note": "Deload"},
+    {"week": 5, "start": "2026-12-06", "phase": "Build 1", "target_units": 11, "pack_lb": 15, "note": ""},
+    {"week": 6, "start": "2026-12-13", "phase": "Build 1", "target_units": 12, "pack_lb": 15, "note": ""},
+    {"week": 7, "start": "2026-12-20", "phase": "Build 1", "target_units": 13, "pack_lb": 18, "note": ""},
+    {"week": 8, "start": "2026-12-27", "phase": "Build 1", "target_units": 10, "pack_lb": 15, "note": "Deload (holiday week)"},
+    {"week": 9, "start": "2027-01-03", "phase": "Build 2", "target_units": 15, "pack_lb": 20, "note": ""},
+    {"week": 10, "start": "2027-01-10", "phase": "Build 2", "target_units": 17, "pack_lb": 20, "note": ""},
+    {"week": 11, "start": "2027-01-17", "phase": "Build 2", "target_units": 19, "pack_lb": 22, "note": ""},
+    {"week": 12, "start": "2027-01-24", "phase": "Build 2", "target_units": 14, "pack_lb": 18, "note": "Deload"},
+    {"week": 13, "start": "2027-01-31", "phase": "Peak", "target_units": 22, "pack_lb": 25, "note": ""},
+    {"week": 14, "start": "2027-02-07", "phase": "Peak", "target_units": 25, "pack_lb": 25, "note": ""},
+    {"week": 15, "start": "2027-02-14", "phase": "Peak", "target_units": 27, "pack_lb": 28, "note": "Peak: about 100 miles"},
+    {"week": 16, "start": "2027-02-21", "phase": "Taper", "target_units": 14, "pack_lb": 15, "note": "Taper and travel; start Mon Mar 1"}
+  ]
+}

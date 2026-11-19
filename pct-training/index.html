@@ -77,6 +77,10 @@ h2 small { font-weight: 400; color: var(--dim); letter-spacing: 0.08em; text-tra
 h3 { margin: 0; font-size: var(--s-0); letter-spacing: 0.2em; text-transform: uppercase; }
 .note { color: var(--dim); font-size: var(--s-0); margin: 0; max-width: 84ch; }
 .seg { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--grid); }
+.planpick { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin-top: 12px; }
+.planpick .lab { font: 600 var(--s-0) var(--f-ui); letter-spacing: 0.14em; text-transform: uppercase; color: var(--dim); }
+.planpick .note { flex: 1 1 40ch; }
+.seg button[data-p="alt"][aria-pressed="true"] { background: var(--trail); }
 .seg button, .btn { font: 600 var(--s-0)/1 var(--f-ui); letter-spacing: 0.14em; text-transform: uppercase; background: transparent; color: var(--dim); border: 0; padding: 8px 12px; cursor: pointer; }
 .seg button + button { border-left: 1px solid var(--grid); }
 .seg button[aria-pressed="true"] { color: var(--void); background: var(--step); }
@@ -153,6 +157,11 @@ footer { color: var(--dim); font-size: var(--s-0); }
     <h1>PCT<span class="sl">//</span>PREP</h1>
     <p class="lede">Training for a northbound Pacific Crest Trail thru-hike that starts <b>March 1, 2027</b>. The aim is to arrive already used to 150-mile weeks under load. This page shows the <b>plan</b>, the <b>hikes logged</b> so far, what the <i>phone</i> counted all year, and how it measures up to the Appalachian Trail in 2019.</p>
     <div class="readout" id="kpis"><div id="boot">BOOTING… loading training data</div></div>
+    <div class="planpick" id="planpick" hidden>
+      <span class="lab">Plan</span>
+      <div class="seg" role="group" aria-label="Which training plan to show"><button type="button" data-p="orig" aria-pressed="true">Original</button><button type="button" data-p="alt" aria-pressed="false">Adjusted</button></div>
+      <p class="note" id="plan-how"></p>
+    </div>
   </header>
 
   <nav class="ptabs" data-default="plan" aria-label="Sections of PCT//PREP">
@@ -328,6 +337,21 @@ footer { color: var(--dim); font-size: var(--s-0); }
   catch (e) { $('#boot').textContent = 'Could not load data/training.json. Run scripts/build_pct_training.py, and preview over http (not file://).'; return; }
 
   const P = T.plan, W = T.weeks, A = T.activities, H = T.health, AT = T.at;
+  // Two plans: the original (plan.json) and, when present, an adjusted one (plan-adjusted.json → w.alt, T.plan_alt).
+  // Switching swaps the target fields on every week in place, so every chart and tab follows; the original is kept in ORIG.
+  const $$ = (q) => document.querySelectorAll(q);
+  const ORIG = W.map((w) => ({ phase: w.phase, note: w.note, target_units: w.target_units, target_miles: w.target_miles, pack_lb: w.pack_lb }));
+  const ORIG_PEAK = P.peak_week_miles, ALT = T.plan_alt && W.some((w) => w.alt) ? T.plan_alt : null;
+  let planKey = 'orig';
+  function applyPlan(k) {
+    planKey = ALT && k === 'alt' ? 'alt' : 'orig';
+    W.forEach((w, i) => Object.assign(w, planKey === 'alt' && w.alt ? w.alt : ORIG[i]));
+    P.peak_week_miles = planKey === 'alt' ? (ALT.peak_week_miles || ORIG_PEAK) : ORIG_PEAK;
+    try { localStorage.setItem('jsbv-pct-plan', planKey); } catch (e) {}
+    for (const b of $$('#planpick button')) b.setAttribute('aria-pressed', String(b.dataset.p === planKey));
+    $('#plan-how').textContent = planKey === 'alt' ? ALT.how
+      : `The original plan: builds to two ${ORIG_PEAK}-mile weeks in February.` + (ALT ? ` "${ALT.short || 'Adjusted'}" is a second plan matched to the training so far; both are kept.` : '');
+  }
   const now = new Date(), today = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
   const startDay = day(P.start), daysLeft = Math.round((startDay - today) / 864e5);
   const curIdx = Math.max(0, W.findIndex((w) => iso(today) >= w.start && iso(today) <= w.end));
@@ -369,7 +393,7 @@ footer { color: var(--dim); font-size: var(--s-0); }
     if (hasCur && cur.target_miles) tiles.push(k(`Week ${cur.week} so far`, `${n1(cur.miles)} mi`, `of ${n1(cur.target_miles)} planned · ${n0(100 * cur.miles / cur.target_miles)}%`, 'c-trail'));
     tiles.push(k('Logged since Nov 1', `${n1(done)} mi`, `${n1(hours)} h on foot`, 'c-trail'));
     if (best) tiles.push(k('Longest day', `${n1(best[1])} mi`, md(day(best[0])), 'c-trail'));
-    if (packs.length) tiles.push(k('Heaviest pack so far', `${Math.max(...packs)} lb`, 'target by February: 30 lb', 'c-climb'));
+    if (packs.length) tiles.push(k('Heaviest pack so far', `${Math.max(...packs)} lb`, `target by February: ${Math.max(...W.map((w) => w.pack_lb || 0))} lb`, 'c-climb'));
     tiles.push(k('Peak week planned', `${P.peak_week_miles} mi`, `AT 2019 best: ${n1(AT.best_week)} mi`));
     $('#kpis').replaceChildren(...tiles);
   }
@@ -667,6 +691,12 @@ footer { color: var(--dim); font-size: var(--s-0); }
   if (!(H && H.recovery)) $('#recovery').dataset.off = '1';
   if (!H) $('#year').dataset.off = '1';
   if (!PA || !H) $('#race').dataset.off = '1';
+  if (ALT) {
+    $('#planpick').hidden = false;
+    let saved = 'orig'; try { saved = localStorage.getItem('jsbv-pct-plan') || 'orig'; } catch (e) {}
+    applyPlan(saved);
+    for (const b of $$('#planpick button')) b.addEventListener('click', () => { applyPlan(b.dataset.p); renderKpis(); renderWeekCard(); renderAll(); });
+  }
   renderKpis(); renderWeekCard(); renderLog(false);
   addEventListener('tabchange', (ev) => { view = ev.detail.tab; renderAll(); });
   if (window.SiteTabs) SiteTabs.start(); else { for (const e of document.querySelectorAll('section[data-tab]')) e.hidden = false; renderWeeks(); renderDays(); renderAt(); }

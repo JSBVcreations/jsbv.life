@@ -4,7 +4,9 @@
     python3 scripts/build_pct_training.py "/path/to/health export YYYY-MM-DD"
 
 Reads
-  pct-training/data/plan.json         hand-kept training plan (weeks run Sunday to Saturday)
+  pct-training/data/plan.json         hand-kept training plan (weeks run Sunday to Saturday): the ORIGINAL plan
+  pct-training/data/plan-adjusted.json  optional second plan, same layout; each week gets an 'alt' block and the page
+                                        offers a toggle between the two (the original is never changed)
   pct-training/data/activities.json   training hikes from Strava (titles and numbers only)
   step-song/data/at2019-log.json      AT 2019 trail log, for the comparison
   <health export folder>              HealthView hourly CSVs. Kept OUTSIDE the repo (*.csv is git-ignored).
@@ -95,6 +97,18 @@ def main():
             'gain_ft': int(sum(x['gain_ft'] for x in mine)), 'hikes': len(mine),
             'active_days': len({x['date'] for x in mine}), 'max_pack_lb': max(packs) if packs else None})
 
+    # Second, toggleable plan (plan-adjusted.json): matched to the original by week start; the original stays untouched.
+    alt_meta = None
+    if os.path.exists(os.path.join(ROOT, 'pct-training', 'data', 'plan-adjusted.json')):
+        alt = load('pct-training', 'data', 'plan-adjusted.json')
+        by_start = {w['start']: w for w in alt['weeks']}
+        for w in weeks:
+            x = by_start.get(w['start'])
+            if x:
+                w['alt'] = {'phase': x['phase'], 'note': x.get('note', ''), 'target_units': x['target_units'], 'pack_lb': x['pack_lb'],
+                            'target_miles': None if x['target_units'] is None else round(x['target_units'] * unit, 1)}
+        alt_meta = {k: alt.get(k) for k in ('label', 'short', 'how', 'peak_week_miles')}
+
     at_src = load('step-song', 'data', 'at2019-log.json')
     by_week = {}
     for day in at_src['days']:
@@ -121,6 +135,8 @@ def main():
     out = {'generated': dt.date.today().isoformat(),
            'plan': {k: plan[k] for k in ('trail', 'start', 'trail_miles', 'unit_miles', 'peak_week_miles', 'flat_mph')},
            'weeks': weeks, 'activities': rows, 'activities_through': acts.get('through'), 'at': at}
+    if alt_meta:
+        out['plan_alt'] = alt_meta
     pre = pre_at(at['start'])
     if pre:
         out['pre_at'] = pre
