@@ -173,19 +173,19 @@
    "pages": [
     "photo-library/"
    ],
-   "through": "2026-11-15",
-   "age_days": 4,
+   "through": "2026-11-19",
+   "age_days": 0,
    "stale": false,
    "files": [
     {
      "path": "photo-library/data/photo-library.json",
-     "kb": 190,
-     "through": "2026-11-15"
+     "kb": 191,
+     "through": "2026-11-19"
     },
     {
      "path": "photo-library/data/lightroom.json",
-     "kb": 9,
-     "through": "2026-11-15"
+     "kb": 10,
+     "through": "2026-11-19"
     }
    ]
   },
@@ -337,7 +337,7 @@
    "files": [
     {
      "path": "meta-log/data/daily.json",
-     "kb": 912,
+     "kb": 913,
      "through": "2026-11-19"
     }
    ]
@@ -350,14 +350,14 @@
    "pages": [
     "/#report"
    ],
-   "through": "2026-11-16",
-   "age_days": 3,
+   "through": "2026-11-19",
+   "age_days": 0,
    "stale": false,
    "files": [
     {
      "path": "meta-log/data/seasons.json",
      "kb": 30,
-     "through": "2026-11-16"
+     "through": "2026-11-19"
     }
    ]
   }
