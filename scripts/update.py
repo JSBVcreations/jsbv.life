@@ -37,6 +37,7 @@ HOW = {
     'watch': 'Log new titles in the watch-list workbook (YYYY-Watch-List.xlsx) and save it in "jsbv data".',
     'calls': 'Save a fresh call-log backup (YYYY-MM-Call-Log-Backup.xlsx) in "jsbv data".',
     'breath': 'Wim Hof app > export results > save it in "jsbv data" (as export_results.csv, or a name with "wim hof" in it).',
+    'water': 'Save the water log as YYYY-MM-Water-Log.csv (columns date, time, fill_ml) in "jsbv data".',
     'smoking': 'Add rows to 2026-fall-smoking.xlsx (Log tab: Year, Month, Day, Time hhmm, Type) in "jsbv data" and save.',
     'fortnite': 'epicgames.com > Account > Privacy > request your data; save the PDF in "jsbv data" as YYYY-MM-DD-jsbv-fortnite-data.pdf '
                 '(keep Fortnite-Library-Manager.numbers there too). Needs: pip3 install pypdf numbers-parser',
@@ -150,6 +151,11 @@ def main():
             print('  > Posters (OMDb) for new titles', flush=True)
             subprocess.run([py, os.path.join(S, 'fill_posters.py'), f], cwd=ROOT)
         if f and not run(f'{label}  {short(f)}', [py, os.path.join(S, script), f]): failed.append(key)
+    water = sorted({p for r in roots() for p in glob.glob(os.path.join(r, '*Water-Log*.csv')) if os.path.isfile(p) and ok_name(p)})
+    used['water'] = water[-1] if water else None     # every water log is read, not just the newest
+    if any(offloaded(p) for p in water):
+        print(f'  ! Water  {short(water[0])}\n      skipped: {ICLOUD}.'); failed.append('water')
+    elif water and not run(f'Water  {len(water)} log{"" if len(water) == 1 else "s"}', [py, os.path.join(S, 'build_water_log.py')] + water): failed.append('water')
     sc = os.path.join(DATA, 'scorecard.json')            # Screening Scorecard scores (Claude saves this file when asked to "pull my scorecard")
     if os.path.isfile(sc) and not run(f'Scorecard  {short(sc)}', [py, os.path.join(S, 'build_scorecard.py'), sc]): failed.append('scorecard')
     pdf, cal = newest_file(['*fortnite-data*.pdf', '*Epic*Games*.pdf']), newest_file(['*Fortnite-Library-Manager*.numbers'])
@@ -158,7 +164,7 @@ def main():
         print(f'  ! Fortnite  {short(pdf)}\n      skipped: {ICLOUD}.'); failed.append('fortnite')
     elif pdf and cal:
         if not run(f'Fortnite  {short(pdf)}', [py, os.path.join(S, 'build_fortnite.py'), pdf, cal]): failed.append('fortnite')
-    for key in ('health', 'watch', 'calls', 'breath', 'smoking', 'fortnite'):
+    for key in ('health', 'watch', 'calls', 'breath', 'water', 'smoking', 'fortnite'):
         if not used[key]: print(f'  - {key}: no export found. {HOW[key]}')
 
     print('\n2. Photos (snapshot of the library and the Lightroom catalog)')
@@ -220,7 +226,7 @@ def report(used):
         ('Movement (Apple Health)', 'move', 'health', 7), ('Heart + sleep', 'body', 'health', 7),
         ('Strava hikes', 'strava', 'strava', 7), ('Watching', 'watch', 'watch', 14), ('Phone calls', 'calls', 'calls', 31),
         ('Breathwork', 'breath', 'breath', 31), ('Smoking', 'smoking', 'smoking', 7), ('Fortnite seasons', 'fortnite', 'fortnite', 120), ('Photos', 'photos', 'photos', 14), ('Music (Spotify)', 'music', 'spotify', 120),
-        ('AT 2019 trail log', 'trail', None, None),
+        ('AT 2019 trail log', 'trail', None, None), ('Water (Sep 2025 log)', 'water', None, None),
     ]
     todo = []
     for label, k, src, limit in rows:

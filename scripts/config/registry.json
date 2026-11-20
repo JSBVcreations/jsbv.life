@@ -63,6 +63,21 @@
    "stale_days": 30
   },
   {
+   "id": "water",
+   "name": "Water log",
+   "kind": "manual log",
+   "raw": "jsbv data/YYYY-MM-Water-Log.csv",
+   "builder": "build_water_log.py",
+   "outputs": [
+    "meta-log/data/water.json"
+   ],
+   "pages": [
+    "/#data",
+    "/#explore"
+   ],
+   "stale_days": null
+  },
+  {
    "id": "smoking",
    "name": "Smoking (private)",
    "kind": "manual log",

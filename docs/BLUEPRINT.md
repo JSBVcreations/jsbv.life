@@ -64,6 +64,7 @@ and prints a freshness table. `--check` reports only.
 | Watch list | `YYYY-Watch-List.xlsx` | fill_posters.py (OMDb) → build_watch_log.py | watch.json, watch-titles.json |
 | Call log | `YYYY-MM-Call-Log-Backup.xlsx` | build_call_log.py | calls.json |
 | Wim Hof | `*wim*hof*.csv` / export_results.* | build_breath_log.py | breath.json |
+| Water log | `*Water-Log*.csv` | build_water_log.py | water.json |
 | Smoking (private) | `2026-fall-smoking.xlsx` | build_smoking_log.py | private/smoking.json (git-ignored) → private.enc.json |
 | Timelines | `Timeline-*.xlsx` (config `scripts/config/timelines.json`) | build_timelines.py | meta-log/data/timelines.json |
 | Fortnite | Epic PDF + Fortnite-Library-Manager.numbers | build_fortnite.py | games/data/fortnite.json |
@@ -81,7 +82,7 @@ fresh each output is. Add a source: builder → registry row → `build_meta_log
 - **daily.json**: `{generated, start:"2015-01-01", datasets:[{id, name, source, grain:"day"|"month", offset, n, metrics:[{id,
   name, unit, agg:"sum"|"mean", color, v:[...]}], dims:[{id, name, cats:[{id,name,color}], v:{metric:{cat:[...]}}}], site?}],
   snapshots:{photos, lightroom}}`. Day index i = days since 2015-01-01; a dataset's value for day i is `v[i - offset]`.
-  Dataset ids: move, exercise, body, music, trail, photos, lightroom, watch, calls, breath, fortnite (+ private: smoking).
+  Dataset ids: move, exercise, body, music, trail, photos, lightroom, watch, calls, breath, water, fortnite (+ private: smoking).
 - **seasons.json**: `{year, through, seasons:[{id, name, start, end, through, partial, days, stats:[{id:"ds.metric", label,
   unit, agg, mean, median, sd, max, max_date, total?}], music:{hours, plays, artists[[name,h]], tracks[[t,artist,n]],
   genres[[name,color,%]]}, watch:{movies, shows, new_shows, movie_list, show_list, best}, hikes?}]}`. Seasons are

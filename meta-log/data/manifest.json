@@ -90,6 +90,26 @@
    ]
   },
   {
+   "id": "water",
+   "name": "Water log",
+   "kind": "manual log",
+   "builder": "build_water_log.py",
+   "pages": [
+    "/#data",
+    "/#explore"
+   ],
+   "through": "2025-10-01",
+   "age_days": 415,
+   "stale": false,
+   "files": [
+    {
+     "path": "meta-log/data/water.json",
+     "kb": 1,
+     "through": "2025-10-01"
+    }
+   ]
+  },
+  {
    "id": "smoking",
    "name": "Smoking (private)",
    "kind": "manual log",
@@ -368,7 +388,7 @@
    "files": [
     {
      "path": "meta-log/data/daily.json",
-     "kb": 913,
+     "kb": 914,
      "through": "2026-11-20"
     }
    ]

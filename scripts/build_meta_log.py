@@ -2,7 +2,7 @@
 """Build meta-log/data/daily.json: one day-indexed file joining every dataset on the site.
 
 Reads only files already in this repo (step-song/data, photo-library/data, games/data/fortnite.json, meta-log/data/watch.json, calls.json, smoking.json,
-breath.json and health.json), so it never touches raw exports.
+breath.json, water.json and health.json), so it never touches raw exports.
 Run it after build_step_song.py / build_at_log.py / the photo snapshot scripts:
 
     python3 scripts/build_meta_log.py
@@ -210,7 +210,7 @@ if os.path.exists(lrp):
         })
 
 # ---------------------------------------------------------------- watch log (built by scripts/build_watch_log.py)
-for extra in ('watch.json', 'calls.json', 'breath.json', 'private/smoking.json', 'private/fitness_body.json'):   # build_watch_log / build_call_log / build_breath_log / build_smoking_log
+for extra in ('watch.json', 'calls.json', 'breath.json', 'water.json', 'private/smoking.json', 'private/fitness_body.json'):   # build_watch_log / build_call_log / build_breath_log / build_water_log / build_smoking_log
     wp = os.path.join(OUT, extra)       # meta-log/data/private/ is git-ignored: plain copies of private datasets stay on this machine
     if os.path.exists(wp):
         W = load(wp); W['offset'] = day(W.pop('start'))
