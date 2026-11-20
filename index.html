@@ -187,6 +187,13 @@ button.title:focus-visible { outline: none; }
 .rc-acts a.imdb { border-color: #f5c518; color: #f5c518; } .rc-acts a.imdb:hover, .rc-acts a.imdb:focus-visible { background: #f5c518; color: #07060f; }
 .rc-acts button:hover, .rc-acts button:focus-visible { border-color: var(--dim); }
 @media (max-width: 560px) { .rc-top { grid-template-columns: 84px minmax(0, 1fr); } .rc-big b { font-size: 2.3rem; } .rc-q { grid-template-columns: repeat(2, minmax(0, 1fr)); } .rc-row { grid-template-columns: minmax(0, 1fr) 34px; } .rc-row .bar { grid-column: 1 / -1; grid-row: 2; } .rc-row .band, .rc-row .cmt { grid-column: 1 / -1; } }
+.g-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.g-chips button { font: 600 var(--s-0) var(--f-data); letter-spacing: 0.06em; min-height: 36px; padding: 0 12px; background: var(--well); color: var(--dim); border: 1px solid var(--grid); cursor: pointer; display: inline-flex; align-items: center; gap: 7px; }
+.g-chips button i { width: 10px; height: 10px; background: var(--c); opacity: 0.3; }
+.g-chips button[aria-pressed="true"] { color: var(--ink); border-color: var(--c); } .g-chips button[aria-pressed="true"] i { opacity: 1; box-shadow: 0 0 8px var(--c); }
+.g-chips button.all { color: var(--ink); }
+.g-fig { margin-top: 14px; min-height: 0; } .g-fig svg { display: block; width: 100%; height: auto; overflow: visible; }
+.g-fig text { font: 400 11px var(--f-data); fill: var(--dim); } .g-fig text.lab { font: 600 12px var(--f-ui); fill: var(--ink); letter-spacing: 0.04em; } .g-fig text.sum { fill: var(--dim); }
 .sc-prog { display: flex; align-items: center; gap: 10px; font: 400 var(--s-0) var(--f-data); color: var(--dim); }
 .sc-prog .bar { flex: 0 1 220px; height: 8px; background: var(--well); border: 1px solid var(--grid); position: relative; }
 .sc-prog .bar i { position: absolute; inset: 0 auto 0 0; background: var(--sound); box-shadow: 0 0 8px rgba(255,63,180,0.5); }
@@ -346,6 +353,34 @@ a.s-post:hover, a.s-post:focus-visible { transform: translateY(-3px); border-col
 @media (max-width: 640px) { .s-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } .s-kpi { padding: 10px; } .s-kpi b { font-size: 1.25rem; } }
 .s-bars i { justify-self: start; }
 h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(--dim); margin: 8px 0 -8px; }
+/* Lab: ridgeline of steps, decade clock (Nov 19) */
+#e-ridge-fig svg { display: block; width: 100%; height: auto; overflow: visible; }
+#e-ridge-fig .rl path.ln { transition: stroke-width .12s; }
+.e-clock-wrap { display: grid; justify-items: center; } #e-clock-cv { display: block; max-width: 100%; touch-action: manipulation; }
+/* Movies & TV: guilty-pleasure map, propaganda board (Nov 19) */
+#v-watched .head { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; justify-content: space-between; }
+.w-map { position: relative; width: 100%; }
+.w-map svg { display: block; width: 100%; height: auto; }
+.w-dot { --d: 34px; position: absolute; width: var(--d); height: var(--d); margin: calc(var(--d) / -2) 0 0 calc(var(--d) / -2); padding: 0; border-radius: 50%;
+  border: 2px solid var(--vc); background: var(--well); overflow: hidden; cursor: pointer; color: var(--ink); font: 600 8px/1.1 var(--f-ui); display: grid; place-items: center; text-align: center;
+  box-shadow: 0 0 8px var(--vg); transition: transform .15s ease, box-shadow .15s ease; z-index: 1; }
+.w-dot img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.w-dot:hover, .w-dot:focus-visible { z-index: 5; transform: scale(1.7); box-shadow: 0 0 16px var(--vc); outline: none; }
+@media (max-width: 640px) { .w-dot { --d: 24px; } }
+.pb-group { margin-top: 16px; } .pb-group:first-child { margin-top: 4px; }
+.pb-group h3 { margin: 0; display: flex; gap: 10px; align-items: baseline; font: 700 var(--s-0)/1.2 var(--f-ui); letter-spacing: 0.16em; text-transform: uppercase; color: var(--climb);
+  border-bottom: 1px solid var(--grid); padding-bottom: 6px; } .pb-group h3 small { color: var(--dim); font-family: var(--f-data); letter-spacing: 0.04em; }
+.pb-row { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; gap: 12px; align-items: center; width: 100%; text-align: left; background: none; border: 0;
+  border-bottom: 1px solid rgba(31,26,61,0.8); padding: 8px 4px; color: var(--ink); cursor: pointer; font: inherit; }
+.pb-row:hover, .pb-row:focus-visible { background: rgba(255,179,71,0.06); outline: none; }
+.pb-row .pc { width: 40px; aspect-ratio: 2 / 3; border-radius: 4px; overflow: hidden; background: var(--well); border: 1px solid var(--grid); }
+.pb-row .pc img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.pb-row b { font: 600 var(--s-1)/1.3 var(--f-ui); color: var(--hot); } .pb-row b small { color: var(--dim); font: 400 var(--s-0) var(--f-data); margin-left: 6px; }
+.pb-row p { margin: 2px 0 0; color: var(--dim); font: 400 var(--s-0)/1.35 var(--f-data); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.pb-m { display: flex; gap: 3px; align-items: center; } .pb-m i { width: 8px; height: 14px; border-radius: 2px; background: var(--grid); }
+.pb-m i.on { background: var(--climb); box-shadow: 0 0 6px rgba(255,179,71,0.6); }
+.pb-m em { margin-left: 8px; color: var(--climb); font: normal 600 var(--s-1) var(--f-data); min-width: 2.5ch; text-align: right; font-variant-numeric: tabular-nums; }
+@media (max-width: 640px) { .pb-m i { width: 4px; height: 12px; } .pb-m { gap: 2px; } }
 </style>
 <link rel="stylesheet" href="assets/theme.css">
 
@@ -365,6 +400,7 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
     <a href="#data">All data</a>
     <a href="#explore">Explorer</a>
     <a href="#calendar">Calendar</a>
+    <a href="#gantt">Gantt</a>
     <a href="#experiments">Lab</a>
     <a href="timelines/">Timelines</a>
   </nav>
@@ -488,6 +524,21 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
     <div class="cards wide" id="d-tools"></div>
   </div>
 
+  <!-- ============================================================ GANTT (every dataset's coverage, toggleable) -->
+  <div class="view" id="v-gantt" hidden>
+    <section class="box">
+      <h2>Gantt</h2>
+      <p class="note" id="g-note"></p>
+      <div class="row">
+        <div class="field"><span>Range</span><div class="seg" id="g-range"></div></div>
+        <div class="field"><span>Draw as</span><div class="seg" id="g-mode"></div></div>
+        <div class="field"><span>Life chapters</span><div class="seg" id="g-life"></div></div>
+      </div>
+      <div class="field"><span>Datasets</span><div class="g-chips" id="g-chips"></div></div>
+      <div class="fig g-fig" id="g-fig"></div>
+    </section>
+  </div>
+
   <!-- ============================================================ TRAILS + PROJECTS (section indexes) -->
   <div class="view" id="v-trails" hidden>
     <h2 class="sec">Trails</h2>
@@ -541,11 +592,24 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
       </div>
       <div class="legend" id="e-pair-legend"></div>
     </section>
+    <section class="box" id="e-ridge">
+      <div class="head"><h2>Ridgeline</h2>
+        <div class="seg" role="group" aria-label="Ridge metric" id="e-ridge-seg"></div></div>
+      <div id="e-ridge-fig"></div>
+      <p class="note" id="e-ridge-note"></p>
+    </section>
+    <section class="box" id="e-clock">
+      <div class="head"><h2>Decade clock</h2>
+        <div class="seg" role="group" aria-label="Clock metric" id="e-clock-seg"></div></div>
+      <div class="e-clock-wrap"><canvas id="e-clock-cv" aria-label="One ring per year, 24 hours around, one band per month"></canvas></div>
+      <p class="note" id="e-clock-note"></p>
+    </section>
   </div>
 
   <!-- ============================================================ WATCHED -->
   <div class="view" id="v-watched" hidden>
-    <section class="box">
+    <nav class="ptabs inview" id="w-tabs" aria-label="Movies and TV views"></nav>
+    <section class="box" id="w-s-wall">
       <h2>Movies &amp; TV</h2>
       <p class="note" id="w-note"></p>
       <div class="sc-prog" id="w-prog" hidden></div>
@@ -564,6 +628,17 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
         <label class="field"><span>Find a title</span><input type="text" id="w-find" placeholder="type to filter"></label>
       </div>
       <div class="wall" id="w-wall"></div>
+    </section>
+    <section class="box" id="w-s-map" hidden>
+      <div class="head"><h2>Guilty-pleasure map</h2></div>
+      <p class="note" id="w-map-note"></p>
+      <div class="w-map" id="w-map"></div>
+    </section>
+    <section class="box" id="w-s-prop" hidden>
+      <div class="head"><h2>Propaganda board</h2>
+        <div class="seg" role="group" aria-label="Group or rank" id="w-prop-seg"></div></div>
+      <p class="note" id="w-prop-note"></p>
+      <div id="w-prop"></div>
     </section>
   </div>
 
@@ -1444,6 +1519,85 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
     $('#w-sort').onchange = (e) => { WV.page = 0; WV.sort = e.target.value; renderWatched(); };
     $('#w-find').oninput = (e) => { WV.page = 0; WV.find = e.target.value; renderWatched(); };
   }
+  // ---------------------------------------------------------------- MOVIES & TV sub-tabs: wall · map (guilty-pleasure scatter) · propaganda board
+  const W_TABS = [['wall', 'Wall', ''], ['map', 'Guilty-pleasure map', 'map'], ['propaganda', 'Propaganda board', 'prop']];
+  let wTab = 'wall';
+  const V_COL = { 'Masterpiece': '#b6ff5c', 'Guilty pleasure': '#ff3fb4', "Respect, don't love": '#3ff0ff', 'Pass': '#ff3b4e' };
+  const mapX = (r) => { const xs = ['story', 'movie', 'critical'].map((k) => r.q[k]).filter((v) => v != null); return xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : null; };
+  const W_MAP_SPLIT = 65;
+  function drawMap() {
+    const host = $('#w-map'), rows = WT.titles.filter((t) => t.sc && t.sc.q.personal != null && mapX(t.sc) != null);
+    const W = Math.max(300, host.clientWidth || 900), H = Math.round(Math.min(620, Math.max(340, W * 0.62))), P = { l: 40, r: 14, t: W < 560 ? 48 : 34, b: 38 };
+    const sx = (v) => P.l + (v / 100) * (W - P.l - P.r), sy = (v) => P.t + (1 - v / 100) * (H - P.t - P.b);
+    const S = svg('svg', { viewBox: `0 0 ${W} ${H}`, width: W, height: H, role: 'img', 'aria-label': 'Scored titles: craft score across, personal score up' });
+    const m = W_MAP_SPLIT, quads = [['Guilty pleasure', 0, m, m, 100, 'start', 'top'], ['Masterpiece', m, 100, m, 100, 'end', 'top'], ['Pass', 0, m, 0, m, 'start', 'bottom'], ["Respect, don't love", m, 100, 0, m, 'end', 'bottom']];
+    for (const [v, x0, x1, y0, y1, ta, va] of quads) {
+      S.append(svg('rect', { x: sx(x0), y: sy(y1), width: sx(x1) - sx(x0), height: sy(y0) - sy(y1), fill: V_COL[v], 'fill-opacity': 0.045 }));
+      const n = rows.filter((t) => t.sc.verdict === v).length;
+      S.append(svg('text', { x: ta === 'start' ? sx(x0) + 10 : sx(x1) - 10, y: va === 'top' ? P.t - (W < 560 && ta === 'end' ? 28 : 12) : sy(y0) - 10, 'text-anchor': ta, fill: V_COL[v], 'fill-opacity': 0.8,
+        style: `font:700 ${W < 560 ? 10 : 13}px ${FU};letter-spacing:.16em` }, `${v.toUpperCase()} · ${n}`));
+    }
+    for (let v = 0; v <= 100; v += 10) {
+      S.append(svg('line', { x1: sx(v), x2: sx(v), y1: sy(0), y2: sy(100), stroke: C.grid, 'stroke-width': v === m ? 0 : 1 }));
+      S.append(svg('line', { x1: sx(0), x2: sx(100), y1: sy(v), y2: sy(v), stroke: C.grid, 'stroke-width': v === m ? 0 : 1 }));
+      if (v % 20 === 0) { S.append(svg('text', { x: sx(v), y: H - P.b + 16, 'text-anchor': 'middle', fill: C.dim, style: `font:10px ${FD}` }, String(v)));
+        S.append(svg('text', { x: P.l - 6, y: sy(v) + 3, 'text-anchor': 'end', fill: C.dim, style: `font:10px ${FD}` }, String(v))); }
+    }
+    S.append(svg('line', { x1: sx(m), x2: sx(m), y1: sy(0), y2: sy(100), stroke: C.dim, 'stroke-dasharray': '4 4' }));
+    S.append(svg('line', { x1: sx(0), x2: sx(100), y1: sy(m), y2: sy(m), stroke: C.dim, 'stroke-dasharray': '4 4' }));
+    S.append(svg('text', { x: sx(50), y: H - 4, 'text-anchor': 'middle', fill: C.ink, style: `font:600 11px ${FU};letter-spacing:.12em` }, 'STORY · MOVIE · CRITICAL (MEAN)'));
+    const yl = svg('text', { x: 11, y: sy(50), 'text-anchor': 'middle', fill: C.ink, transform: `rotate(-90 11 ${sy(50)})`, style: `font:600 11px ${FU};letter-spacing:.12em` }, 'PERSONAL'); S.append(yl);
+    // dots: start at the true spot, then push apart so stacked scores (eight titles sit at 100/100) stay clickable
+    const d = W < 640 ? 24 : 34, pts = rows.map((t) => { const x = mapX(t.sc), y = t.sc.q.personal; return { t, x, y, tx: sx(x), ty: sy(y), px: sx(x), py: sy(y) }; });
+    pts.forEach((p, k) => { p.px += Math.cos(k * 2.4) * 0.5; p.py += Math.sin(k * 2.4) * 0.5; });
+    for (let it = 0; it < 220; it++) {
+      for (let i = 0; i < pts.length; i++) for (let j = i + 1; j < pts.length; j++) { const a = pts[i], b = pts[j], dx = b.px - a.px, dy = b.py - a.py, dd = Math.hypot(dx, dy) || 0.01, need = d + 2;
+        if (dd < need) { const f = (need - dd) / 2 / dd; a.px -= dx * f; a.py -= dy * f; b.px += dx * f; b.py += dy * f; } }
+      for (const p of pts) { p.px += (p.tx - p.px) * 0.04; p.py += (p.ty - p.py) * 0.04; p.px = Math.max(P.l + d / 2, Math.min(W - P.r - d / 2, p.px)); p.py = Math.max(P.t + d / 2, Math.min(H - P.b - d / 2, p.py)); }
+    }
+    for (const p of pts) if (Math.hypot(p.px - p.tx, p.py - p.ty) > 3) S.append(svg('line', { x1: p.tx, y1: p.ty, x2: p.px, y2: p.py, stroke: V_COL[p.t.sc.verdict] || C.dim, 'stroke-opacity': 0.45 }));
+    for (const p of pts) S.append(svg('circle', { cx: p.tx, cy: p.ty, r: 2, fill: V_COL[p.t.sc.verdict] || C.dim }));
+    const dots = pts.map((p) => { const t = p.t, c = V_COL[t.sc.verdict] || C.dim;
+      const b = el('button', { type: 'button', className: 'w-dot', 'aria-label': `${t.t}: open report card`, onclick: () => openCard(t),
+        onmousemove: (ev) => eTipAt(ev, `<b>${t.t}</b>${t.year ? ' (' + t.year + ')' : ''}<br>${t.sc.verdict || ''}<br>craft ${Math.round(p.x)} · personal ${Math.round(p.y)} · final ${Math.round(t.sc.final)}`), onmouseleave: eTipOff });
+      b.style.left = p.px + 'px'; b.style.top = p.py + 'px'; b.style.setProperty('--d', d + 'px'); b.style.setProperty('--vc', c); b.style.setProperty('--vg', c + '55');
+      if (t.poster) b.append(el('img', { src: t.poster, alt: '', loading: 'lazy', referrerPolicy: 'no-referrer', onerror: (e) => e.target.replaceWith(document.createTextNode(t.t.slice(0, 3))) }));
+      else b.textContent = t.t.slice(0, 3);
+      return b; });
+    host.style.height = H + 'px'; host.replaceChildren(S, ...dots);
+    $('#w-map-note').textContent = `${rows.length} titles scored on Personal plus at least one other quadrant · split at ${m}`;
+  }
+  // Who's being sold: a light tag read from Jack's "for whom" text. First rule that matches wins; add rules as new notes come in.
+  const PROP_TAGS = [[/\bbig ([a-z]+)/i, (m) => 'Big ' + m[1][0].toUpperCase() + m[1].slice(1).toLowerCase()], [/military|army|navy|pentagon|defen[cs]e/i, 'Military'],
+    [/camera|surveil|flock|tracking|spy/i, 'Surveillance'], [/s-mart|shop|retail|store|brand/i, 'Retail'], [/police|cop\b/i, 'Police'], [/government|state\b/i, 'The state']];
+  const propTag = (r) => { if (!r.prop) return 'Nothing sold'; const x = r.prop_by || ''; for (const [re, lab] of PROP_TAGS) { const m = x.match(re); if (m) return typeof lab === 'function' ? lab(m) : lab; } return 'Unnamed'; };
+  const WP = { mode: 'group' };
+  function drawProp() {
+    const rows = WT.titles.filter((t) => t.sc && t.sc.prop != null).sort((a, b) => b.sc.prop - a.sc.prop || a.t.localeCompare(b.t));
+    const row = (t) => { const pc = el('div', { className: 'pc' }); if (t.poster) pc.append(el('img', { src: t.poster, alt: '', loading: 'lazy', referrerPolicy: 'no-referrer', onerror: (e) => e.target.remove() }));
+      const meter = el('div', { className: 'pb-m', title: `${t.sc.prop}/10` }, [...Array.from({ length: 10 }, (_, k) => el('i', { className: k < t.sc.prop ? 'on' : '' })), el('em', { text: String(t.sc.prop) })]);
+      return el('button', { type: 'button', className: 'pb-row', 'aria-label': `${t.t}: propaganda ${t.sc.prop} of 10, open report card`, onclick: () => openCard(t) },
+        [pc, el('div', {}, [el('b', {}, [t.t, el('small', { text: [t.year, WP.mode === 'rank' ? propTag(t.sc) : ''].filter(Boolean).join(' · ') })]), ...(t.sc.prop_by ? [el('p', { text: t.sc.prop_by, title: t.sc.prop_by })] : [])]), meter]); };
+    let kids;
+    if (WP.mode === 'rank') kids = [el('div', { className: 'pb-group' }, rows.map(row))];
+    else { const G = new Map(); for (const t of rows) { const g = propTag(t.sc); if (!G.has(g)) G.set(g, []); G.get(g).push(t); }
+      kids = [...G.entries()].sort((a, b) => (a[0] === 'Nothing sold') - (b[0] === 'Nothing sold') || b[1][0].sc.prop - a[1][0].sc.prop || b[1].length - a[1].length)
+        .map(([g, ts]) => el('div', { className: 'pb-group' }, [el('h3', {}, [g, el('small', { text: `${ts.length} title${ts.length === 1 ? '' : 's'} · top ${ts[0].sc.prop}/10` })]), ...ts.map(row)])); }
+    $('#w-prop').replaceChildren(...(rows.length ? kids : [el('p', { className: 'note', text: 'No propaganda scores yet.' })]));
+    const scored = rows.filter((t) => t.sc.prop > 0), mean = scored.length ? scored.reduce((a, t) => a + t.sc.prop, 0) / scored.length : 0;
+    $('#w-prop-note').textContent = `${rows.length} titles rated · ${scored.length} selling something · average ${mean.toFixed(1)}/10 among those`;
+  }
+  function renderMovies() {
+    const has = { wall: true, map: !!WS, propaganda: !!(WS && WS.titles.some((r) => r.prop != null)) };
+    if (!has[wTab]) wTab = 'wall';
+    if (!$('#w-tabs').children.length) $('#w-tabs').replaceChildren(...W_TABS.map(([k, label]) => { const a = el('a', { href: '#movies' + (k === 'wall' ? '' : '/' + k), text: label }); a.dataset.k = k; a.hidden = !has[k]; return a; }));
+    for (const a of $('#w-tabs').children) { if (a.dataset.k === wTab) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); }
+    $('#w-tabs').hidden = !has.map && !has.propaganda;
+    $('#w-s-wall').hidden = wTab !== 'wall'; $('#w-s-map').hidden = wTab !== 'map'; $('#w-s-prop').hidden = wTab !== 'propaganda';
+    if (!$('#w-prop-seg').children.length) $('#w-prop-seg').replaceChildren(...[['group', 'By who’s sold'], ['rank', 'Ranked']].map(([k, label]) => el('button', { type: 'button', text: label, 'aria-pressed': String(WP.mode === k),
+      onclick: (ev) => { WP.mode = k; for (const b of $('#w-prop-seg').children) b.setAttribute('aria-pressed', String(b === ev.target)); drawProp(); } })));
+    ({ wall: renderWatched, map: drawMap, propaganda: drawProp })[wTab]();
+  }
 
   // ================================================================ DATA DIRECTORY + HIGHLIGHTS
   // Where each dataset's own page lives, and a line about it. A dataset missing here still gets a card with "Chart it".
@@ -1556,7 +1710,7 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
 
   // ================================================================ EXPERIMENTS
   // One experiment open at a time (#experiments/<key>), chosen from the tab bar under the intro.
-  const E_TABS = [['corr', 'What moves together'], ['rings', 'Year rings'], ['week', 'Shape of a week'], ['tide', 'Tide'], ['pairs', 'Any two numbers']];
+  const E_TABS = [['corr', 'What moves together'], ['rings', 'Year rings'], ['week', 'Shape of a week'], ['tide', 'Tide'], ['pairs', 'Any two numbers'], ['ridge', 'Ridgeline'], ['clock', 'Decade clock']];
   let expTab = 'corr';
   function applyExpTab() {
     const ok = (k) => { const e = document.getElementById('e-' + k); return e && e.dataset.off !== '1'; };
@@ -1772,29 +1926,182 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
     for (const id of ['#e-pair-x', '#e-pair-y', '#e-pair-from']) $(id).addEventListener('change', drawPairs);
   }
 
+  // Ridgeline: one wave per year of Sunday-start weeks (a day's average within the week), stacked oldest at the top.
+  const E_RIDGE = [['move:steps', 'Steps'], ['music:minutes', 'Music']].filter(([k]) => asLine(...k.split(':')));
+  const ER = { k: (E_RIDGE[0] || [])[0], hover: null };
+  function ridgeData(L) {
+    const y0 = Math.max(2016, YR[L.off]), y1 = YR[L.off + L.n - 1], years = [];
+    for (let y = y0; y <= y1; y++) {
+      const j = d2i(`${y}-01-01`), sh = (DOW[j] + 1) % 7, len = d2i(`${y + 1}-01-01`) - j, wk = [];
+      for (let d = 0; d < len; d++) { const i = j + d; if (i < L.off || i >= L.off + L.n) continue; const x = L.v[i - L.off]; if (x == null) continue;
+        const w = Math.floor((d + sh) / 7); (wk[w] = wk[w] || { s: 0, c: 0, a: Math.max(j, i - ((DOW[i] + 1) % 7)) }); wk[w].s += x; wk[w].c++; }
+      years.push({ y, sh, w: Array.from({ length: 54 }, (_, w) => (wk[w] && wk[w].c >= 3 ? { v: wk[w].s / wk[w].c, a: wk[w].a } : null)) });
+    }
+    return years;
+  }
+  function drawRidge() {
+    const L = asLine(...ER.k.split(':')); if (!L) return;
+    const Y = ridgeData(L), host = $('#e-ridge-fig'), W = Math.max(300, host.clientWidth || 900), mob = W < 560;
+    const P = { l: mob ? 36 : 46, r: 10, t: mob ? 64 : 88, b: 26 }, rowH = mob ? 26 : 36, H = P.t + rowH * (Y.length - 1) + P.b, amp = rowH * 2.4;
+    const vs = Y.flatMap((r) => r.w.filter(Boolean).map((c) => c.v)).sort((p, q) => p - q), max = vs[vs.length - 1] || 1, lo = vs[Math.floor(vs.length * 0.03)] || 0, sx = (w) => P.l + (w / 53) * (W - P.l - P.r);
+    const cur = YR[today], col = L.color || '#3ff0ff', S = svg('svg', { viewBox: `0 0 ${W} ${H}`, width: W, height: H, role: 'img', 'aria-label': `${L.name}: one ridge per year, weekly` });
+    MON.forEach((m, k) => { const x = sx((d2i(`2026-${String(k + 1).padStart(2, '0')}-01`) - d2i('2026-01-01')) / 7);
+      S.append(svg('line', { x1: x, x2: x, y1: P.t - amp * 0.4, y2: H - P.b + 4, stroke: C.grid, 'stroke-width': 1 }));
+      S.append(svg('text', { x: x + 3, y: H - 8, fill: C.dim, style: `font:10px ${FD}` }, mob ? m[0] : m.toUpperCase())); });
+    Y.forEach((r, k) => {
+      const base = P.t + k * rowH, idx = r.w.map((c, w) => (c ? w : -1)).filter((w) => w >= 0); if (!idx.length) return;
+      const a = idx[0], b = idx[idx.length - 1], pts = [];
+      for (let w = a; w <= b; w++) pts.push([sx(w), base - Math.sqrt(Math.max(0, (r.w[w] ? r.w[w].v : lo) - lo) / (max - lo || 1)) * amp]);
+      const line = pts.map((p, i) => (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join('');
+      const g = svg('g', { class: 'rl' }); g.dataset.y = r.y;
+      g.append(svg('path', { d: `M${sx(a).toFixed(1)} ${base + 2}` + line.replace(/^M/, 'L') + `L${sx(b).toFixed(1)} ${base + 2}Z`, fill: C.void }));
+      g.append(svg('line', { x1: sx(a), x2: sx(b), y1: base, y2: base, stroke: C.grid }));
+      const on = r.y === cur || r.y === ER.hover;
+      g.append(svg('path', { class: 'ln', d: line, fill: 'none', stroke: on ? col : C.ink, 'stroke-opacity': on ? 1 : 0.55, 'stroke-width': r.y === ER.hover ? 2.6 : on ? 2 : 1.3, 'stroke-linejoin': 'round',
+        style: on ? `filter:drop-shadow(0 0 6px ${col})` : '' }));
+      g.append(svg('text', { x: P.l - 8, y: base + 4, 'text-anchor': 'end', fill: on ? col : C.dim, style: `font:${on ? 600 : 400} 11px ${FD}` }, String(r.y)));
+      S.append(g);
+    });
+    const hit = svg('rect', { x: P.l, y: P.t - amp, width: W - P.l - P.r, height: H - P.t - P.b + amp, fill: 'transparent' }); S.append(hit);
+    const unit = L.unit === 'h' ? 'h' : L.unit;
+    hit.onmousemove = (ev) => { const bb = S.getBoundingClientRect(), x = (ev.clientX - bb.left) * (W / bb.width), y = (ev.clientY - bb.top) * (H / bb.height);
+      const k = Math.max(0, Math.min(Y.length - 1, Math.round((y - P.t) / rowH + 0.35))), w = Math.max(0, Math.min(53, Math.round(((x - P.l) / (W - P.l - P.r)) * 53))), r = Y[k], c = r.w[w];
+      if (ER.hover !== r.y) { ER.hover = r.y; drawRidge(); }
+      eTipAt(ev, c ? `<b>Week of ${dstr(c.a)}</b><br>${num(c.v, unit)} a day` : `<b>${r.y}</b><br>no data`); };
+    hit.onmouseleave = () => { eTipOff(); if (ER.hover != null) { ER.hover = null; drawRidge(); } };
+    host.replaceChildren(S);
+    let best = null; for (const r of Y) for (const c of r.w) if (c && (!best || c.v > best.v)) best = c;
+    const tot = Y.map((r) => { const cs = r.w.filter(Boolean); return [r.y, cs.length ? cs.reduce((s, c) => s + c.v, 0) / cs.length : 0, cs.length]; }).filter((r) => r[2] >= 40).sort((p, q) => q[1] - p[1]);
+    $('#e-ridge-note').textContent = best ? `Biggest week: ${dstr(best.a)} at ${num(best.v, unit)} a day` + (tot.length > 1 ? ` · biggest full year ${tot[0][0]} (${num(tot[0][1], unit)} a day), quietest ${tot[tot.length - 1][0]} (${num(tot[tot.length - 1][1], unit)} a day)` : '') : '';
+  }
+
+  // Decade clock: hourly.json (STEP//SONG, 24 values a day from 2016-01-01, local time). One ring per year, one thin band per month, 24 hours around, midnight at the top.
+  const EC = { k: 'listen', H: undefined, cells: {} };
+  const EC_M = { listen: { label: 'Music', color: '#ff3fb4', unit: 'min', f: (x) => x / 60 }, steps: { label: 'Steps', color: '#3ff0ff', unit: 'steps', f: (x) => x } };
+  function clockCells(k) {
+    if (EC.cells[k]) return EC.cells[k];
+    const H = EC.H, v = H[k], d0 = d2i('2016-01-01'), nd = v.length / 24, out = [];
+    let first = 0; while (first < nd && !v.slice(first * 24, first * 24 + 24).some(Boolean)) first++;
+    for (let d = first; d < nd;) { const i = d0 + d, mo = MO[i], s = new Float64Array(24); let c = 0;
+      while (d < nd && MO[d0 + d] === mo) { for (let h = 0; h < 24; h++) s[h] += v[d * 24 + h] || 0; c++; d++; }
+      out.push({ y: Math.floor(mo / 12), m: mo % 12, c, v: Array.from(s, (x) => EC_M[k].f(x) / c) }); }
+    return (EC.cells[k] = out);
+  }
+  async function drawClock() {
+    const cv = $('#e-clock-cv'), note = $('#e-clock-note');
+    if (EC.H === undefined) { note.textContent = 'Loading hourly data…'; EC.H = await get('step-song/data/hourly.json', true); note.textContent = ''; }
+    if (!EC.H) { note.textContent = 'Hourly data not found.'; return; }
+    const M = EC_M[EC.k], cells = clockCells(EC.k), y0 = cells[0].y, y1 = cells[cells.length - 1].y, nY = y1 - y0 + 1;
+    const size = Math.max(300, Math.min(660, $('.e-clock-wrap').clientWidth || 660)), dpr = window.devicePixelRatio || 1;
+    cv.width = size * dpr; cv.height = size * dpr; cv.style.width = size + 'px'; cv.style.height = size + 'px';
+    const g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, size, size);
+    const cx = size / 2, cy = size / 2, R = size / 2 - 24, r0 = size * 0.1, bw = (R - r0) / (nY * 12), rgb = M.color.match(/\w\w/g).map((h) => parseInt(h, 16)).join(',');
+    const all = cells.flatMap((c) => c.v).filter((x) => x > 0).sort((a, b) => a - b), cap = all[Math.floor(all.length * 0.97)] || 1;
+    const A = (h) => (h / 24) * Math.PI * 2 - Math.PI / 2, rad = (c) => r0 + ((c.y - y0) * 12 + c.m) * bw;
+    for (const c of cells) { const r = rad(c); for (let h = 0; h < 24; h++) { const x = c.v[h]; if (!x) continue; const t = Math.min(1, x / cap);
+      g.fillStyle = `rgba(${rgb},${(0.04 + 0.96 * t).toFixed(3)})`; g.beginPath(); g.arc(cx, cy, r + bw + 0.3, A(h), A(h + 1) + 0.004); g.arc(cx, cy, r, A(h + 1) + 0.004, A(h), true); g.closePath(); g.fill(); } }
+    g.strokeStyle = 'rgba(7,6,15,0.9)'; g.lineWidth = 1.5;
+    for (let k = 0; k <= nY; k++) { g.beginPath(); g.arc(cx, cy, r0 + k * 12 * bw, 0, Math.PI * 2); g.stroke(); }
+    g.strokeStyle = C.grid; g.lineWidth = 1; g.font = `10px ${FD}`; g.textAlign = 'center'; g.textBaseline = 'middle';
+    for (let h = 0; h < 24; h += 3) { const a = A(h); g.beginPath(); g.moveTo(cx + Math.cos(a) * r0, cy + Math.sin(a) * r0); g.lineTo(cx + Math.cos(a) * (R + 4), cy + Math.sin(a) * (R + 4)); g.stroke();
+      g.fillStyle = h % 6 ? C.dim : C.ink; g.fillText(String(h).padStart(2, '0'), cx + Math.cos(a) * (R + 14), cy + Math.sin(a) * (R + 14)); }
+    g.textAlign = 'left'; g.shadowColor = '#07060f'; g.shadowBlur = 4;
+    for (let k = 0; k < nY; k++) if (12 * bw >= 11 || k % 2 === 0) { g.fillStyle = C.ink; g.fillText(String(y0 + k), cx + 4, cy - (r0 + (k + 0.5) * 12 * bw)); }
+    g.shadowBlur = 0; g.fillStyle = M.color; g.textAlign = 'center'; g.font = `600 11px ${FU}`; g.fillText(M.label.toUpperCase(), cx, cy - 6); g.fillStyle = C.dim; g.font = `10px ${FD}`; g.fillText(`${M.unit} a day`, cx, cy + 8);
+    const byKey = new Map(cells.map((c) => [c.y * 12 + c.m, c]));
+    cv.onmousemove = (ev) => { const b = cv.getBoundingClientRect(), x = ev.clientX - b.left - cx, y = ev.clientY - b.top - cy, k = Math.floor((Math.hypot(x, y) - r0) / bw);
+      if (k < 0 || k >= nY * 12) { eTipOff(); return; } let a = Math.atan2(y, x) + Math.PI / 2; if (a < 0) a += Math.PI * 2;
+      const yr = y0 + Math.floor(k / 12), m = k % 12, h = Math.min(23, Math.floor((a / (Math.PI * 2)) * 24)), c = byKey.get(yr * 12 + m), i = d2i(`${yr}-${String(m + 1).padStart(2, '0')}-15`);
+      const ch = LIFE.filter((l) => !l.point && l.a <= i && l.b >= i).map((l) => l.label);
+      eTipAt(ev, `<b>${MON[m]} ${yr} · ${String(h).padStart(2, '0')}:00–${String(h + 1).padStart(2, '0')}:00</b><br>${c ? num(c.v[h], M.unit) + ' a day' : 'no data'}${ch.length ? '<br>' + ch.join(' · ') : ''}`); };
+    cv.onmouseleave = eTipOff;
+    const peaks = []; for (let y = y0; y <= y1; y++) { const cs = cells.filter((c) => c.y === y), tot = new Array(24).fill(0), n = cs.reduce((s, c) => s + c.c, 0);
+      for (const c of cs) c.v.forEach((x, h) => (tot[h] += x * c.c)); const hp = tot.indexOf(Math.max(...tot)); if (n >= 60 && tot[hp] > 0) peaks.push(`${y} ${String(hp).padStart(2, '0')}:00`); }
+    note.textContent = peaks.length ? `Busiest hour: ${peaks.join(' · ')}` : '';
+  }
+
   let expWired = false;
   function renderExperiments() {
     if (!expWired) { expWired = true; wirePairs();
       $('#e-ring-seg').replaceChildren(...E_RINGS.map(([k, label]) => el('button', { type: 'button', text: label, 'aria-pressed': String(EXP.ring === k), onclick: (ev) => { EXP.ring = k; for (const b of $('#e-ring-seg').children) b.setAttribute('aria-pressed', String(b === ev.target)); drawRings(); } })));
+      $('#e-ridge-seg').replaceChildren(...E_RIDGE.map(([k, label]) => el('button', { type: 'button', text: label, 'aria-pressed': String(ER.k === k), onclick: (ev) => { ER.k = k; for (const b of $('#e-ridge-seg').children) b.setAttribute('aria-pressed', String(b === ev.target)); drawRidge(); } })));
+      $('#e-clock-seg').replaceChildren(...Object.entries(EC_M).map(([k, M]) => el('button', { type: 'button', text: M.label, 'aria-pressed': String(EC.k === k), onclick: (ev) => { EC.k = k; for (const b of $('#e-clock-seg').children) b.setAttribute('aria-pressed', String(b === ev.target)); drawClock(); } })));
       $('#e-win-seg').replaceChildren(...[['year', 'This year'], ['all', 'All years']].map(([k, label]) => el('button', { type: 'button', text: label, 'aria-pressed': String(EXP.win === k), onclick: (ev) => { EXP.win = k; EXP.pair = null; for (const b of $('#e-win-seg').children) b.setAttribute('aria-pressed', String(b === ev.target)); drawCorr(); drawWeekShape(); } }))); }
     if (!$('#e-tabs').children.length) $('#e-tabs').replaceChildren(...E_TABS.map(([k, label]) => { const a = el('a', { href: '#experiments/' + k, text: label }); a.dataset.k = k; return a; }));
     applyExpTab();   // open the tab first, so the drawing below measures its real width
-    ({ rings: drawRings, corr: drawCorr, week: drawWeekShape, tide: drawTide, pairs: drawPairs })[expTab]();
+    ({ rings: drawRings, corr: drawCorr, week: drawWeekShape, tide: drawTide, pairs: drawPairs, ridge: drawRidge, clock: drawClock })[expTab]();
   }
 
-  const VIEWS = { report: renderReport, trails: renderTrails, projects: renderProjects, data: renderData, experiments: renderExperiments, explore: renderExplorer, calendar: renderCalendar, ...(WT ? { watched: renderWatched } : {}) };
-  const TITLES = { watched: 'Movies & TV', trails: 'Trails', projects: 'Projects', data: 'Data', experiments: 'Lab', explore: 'Explorer', calendar: 'Calendar' };   // browser tab + history
-  const NAV_OF = { report: 'home', trails: 'trails', projects: 'projects', data: 'data', experiments: 'data', explore: 'data', calendar: 'data', watched: 'movies' };
+  // ---------------------------------------------------------------- GANTT: one lane per dataset (days with any recorded activity), toggleable
+  const GV = { range: 'all', mode: 'heat', life: true, on: null };
+  function renderGantt() {
+    const sets = daily.datasets.filter((d) => d.metrics.length);
+    if (!GV.on) GV.on = new Set(sets.map((d) => d.id));
+    const col = (d) => DS_C[d.id] || d.metrics[0].color || '#9b7bff';
+    const end = Math.max(DATA_B, today), R = { all: [DATA_A, end], y3: [Math.max(DATA_A, d2i(`${YR[end] - 2}-01-01`)), end], ty: [d2i(`${YR[end]}-01-01`), end] }[GV.range];
+    const seg = (host, opts, key) => $(host).replaceChildren(...opts.map(([v, label]) => el('button', { type: 'button', text: label, 'aria-pressed': String(GV[key] === v), onclick: () => { GV[key] = v; renderGantt(); } })));
+    seg('#g-range', [['all', 'ALL TIME'], ['y3', 'LAST 3 YEARS'], ['ty', String(YR[end])]], 'range');
+    seg('#g-mode', [['heat', 'INTENSITY'], ['bars', 'BARS']], 'mode');
+    seg('#g-life', [[true, 'ON'], [false, 'OFF']], 'life');
+    const allOn = sets.every((d) => GV.on.has(d.id));
+    $('#g-chips').replaceChildren(el('button', { type: 'button', className: 'all', text: allOn ? 'NONE' : 'ALL', onclick: () => { GV.on = allOn ? new Set() : new Set(sets.map((d) => d.id)); renderGantt(); } }),
+      ...sets.map((d) => { const b = el('button', { type: 'button', 'aria-pressed': String(GV.on.has(d.id)), onclick: () => { GV.on.has(d.id) ? GV.on.delete(d.id) : GV.on.add(d.id); renderGantt(); } }, [el('i'), d.name]); b.style.setProperty('--c', col(d)); return b; }));
+    const host = $('#g-fig'), Wd = Math.max(300, host.clientWidth || 900), narrow = Wd < 620, lw = narrow ? 0 : 178, rw = narrow ? 0 : 130;
+    const step = R[1] - R[0] > 500 ? 7 : 1, x0 = lw, x1 = Wd - rw, X = (i) => x0 + ((i - R[0]) / (R[1] - R[0] + 1)) * (x1 - x0);
+    const rows = sets.filter((d) => GV.on.has(d.id)), lifeOn = GV.life && LIFE.length, laneH = narrow ? 44 : 30, top = 22 + (lifeOn ? laneH : 0), H = top + rows.length * laneH + 8;
+    const S = svg('svg', { viewBox: `0 0 ${Wd} ${H}`, role: 'img', 'aria-label': 'Gantt chart of when each dataset has data' });
+    for (let y = YR[R[0]]; y <= YR[R[1]]; y++) { const i = Math.max(R[0], d2i(`${y}-01-01`)), x = X(i);
+      S.append(svg('line', { x1: x, x2: x, y1: 14, y2: H, stroke: '#1f1a3d' }));
+      if (step === 7 || y === YR[R[0]]) S.append(svg('text', { x: x + 3, y: 11 }, step === 7 && narrow ? `’${String(y).slice(2)}` : String(y))); }
+    if (step === 1) for (let m = MO[R[0]] + 1; m <= MO[R[1]]; m++) { const yy = Math.floor(m / 12), mm = m % 12, i = d2i(`${yy}-${String(mm + 1).padStart(2, '0')}-01`), x = X(i);
+      S.append(svg('line', { x1: x, x2: x, y1: 14, y2: H, stroke: '#1f1a3d', 'stroke-dasharray': '2 3' })); S.append(svg('text', { x: x + 3, y: 11 }, MON[mm])); }
+    if (lifeOn) { const y = 22;
+      if (!narrow) S.append(svg('text', { x: 0, y: y + 15, class: 'lab' }, 'Life chapters'));
+      for (const l of LIFE) { if (l.b < R[0] || l.a > R[1]) continue; const a = X(Math.max(l.a, R[0])), b = X(Math.min(l.b, R[1]) + 1);
+        S.append(svg('rect', { x: a, y: top, width: Math.max(1, b - a), height: H - top - 8, fill: l.color || '#dcd8ff', opacity: l.point ? 0.25 : 0.05 }));
+        const r = svg('rect', { x: a, y: y + (narrow ? 16 : 4), width: Math.max(l.point ? 2 : 1, b - a), height: 16, fill: l.color || '#dcd8ff', opacity: 0.85, rx: 2 });
+        r.addEventListener('mousemove', (ev) => eTipAt(ev, `<b>${l.label}</b><br>${l.point ? dstr(l.a) : dstr(l.a) + ' – ' + dstr(l.b)}`)); r.addEventListener('mouseleave', eTipOff); S.append(r); }
+      if (narrow) S.append(svg('text', { x: 0, y: y + 10, class: 'lab' }, 'Life chapters')); }
+    let shown = 0;
+    rows.forEach((d, k) => {
+      const y = top + k * laneH, by = y + (narrow ? 18 : 6), bh = narrow ? 18 : 16, c = col(d), act = (i) => d.metrics.some((m) => { const v = m.v[i - d.offset]; return v != null && v !== 0; });
+      S.append(svg('rect', { x: x0, y: by, width: x1 - x0, height: bh, fill: '#0d0b1c', stroke: '#1f1a3d' }));
+      const cells = []; let days = 0, first = null, last = null;
+      for (let a = R[0] - ((R[0] + (step === 7 ? 3 : 0)) % step); a <= R[1]; a += step) {
+        let n = 0, sum = 0; for (let i = Math.max(a, d.offset, R[0]); i < Math.min(a + step, d.end + 1, R[1] + 1); i++) if (act(i)) { n++; sum += +d.metrics[0].v[i - d.offset] || 0; if (first == null) first = i; last = i; }
+        days += n; if (n) cells.push({ a: Math.max(a, R[0]), b: Math.min(a + step - 1, R[1]), n, sum });
+      }
+      if (cells.length) shown++;
+      if (GV.mode === 'heat') { const vals = cells.map((q) => d.metrics[0].agg === 'mean' ? q.n : q.sum).sort((p, q) => p - q), p90 = vals[Math.floor(vals.length * 0.9)] || 1;
+        for (const q of cells) { const v = d.metrics[0].agg === 'mean' ? q.n : q.sum, r = svg('rect', { x: X(q.a), y: by, width: Math.max(1, X(q.b + 1) - X(q.a)), height: bh, fill: c, opacity: (0.15 + 0.85 * Math.min(1, v / p90)).toFixed(2) });
+          r.addEventListener('mousemove', (ev) => eTipAt(ev, `<b>${d.name}</b><br>${step === 7 ? 'Week of ' + dstr(q.a) : dstr(q.a)}<br>${d.metrics[0].name}: ${num(d.metrics[0].agg === 'mean' ? q.sum / q.n : q.sum, d.metrics[0].unit)}${step === 7 ? `<br>${q.n} of 7 days` : ''}`));
+          r.addEventListener('mouseleave', eTipOff); S.append(r); } }
+      else { const runs = []; for (const q of cells) { const L = runs[runs.length - 1]; if (L && q.a - L.b <= (step === 7 ? 15 : 3)) { L.b = q.b; L.n += q.n; } else runs.push({ ...q }); }
+        for (const q of runs) { const r = svg('rect', { x: X(q.a), y: by, width: Math.max(2, X(q.b + 1) - X(q.a)), height: bh, fill: c, rx: 3, opacity: 0.9 });
+          r.addEventListener('mousemove', (ev) => eTipAt(ev, `<b>${d.name}</b><br>${dstr(q.a)} – ${dstr(q.b)}<br>${q.n.toLocaleString('en-US')} active days`)); r.addEventListener('mouseleave', eTipOff); S.append(r); } }
+      const sumTxt = first == null ? 'nothing in range' : `${days.toLocaleString('en-US')} active days`;
+      if (narrow) { S.append(svg('text', { x: 0, y: y + 12, class: 'lab' }, d.name)); S.append(svg('text', { x: Wd, y: y + 12, class: 'sum', 'text-anchor': 'end' }, sumTxt)); }
+      else { S.append(svg('text', { x: 0, y: by + 12, class: 'lab', style: `fill:${c}` }, d.name)); S.append(svg('text', { x: Wd, y: by + 12, class: 'sum', 'text-anchor': 'end' }, sumTxt)); }
+    });
+    if (!rows.length) S.append(svg('text', { x: Wd / 2, y: top + 20, 'text-anchor': 'middle' }, 'Pick a dataset above.'));
+    host.replaceChildren(S);
+    $('#g-note').textContent = `${rows.length} of ${sets.length} datasets · ${dstr(R[0])} – ${dstr(R[1])} · ${step === 7 ? 'one cell per week' : 'one cell per day'}`;
+  }
+
+  const VIEWS = { report: renderReport, trails: renderTrails, projects: renderProjects, data: renderData, experiments: renderExperiments, explore: renderExplorer, calendar: renderCalendar, gantt: renderGantt, ...(WT ? { watched: renderMovies } : {}) };
+  const TITLES = { watched: 'Movies & TV', trails: 'Trails', projects: 'Projects', data: 'Data', experiments: 'Lab', explore: 'Explorer', calendar: 'Calendar', gantt: 'Gantt' };   // browser tab + history
+  const NAV_OF = { report: 'home', trails: 'trails', projects: 'projects', data: 'data', experiments: 'data', explore: 'data', calendar: 'data', gantt: 'data', watched: 'movies' };
   function route() {
     const [base, sub] = location.hash.slice(1).split('/'), alias = { highlights: 'trails', report: 'report', movies: 'watched' }, v = VIEWS[alias[base] || base] ? alias[base] || base : 'report';
     if (base === 'experiments' && sub === 'race') { location.replace('pct-training/#low-tide'); return; }
     if (v === 'experiments' && E_TABS.some(([k]) => k === sub)) expTab = sub;
+    if (v === 'watched') wTab = W_TABS.some(([k]) => k === sub) ? sub : 'wall';
     for (const k in VIEWS) $('#v-' + k).hidden = k !== v;
     for (const a of document.querySelectorAll('nav.tabs a')) { if (a.dataset.nav === NAV_OF[v]) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); }
-    const tool = v === 'data' || v === 'explore' || v === 'calendar' || v === 'experiments'; $('#subnav').hidden = !tool;
+    const tool = v === 'data' || v === 'explore' || v === 'calendar' || v === 'gantt' || v === 'experiments'; $('#subnav').hidden = !tool;
     $('#priv').hidden = !PRIV.box || !(window.crypto && crypto.subtle) || !(v === 'report' || v === 'data');
     for (const a of document.querySelectorAll('#subnav a')) { if (a.getAttribute('href') === '#' + v) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); }
-    document.title = (v === 'experiments' ? (E_TABS.find(([k]) => k === expTab) || [, ''])[1] + ' · ' : '') + (TITLES[v] ? TITLES[v] + ' · ' : '') + 'JSBV.LIFE';
+    document.title = (v === 'experiments' ? (E_TABS.find(([k]) => k === expTab) || [, ''])[1] + ' · ' : v === 'watched' && wTab !== 'wall' ? (W_TABS.find(([k]) => k === wTab) || [, ''])[1] + ' · ' : '') + (TITLES[v] ? TITLES[v] + ' · ' : '') + 'JSBV.LIFE';
     VIEWS[v]();
   }
   addSeries('move', 'steps', null, [], false); addSeries('music', 'minutes', null, [], false); applyPreset('ty'); preset.value = 'ty';
@@ -1821,7 +2128,8 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
   $('#boot').remove();
   try { await Promise.race([document.fonts.ready, new Promise((r) => setTimeout(r, 1500))]); } catch (e) {}
   window.addEventListener('hashchange', route);
-  let rz; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { if (!$('#v-explore').hidden) renderExplorer(); if (!$('#v-experiments').hidden) ({ rings: drawRings, corr: drawCorr, week: drawWeekShape, tide: drawTide, pairs: drawPairs })[expTab]();
+  let rz; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { if (!$('#v-explore').hidden) renderExplorer(); if (!$('#v-gantt').hidden) renderGantt(); if (!$('#v-experiments').hidden) ({ rings: drawRings, corr: drawCorr, week: drawWeekShape, tide: drawTide, pairs: drawPairs, ridge: drawRidge, clock: drawClock })[expTab]();
+    if (!$('#v-watched').hidden && wTab === 'map') drawMap();
     if (!$('#v-report').hidden) drawRace(); }, 120); });
   route();
 })();

@@ -17,7 +17,7 @@ Jack's personal data site: a decade of steps, music, photos and trail logs, plus
 ## Map
 | Path | What | Data (builder) |
 |---|---|---|
-| `index.html` | Hash views: Home `#report` (heroes, year by season, low tide, tiles) · `#trails` · `#projects` · Movies & TV `#movies` (alias `#watched`: every title in one grid; a tile opens its report card) · Data (`#data` `#explore` `#calendar` and the Lab `#experiments/<key>`) | `daily.json` (`build_meta_log.py`), `seasons.json` (`build_seasons.py`), `training.json` |
+| `index.html` | Hash views: Home `#report` (heroes, year by season, low tide, tiles) · `#trails` · `#projects` · Movies & TV `#movies` (alias `#watched`: every title in one grid; a tile opens its report card; sub-tabs `#movies/map` guilty-pleasure map, `#movies/propaganda` propaganda board) · Data (`#data` `#explore` `#calendar` `#gantt` and the Lab `#experiments/<key>`, incl. `ridge` ridgeline and `clock` decade clock from `step-song/data/hourly.json`) | `daily.json` (`build_meta_log.py`), `seasons.json` (`build_seasons.py`), `training.json` |
 | `pct-training/` | PCT//PREP: plan · calendar · low-tide (2019 pre-AT walking as the floor) · days · recovery · pace · trail-weeks | `training.json` (`build_pct_training.py`) from plan.json (original plan, never edited by Claude), plan-adjusted.json (toggleable second plan, Nov 18), a "Projected" third option computed by the build from the last 14 days' rate of increase (never hand-edited), activities.json (Strava), Health export |
 | `step-song/` | STEP//SONG: decade · trail (AT log, weeks, states, hours, calendar) · day · cuts | `build_step_song.py`, `build_at_log.py`, `build_at_breakdown.py` |
 | `trail/` | TRAIL//RADIO: AT 2019 songs by stretch, Spotify iFrame player | `build_trail_radio.py` |

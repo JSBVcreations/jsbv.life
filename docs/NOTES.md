@@ -83,6 +83,9 @@ Rule: a page should be about a screen or two tall per tab. Long pages get tabs, 
     To add one: a `section.box#e-<key>` in `#v-experiments`, a draw function, an `E_TABS` entry and an entry in the two
     `{ rings: drawRings, ... }` maps.
   - Life calendar: four-year eras (`ERAS`, newest first, buttons in `#c-eras`). `showDay` switches era when it needs to.
+  - Gantt (`#gantt`, Data sub-tab, `renderGantt`): one lane per daily.json dataset (a day counts when any metric is non-zero),
+    weekly cells (daily for the current-year range), Intensity (opacity = week total ÷ the lane's 90th percentile) or Bars
+    (runs, gaps under ~2 weeks merged); dataset chips toggle lanes; Life chapters lane + faint bands from life.json.
   - Movies & TV (`#movies`, alias `#watched`; its own top-level tab since Nov 19): every title in one grid, no paging. A tile is a
     button that opens the report card (`<dialog id="rc">`): Final, stars, verdict, quadrant bars, then only the categories Jack scored
     (band text + his note in full), propaganda, custom scales, surprise actors, and the only IMDb link (a button).
@@ -281,3 +284,18 @@ Keep the MX / TXT / DKIM / autodiscover records — they run the jsbv.life busin
   5–12 and months 3–6 after; curves are 14-day trailing means from 120 days before.
 - Map: `assets/maps/na.json` (Natural Earth 50m land, US Census state lines; projection x=(lon+125)·cos40°·14, y=(52−lat)·14).
   "Most days" zooms to places with ≥ 30 days; dots are pies by status, area ∝ days.
+
+## Lab ridgeline + decade clock, Movies & TV map + propaganda board (Nov 19, 2026; VIZ-PLAN 4, 1, 5, 6)
+- `#experiments/ridge` (drawRidge): daily.json move:steps or music:minutes, one ridge per year from 2016, Sunday-start weeks,
+  value = a day's average within the week (weeks with 3+ days of data). Height is sqrt-scaled above the 3rd-percentile week so
+  ordinary years still show shape next to the AT. The current year is drawn in the metric colour; hover highlights a year.
+- `#experiments/clock` (drawClock): step-song/data/hourly.json, fetched on first open (1.3 MB). Rings 2016 (inside) → latest year,
+  one thin band per month, 24 hours clockwise with midnight at the top. Cell = average per day in that month-hour (music in
+  minutes, steps in steps), alpha linear up to the 97th-percentile cell. Tooltip adds any life chapter covering the month.
+  hourly.json ends where the last STEP//SONG build stopped (Oct 15, 2026).
+- `#movies/map` (drawMap): titles with a Personal score and at least one of Story/Movie/Critical. x = mean of those three,
+  y = Personal, both split at 65 (W_MAP_SPLIT); dots are coloured by Jack's own verdict from the Scorecard, not by the split.
+  Dots are pushed apart so stacked scores stay clickable; a thin line runs back to the true point. Click opens the report card.
+- `#movies/propaganda` (drawProp): titles with a propaganda score, grouped by who's being sold. The group is read from the
+  `prop_by` text with the PROP_TAGS rules in index.html ("Big X" → Big X, military, surveillance, retail…; 0 → Nothing sold;
+  no match → Unnamed). Add a rule there when a new note doesn't land. "Ranked" shows one list, highest first.
