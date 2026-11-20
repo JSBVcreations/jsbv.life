@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>BODY//MAP · JSBV.LIFE</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<meta name="theme-color" content="#07060f">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="JSBV.LIFE">
+<meta property="og:title" content="BODY//MAP · JSBV.LIFE">
+<meta property="og:description" content="Training load by muscle group: what was hit, when, and what is still recovering.">
+<meta property="og:url" content="https://jsbv.life/body/">
+<meta property="og:image" content="https://jsbv.life/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="description" content="Training load by muscle group: what was hit, when, and what is still recovering.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="../assets/site.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Monoton&family=Chakra+Petch:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* BODY//MAP. Data: body/data/body.json (scripts/build_body_map.py from fitness.json + Strava activities.json).
+   Each event's load decays with its muscle group's half-life; the page recomputes against the current time.
+   Modes: recovery (load still in the tissue) · 10 days (load added in the last 10 days, with the 7-day vs 28-day ratio) · last hit. */
+:root {
+  color-scheme: dark;
+  --void: #07060f; --panel: #0d0b1c; --grid: #1f1a3d; --ink: #dcd8ff; --dim: #8a84b8;
+  --step: #3ff0ff; --sound: #ff3fb4; --climb: #ffb347; --trail: #b6ff5c; --violet: #9b7bff; --hot: #fff; --heart: #ff4d6d;
+  --tab-accent: #ff4d6d;
+  --f-display: "Monoton", "Chakra Petch", system-ui, sans-serif;
+  --f-ui: "Chakra Petch", "Segoe UI", system-ui, sans-serif;
+  --f-data: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --s-0: 0.75rem; --s-1: 0.875rem; --s-2: 1rem;
+}
+* { box-sizing: border-box; }
+html, body { background: var(--void); color: var(--ink); }
+body { margin: 0; font-family: var(--f-ui); font-size: var(--s-1); line-height: 1.45; padding: 20px max(14px, env(safe-area-inset-right, 0px)) 48px max(14px, env(safe-area-inset-left, 0px)); }
+.wrap { max-width: 1180px; margin: 0 auto; display: grid; gap: 18px; }
+h1 { font-family: var(--f-display); font-weight: 400; margin: 10px 0 0; font-size: clamp(2rem, 6vw, 3.6rem); line-height: 1; color: var(--hot);
+  text-shadow: 0 0 6px var(--heart), 0 0 18px var(--heart), 0 0 42px rgba(255,77,109,0.5); }
+h1 span { text-shadow: 0 0 6px var(--step), 0 0 18px var(--step); }
+h2 { font: 600 var(--s-0) var(--f-ui); letter-spacing: 0.2em; text-transform: uppercase; margin: 0 0 10px; color: var(--hot); }
+section { padding: 16px; }
+.seg { display: inline-flex; }
+.seg button { all: unset; cursor: pointer; font: 600 var(--s-0) var(--f-ui); letter-spacing: .12em; text-transform: uppercase; color: var(--dim); padding: 7px 14px; }
+.seg button[aria-pressed="true"] { color: var(--void); background: var(--ink); }
+.layout { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+@media (max-width: 820px) { .layout { grid-template-columns: 1fr; } }
+.fig svg { width: 100%; height: auto; display: block; max-height: 74vh; }
+.fig .m { stroke: rgba(7,6,15,0.9); stroke-width: 1.2; cursor: pointer; transition: filter .15s, stroke .15s; }
+.fig .m:hover, .fig .m.on { stroke: #fff; stroke-width: 2; filter: drop-shadow(0 0 6px rgba(255,255,255,0.6)); }
+.fig .sil { fill: #15122c; stroke: #2c2556; stroke-width: 1.5; }
+.fig text { font: 600 10px var(--f-ui); fill: var(--dim); letter-spacing: .2em; }
+.scale { display: flex; align-items: center; gap: 8px; font: 400 11px var(--f-data); color: var(--dim); margin-top: 8px; }
+.scale i { flex: 1; height: 8px; border-radius: 4px; }
+.panel h3 { font: 700 var(--s-2) var(--f-ui); margin: 0 0 2px; letter-spacing: .06em; color: var(--hot); }
+.kv { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; margin: 10px 0 12px; }
+.kv div { background: rgba(255,255,255,0.03); border: 1px solid var(--grid); border-radius: 9px; padding: 8px 10px; }
+.kv small { display: block; font: 600 10px var(--f-ui); letter-spacing: .14em; text-transform: uppercase; color: var(--dim); }
+.kv b { font: 600 1.15rem var(--f-data); color: var(--hot); }
+.panel h4 { font: 600 10px var(--f-ui); letter-spacing: .18em; text-transform: uppercase; color: var(--dim); margin: 12px 0 4px; }
+.panel ul { margin: 0; padding-left: 18px; font: 400 var(--s-0) var(--f-data); }
+.panel li { margin: 2px 0; }
+.panel li span { color: var(--dim); }
+.todo { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
+.todo div { border: 1px solid var(--grid); border-radius: 10px; padding: 10px 12px; border-left: 3px solid var(--c); }
+.todo b { font: 700 var(--s-1) var(--f-ui); color: var(--hot); } .todo small { font: 400 11px var(--f-data); color: var(--dim); margin-left: 6px; }
+.todo ul { margin: 6px 0 0; padding-left: 16px; font: 400 var(--s-0) var(--f-data); }
+.note { font: 400 var(--s-0) var(--f-data); color: var(--dim); margin: 0; }
+</style>
+<link rel="stylesheet" href="../assets/theme.css">
+<body>
+<div class="wrap">
+  <header>
+    <nav class="site" data-here="fitness" data-crumb="BODY//MAP"></nav>
+    <h1>BODY<span>//MAP</span></h1>
+  </header>
+  <div class="layout">
+    <section>
+      <div class="seg" id="mode" role="group" aria-label="Colour by"></div>
+      <div class="fig" id="fig"></div>
+      <div class="scale" id="scale"></div>
+    </section>
+    <section class="panel" id="panel" aria-live="polite"></section>
+  </div>
+  <section>
+    <h2>Stretch now</h2>
+    <div class="todo" id="todo"></div>
+  </section>
+</div>
+<script src="../assets/site.js"></script>
+<script>
+(async function () {
+  'use strict';
+  const $ = (s) => document.querySelector(s);
+  const el = (t, p = {}, k = []) => { const e = document.createElement(t); for (const x in p) { if (x === 'text') e.textContent = p[x]; else if (x === 'className') e.className = p[x]; else if (x.startsWith('on')) e.addEventListener(x.slice(2), p[x]); else e.setAttribute(x, p[x]); } for (const c of [].concat(k)) if (c != null) e.append(c); return e; };
+  const NS = 'http://www.w3.org/2000/svg', sv = (t, a = {}) => { const e = document.createElementNS(NS, t); for (const k in a) e.setAttribute(k, a[k]); return e; };
+  let B; try { B = await (await fetch('data/body.json', { cache: 'no-cache' })).json(); } catch (e) { $('#panel').append(el('p', { className: 'note', text: 'No data.' })); return; }
+
+  const STRETCH = {
+    neck: ['Chin tucks 10×', 'Ear-to-shoulder hold 30 s a side', 'Levator stretch (nose to armpit) 30 s'],
+    traps: ['Ear-to-shoulder hold 30 s a side', 'Shoulder rolls 10× each way', 'Doorway hang with shoulder blades down 30 s'],
+    shoulders: ['Cross-body arm hold 30 s', 'Sleeper stretch 30 s', 'Wall slides 10×'],
+    chest: ['Doorway pec stretch 30 s × 2', 'Lying chest opener on a foam roller 60 s'],
+    biceps: ['Wall biceps stretch, palm back 30 s'], triceps: ['Overhead triceps stretch 30 s a side'],
+    forearms: ['Wrist flexor stretch 30 s', 'Wrist extensor stretch 30 s', 'Dead hang 20–30 s'],
+    abs: ['Cobra / prone press-up 30 s', 'Standing back bend 5×'], obliques: ['Standing side reach 30 s a side', 'Seated twist 30 s a side'],
+    'upper-back': ["Child's pose with side reach 45 s", 'Lat stretch on a doorframe 30 s', 'Thread the needle 5 a side'],
+    'lower-back': ['Cat–cow 10×', 'Knees to chest 45 s', 'Supine twist 30 s a side'],
+    glutes: ['Figure-4 stretch 45 s a side', 'Pigeon 60 s a side'],
+    'hip-flexors': ['Half-kneeling hip flexor stretch 45 s a side', 'Couch stretch 60 s a side'],
+    adductors: ['Frog stretch 60 s', 'Butterfly 45 s', 'Side lunge rocks 8 a side'],
+    quads: ['Standing quad stretch 30 s a side', 'Couch stretch 60 s a side', 'Foam roll quads 60 s'],
+    hamstrings: ['Hip-hinge hamstring stretch 45 s', 'Supine strap stretch 45 s a side'],
+    calves: ['Wall calf stretch, knee straight 45 s', 'Wall calf stretch, knee bent (soleus) 45 s', 'Foam roll calves 60 s'],
+    shins: ['Kneeling shin stretch, tops of feet down 45 s', 'Tibialis raises against a wall 2 × 15', 'Ankle circles 10 each way'],
+    feet: ['Roll the sole on a ball 60 s a side', 'Big-toe extension stretch 30 s', 'Toe spreads and towel scrunches 2 × 15'],
+  };
+  // shapes: [group, view (0 front, 1 back), svg element, attrs]; the back view is drawn at x + 220
+  const L = (pts) => pts.map((p) => p.join(',')).join(' '), M = (pts) => pts.map(([x, y]) => [200 - x, y]);
+  const PAIRS = [
+    ['neck', 0, 'polygon', [[91, 50], [100, 52], [100, 66], [89, 64]]], ['traps', 0, 'polygon', [[89, 62], [100, 68], [72, 74], [80, 66]]],
+    ['shoulders', 0, 'ellipse', { cx: 63, cy: 86, rx: 13, ry: 15 }], ['chest', 0, 'polygon', [[99, 76], [76, 76], [72, 100], [86, 110], [99, 107]]],
+    ['biceps', 0, 'ellipse', { cx: 56, cy: 122, rx: 9, ry: 20 }], ['forearms', 0, 'polygon', [[47, 144], [63, 144], [58, 194], [45, 194]]],
+    ['abs', 0, 'polygon', [[88, 113], [99, 113], [99, 178], [89, 176]]], ['obliques', 0, 'polygon', [[86, 112], [74, 106], [75, 158], [88, 176]]],
+    ['hip-flexors', 0, 'polygon', [[78, 182], [97, 186], [97, 204], [76, 198]]], ['adductors', 0, 'polygon', [[97, 206], [99, 208], [98, 258], [89, 244]]],
+    ['quads', 0, 'polygon', [[75, 200], [95, 206], [88, 286], [74, 286], [68, 236]]], ['shins', 0, 'polygon', [[74, 304], [88, 304], [85, 384], [78, 384]]],
+    ['feet', 0, 'polygon', [[75, 394], [89, 394], [92, 412], [69, 412]]],
+    ['neck', 1, 'polygon', [[91, 50], [100, 50], [100, 62], [90, 62]]], ['traps', 1, 'polygon', [[100, 58], [100, 112], [84, 92], [72, 74], [90, 62]]],
+    ['shoulders', 1, 'ellipse', { cx: 63, cy: 86, rx: 13, ry: 15 }], ['triceps', 1, 'ellipse', { cx: 56, cy: 122, rx: 9, ry: 20 }],
+    ['forearms', 1, 'polygon', [[47, 144], [63, 144], [58, 194], [45, 194]]], ['upper-back', 1, 'polygon', [[74, 80], [84, 96], [99, 116], [99, 148], [84, 156], [72, 116]]],
+    ['lower-back', 1, 'polygon', [[86, 152], [99, 150], [99, 182], [86, 182]]], ['glutes', 1, 'ellipse', { cx: 87, cy: 202, rx: 14, ry: 17 }],
+    ['hamstrings', 1, 'polygon', [[75, 220], [97, 224], [93, 290], [77, 290]]], ['calves', 1, 'ellipse', { cx: 83, cy: 330, rx: 10, ry: 30 }],
+    ['feet', 1, 'polygon', [[76, 394], [89, 394], [90, 410], [74, 410]]],
+  ];
+  const SIL = 'M100 12 a18 18 0 1 1 -0.1 0 Z M88 48 L112 48 L114 62 L132 70 L148 88 L152 140 L162 196 L150 198 L140 146 L132 108 L126 160 L124 196 L118 290 L114 300 L112 392 L116 414 L104 414 L102 300 L100 210 L98 300 L96 414 L84 414 L88 392 L86 300 L82 290 L76 196 L74 160 L68 108 L60 146 L50 198 L38 196 L48 140 L52 88 L68 70 L86 62 Z';
+  const fig = sv('svg', { viewBox: '0 0 420 430', role: 'img', 'aria-label': 'Front and back of the body, each muscle group coloured' });
+  const shapes = {};
+  for (const v of [0, 1]) {
+    const g = sv('g', { transform: v ? 'translate(220,0)' : '' }); g.append(sv('path', { d: SIL, class: 'sil' }));
+    const t = sv('text', { x: 100, y: 428, 'text-anchor': 'middle' }); t.textContent = v ? 'BACK' : 'FRONT'; g.append(t); fig.append(g);
+    for (const [id, view, tag, geo] of PAIRS) {
+      if (view !== v) continue;
+      for (const side of [0, 1]) {
+        let e;
+        if (tag === 'ellipse') e = sv('ellipse', { ...geo, cx: side ? 200 - geo.cx : geo.cx });
+        else e = sv('polygon', { points: L(side ? M(geo) : geo) });
+        e.setAttribute('class', 'm'); e.dataset.g = id; e.setAttribute('tabindex', '0');
+        e.append(Object.assign(sv('title'), { textContent: B.groups.find((x) => x.id === id).name }));
+        g.append(e); (shapes[id] = shapes[id] || []).push(e);
+      }
+    }
+  }
+  $('#fig').append(fig);
+
+  // ---- load model (all times in hours, events at noon local)
+  const CLEAR = 3, now = Date.now(), H = 3600e3, at = (d) => new Date(d + 'T12:00:00').getTime();
+  const G = Object.fromEntries(B.groups.map((g) => [g.id, { ...g, resid: 0, d10: 0, a7: 0, c28: 0, recent: [] }]));
+  for (const [d, kind, label, loads] of B.events) {
+    const h = Math.max(0, (now - at(d)) / H), days = h / 24;
+    for (const id in loads) { const g = G[id]; if (!g) continue; const v = loads[id];
+      g.resid += v * Math.pow(0.5, h / g.half_life_h);
+      if (days <= 10) { g.d10 += v; g.recent.push([d, label, v]); }
+      if (days <= 7) g.a7 += v; if (days <= 28) g.c28 += v; }
+  }
+  for (const id in G) { const g = G[id]; g.last = B.last[id] || null; g.since = g.last ? Math.floor((now - at(g.last)) / 864e5) : null;
+    g.ratio = g.c28 ? (g.a7 / 7) / (g.c28 / 28) : null;
+    g.ready = g.resid > CLEAR ? Math.log2(g.resid / CLEAR) * g.half_life_h : 0; }   // hours until what is left drops under one easy day's load
+  const maxResid = Math.max(6, ...Object.values(G).map((g) => g.resid)), maxD10 = Math.max(10, ...Object.values(G).map((g) => g.d10));
+
+  // ---- colour: cold (violet-grey) → cyan → lime → amber → red
+  const STOPS = [[0, [42, 38, 78]], [0.2, [63, 140, 255]], [0.4, [63, 240, 255]], [0.6, [182, 255, 92]], [0.8, [255, 179, 71]], [1, [255, 60, 90]]];
+  const heat = (t) => { t = Math.max(0, Math.min(1, t)); for (let i = 1; i < STOPS.length; i++) if (t <= STOPS[i][0]) { const [a, ca] = STOPS[i - 1], [b, cb] = STOPS[i], f = (t - a) / (b - a); return `rgb(${ca.map((c, j) => Math.round(c + (cb[j] - c) * f)).join(',')})`; } return 'rgb(255,60,90)'; };
+  const MODES = [
+    ['recovery', 'Recovery', (g) => g.resid / maxResid, ['recovered', 'still loaded']],
+    ['strain', '10 days', (g) => g.d10 / maxD10, ['none', 'most load']],
+    ['last', 'Last hit', (g) => (g.since == null ? 0 : Math.max(0, 1 - Math.log1p(g.since) / Math.log1p(365))), ['a year+', 'today']],
+  ];
+  let mode = ({ strain: 'strain', last: 'last' })[location.hash.slice(1)] || 'recovery', sel = null;
+  const fmtH = (h) => (h < 1 ? 'ready' : h < 48 ? `${Math.round(h)} h` : `${(h / 24).toFixed(1)} days`);
+  const ago = (n) => (n == null ? 'never logged' : n === 0 ? 'today' : n === 1 ? 'yesterday' : `${n} days ago`);
+  function paint() {
+    const m = MODES.find((x) => x[0] === mode);
+    for (const id in shapes) for (const e of shapes[id]) { e.style.fill = heat(m[2](G[id])); e.classList.toggle('on', id === sel); }
+    $('#scale').replaceChildren(el('span', { text: m[3][0] }), el('i', { style: `background:linear-gradient(90deg,${STOPS.map((s) => heat(s[0])).join(',')})` }), el('span', { text: m[3][1] }));
+    $('#mode').replaceChildren(...MODES.map(([k, label]) => el('button', { type: 'button', 'aria-pressed': String(k === mode), text: label, onclick: () => { mode = k; history.replaceState(null, '', k === 'recovery' ? location.pathname : '#' + k); paint(); } })));
+  }
+  function show(id) {
+    sel = id; const g = G[id], ex = B.ex[id] || [];
+    $('#panel').replaceChildren(...[
+      el('h3', { text: g.name }),
+      el('div', { className: 'kv' }, [
+        el('div', {}, [el('small', { text: 'Last hit' }), el('b', { text: ago(g.since) })]),
+        el('div', {}, [el('small', { text: 'Clear in' }), el('b', { text: fmtH(g.ready) })]),
+        el('div', {}, [el('small', { text: 'Load, 10 days' }), el('b', { text: g.d10.toFixed(1) })]),
+        el('div', {}, [el('small', { text: '7 d ÷ 28 d' }), el('b', { text: g.ratio == null ? '—' : g.ratio.toFixed(2) })]),
+      ]),
+      g.recent.length ? el('h4', { text: 'Last 10 days' }) : null,
+      g.recent.length ? el('ul', {}, g.recent.slice(-6).reverse().map(([d, lab, v]) => el('li', {}, [`${d.slice(5)} `, el('span', { text: `${lab} · ${v.toFixed(1)}` })]))) : null,
+      el('h4', { text: 'Stretches' }), el('ul', {}, (STRETCH[id] || []).map((s) => el('li', { text: s }))),
+      ex.length ? el('h4', { text: 'Exercises logged' }) : null,
+      ex.length ? el('ul', {}, ex.slice(0, 6).map(([n, c, d]) => el('li', {}, [n + ' ', el('span', { text: `${c}× · last ${d}` })]))) : null].filter(Boolean));
+    paint();
+  }
+  fig.addEventListener('mouseover', (e) => { const id = e.target.dataset && e.target.dataset.g; if (id && id !== sel) show(id); });
+  fig.addEventListener('click', (e) => { const id = e.target.dataset && e.target.dataset.g; if (id) show(id); });
+  fig.addEventListener('keydown', (e) => { const id = e.target.dataset && e.target.dataset.g; if (id && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); show(id); } });
+  fig.addEventListener('focusin', (e) => { const id = e.target.dataset && e.target.dataset.g; if (id) show(id); });
+
+  // ---- stretch now: groups carrying the most load, plus any whose 7-day rate runs 1.5× the 28-day rate
+  const rank = Object.values(G).filter((g) => g.resid > 0.5 || (g.ratio && g.ratio > 1.5 && g.d10 > 3)).sort((a, b) => b.resid - a.resid).slice(0, 6);
+  $('#todo').replaceChildren(...(rank.length ? rank.map((g) => el('div', { style: `--c:${heat(g.resid / maxResid)}` }, [el('b', { text: g.name }), el('small', { text: `${fmtH(g.ready)} · 10 d ${g.d10.toFixed(0)}${g.ratio ? ` · ×${g.ratio.toFixed(1)}` : ''}` }),
+    el('ul', {}, (STRETCH[g.id] || []).slice(0, 2).map((s) => el('li', { text: s })))])) : [el('p', { className: 'note', text: 'Everything is recovered.' })]));
+  show(rank[0] ? rank[0].id : 'quads');
+})();
+</script>
+</body>
+</html>

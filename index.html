@@ -395,6 +395,25 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
 .wh-row em { font-style: normal; color: var(--hot); font-variant-numeric: tabular-nums; } .wh-row small { text-align: right; }
 .wh-diff { font: 600 var(--s-0) var(--f-data); color: var(--ink); }
 #e-eras-chips .sw { margin-right: 2px; }
+/* clusters, month hero, tighter phones (Nov 20) */
+.cards .sec.dgrp { grid-column: 1 / -1; margin: 10px 0 -4px; }
+.hero.month { box-shadow: var(--lift, none), inset 0 2px 0 #9b7bff; }
+.hero .grow { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
+.hero .glab { font: 600 10px var(--f-ui); letter-spacing: .16em; text-transform: uppercase; color: var(--dim); width: 58px; }
+.gchip { display: inline-flex; gap: 5px; align-items: baseline; border: 1px solid var(--grid); border-radius: 7px; padding: 3px 7px; font: 400 11px var(--f-data); color: var(--dim); }
+.gchip b { color: var(--c); font-weight: 700; }
+.mstrip { display: grid; grid-template-columns: repeat(12, 1fr); gap: 4px; align-items: end; height: 56px; }
+.mstrip a { display: grid; grid-template-rows: 1fr auto; height: 100%; text-align: center; color: var(--dim); text-decoration: none; font: 600 9px var(--f-ui); }
+.mstrip i { align-self: end; display: block; background: var(--c); border-radius: 3px 3px 0 0; box-shadow: 0 0 8px var(--c); }
+.idx .kv { display: flex; flex-wrap: wrap; gap: 4px 16px; font: 400 var(--s-0) var(--f-data); color: var(--dim); } .idx .kv b { color: var(--hot); }
+.idx .card.body, .idx .card.hr { box-shadow: var(--lift, none), inset 0 2px 0 #ff4d6d; } .idx .card.mv { box-shadow: var(--lift, none), inset 0 2px 0 #4ea8ff; }
+@media (max-width: 560px) {
+  nav.tabs { width: 100%; justify-content: space-between; gap: 0; padding: 4px; }
+  nav.tabs a { padding: 9px 10px !important; letter-spacing: .08em; font-size: 11px; }
+  .hero { padding: 14px !important; }
+  .hero .huge { font-size: 2.6rem !important; }
+  .tiles { grid-template-columns: 1fr !important; }
+}
 </style>
 <link rel="stylesheet" href="assets/theme.css">
 
@@ -405,9 +424,9 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
 
   <nav class="tabs" aria-label="Site">
     <a href="#report" data-nav="home">Home</a>
-    <a href="#trails" data-nav="trails">Trails</a>
-    <a href="#projects" data-nav="projects">Projects</a>
-    <a href="#movies" data-nav="movies">Movies &amp; TV</a>
+    <a href="#fitness" data-nav="fitness">Fitness</a>
+    <a href="#health" data-nav="health">Health</a>
+    <a href="#media" data-nav="media">Media</a>
     <a href="#data" data-nav="data">Data</a>
   </nav>
   <nav class="ptabs inview" id="subnav" aria-label="Data views" hidden>
@@ -416,6 +435,7 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
     <a href="#calendar">Calendar</a>
     <a href="#gantt">Gantt</a>
     <a href="#experiments">Lab</a>
+    <a href="months/">Report cards</a>
     <a href="timelines/">Timelines</a>
   </nav>
 
@@ -425,7 +445,7 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
   <div class="view" id="v-report" hidden>
     <div class="heroes">
       <section class="hero pct" id="hero-pct" aria-labelledby="hp-h"><h2 id="hp-h">PCT//PREP</h2><p class="note">Loading the training tracker…</p></section>
-      <section class="hero photo" id="hero-photo" aria-labelledby="hf-h"><h2 id="hf-h">PHOTO//SORT</h2></section>
+      <section class="hero month" id="hero-month" aria-labelledby="hm-h"><h2 id="hm-h">This month</h2></section>
     </div>
     <section class="box seasons" id="r-seasons" hidden>
       <div class="head"><h2 id="s-title">The year</h2></div>
@@ -436,9 +456,7 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
     <section class="box" id="r-race" hidden>
       <div class="head"><h2>Low tide: the 2019 AT run-in as the floor</h2><a class="more" href="pct-training/#low-tide">On PCT//PREP ▶</a></div>
       <div id="r-race-chart"></div>
-      <p class="note" id="r-race-note"></p>
     </section>
-    <h2 class="sec">Last 7 · last 30 days</h2>
     <div class="tiles" id="rc-tiles"></div>
   </div>
 
@@ -554,14 +572,9 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
   </div>
 
   <!-- ============================================================ TRAILS + PROJECTS (section indexes) -->
-  <div class="view" id="v-trails" hidden>
-    <h2 class="sec">Trails</h2>
-    <div class="idx" id="t-cards"></div>
-  </div>
-  <div class="view" id="v-projects" hidden>
-    <h2 class="sec">Projects</h2>
-    <div class="idx" id="p-cards"></div>
-  </div>
+  <div class="view" id="v-fitness" hidden><div class="idx" id="t-cards"></div></div>
+  <div class="view" id="v-health" hidden><div class="idx" id="h-cards"></div></div>
+  <div class="view" id="v-media" hidden><div class="idx" id="p-cards"></div></div>
 
   <!-- ============================================================ EXPERIMENTS -->
   <div class="view" id="v-experiments" hidden>
@@ -696,7 +709,6 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
     <p class="note" id="priv-msg" role="status"></p>
     <button class="btn" type="button" id="priv-lock" hidden>Lock again</button>
   </section>
-  <footer id="foot"></footer>
 </div>
 
 <script>
@@ -1157,13 +1169,9 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
   // Home dashboard. GROUPS = the umbrellas: [id, title, colour, [[dataset, metric], ...]]. A metric only shows under its
   // umbrella (Listening and Plays live under Music). PER_DAY metrics read as a daily average; the rest as a total.
   const GROUPS = [
-    ['activity', 'Activity', '#3ff0ff', [['move', 'steps'], ['move', 'miles'], ['move', 'elev'], ['exercise', 'minutes']]],
-    ['health', 'Health', '#ff4d6d', [['body', 'resting_hr'], ['body', 'hrv'], ['body', 'sleep_h'], ['body', 'walking_hr']]],
-    ['music', 'Music', '#ff3fb4', [['music', 'minutes'], ['music', 'plays']]],
-    ['watching', 'Watching', '#4ea8ff', [['watch', 'minutes'], ['watch', 'movies'], ['watch', 'episodes']]],
-    ['calls', 'Calls', '#ff8a3d', [['calls', 'minutes'], ['calls', 'calls']]],
-    ['breath', 'Breathwork', '#4fe0c0', [['breath', 'sessions'], ['breath', 'minutes'], ['breath', 'avg_hold']]],
-    ['photos', 'Photos', '#ffd84a', [['photos', 'items'], ['photos', 'gb']]],
+    ['fitness', 'Fitness', '#3ff0ff', [['move', 'steps'], ['move', 'miles'], ['move', 'elev'], ['exercise', 'minutes'], ['lifting', 'sessions']]],
+    ['health', 'Health', '#ff4d6d', [['body', 'resting_hr'], ['body', 'hrv'], ['body', 'sleep_h'], ['body', 'walking_hr'], ['breath', 'sessions'], ['breath', 'avg_hold'], ['water', 'liters']]],
+    ['media', 'Media', '#ff3fb4', [['music', 'minutes'], ['watch', 'minutes'], ['watch', 'movies'], ['watch', 'episodes'], ['calls', 'minutes'], ['photos', 'items']]],
     // private datasets bring their own tile (site.group), so nothing about them is written into this public page
     ...daily.datasets.filter((d) => d.site && d.site.group).map((d) => [d.id, d.site.group[0], d.site.group[1], d.site.group[2].map((m) => [d.id, m])]),
   ].map(([id, name, color, ms]) => ({ id, name, color, ms: ms.filter(([d, m]) => DS[d] && DS[d].grain === 'day' && metricOf(d, m)) })).filter((g) => g.ms.length);
@@ -1226,6 +1234,25 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
       el('div', { className: 'kv' }, [el('span', {}, ['last 7 days ', el('b', { text: `${num(wk7)} mi` })]), el('span', {}, ['since Nov 1 ', el('b', { text: `${num(done)} mi · ${num(hrs)} h` })]),
         best ? el('span', {}, ['longest day ', el('b', { text: `${num(best[1])} mi` })]) : null, packs.length ? el('span', {}, ['pack ', el('b', { text: `${Math.max(...packs)} lb` })]) : null,
         el('span', {}, ['peak week planned ', el('b', { text: `${P.peak_week_miles} mi` })])]),
+      links);
+  }
+  let MON_RC; // meta-log/data/months.json (scripts/build_report_cards.py)
+  const GRADE_C = { A: '#b6ff5c', B: '#3ff0ff', C: '#ffd84a', D: '#ffb347', F: '#ff4d6d' };
+  const gpaL = (g) => (g == null ? '—' : g >= 3.5 ? 'A' : g >= 2.5 ? 'B' : g >= 1.5 ? 'C' : g >= 0.5 ? 'D' : 'F');
+  async function drawMonthHero() {
+    const host = $('#hero-month');
+    if (MON_RC === undefined) { try { const r = await fetch('meta-log/data/months.json', { cache: 'no-cache' }); MON_RC = r.ok ? await r.json() : null; } catch (e) { MON_RC = null; } }
+    const links = linkRow([['months/', 'All report cards'], ['body/', 'BODY//MAP']]);
+    if (!MON_RC || !MON_RC.months.length) { host.replaceChildren(el('h2', { id: 'hm-h', text: 'This month' }), links); return; }
+    const m = MON_RC.months[MON_RC.months.length - 1], L = gpaL(m.gpa), MET = Object.fromEntries(MON_RC.metrics.map((x) => [x.id, x]));
+    const chip = (id) => { const g = m.g[id]; if (!g) return null; return el('span', { className: 'gchip', style: `--c:${GRADE_C[g[0]]}` }, [el('b', { text: g[0] }), MET[id].label]); };
+    const row = (cl) => MON_RC.metrics.filter((x) => x.cluster === cl).map((x) => chip(x.id)).filter(Boolean);
+    host.replaceChildren(
+      el('div', { className: 'top' }, [el('div', {}, [el('h2', { id: 'hm-h', text: m.name.toUpperCase() }), el('div', { className: 'tag', text: m.partial ? `report card · through ${dstr(d2i(m.through))}` : 'report card' })]),
+        el('div', { className: 'huge', style: `color:${GRADE_C[L] || 'inherit'}` }, [L, el('small', { text: m.gpa == null ? '' : `GPA ${m.gpa.toFixed(2)}` })])]),
+      el('div', { className: 'grow' }, [el('span', { className: 'glab', text: 'Fitness' }), ...row('fitness')]),
+      el('div', { className: 'grow' }, [el('span', { className: 'glab', text: 'Health' }), ...row('health')]),
+      el('div', { className: 'mstrip' }, MON_RC.months.map((x) => el('a', { href: 'months/#' + x.m, title: `${x.name}: ${x.gpa}`, style: `--c:${GRADE_C[gpaL(x.gpa)] || '#8a84b8'}` }, [el('i', { style: `height:${x.gpa == null ? 2 : 6 + (x.gpa / 4) * 34}px` }), x.name.slice(0, 1)]))),
       links);
   }
   function drawPhotoHero() {
@@ -1352,7 +1379,7 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
     $('#s-body').replaceChildren(head, body);
   }
   function renderReport() {
-    drawPhotoHero(); drawPctHero(); renderSeasons(); drawRace();
+    drawMonthHero(); drawPctHero(); renderSeasons(); drawRace();
     if (!RC.built) { RC.built = true; buildTiles(); } else for (const g of GROUPS) showSlide(g, RC.at[g.id] || 0, false);
   }
 
@@ -1673,16 +1700,19 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
       el('h3', { text: 'Video games' }),
       el('dl', {}, DV.span === 'year'
         ? [el('dt', { text: 'Seasons ended in ' + yr }), el('dd', { text: String(inYr.length) }), el('dt', { text: 'Wins' }), el('dd', { text: num(sum(inYr, 'wins')) }),
-           el('dt', { text: 'Levels' }), el('dd', { text: num(sum(inYr, 'level')) }), el('dt', { text: 'Source' }), el('dd', { text: 'Epic Games data export + season calendar' })]
+           el('dt', { text: 'Levels' }), el('dd', { text: num(sum(inYr, 'level')) }), ]
         : [el('dt', { text: 'Seasons played' }), el('dd', { text: String(played.length) }), el('dt', { text: 'Wins' }), el('dd', { text: num(GAMES.totals.wins) }),
-           el('dt', { text: 'Levels' }), el('dd', { text: num(GAMES.totals.levels) }), el('dt', { text: 'Source' }), el('dd', { text: 'Epic Games data export + season calendar' })]),
+           el('dt', { text: 'Levels' }), el('dd', { text: num(GAMES.totals.levels) }), ]),
       linkRow([['games/', 'Open Video games'], ...(DS.fortnite ? [[() => openInExplorer([['fortnite', 'wins', null, [], false], ['fortnite', 'level', null, [], false]], DS.fortnite.offset, DS.fortnite.end), 'Chart it']] : [])]),
     ]);
   }
   function renderData() {
-    gamesCard().then((c) => { const host = $('#d-cards'); host.querySelector('.card.games')?.remove(); if (c) { c.classList.add('games'); host.append(c); } });
+    gamesCard().then((c) => { const host = $('#d-cards'); host.querySelector('.card.games')?.remove(); if (c) { c.classList.add('games'); host.append(c); } });   // lands at the end of Media
     $('#d-span').replaceChildren(...[['year', String(lastYear)], ['all', 'ALL TIME']].map(([v, label]) => el('button', { type: 'button', text: label, 'aria-pressed': String(DV.span === v), onclick: () => { DV.span = v; renderData(); } })));
-    $('#d-cards').replaceChildren(...daily.datasets.filter((d) => !HIDE_IN_DATA.has(d.id)).map((ds) => {
+    const CLUSTER = { move: 'fitness', exercise: 'fitness', lifting: 'fitness', trail: 'fitness', body: 'health', breath: 'health', water: 'health' };
+    const clusterOf = (d) => CLUSTER[d.id] || (d.site && d.site.group ? 'health' : 'media');
+    const groups = [['fitness', 'Fitness'], ['health', 'Health'], ['media', 'Media']];
+    const cardFor = (ds) => {
       const info = DIR[ds.id] || { blurb: '', links: [] }, a = DV.span === 'year' ? Math.max(ds.offset, d2i(`${lastYear}-01-01`)) : ds.offset, inSpan = a <= ds.end;
       return el('div', { className: 'card', style: `--acc:${DS_C[ds.id] || (ds.metrics[0] && ds.metrics[0].color) || '#9b7bff'}` }, [
         el('h3', { text: ds.name }),
@@ -1690,14 +1720,17 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
             return [el('dt', { text: m.name }), el('dd', { text: m.agg === 'mean' ? num(nn.length ? nn.reduce((t, x) => t + x, 0) / nn.length : null, m.unit) + ' avg' : num(k.reduce((t, x) => t + (x || 0), 0), m.unit) })]; })
             : [el('dt', { text: String(lastYear) }), el('dd', { text: 'nothing recorded' })])
           .concat([el('dt', { text: DV.span === 'year' ? 'Showing' : 'Covers' }), el('dd', { text: inSpan ? `${longDate(a)} – ${longDate(ds.end)}` : `ends ${longDate(ds.end)}` }),
-            ...(DV.span === 'year' ? [el('dt', { text: 'On record since' }), el('dd', { text: longDate(ds.offset) })] : []), el('dt', { text: 'Source' }), el('dd', { text: ds.source || '' })])),
+            ...(DV.span === 'year' ? [el('dt', { text: 'Since' }), el('dd', { text: longDate(ds.offset) })] : [])])),
         linkRow([...info.links, [() => openInExplorer([[ds.id, ds.metrics[0].id, null, [], false]], inSpan ? a : ds.offset, ds.end), 'Chart it']]),
       ]);
-    }));
+    };
+    $('#d-cards').replaceChildren(...groups.flatMap(([k, label]) => { const ds = daily.datasets.filter((d) => !HIDE_IN_DATA.has(d.id) && clusterOf(d) === k);
+      return ds.length ? [el('h2', { className: 'sec dgrp', text: label }), ...ds.map(cardFor)] : []; }));
     $('#d-tools').replaceChildren(
       el('div', { className: 'card' }, [el('h3', { text: 'Explorer' }), linkRow([['#explore', 'Open the explorer']])]),
       el('div', { className: 'card', style: '--acc:#ff6fd8' }, [el('h3', { text: 'Timelines' }), ...(TLS && TLS.timelines.length ? [el('dl', {}, TLS.timelines.flatMap((t) => [el('dt', { text: t.name }), el('dd', { text: `${t.start} → ${t.end}` })]))] : []), linkRow([['timelines/', 'Open Timelines']])]),
-      el('div', { className: 'card' }, [el('h3', { text: 'Calendar' }), linkRow([['#calendar', 'Open the calendar']])]));
+      el('div', { className: 'card' }, [el('h3', { text: 'Calendar' }), linkRow([['#calendar', 'Open the calendar']])]),
+      el('div', { className: 'card', style: '--acc:#9b7bff' }, [el('h3', { text: 'Report cards' }), linkRow([['months/', 'Open the report cards']])]));
   }
   // ================================================================ TRAILS + PROJECTS
   // Section indexes. Each card's links open the target page on the right tab (see assets/site.js on those pages).
@@ -1727,7 +1760,46 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
         linkRow([[() => openInExplorer([['trail', 'log_miles', null, [], false], ['move', 'steps', null, [], false]], a, b), 'Chart it in the explorer']]),
       ]));
     }
+    cards.push(el('div', { className: 'card body' }, [
+      el('h3', { text: 'BODY//MAP' }),
+      el('div', { className: 'big2' }, ['19', el('small', { text: 'muscle groups · load, recovery, stretches' })]),
+      jump([['body/', 'Recovery', 'what is still loaded'], ['body/#strain', '10 days', 'load added lately'], ['months/', 'Report cards', 'month by month']]),
+    ]));
+    cards.push(el('div', { className: 'card iron' }, [
+      el('h3', { text: 'IRON//LOG' }),
+      el('div', { className: 'big2' }, ['2015–2025', el('small', { text: 'every gym log' })]),
+      jump([['fitness/#overview', 'Overview', 'every log on one timeline'], ['fitness/#lifts', 'Big four', 'squat, bench, deadlift, press'], ['fitness/#sessions', 'Sessions', 'every set of every session'],
+        ['fitness/#exercises', 'Exercises', 'what got trained'], ['fitness/#cardio', 'Cardio', 'the 2016 running log'], ['fitness/#bodyweight', 'Bodyweight', 'pushups and pullups']]),
+    ]));
+    if (DS.move) { const M = DS.move; cards.push(el('div', { className: 'card' }, [el('h3', { text: 'Movement' }),
+      el('div', { className: 'big2' }, [num(totalIn('move', 'miles', yearStart(M.end), M.end)), el('small', { text: `mi walked in ${YR[M.end]} · through ${dstr(M.end)}` })]),
+      linkRow([[() => openInExplorer([['move', 'steps', null, [], false], ['exercise', 'minutes', null, [], false]], yearStart(M.end), M.end), 'Chart it'], ['step-song/#decade', 'Ten years of steps']])])); }
     $('#t-cards').replaceChildren(...(cards.length ? cards : [el('p', { className: 'note', text: 'Nothing here yet.' })]));
+  }
+  function renderHealth() {
+    const cards = [], B = DS.body, last30 = (ds, m) => { const d = DS[ds]; if (!d) return null; const L = asLine(ds, m), r = sumRange(L, d.end - 29, d.end); return r.cnt ? (L.agg === 'mean' ? r.sum / r.cnt : r.sum) : null; };
+    if (B) cards.push(el('div', { className: 'card hr' }, [
+      el('h3', { text: 'Heart + sleep' }),
+      el('div', { className: 'kv' }, [['resting_hr', 'resting', 'bpm'], ['hrv', 'HRV', 'ms'], ['sleep_h', 'sleep', 'h'], ['walking_hr', 'walking', 'bpm']].map(([m, lab, u]) => { const v = last30('body', m); return v == null ? null : el('span', {}, [lab + ' ', el('b', { text: `${num(v)} ${u}` })]); })),
+      el('div', { className: 'tag', text: `last 30 days · through ${dstr(B.end)}` }),
+      jump([['pct-training/#recovery', 'Recovery', 'heart rate, HRV, sleep vs training'], ['body/', 'BODY//MAP', 'muscle load + stretches'], ['months/', 'Report cards', 'graded month by month'], ['#experiments/corr', 'What moves together', 'correlations']]),
+      linkRow([[() => openInExplorer([['body', 'resting_hr', null, [], false], ['body', 'hrv', null, [], false]], Math.max(B.offset, yearStart(B.end)), B.end), 'Chart it']]),
+    ]));
+    if (DS.breath) { const Bt = DS.breath; cards.push(el('div', { className: 'card br' }, [
+      el('h3', { text: 'Breathwork' }),
+      el('div', { className: 'big2' }, [num(totalIn('breath', 'sessions', Math.max(Bt.offset, yearStart(Bt.end)), Bt.end)), el('small', { text: `sessions in ${YR[Bt.end]} · through ${dstr(Bt.end)}` })]),
+      jump([['#experiments/wimhof', 'Does Wim Hof work?', 'holds vs heart + sleep']]),
+      linkRow([[() => openInExplorer([['breath', 'sessions', null, [], false], ['breath', 'avg_hold', null, [], false]], Math.max(Bt.offset, yearStart(Bt.end)), Bt.end), 'Chart it']]),
+    ])); }
+    if (DS.water) { const W = DS.water; cards.push(el('div', { className: 'card wa' }, [
+      el('h3', { text: 'Water' }),
+      el('div', { className: 'big2' }, [num(totalIn('water', 'liters', W.offset, W.end)), el('small', { text: `L · ${dstr(W.offset)} – ${dstr(W.end)}` })]),
+      linkRow([[() => openInExplorer([['water', 'liters', null, [], false]], W.offset, W.end), 'Chart it']]),
+    ])); }
+    for (const d of daily.datasets.filter((x) => x.site && x.site.group)) cards.push(el('div', { className: 'card' }, [el('h3', { text: d.name }),
+      linkRow([[() => openInExplorer([[d.id, d.metrics[0].id, null, [], false]], d.offset, d.end), 'Chart it']])]));
+    if (PRIV.box && !daily.datasets.some((x) => x.site && x.site.group)) cards.push(el('div', { className: 'card' }, [el('h3', { text: 'Private' }), linkRow([['#report', 'Unlock on Home']])]));
+    $('#h-cards').replaceChildren(...cards);
   }
   function renderProjects() {
     const M = DS.move, U = DS.music, cards = [];
@@ -1746,12 +1818,13 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
       jump([['photo-library/#overview', 'Overview', 'where it stands'], ['photo-library/#captured', 'Captured', 'by date taken'], ['photo-library/#worklog', 'Work log', 'one row per snapshot'],
         ['photo-library/#space', 'Types & space', 'what is sorted, what is big'], ['photo-library/#lightroom', 'Lightroom', 'the proper photography']]),
     ]));
-    cards.push(el('div', { className: 'card iron' }, [
-      el('h3', { text: 'IRON//LOG' }),
-      el('div', { className: 'big2' }, ['2015–2024', el('small', { text: 'seven logs: lifts, runs, pushups' })]),
-      jump([['fitness/#overview', 'Overview', 'every log on one timeline'], ['fitness/#lifts', 'Big four', 'squat, bench, deadlift, press'], ['fitness/#sessions', 'Sessions', 'every set of every session'],
-        ['fitness/#exercises', 'Exercises', 'what got trained'], ['fitness/#cardio', 'Cardio', 'the 2016 running log'], ['fitness/#bodyweight', 'Bodyweight', 'pushups and pullups']]),
-    ]));
+    if (DS.watch) { const W = DS.watch; cards.push(el('div', { className: 'card mv' }, [el('h3', { text: 'Movies & TV' }),
+      el('div', { className: 'big2' }, [num(totalIn('watch', 'movies', yearStart(W.end), W.end)), el('small', { text: `movies + ${num(totalIn('watch', 'episodes', yearStart(W.end), W.end))} episodes in ${YR[W.end]}` })]),
+      jump([['#movies', 'Every title', 'posters + report cards'], ['#movies/map', 'Guilty pleasures', 'the map'], ['#movies/propaganda', 'Propaganda', 'the board']])])); }
+    gamesCard().then((c) => { if (!c) return; const host = $('#p-cards'); host.querySelector('.card.games')?.remove(); c.classList.add('games'); host.append(c); });
+    if (DS.calls) { const C = DS.calls; cards.push(el('div', { className: 'card' }, [el('h3', { text: 'Phone calls' }),
+      el('div', { className: 'big2' }, [num(totalIn('calls', 'minutes', yearStart(C.end), C.end), 'min'), el('small', { text: `on the phone in ${YR[C.end]}` })]),
+      linkRow([[() => openInExplorer([['calls', 'minutes', null, [], false]], yearStart(C.end), C.end), 'Chart it']])])); }
     $('#p-cards').replaceChildren(...cards);
   }
 
@@ -1889,7 +1962,7 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
       eTipAt(ev, `<b>${N - k} days to go</b><br><span style="color:#ff3fb4">2019:</span> ${num(then[k], 'mi')} so far` + (k < nowN ? `<br><span style="color:#3ff0ff">now:</span> ${num(now[k], 'mi')} so far${est[k] ? ' (Strava hikes only)' : ''}` : '')); }); hit.addEventListener('mouseleave', eTipOff); s.append(hit);
     $('#r-race-chart').replaceChildren(s);
     const ahead = nowN ? now[nowN - 1] - then[nowN - 1] : 0;
-    $('#r-race-note').textContent = nowN ? `${nowN} day${nowN === 1 ? '' : 's'} into the countdown: ${num(now[nowN - 1], 'mi')} against ${num(then[nowN - 1], 'mi')} at the same point before the AT, ${num(Math.abs(ahead), 'mi')} ${ahead >= 0 ? 'above' : 'below'} the low-tide mark. 2019 run-in total ${num(then[N - 1], 'mi')}.`
+    if (0) $('#r-race-note').textContent = nowN ? `${nowN} day${nowN === 1 ? '' : 's'} into the countdown: ${num(now[nowN - 1], 'mi')} against ${num(then[nowN - 1], 'mi')} at the same point before the AT, ${num(Math.abs(ahead), 'mi')} ${ahead >= 0 ? 'above' : 'below'} the low-tide mark. 2019 run-in total ${num(then[N - 1], 'mi')}.`
       + (firstEst >= 0 ? ` Dashed: Strava only.` : '') : `The 2019 run-in came to ${num(then[N - 1], 'mi')}. This year's line starts ${N} days before the start.`;
   }
 
@@ -2301,11 +2374,11 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
     $('#g-note').textContent = `${rows.length} of ${sets.length} datasets · ${dstr(R[0])} – ${dstr(R[1])} · ${step === 7 ? 'one cell per week' : 'one cell per day'}`;
   }
 
-  const VIEWS = { report: renderReport, trails: renderTrails, projects: renderProjects, data: renderData, experiments: renderExperiments, explore: renderExplorer, calendar: renderCalendar, gantt: renderGantt, ...(WT ? { watched: renderMovies } : {}) };
-  const TITLES = { watched: 'Movies & TV', trails: 'Trails', projects: 'Projects', data: 'Data', experiments: 'Lab', explore: 'Explorer', calendar: 'Calendar', gantt: 'Gantt' };   // browser tab + history
-  const NAV_OF = { report: 'home', trails: 'trails', projects: 'projects', data: 'data', experiments: 'data', explore: 'data', calendar: 'data', gantt: 'data', watched: 'movies' };
+  const VIEWS = { report: renderReport, fitness: renderTrails, health: renderHealth, media: renderProjects, data: renderData, experiments: renderExperiments, explore: renderExplorer, calendar: renderCalendar, gantt: renderGantt, ...(WT ? { watched: renderMovies } : {}) };
+  const TITLES = { watched: 'Movies & TV', fitness: 'Fitness', health: 'Health', media: 'Media', data: 'Data', experiments: 'Lab', explore: 'Explorer', calendar: 'Calendar', gantt: 'Gantt' };   // browser tab + history
+  const NAV_OF = { report: 'home', fitness: 'fitness', health: 'health', media: 'media', data: 'data', experiments: 'data', explore: 'data', calendar: 'data', gantt: 'data', watched: 'media' };
   function route() {
-    const [base, sub] = location.hash.slice(1).split('/'), alias = { highlights: 'trails', report: 'report', movies: 'watched' }, v = VIEWS[alias[base] || base] ? alias[base] || base : 'report';
+    const [base, sub] = location.hash.slice(1).split('/'), alias = { highlights: 'fitness', trails: 'fitness', projects: 'media', report: 'report', movies: 'watched' }, v = VIEWS[alias[base] || base] ? alias[base] || base : 'report';
     if (base === 'experiments' && sub === 'race') { location.replace('pct-training/#low-tide'); return; }
     if (v === 'experiments' && E_TABS.some(([k]) => k === sub)) expTab = sub;
     if (v === 'watched') wTab = W_TABS.some(([k]) => k === sub) ? sub : 'wall';
@@ -2337,7 +2410,7 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
       } catch (e) { msg.textContent = 'That passphrase doesn\'t open it.'; $('#priv-pass').select(); }
     };
   })();
-  $('#foot').textContent = `Data built ${daily.generated} · ` + daily.datasets.map((d) => `${d.name} ${iso(d.offset)} → ${iso(d.end)}`).join(' · ') ;
+
   $('#boot').remove();
   try { await Promise.race([document.fonts.ready, new Promise((r) => setTimeout(r, 1500))]); } catch (e) {}
   window.addEventListener('hashchange', route);

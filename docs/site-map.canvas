@@ -1,0 +1,1279 @@
+{
+ "nodes": [
+  {
+   "id": "r_health",
+   "type": "text",
+   "text": "Apple Health\nHealthView CSVs",
+   "x": 0,
+   "y": 0,
+   "width": 260,
+   "height": 90,
+   "color": "6"
+  },
+  {
+   "id": "r_strava",
+   "type": "text",
+   "text": "Strava\n(connector)",
+   "x": 0,
+   "y": 114,
+   "width": 260,
+   "height": 90,
+   "color": "6"
+  },
+  {
+   "id": "r_work",
+   "type": "text",
+   "text": "Gym workbooks +\nwhiteboard / notes / notebooks Sheets",
+   "x": 0,
+   "y": 228,
+   "width": 260,
+   "height": 90,
+   "color": "6"
+  },
+  {
+   "id": "r_spotify",
+   "type": "text",
+   "text": "Spotify extended\nhistory",
+   "x": 0,
+   "y": 342,
+   "width": 260,
+   "height": 90,
+   "color": "6"
+  },
+  {
+   "id": "r_at",
+   "type": "text",
+   "text": "AT 2019 trail-log\nworkbook",
+   "x": 0,
+   "y": 456,
+   "width": 260,
+   "height": 90,
+   "color": "6"
+  },
+  {
+   "id": "r_watch",
+   "type": "text",
+   "text": "Watch-list workbook\n+ Scorecard",
+   "x": 0,
+   "y": 570,
+   "width": 260,
+   "height": 90,
+   "color": "6"
+  },
+  {
+   "id": "r_calls",
+   "type": "text",
+   "text": "Call-log backup",
+   "x": 0,
+   "y": 684,
+   "width": 260,
+   "height": 90,
+   "color": "6"
+  },
+  {
+   "id": "r_wim",
+   "type": "text",
+   "text": "Wim Hof export",
+   "x": 0,
+   "y": 798,
+   "width": 260,
+   "height": 90,
+   "color": "6"
+  },
+  {
+   "id": "r_water",
+   "type": "text",
+   "text": "Water log CSV",
+   "x": 0,
+   "y": 912,
+   "width": 260,
+   "height": 90,
+   "color": "6"
+  },
+  {
+   "id": "r_smoke",
+   "type": "text",
+   "text": "Smoking log (private)",
+   "x": 0,
+   "y": 1026,
+   "width": 260,
+   "height": 90,
+   "color": "6"
+  },
+  {
+   "id": "r_photos",
+   "type": "text",
+   "text": "Photo tracker +\nLightroom",
+   "x": 0,
+   "y": 1140,
+   "width": 260,
+   "height": 90,
+   "color": "6"
+  },
+  {
+   "id": "r_epic",
+   "type": "text",
+   "text": "Epic export +\nseason calendar",
+   "x": 0,
+   "y": 1254,
+   "width": 260,
+   "height": 90,
+   "color": "6"
+  },
+  {
+   "id": "r_tl",
+   "type": "text",
+   "text": "Timeline-*.xlsx",
+   "x": 0,
+   "y": 1368,
+   "width": 260,
+   "height": 90,
+   "color": "6"
+  },
+  {
+   "id": "b_health",
+   "type": "text",
+   "text": "build_health_log.py",
+   "x": 420,
+   "y": 0,
+   "width": 260,
+   "height": 90,
+   "color": "5"
+  },
+  {
+   "id": "b_pct",
+   "type": "text",
+   "text": "build_pct_training.py",
+   "x": 420,
+   "y": 114,
+   "width": 260,
+   "height": 90,
+   "color": "5"
+  },
+  {
+   "id": "b_fit",
+   "type": "text",
+   "text": "build_fitness.py",
+   "x": 420,
+   "y": 228,
+   "width": 260,
+   "height": 90,
+   "color": "5"
+  },
+  {
+   "id": "b_ss",
+   "type": "text",
+   "text": "build_step_song.py\nbuild_eras.py",
+   "x": 420,
+   "y": 342,
+   "width": 260,
+   "height": 90,
+   "color": "5"
+  },
+  {
+   "id": "b_at",
+   "type": "text",
+   "text": "build_at_log.py\nbuild_at_breakdown.py\nbuild_trail_radio.py",
+   "x": 420,
+   "y": 456,
+   "width": 260,
+   "height": 90,
+   "color": "5"
+  },
+  {
+   "id": "b_watch",
+   "type": "text",
+   "text": "fill_posters.py\nbuild_watch_log.py\nbuild_scorecard.py",
+   "x": 420,
+   "y": 570,
+   "width": 260,
+   "height": 90,
+   "color": "5"
+  },
+  {
+   "id": "b_calls",
+   "type": "text",
+   "text": "build_call_log.py",
+   "x": 420,
+   "y": 684,
+   "width": 260,
+   "height": 90,
+   "color": "5"
+  },
+  {
+   "id": "b_breath",
+   "type": "text",
+   "text": "build_breath_log.py",
+   "x": 420,
+   "y": 798,
+   "width": 260,
+   "height": 90,
+   "color": "5"
+  },
+  {
+   "id": "b_water",
+   "type": "text",
+   "text": "build_water_log.py",
+   "x": 420,
+   "y": 912,
+   "width": 260,
+   "height": 90,
+   "color": "5"
+  },
+  {
+   "id": "b_smoke",
+   "type": "text",
+   "text": "build_smoking_log.py",
+   "x": 420,
+   "y": 1026,
+   "width": 260,
+   "height": 90,
+   "color": "5"
+  },
+  {
+   "id": "b_photo",
+   "type": "text",
+   "text": "photo_snapshot.py\nlightroom_snapshot.py",
+   "x": 420,
+   "y": 1140,
+   "width": 260,
+   "height": 90,
+   "color": "5"
+  },
+  {
+   "id": "b_fn",
+   "type": "text",
+   "text": "build_fortnite.py",
+   "x": 420,
+   "y": 1254,
+   "width": 260,
+   "height": 90,
+   "color": "5"
+  },
+  {
+   "id": "b_tl",
+   "type": "text",
+   "text": "build_timelines.py",
+   "x": 420,
+   "y": 1368,
+   "width": 260,
+   "height": 90,
+   "color": "5"
+  },
+  {
+   "id": "b_meta",
+   "type": "text",
+   "text": "build_meta_log.py\n(seals private)",
+   "x": 420,
+   "y": 1482,
+   "width": 260,
+   "height": 90,
+   "color": "5"
+  },
+  {
+   "id": "b_sea",
+   "type": "text",
+   "text": "build_seasons.py",
+   "x": 420,
+   "y": 1596,
+   "width": 260,
+   "height": 90,
+   "color": "5"
+  },
+  {
+   "id": "b_rc",
+   "type": "text",
+   "text": "build_report_cards.py",
+   "x": 420,
+   "y": 1710,
+   "width": 260,
+   "height": 90,
+   "color": "5"
+  },
+  {
+   "id": "b_body",
+   "type": "text",
+   "text": "build_body_map.py",
+   "x": 420,
+   "y": 1824,
+   "width": 260,
+   "height": 90,
+   "color": "5"
+  },
+  {
+   "id": "b_cl",
+   "type": "text",
+   "text": "export_for_claude.py",
+   "x": 420,
+   "y": 1938,
+   "width": 260,
+   "height": 90,
+   "color": "5"
+  },
+  {
+   "id": "b_man",
+   "type": "text",
+   "text": "build_manifest.py",
+   "x": 420,
+   "y": 2052,
+   "width": 260,
+   "height": 90,
+   "color": "5"
+  },
+  {
+   "id": "d_health",
+   "type": "text",
+   "text": "health.json",
+   "x": 840,
+   "y": 0,
+   "width": 260,
+   "height": 90,
+   "color": "4"
+  },
+  {
+   "id": "d_train",
+   "type": "text",
+   "text": "training.json\nactivities.json",
+   "x": 840,
+   "y": 114,
+   "width": 260,
+   "height": 90,
+   "color": "4"
+  },
+  {
+   "id": "d_fit",
+   "type": "text",
+   "text": "fitness.json\nlifting.json",
+   "x": 840,
+   "y": 228,
+   "width": 260,
+   "height": 90,
+   "color": "4"
+  },
+  {
+   "id": "d_ss",
+   "type": "text",
+   "text": "step-song meta / hourly /\nplays-YYYY / eras",
+   "x": 840,
+   "y": 342,
+   "width": 260,
+   "height": 90,
+   "color": "4"
+  },
+  {
+   "id": "d_at",
+   "type": "text",
+   "text": "at2019-log / breakdown\ntrail-radio.json",
+   "x": 840,
+   "y": 456,
+   "width": 260,
+   "height": 90,
+   "color": "4"
+  },
+  {
+   "id": "d_watch",
+   "type": "text",
+   "text": "watch / watch-titles /\nwatch-scores.json",
+   "x": 840,
+   "y": 570,
+   "width": 260,
+   "height": 90,
+   "color": "4"
+  },
+  {
+   "id": "d_calls",
+   "type": "text",
+   "text": "calls.json",
+   "x": 840,
+   "y": 684,
+   "width": 260,
+   "height": 90,
+   "color": "4"
+  },
+  {
+   "id": "d_breath",
+   "type": "text",
+   "text": "breath.json",
+   "x": 840,
+   "y": 798,
+   "width": 260,
+   "height": 90,
+   "color": "4"
+  },
+  {
+   "id": "d_water",
+   "type": "text",
+   "text": "water.json",
+   "x": 840,
+   "y": 912,
+   "width": 260,
+   "height": 90,
+   "color": "4"
+  },
+  {
+   "id": "d_priv",
+   "type": "text",
+   "text": "private.enc.json\n(sealed)",
+   "x": 840,
+   "y": 1026,
+   "width": 260,
+   "height": 90,
+   "color": "4"
+  },
+  {
+   "id": "d_photo",
+   "type": "text",
+   "text": "photo-library.json\nlightroom.json",
+   "x": 840,
+   "y": 1140,
+   "width": 260,
+   "height": 90,
+   "color": "4"
+  },
+  {
+   "id": "d_fn",
+   "type": "text",
+   "text": "fortnite.json",
+   "x": 840,
+   "y": 1254,
+   "width": 260,
+   "height": 90,
+   "color": "4"
+  },
+  {
+   "id": "d_tl",
+   "type": "text",
+   "text": "timelines.json",
+   "x": 840,
+   "y": 1368,
+   "width": 260,
+   "height": 90,
+   "color": "4"
+  },
+  {
+   "id": "d_daily",
+   "type": "text",
+   "text": "daily.json",
+   "x": 840,
+   "y": 1482,
+   "width": 260,
+   "height": 90,
+   "color": "4"
+  },
+  {
+   "id": "d_sea",
+   "type": "text",
+   "text": "seasons.json",
+   "x": 840,
+   "y": 1596,
+   "width": 260,
+   "height": 90,
+   "color": "4"
+  },
+  {
+   "id": "d_months",
+   "type": "text",
+   "text": "months.json",
+   "x": 840,
+   "y": 1710,
+   "width": 260,
+   "height": 90,
+   "color": "4"
+  },
+  {
+   "id": "d_body",
+   "type": "text",
+   "text": "body.json",
+   "x": 840,
+   "y": 1824,
+   "width": 260,
+   "height": 90,
+   "color": "4"
+  },
+  {
+   "id": "d_claude",
+   "type": "text",
+   "text": "claude-ready/\nCSV + jsbv.sqlite",
+   "x": 840,
+   "y": 1938,
+   "width": 260,
+   "height": 90,
+   "color": "4"
+  },
+  {
+   "id": "d_man",
+   "type": "text",
+   "text": "manifest.json",
+   "x": 840,
+   "y": 2052,
+   "width": 260,
+   "height": 90,
+   "color": "4"
+  },
+  {
+   "id": "g_Home",
+   "type": "group",
+   "label": "Home",
+   "x": 1240,
+   "y": 0,
+   "width": 320,
+   "height": 174,
+   "color": "5"
+  },
+  {
+   "id": "p_home",
+   "type": "text",
+   "text": "/#report\nPCT hero \u00b7 month card \u00b7\nseasons \u00b7 low tide \u00b7 tiles",
+   "x": 1270,
+   "y": 40,
+   "width": 260,
+   "height": 90,
+   "color": "5"
+  },
+  {
+   "id": "g_Fitness",
+   "type": "group",
+   "label": "Fitness",
+   "x": 1240,
+   "y": 214,
+   "width": 320,
+   "height": 516,
+   "color": "4"
+  },
+  {
+   "id": "p_pct",
+   "type": "text",
+   "text": "PCT//PREP\npct-training/",
+   "x": 1270,
+   "y": 254,
+   "width": 260,
+   "height": 90,
+   "color": "4"
+  },
+  {
+   "id": "p_body",
+   "type": "text",
+   "text": "BODY//MAP\nbody/",
+   "x": 1270,
+   "y": 368,
+   "width": 260,
+   "height": 90,
+   "color": "4"
+  },
+  {
+   "id": "p_iron",
+   "type": "text",
+   "text": "IRON//LOG\nfitness/",
+   "x": 1270,
+   "y": 482,
+   "width": 260,
+   "height": 90,
+   "color": "4"
+  },
+  {
+   "id": "p_trail",
+   "type": "text",
+   "text": "TRAIL//RADIO\ntrail/",
+   "x": 1270,
+   "y": 596,
+   "width": 260,
+   "height": 90,
+   "color": "4"
+  },
+  {
+   "id": "g_Health",
+   "type": "group",
+   "label": "Health",
+   "x": 1240,
+   "y": 770,
+   "width": 320,
+   "height": 174,
+   "color": "1"
+  },
+  {
+   "id": "p_health",
+   "type": "text",
+   "text": "/#health\nheart + sleep \u00b7 breathwork \u00b7\nwater \u00b7 private",
+   "x": 1270,
+   "y": 810,
+   "width": 260,
+   "height": 90,
+   "color": "1"
+  },
+  {
+   "id": "g_Media",
+   "type": "group",
+   "label": "Media",
+   "x": 1240,
+   "y": 984,
+   "width": 320,
+   "height": 516,
+   "color": "6"
+  },
+  {
+   "id": "p_ss",
+   "type": "text",
+   "text": "STEP//SONG\nstep-song/",
+   "x": 1270,
+   "y": 1024,
+   "width": 260,
+   "height": 90,
+   "color": "6"
+  },
+  {
+   "id": "p_movies",
+   "type": "text",
+   "text": "Movies & TV\n/#movies",
+   "x": 1270,
+   "y": 1138,
+   "width": 260,
+   "height": 90,
+   "color": "6"
+  },
+  {
+   "id": "p_photo",
+   "type": "text",
+   "text": "PHOTO//SORT\nphoto-library/",
+   "x": 1270,
+   "y": 1252,
+   "width": 260,
+   "height": 90,
+   "color": "6"
+  },
+  {
+   "id": "p_games",
+   "type": "text",
+   "text": "Video games\ngames/",
+   "x": 1270,
+   "y": 1366,
+   "width": 260,
+   "height": 90,
+   "color": "6"
+  },
+  {
+   "id": "g_Data",
+   "type": "group",
+   "label": "Data",
+   "x": 1240,
+   "y": 1540,
+   "width": 320,
+   "height": 516,
+   "color": "3"
+  },
+  {
+   "id": "p_data",
+   "type": "text",
+   "text": "All data /#data",
+   "x": 1270,
+   "y": 1580,
+   "width": 260,
+   "height": 90,
+   "color": "3"
+  },
+  {
+   "id": "p_explore",
+   "type": "text",
+   "text": "Explorer \u00b7 Calendar \u00b7\nGantt \u00b7 Lab",
+   "x": 1270,
+   "y": 1694,
+   "width": 260,
+   "height": 90,
+   "color": "3"
+  },
+  {
+   "id": "p_months",
+   "type": "text",
+   "text": "Report cards\nmonths/",
+   "x": 1270,
+   "y": 1808,
+   "width": 260,
+   "height": 90,
+   "color": "3"
+  },
+  {
+   "id": "p_tl",
+   "type": "text",
+   "text": "Timelines\ntimelines/",
+   "x": 1270,
+   "y": 1922,
+   "width": 260,
+   "height": 90,
+   "color": "3"
+  },
+  {
+   "id": "h0",
+   "type": "text",
+   "text": "# Raw exports\noutside the repo",
+   "x": 0,
+   "y": -160,
+   "width": 260,
+   "height": 110
+  },
+  {
+   "id": "h1",
+   "type": "text",
+   "text": "# Builders\nscripts/",
+   "x": 420,
+   "y": -160,
+   "width": 260,
+   "height": 110
+  },
+  {
+   "id": "h2",
+   "type": "text",
+   "text": "# Site data\nrepo JSON (public)",
+   "x": 840,
+   "y": -160,
+   "width": 260,
+   "height": 110
+  },
+  {
+   "id": "h3",
+   "type": "text",
+   "text": "# Pages\nnav: Home \u00b7 Fitness \u00b7 Health \u00b7 Media \u00b7 Data",
+   "x": 1240,
+   "y": -160,
+   "width": 320,
+   "height": 110
+  },
+  {
+   "id": "upd",
+   "type": "text",
+   "text": "**Update jsbv.command**\nscripts/update.py runs every builder in order, then prints freshness",
+   "x": 420,
+   "y": -320,
+   "width": 520,
+   "height": 110,
+   "color": "3"
+  }
+ ],
+ "edges": [
+  {
+   "id": "e0",
+   "fromNode": "r_health",
+   "fromSide": "right",
+   "toNode": "b_health",
+   "toSide": "left"
+  },
+  {
+   "id": "e1",
+   "fromNode": "r_health",
+   "fromSide": "right",
+   "toNode": "b_pct",
+   "toSide": "left"
+  },
+  {
+   "id": "e2",
+   "fromNode": "r_strava",
+   "fromSide": "right",
+   "toNode": "b_pct",
+   "toSide": "left"
+  },
+  {
+   "id": "e3",
+   "fromNode": "r_work",
+   "fromSide": "right",
+   "toNode": "b_fit",
+   "toSide": "left"
+  },
+  {
+   "id": "e4",
+   "fromNode": "r_spotify",
+   "fromSide": "right",
+   "toNode": "b_ss",
+   "toSide": "left"
+  },
+  {
+   "id": "e5",
+   "fromNode": "r_spotify",
+   "fromSide": "right",
+   "toNode": "b_at",
+   "toSide": "left"
+  },
+  {
+   "id": "e6",
+   "fromNode": "r_at",
+   "fromSide": "right",
+   "toNode": "b_at",
+   "toSide": "left"
+  },
+  {
+   "id": "e7",
+   "fromNode": "r_watch",
+   "fromSide": "right",
+   "toNode": "b_watch",
+   "toSide": "left"
+  },
+  {
+   "id": "e8",
+   "fromNode": "r_calls",
+   "fromSide": "right",
+   "toNode": "b_calls",
+   "toSide": "left"
+  },
+  {
+   "id": "e9",
+   "fromNode": "r_wim",
+   "fromSide": "right",
+   "toNode": "b_breath",
+   "toSide": "left"
+  },
+  {
+   "id": "e10",
+   "fromNode": "r_water",
+   "fromSide": "right",
+   "toNode": "b_water",
+   "toSide": "left"
+  },
+  {
+   "id": "e11",
+   "fromNode": "r_smoke",
+   "fromSide": "right",
+   "toNode": "b_smoke",
+   "toSide": "left"
+  },
+  {
+   "id": "e12",
+   "fromNode": "r_photos",
+   "fromSide": "right",
+   "toNode": "b_photo",
+   "toSide": "left"
+  },
+  {
+   "id": "e13",
+   "fromNode": "r_epic",
+   "fromSide": "right",
+   "toNode": "b_fn",
+   "toSide": "left"
+  },
+  {
+   "id": "e14",
+   "fromNode": "r_tl",
+   "fromSide": "right",
+   "toNode": "b_tl",
+   "toSide": "left"
+  },
+  {
+   "id": "e15",
+   "fromNode": "b_health",
+   "fromSide": "right",
+   "toNode": "d_health",
+   "toSide": "left"
+  },
+  {
+   "id": "e16",
+   "fromNode": "b_pct",
+   "fromSide": "right",
+   "toNode": "d_train",
+   "toSide": "left"
+  },
+  {
+   "id": "e17",
+   "fromNode": "b_fit",
+   "fromSide": "right",
+   "toNode": "d_fit",
+   "toSide": "left"
+  },
+  {
+   "id": "e18",
+   "fromNode": "b_ss",
+   "fromSide": "right",
+   "toNode": "d_ss",
+   "toSide": "left"
+  },
+  {
+   "id": "e19",
+   "fromNode": "b_at",
+   "fromSide": "right",
+   "toNode": "d_at",
+   "toSide": "left"
+  },
+  {
+   "id": "e20",
+   "fromNode": "b_watch",
+   "fromSide": "right",
+   "toNode": "d_watch",
+   "toSide": "left"
+  },
+  {
+   "id": "e21",
+   "fromNode": "b_calls",
+   "fromSide": "right",
+   "toNode": "d_calls",
+   "toSide": "left"
+  },
+  {
+   "id": "e22",
+   "fromNode": "b_breath",
+   "fromSide": "right",
+   "toNode": "d_breath",
+   "toSide": "left"
+  },
+  {
+   "id": "e23",
+   "fromNode": "b_water",
+   "fromSide": "right",
+   "toNode": "d_water",
+   "toSide": "left"
+  },
+  {
+   "id": "e24",
+   "fromNode": "b_smoke",
+   "fromSide": "right",
+   "toNode": "d_priv",
+   "toSide": "left"
+  },
+  {
+   "id": "e25",
+   "fromNode": "b_fit",
+   "fromSide": "right",
+   "toNode": "d_priv",
+   "toSide": "left"
+  },
+  {
+   "id": "e26",
+   "fromNode": "b_photo",
+   "fromSide": "right",
+   "toNode": "d_photo",
+   "toSide": "left"
+  },
+  {
+   "id": "e27",
+   "fromNode": "b_fn",
+   "fromSide": "right",
+   "toNode": "d_fn",
+   "toSide": "left"
+  },
+  {
+   "id": "e28",
+   "fromNode": "b_tl",
+   "fromSide": "right",
+   "toNode": "d_tl",
+   "toSide": "left"
+  },
+  {
+   "id": "e29",
+   "fromNode": "b_meta",
+   "fromSide": "right",
+   "toNode": "d_daily",
+   "toSide": "left"
+  },
+  {
+   "id": "e30",
+   "fromNode": "b_meta",
+   "fromSide": "right",
+   "toNode": "d_priv",
+   "toSide": "left"
+  },
+  {
+   "id": "e31",
+   "fromNode": "b_sea",
+   "fromSide": "right",
+   "toNode": "d_sea",
+   "toSide": "left"
+  },
+  {
+   "id": "e32",
+   "fromNode": "b_rc",
+   "fromSide": "right",
+   "toNode": "d_months",
+   "toSide": "left"
+  },
+  {
+   "id": "e33",
+   "fromNode": "b_body",
+   "fromSide": "right",
+   "toNode": "d_body",
+   "toSide": "left"
+  },
+  {
+   "id": "e34",
+   "fromNode": "b_cl",
+   "fromSide": "right",
+   "toNode": "d_claude",
+   "toSide": "left"
+  },
+  {
+   "id": "e35",
+   "fromNode": "b_man",
+   "fromSide": "right",
+   "toNode": "d_man",
+   "toSide": "left"
+  },
+  {
+   "id": "e36",
+   "fromNode": "d_health",
+   "fromSide": "left",
+   "toNode": "b_meta",
+   "toSide": "right",
+   "color": "2"
+  },
+  {
+   "id": "e37",
+   "fromNode": "d_fit",
+   "fromSide": "left",
+   "toNode": "b_meta",
+   "toSide": "right",
+   "color": "2"
+  },
+  {
+   "id": "e38",
+   "fromNode": "d_ss",
+   "fromSide": "left",
+   "toNode": "b_meta",
+   "toSide": "right",
+   "color": "2"
+  },
+  {
+   "id": "e39",
+   "fromNode": "d_watch",
+   "fromSide": "left",
+   "toNode": "b_meta",
+   "toSide": "right",
+   "color": "2"
+  },
+  {
+   "id": "e40",
+   "fromNode": "d_calls",
+   "fromSide": "left",
+   "toNode": "b_meta",
+   "toSide": "right",
+   "color": "2"
+  },
+  {
+   "id": "e41",
+   "fromNode": "d_breath",
+   "fromSide": "left",
+   "toNode": "b_meta",
+   "toSide": "right",
+   "color": "2"
+  },
+  {
+   "id": "e42",
+   "fromNode": "d_water",
+   "fromSide": "left",
+   "toNode": "b_meta",
+   "toSide": "right",
+   "color": "2"
+  },
+  {
+   "id": "e43",
+   "fromNode": "d_photo",
+   "fromSide": "left",
+   "toNode": "b_meta",
+   "toSide": "right",
+   "color": "2"
+  },
+  {
+   "id": "e44",
+   "fromNode": "d_fn",
+   "fromSide": "left",
+   "toNode": "b_meta",
+   "toSide": "right",
+   "color": "2"
+  },
+  {
+   "id": "e45",
+   "fromNode": "d_daily",
+   "fromSide": "left",
+   "toNode": "b_sea",
+   "toSide": "right",
+   "color": "2"
+  },
+  {
+   "id": "e46",
+   "fromNode": "d_daily",
+   "fromSide": "left",
+   "toNode": "b_rc",
+   "toSide": "right",
+   "color": "2"
+  },
+  {
+   "id": "e47",
+   "fromNode": "d_train",
+   "fromSide": "left",
+   "toNode": "b_rc",
+   "toSide": "right",
+   "color": "2"
+  },
+  {
+   "id": "e48",
+   "fromNode": "d_fit",
+   "fromSide": "left",
+   "toNode": "b_body",
+   "toSide": "right",
+   "color": "2"
+  },
+  {
+   "id": "e49",
+   "fromNode": "d_train",
+   "fromSide": "left",
+   "toNode": "b_body",
+   "toSide": "right",
+   "color": "2"
+  },
+  {
+   "id": "e50",
+   "fromNode": "d_daily",
+   "fromSide": "left",
+   "toNode": "b_cl",
+   "toSide": "right",
+   "color": "2"
+  },
+  {
+   "id": "e51",
+   "fromNode": "d_fit",
+   "fromSide": "left",
+   "toNode": "b_cl",
+   "toSide": "right",
+   "color": "2"
+  },
+  {
+   "id": "e52",
+   "fromNode": "d_daily",
+   "fromSide": "right",
+   "toNode": "p_home",
+   "toSide": "left"
+  },
+  {
+   "id": "e53",
+   "fromNode": "d_sea",
+   "fromSide": "right",
+   "toNode": "p_home",
+   "toSide": "left"
+  },
+  {
+   "id": "e54",
+   "fromNode": "d_months",
+   "fromSide": "right",
+   "toNode": "p_home",
+   "toSide": "left"
+  },
+  {
+   "id": "e55",
+   "fromNode": "d_train",
+   "fromSide": "right",
+   "toNode": "p_home",
+   "toSide": "left"
+  },
+  {
+   "id": "e56",
+   "fromNode": "d_priv",
+   "fromSide": "right",
+   "toNode": "p_home",
+   "toSide": "left"
+  },
+  {
+   "id": "e57",
+   "fromNode": "d_train",
+   "fromSide": "right",
+   "toNode": "p_pct",
+   "toSide": "left"
+  },
+  {
+   "id": "e58",
+   "fromNode": "d_health",
+   "fromSide": "right",
+   "toNode": "p_pct",
+   "toSide": "left"
+  },
+  {
+   "id": "e59",
+   "fromNode": "d_body",
+   "fromSide": "right",
+   "toNode": "p_body",
+   "toSide": "left"
+  },
+  {
+   "id": "e60",
+   "fromNode": "d_fit",
+   "fromSide": "right",
+   "toNode": "p_iron",
+   "toSide": "left"
+  },
+  {
+   "id": "e61",
+   "fromNode": "d_at",
+   "fromSide": "right",
+   "toNode": "p_trail",
+   "toSide": "left"
+  },
+  {
+   "id": "e62",
+   "fromNode": "d_daily",
+   "fromSide": "right",
+   "toNode": "p_health",
+   "toSide": "left"
+  },
+  {
+   "id": "e63",
+   "fromNode": "d_ss",
+   "fromSide": "right",
+   "toNode": "p_ss",
+   "toSide": "left"
+  },
+  {
+   "id": "e64",
+   "fromNode": "d_at",
+   "fromSide": "right",
+   "toNode": "p_ss",
+   "toSide": "left"
+  },
+  {
+   "id": "e65",
+   "fromNode": "d_watch",
+   "fromSide": "right",
+   "toNode": "p_movies",
+   "toSide": "left"
+  },
+  {
+   "id": "e66",
+   "fromNode": "d_photo",
+   "fromSide": "right",
+   "toNode": "p_photo",
+   "toSide": "left"
+  },
+  {
+   "id": "e67",
+   "fromNode": "d_fn",
+   "fromSide": "right",
+   "toNode": "p_games",
+   "toSide": "left"
+  },
+  {
+   "id": "e68",
+   "fromNode": "d_daily",
+   "fromSide": "right",
+   "toNode": "p_data",
+   "toSide": "left"
+  },
+  {
+   "id": "e69",
+   "fromNode": "d_daily",
+   "fromSide": "right",
+   "toNode": "p_explore",
+   "toSide": "left"
+  },
+  {
+   "id": "e70",
+   "fromNode": "d_tl",
+   "fromSide": "right",
+   "toNode": "p_explore",
+   "toSide": "left"
+  },
+  {
+   "id": "e71",
+   "fromNode": "d_months",
+   "fromSide": "right",
+   "toNode": "p_months",
+   "toSide": "left"
+  },
+  {
+   "id": "e72",
+   "fromNode": "d_tl",
+   "fromSide": "right",
+   "toNode": "p_tl",
+   "toSide": "left"
+  }
+ ]
+}

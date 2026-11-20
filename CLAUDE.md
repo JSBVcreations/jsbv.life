@@ -17,7 +17,7 @@ Jack's personal data site: a decade of steps, music, photos and trail logs, plus
 ## Map
 | Path | What | Data (builder) |
 |---|---|---|
-| `index.html` | Hash views: Home `#report` (heroes, year by season, low tide, tiles) · `#trails` · `#projects` · Movies & TV `#movies` (alias `#watched`: every title in one grid; a tile opens its report card; sub-tabs `#movies/map` guilty-pleasure map, `#movies/propaganda` propaganda board) · Data (`#data` `#explore` `#calendar` `#gantt` and the Lab `#experiments/<key>`, incl. `ridge` ridgeline, `clock` decade clock (`step-song/data/hourly.json`), `screens`, `wimhof`, `eras` (`step-song/data/eras.json`, `build_eras.py`), `strata`) | `daily.json` (`build_meta_log.py`), `seasons.json` (`build_seasons.py`), `training.json` |
+| `index.html` | Hash views: Home `#report` (PCT + this-month report card heroes, year by season, low tide, three tiles: Fitness · Health · Media) · hubs `#fitness` (old `#trails`) · `#health` · `#media` (old `#projects`) · Movies & TV `#movies` (alias `#watched`: every title in one grid; a tile opens its report card; sub-tabs `#movies/map` guilty-pleasure map, `#movies/propaganda` propaganda board) · Data (`#data` `#explore` `#calendar` `#gantt` and the Lab `#experiments/<key>`, incl. `ridge` ridgeline, `clock` decade clock (`step-song/data/hourly.json`), `screens`, `wimhof`, `eras` (`step-song/data/eras.json`, `build_eras.py`), `strata`) | `daily.json` (`build_meta_log.py`), `seasons.json` (`build_seasons.py`), `training.json` |
 | `pct-training/` | PCT//PREP: plan · calendar · low-tide (2019 pre-AT walking as the floor) · days · recovery · pace · trail-weeks | `training.json` (`build_pct_training.py`) from plan.json (original plan, never edited by Claude), plan-adjusted.json (toggleable second plan, Nov 18), a "Projected" third option computed by the build from the last 14 days' rate of increase (never hand-edited), activities.json (Strava), Health export |
 | `step-song/` | STEP//SONG: decade · trail (AT log, weeks, states, hours, calendar) · day · cuts | `build_step_song.py`, `build_at_log.py`, `build_at_breakdown.py` |
 | `trail/` | TRAIL//RADIO: AT 2019 songs by stretch, Spotify iFrame player | `build_trail_radio.py` |
@@ -25,7 +25,9 @@ Jack's personal data site: a decade of steps, music, photos and trail logs, plus
 | `games/` | Video games (under Data): fortnite (season timeline) · seasons (table). PSN trophies planned | `games/data/fortnite.json` (`build_fortnite.py`) from the Epic export PDF + season calendar workbook |
 | `fitness/` | IRON//LOG (Projects): overview · tally (running pounds) · PRs · big four · sessions · exercises · cardio · bodyweight · body (sealed) | `fitness/data/fitness.json` (`build_fitness.py`) from three workbooks + `Whiteboard-Workout-Log-2025.json` (pulled from the claude.ai Sheet a8e17f72-fd4a-4bfc-b747-68e005cf7021, "pull the whiteboard sheet") + `Gym-Notes-2022-23.json` (Sheet 5e081d89-a7b0-4027-8aab-c1b20bfb4814, "pull the gym notes sheet") + `Gym-Notebooks.json` (Sheet 056a433e-b48f-4eaa-92e6-7936d2246f70, "pull the notebooks sheet") in `jsbv data`; full database (every cell read, per-source tables, joined tables, `issue` list) in git-ignored `meta-log/data/private/fitness.sqlite` |
 | `photo-library/` | PHOTO//SORT: overview · captured · worklog · space · lightroom | tracker scripts in `~/Documents/01-Projects/photo-library-tracker` |
-| `assets/site.js`, `assets/site.css` | Shared nav (Home · Trails · Projects · Data), breadcrumbs, page tabs | — |
+| `body/` | BODY//MAP (Fitness): front/back body, 19 muscle groups, colour by recovery · 10-day load · last hit; stretches + exercises per group | `body/data/body.json` (`build_body_map.py`) from fitness.json + activities.json |
+| `months/` | Report cards (Data): one card per month of the year, Fitness + Health graded A–F against every month on record, Media ungraded | `meta-log/data/months.json` (`build_report_cards.py`) |
+| `assets/site.js`, `assets/site.css` | Shared nav (Home · Fitness · Health · Media · Data; old trails/projects/movies hashes alias in), breadcrumbs, page tabs | — |
 | `assets/theme.css` | Shared look, loaded last on every page (glass panels, pill nav, controls, tables) | — |
 | `scripts/config/` | `registry.json` (every source; `build_manifest.py` → `meta-log/data/manifest.json`), `genres.json`, `at_profile.json` | — |
 | Scorecard on `#movies` | Screening Scorecard scores: badge, stars, quadrant bars, propaganda; sort by any scale; report card (scored rows only, notes in full, IMDb button) | `watch-scores.json` (`build_scorecard.py`) from `jsbv data/scorecard.json`, which Claude pulls from the Scorecard page (slug d91a6afc-01bd-493a-b1ee-f06b91daa5c2, collection `scores`) with Jack's notes |
@@ -57,6 +59,8 @@ Jack's personal data site: a decade of steps, music, photos and trail logs, plus
 - Dashboard tiles change only when clicked (no timers). They show only the last 7 days and the last 30 days.
 - Data views default to the current year, not all time. Weeks start on Sunday.
 - Metrics are nested under umbrellas (Listening and Plays sit under Music, etc.).
+- Clusters (Nov 20): physiological metrics (heart rate, HRV, sleep, breathwork, water, private body) live under **Health**; activity (steps, miles, flights, exercise, lifting, hikes, AT) under **Fitness**; music, watching, photos, calls, games under **Media**.
+- Flat copies for analysis: `scripts/export_for_claude.py` writes CSVs + `jsbv.sqlite` + README to `jsbv data/claude-ready/` (run by Update).
 - Heart rate, HRV and sleep are published and interactive.
 - Copy is plain and specific. Numbers come from the data, never estimated in prose.
 - No explanatory filler under charts or datasets (Jack, Nov 19): titles, labels and numbers only.

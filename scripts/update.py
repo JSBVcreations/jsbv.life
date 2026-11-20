@@ -183,6 +183,9 @@ def main():
     if newest_file(['*MetaData*.xlsx']) and not run('fitness.json (IRON//LOG)', [py, os.path.join(S, 'build_fitness.py')]): failed.append('fitness')
     if not run('daily.json', [py, os.path.join(S, 'build_meta_log.py')]): failed.append('daily')
     if 'daily' not in failed and not run('seasons.json', [py, os.path.join(S, 'build_seasons.py')]): failed.append('seasons')
+    if 'daily' not in failed and not run('months.json (report cards)', [py, os.path.join(S, 'build_report_cards.py')]): failed.append('months')
+    if not run('body.json (BODY//MAP)', [py, os.path.join(S, 'build_body_map.py')]): failed.append('body')
+    if not CHECK and not run('Claude-ready tables', [py, os.path.join(S, 'export_for_claude.py')]): failed.append('claude-export')
     if not run('manifest.json', [py, os.path.join(S, 'build_manifest.py')]): failed.append('manifest')
 
     report(used)

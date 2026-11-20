@@ -223,8 +223,8 @@
     "step-song/",
     "/#experiments/eras"
    ],
-   "through": "2026-11-20",
-   "age_days": 0,
+   "through": "2026-10-15",
+   "age_days": 36,
    "stale": false,
    "files": [
     {
@@ -295,7 +295,7 @@
     {
      "path": "step-song/data/eras.json",
      "kb": 8,
-     "through": "2026-11-20"
+     "through": null
     }
    ]
   },
@@ -308,8 +308,8 @@
     "step-song/#trail",
     "trail/"
    ],
-   "through": "2026-11-15",
-   "age_days": 5,
+   "through": null,
+   "age_days": null,
    "stale": false,
    "files": [
     {
@@ -320,12 +320,12 @@
     {
      "path": "step-song/data/at2019-breakdown.json",
      "kb": 33,
-     "through": "2026-11-15"
+     "through": null
     },
     {
      "path": "trail/data/trail-radio.json",
      "kb": 376,
-     "through": "2026-11-15"
+     "through": null
     }
    ]
   },
@@ -388,7 +388,7 @@
    "files": [
     {
      "path": "meta-log/data/daily.json",
-     "kb": 914,
+     "kb": 974,
      "through": "2026-11-20"
     }
    ]
@@ -418,16 +418,62 @@
    "kind": "old workbooks (2015-2024)",
    "builder": "build_fitness.py",
    "pages": [
+    "/#experiments/corr",
+    "/#explore",
     "fitness/"
    ],
-   "through": "2026-11-20",
-   "age_days": 0,
+   "through": "2025-10-22",
+   "age_days": 394,
    "stale": false,
    "files": [
     {
      "path": "fitness/data/fitness.json",
-     "kb": 70,
-     "through": "2026-11-20"
+     "kb": 141,
+     "through": "2025-10-22"
+    },
+    {
+     "path": "meta-log/data/lifting.json",
+     "kb": 60,
+     "through": "2025-10-22"
+    }
+   ]
+  },
+  {
+   "id": "months",
+   "name": "Report cards",
+   "kind": "derived",
+   "builder": "build_report_cards.py",
+   "pages": [
+    "months/",
+    "/#report"
+   ],
+   "through": "2026-11-19",
+   "age_days": 1,
+   "stale": false,
+   "files": [
+    {
+     "path": "meta-log/data/months.json",
+     "kb": 9,
+     "through": "2026-11-19"
+    }
+   ]
+  },
+  {
+   "id": "body",
+   "name": "BODY//MAP",
+   "kind": "derived",
+   "builder": "build_body_map.py",
+   "pages": [
+    "body/"
+   ],
+   "through": "2026-11-19",
+   "age_days": 1,
+   "stale": false,
+   "files": [
+    {
+     "path": "body/data/body.json",
+     "kb": 10,
+     "through": "2026-11-19"
     }
    ]
   }

@@ -1,5 +1,5 @@
 {
- "how": "One row per data source: the single list of what feeds the site. build_manifest.py reads this and writes meta-log/data/manifest.json (file sizes and how fresh each output is). Add a row here when adding a source; keep docs/UPDATING.md in step.",
+ "how": "One row per data source: the single list of what feeds the site. build_manifest.py reads this and writes meta-log/data/manifest.json (file sizes and how fresh each output is). Add a row here when adding a source; keep docs/UPDATING.md in step. fresh_by_build: true = the output's build date counts as its freshness (snapshots, exports); otherwise only real data dates count.",
  "sources": [
   {
    "id": "health",
@@ -104,7 +104,8 @@
    "pages": [
     "games/"
    ],
-   "stale_days": 120
+   "stale_days": 120,
+   "fresh_by_build": true
   },
   {
    "id": "strava",
@@ -147,7 +148,8 @@
    "pages": [
     "photo-library/"
    ],
-   "stale_days": 14
+   "stale_days": 14,
+   "fresh_by_build": true
   },
   {
    "id": "spotify",
@@ -211,7 +213,8 @@
     "timelines/",
     "/#explore (overlay)"
    ],
-   "stale_days": null
+   "stale_days": null,
+   "fresh_by_build": true
   },
   {
    "id": "daily",
@@ -224,7 +227,8 @@
    ],
    "pages": [
     "/ (all views)"
-   ]
+   ],
+   "fresh_by_build": true
   },
   {
    "id": "seasons",
@@ -255,6 +259,33 @@
     "fitness/"
    ],
    "stale_days": 3650
+  },
+  {
+   "id": "months",
+   "name": "Report cards",
+   "kind": "derived",
+   "raw": "daily.json, activities.json, step-song plays",
+   "builder": "build_report_cards.py",
+   "outputs": [
+    "meta-log/data/months.json"
+   ],
+   "pages": [
+    "months/",
+    "/#report"
+   ]
+  },
+  {
+   "id": "body",
+   "name": "BODY//MAP",
+   "kind": "derived",
+   "raw": "fitness.json, activities.json",
+   "builder": "build_body_map.py",
+   "outputs": [
+    "body/data/body.json"
+   ],
+   "pages": [
+    "body/"
+   ]
   }
  ]
 }

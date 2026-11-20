@@ -6,7 +6,7 @@ import datetime as dt, glob, json, os
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
-def data_through(path):
+def data_through(path, by_build=False):
     """Best guess at the last day a JSON file covers, from its own fields."""
     try:
         d = json.load(open(path))
@@ -21,7 +21,9 @@ def data_through(path):
         return (dt.date.fromisoformat(d['start'][:10]) + dt.timedelta(days=d['n'] - 1)).isoformat()
     if isinstance(d.get('start'), str) and isinstance(d.get('nDays'), int):
         return (dt.date.fromisoformat(d['start']) + dt.timedelta(days=d['nDays'] - 1)).isoformat()
-    return d.get('generated')
+    if isinstance(d.get('sessions'), list) and d['sessions']:      # fitness.json: last logged session
+        return max(x.get('d', '') for x in d['sessions'] if isinstance(x, dict)) or None
+    return d.get('generated') if by_build else None   # a build date ('generated') is not a data date: it made Spotify and IRON//LOG look fresh
 
 
 def main():
@@ -33,8 +35,8 @@ def main():
         for pat in s['outputs']:
             for p in sorted(glob.glob(os.path.join(ROOT, pat.replace('YYYY', '[0-9]' * 4)))):
                 rel = os.path.relpath(p, ROOT)
-                files.append({'path': rel, 'kb': round(os.path.getsize(p) / 1024), 'through': None if s.get('private') else data_through(p)})
-        thr = max([f['through'] for f in files if f['through']] or [None])
+                files.append({'path': rel, 'kb': round(os.path.getsize(p) / 1024), 'through': None if s.get('private') else data_through(p, s.get('fresh_by_build'))})
+        thr = next((f['through'] for f in files if f['through']), None)   # the first output listed is the primary one
         age = (today - dt.date.fromisoformat(thr[:10])).days if thr else None
         out.append({k: s[k] for k in ('id', 'name', 'kind', 'builder', 'pages') if k in s} | {
             'through': thr, 'age_days': age, 'stale': bool(s.get('stale_days') and age is not None and age > s['stale_days']),

@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Report cards · JSBV.LIFE</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<meta name="theme-color" content="#07060f">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="JSBV.LIFE">
+<meta property="og:title" content="Report cards · JSBV.LIFE">
+<meta property="og:description" content="One report card per month: fitness and health graded against every month on record.">
+<meta property="og:url" content="https://jsbv.life/months/">
+<meta property="og:image" content="https://jsbv.life/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="description" content="One report card per month: fitness and health graded against every month on record.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="../assets/site.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Monoton&family=Chakra+Petch:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Report cards. Data: meta-log/data/months.json (scripts/build_report_cards.py). Grades: percentile of the month among every
+   month on record for that number (A 80+, B 60+, C 40+, D 20+, F); resting and walking heart rate are flipped. Media: no grade. */
+:root {
+  color-scheme: dark;
+  --void: #07060f; --panel: #0d0b1c; --grid: #1f1a3d; --ink: #dcd8ff; --dim: #8a84b8;
+  --step: #3ff0ff; --sound: #ff3fb4; --climb: #ffb347; --trail: #b6ff5c; --violet: #9b7bff; --hot: #fff; --heart: #ff4d6d;
+  --tab-accent: #9b7bff;
+  --f-display: "Monoton", "Chakra Petch", system-ui, sans-serif;
+  --f-ui: "Chakra Petch", "Segoe UI", system-ui, sans-serif;
+  --f-data: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --s-0: 0.75rem; --s-1: 0.875rem; --s-2: 1rem;
+  --A: #b6ff5c; --B: #3ff0ff; --C: #ffd84a; --D: #ffb347; --F: #ff4d6d;
+}
+* { box-sizing: border-box; }
+html, body { background: var(--void); color: var(--ink); }
+body { margin: 0; font-family: var(--f-ui); font-size: var(--s-1); line-height: 1.4; padding: 20px max(14px, env(safe-area-inset-right, 0px)) 48px max(14px, env(safe-area-inset-left, 0px)); }
+.wrap { max-width: 1180px; margin: 0 auto; display: grid; gap: 18px; }
+h1 { font-family: var(--f-display); font-weight: 400; margin: 10px 0 0; font-size: clamp(2rem, 6vw, 3.6rem); line-height: 1; color: var(--hot);
+  text-shadow: 0 0 6px var(--violet), 0 0 18px var(--violet), 0 0 42px rgba(155,123,255,0.5); }
+.strip { display: grid; grid-template-columns: repeat(12, 1fr); gap: 6px; align-items: end; height: 92px; padding: 12px 16px; }
+.strip a { display: grid; grid-template-rows: 1fr auto; height: 100%; text-decoration: none; color: var(--dim); font: 600 10px var(--f-ui); letter-spacing: .1em; text-align: center; }
+.strip i { align-self: end; display: block; border-radius: 4px 4px 0 0; background: var(--c); box-shadow: 0 0 10px var(--c); min-height: 3px; }
+.strip a:hover { color: var(--hot); }
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); gap: 14px; }
+.rc { padding: 14px 16px 12px; display: grid; gap: 8px; scroll-margin-top: 16px; }
+.rc header { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.rc h2 { font: 700 1.05rem var(--f-ui); letter-spacing: .14em; text-transform: uppercase; margin: 0; color: var(--hot); }
+.rc h2 small { font: 400 10px var(--f-data); color: var(--dim); letter-spacing: 0; margin-left: 6px; text-transform: none; }
+.gpa { font: 600 2rem/1 var(--f-data); color: var(--c); text-shadow: 0 0 12px var(--c); }
+.gpa small { font-size: 11px; color: var(--dim); text-shadow: none; margin-left: 3px; }
+.cl { display: grid; grid-template-columns: 56px minmax(0,1fr); gap: 6px; align-items: start; }
+.cl > span { font: 600 10px var(--f-ui); letter-spacing: .16em; text-transform: uppercase; color: var(--dim); padding-top: 4px; }
+.mx { display: grid; grid-template-columns: repeat(auto-fill, minmax(128px, 1fr)); gap: 4px; }
+.g { display: flex; white-space: nowrap; overflow: hidden; align-items: baseline; gap: 5px; border: 1px solid var(--grid); border-radius: 7px; padding: 3px 7px; font: 400 11px var(--f-data); color: var(--dim); }
+.g b { font: 700 12px var(--f-data); color: var(--c, var(--ink)); }
+.g em { font-style: normal; color: var(--ink); }
+.foot { font: 400 11px var(--f-data); color: var(--dim); display: flex; flex-wrap: wrap; gap: 4px 14px; border-top: 1px solid var(--grid); padding-top: 7px; }
+.foot b { color: var(--ink); font-weight: 600; }
+.key { display: flex; flex-wrap: wrap; gap: 6px 14px; font: 400 11px var(--f-data); color: var(--dim); }
+.key b { color: var(--c); }
+@media (max-width: 560px) { .cl { grid-template-columns: 1fr; gap: 2px; } .cl > span { padding: 0; } .strip { gap: 3px; padding: 10px; } .strip a { font-size: 8px; letter-spacing: 0; } }
+</style>
+<link rel="stylesheet" href="../assets/theme.css">
+<body>
+<div class="wrap">
+  <header>
+    <nav class="site" data-here="data" data-crumb="Report cards"></nav>
+    <h1 id="h">2026</h1>
+  </header>
+  <section class="strip" id="strip" aria-label="Grade point average by month"></section>
+  <div class="key" id="key"></div>
+  <div class="cards" id="cards"></div>
+</div>
+<script src="../assets/site.js"></script>
+<script>
+(async function () {
+  'use strict';
+  const $ = (s) => document.querySelector(s);
+  const el = (t, p = {}, k = []) => { const e = document.createElement(t); for (const x in p) { if (x === 'text') e.textContent = p[x]; else if (x === 'className') e.className = p[x]; else e.setAttribute(x, p[x]); } for (const c of [].concat(k)) if (c != null && c !== false) e.append(c); return e; };
+  let R; try { R = await (await fetch('../meta-log/data/months.json', { cache: 'no-cache' })).json(); } catch (e) { $('#cards').append(el('p', { text: 'No data.' })); return; }
+  const C = { A: 'var(--A)', B: 'var(--B)', C: 'var(--C)', D: 'var(--D)', F: 'var(--F)' };
+  const gpaL = (g) => (g == null ? '—' : g >= 3.5 ? 'A' : g >= 2.5 ? 'B' : g >= 1.5 ? 'C' : g >= 0.5 ? 'D' : 'F');
+  const fmt = (v) => (v == null ? '—' : Number.isInteger(+v) ? (+v).toLocaleString() : v >= 1000 ? Math.round(v).toLocaleString() : v >= 100 ? Math.round(v) : v >= 10 ? (+v).toFixed(1) : (+v).toFixed(2).replace(/0$/, ''));
+  const MET = Object.fromEntries(R.metrics.map((m) => [m.id, m]));
+  $('#h').textContent = `${R.year} REPORT CARDS`;
+  $('#key').append(...['A', 'B', 'C', 'D', 'F'].map((g, i) => el('span', { style: `--c:${C[g]}` }, [el('b', { text: g }), ` ${['top 20%', '60–80%', '40–60%', '20–40%', 'bottom 20%'][i]}`])), el('span', { text: 'vs every month on record' }));
+  // strip
+  $('#strip').append(...Array.from({ length: 12 }, (_, i) => {
+    const m = R.months[i], g = m && m.gpa, L = gpaL(g), name = new Date(R.year, i, 1).toLocaleString('en', { month: 'short' });
+    return el('a', { href: m ? '#' + m.m : '#', style: `--c:${m ? C[L] || 'var(--grid)' : 'var(--grid)'}`, title: m ? `${m.name}: GPA ${g}` : name },
+      [el('i', { style: `height:${m && g != null ? 8 + (g / 4) * 60 : 3}px;${m ? '' : 'opacity:.3'}` }), name.toUpperCase()]);
+  }));
+  const chip = (m, id) => { const v = m.v[id], g = m.g[id], d = MET[id]; if (v == null) return null;
+    return el('span', { className: 'g', style: g ? `--c:${C[g[0]]}` : '', title: g ? `${d.label}: ${g[1]}th percentile of ${d.months_on_record} months` : d.label },
+      [g ? el('b', { text: g[0] }) : null, d.label + ' ', el('em', { text: fmt(v) }), d.unit ? ' ' + d.unit : '']); };
+  const cluster = (m, cl, label) => { const ids = R.metrics.filter((d) => d.cluster === cl).map((d) => d.id), kids = ids.map((id) => chip(m, id)).filter(Boolean);
+    return kids.length ? el('div', { className: 'cl' }, [el('span', { text: label }), el('div', { className: 'mx' }, kids)]) : null; };
+  $('#cards').append(...[...R.months].reverse().map((m) => {
+    const L = gpaL(m.gpa);
+    return el('section', { className: 'rc', id: m.m, style: `--c:${C[L] || 'var(--dim)'}` }, [
+      el('header', {}, [el('h2', {}, [m.name, m.partial ? el('small', { text: `through ${m.through.slice(5)}` }) : null]),
+        el('div', { className: 'gpa', title: `GPA ${m.gpa}` }, [L, el('small', { text: m.gpa == null ? '' : m.gpa.toFixed(2) })])]),
+      cluster(m, 'fitness', 'Fitness'), cluster(m, 'health', 'Health'), cluster(m, 'media', 'Media'),
+      (m.hikes || m.artist) ? el('div', { className: 'foot' }, [
+        m.hikes ? el('span', {}, ['hikes ', el('b', { text: `${m.hikes.n} · ${m.hikes.mi} mi · ${m.hikes.ft.toLocaleString()} ft` })]) : null,
+        m.artist ? el('span', {}, ['top artist ', el('b', { text: `${m.artist[0]} · ${m.artist[1]} h` })]) : null]) : null,
+    ]);
+  }));
+  if (location.hash) { const t = document.getElementById(location.hash.slice(1)); if (t) t.scrollIntoView(); }
+})();
+</script>
+</body>
+</html>

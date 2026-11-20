@@ -20,14 +20,17 @@ Litchfield CT. Static site, no build step, no libraries, vanilla JS + inline SVG
   Ask for delete permission on the repo folder at the start of a session so git can clean up its own lock/temp files.
 
 ## 2. Site map (hierarchy)
-Primary nav, the same on every page: **Home · Trails · Projects · Data** (`assets/site.js` `PRIMARY`).
+Primary nav, the same on every page: **Home · Fitness · Health · Media · Data** (`assets/site.js` `PRIMARY`; `#trails` → Fitness, `#projects`/`#movies` → Media still land). Site map canvas: `docs/site-map.canvas`.
 
 | Section | Where | Contents |
 |---|---|---|
-| Home | `/#report` | PCT//PREP hero · PHOTO//SORT hero · **Year by season** (`seasons.json`) · Low tide panel · 7/30-day tiles · Private data unlock |
-| Trails | `/#trails` | cards linking to tabs of `pct-training/`, `step-song/#trail`, `trail/` |
-| Projects | `/#projects` | STEP//SONG and PHOTO//SORT cards |
-| Data | `/#data` + sub-tabs | All data (dataset cards) · Explorer `#explore` · Calendar `#calendar` · Watched `#watched` · **Lab** `#experiments/<key>` (corr, rings, week, tide, pairs) |
+| Home | `/#report` | PCT//PREP hero · This-month report card hero · **Year by season** (`seasons.json`) · Low tide · tiles Fitness / Health / Media (7/30 days) · Private data unlock |
+| Fitness | `/#fitness` (alias `#trails`) | PCT 2027, AT 2019, BODY//MAP, IRON//LOG, Movement cards |
+| Health | `/#health` | Heart + sleep, Breathwork, Water, Private |
+| Media | `/#media` (alias `#projects`) | STEP//SONG, PHOTO//SORT, Movies & TV (`#movies`), Phone calls, Video games |
+| Data | `/#data` + sub-tabs | All data (cards grouped Fitness / Health / Media) · Explorer · Calendar · Gantt · Lab · Report cards (`months/`) · Timelines |
+| BODY//MAP | `body/` | recovery · 10 days (`#strain`) · last hit (`#last`) |
+| Report cards | `months/` | one card per month, `#YYYY-MM` deep links |
 | PCT//PREP | `pct-training/` | tabs plan · calendar · low-tide · days · recovery (with zero-day call) · pace · trail-weeks; plan toggle Original / Adjusted / Projected |
 | STEP//SONG | `step-song/` | tabs decade · trail · day · cuts |
 | TRAIL//RADIO | `trail/` | tabs radio · replay · map |
@@ -40,7 +43,7 @@ Root `index.html` routes by hash (`VIEWS`, `NAV_OF`, `route()`); sub-pages use `
 
 ## 3. Repo layout
 ```
-index.html                 root app (Home, Trails, Projects, Data, Explorer, Calendar, Watched, Lab)
+index.html                 root app (Home, Fitness, Health, Media, Data, Explorer, Calendar, Watched, Lab)
 assets/site.js|site.css    shared nav, breadcrumbs, page tabs
 assets/theme.css           shared look, loaded LAST on every page (panels, nav, controls, tables)
 <page>/index.html          one page = one file, inline CSS + JS; reads <page>/data/*.json
