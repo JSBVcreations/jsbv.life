@@ -234,7 +234,7 @@ footer { font-family: var(--f-data); font-size: var(--s-0); color: var(--dim); }
 
   let D;
   try { D = await (await fetch('data/fitness.json')).json(); } catch (e) { $('#err').hidden = false; return; }
-  const SC = { runs2016: '#3ff0ff', lift1000: '#9b7bff', comprehensive: '#ffb347', journey: '#ff6fd8', bwlifts: '#b6ff5c', zimmerman: '#ff3b4e', training2024: '#4ea8ff', whiteboard2025: '#ffd84a' };
+  const SC = { runs2016: '#3ff0ff', lift1000: '#9b7bff', comprehensive: '#ffb347', journey: '#ff6fd8', bwlifts: '#b6ff5c', zimmerman: '#ff3b4e', training2024: '#4ea8ff', whiteboard2025: '#ffd84a', gymnotes2023: '#ff8a3d' };
   const SRC = Object.fromEntries(D.sources.map((s) => [s.id, s])), sname = (id) => (SRC[id] || { name: id }).name;
   const LIFTS = [['squat', 'Squat', '#ffb347'], ['bench', 'Bench', '#3ff0ff'], ['deadlift', 'Deadlift', '#b6ff5c'], ['ohp', 'Press', '#ff3fb4']];
   const LC = Object.fromEntries(LIFTS.map(([k, , c]) => [k, c])), LN = Object.fromEntries(LIFTS.map(([k, n]) => [k, n]));

@@ -350,3 +350,12 @@ Keep the MX / TXT / DKIM / autodiscover records — they run the jsbv.life busin
 - PRs (`pr`, `pr_event`): walking every weighted set and weekly top set in date order, a PR is a weight above every earlier
   weight for that exercise with at least one full rep (so 4/24/25's half rep at 225 bench is not one). The first weight logged
   is kept as the starting mark, not counted. The tab lists the big four and every exercise with a PR; click one for its steps.
+
+## IRON//LOG: gym notes 2022-23 (Nov 20, 2026)
+- Source 9, `gymnotes2023`: the claude.ai Sheet "Gym Notes 2022-23" (slug 5e081d89-a7b0-4027-8aab-c1b20bfb4814; Log: 211 set rows,
+  18 sessions, Aug 2-17 2022 and Jan 17 - Feb 27 2023), transcribed from Jack's phone notes. Jack gave the year (2023); the August
+  block is read as 2022, the summer before. "Pull the gym notes sheet" = read Log A1:H… and write `jsbv data/Gym-Notes-2022-23.json`
+  as `{"log": [[date, exercise, set, reps, lbs, superset, note, as_written], …]}`.
+- The notes flip notation: Aug 2022 is reps@lbs, Jan-Feb 2023 is lbs@reps. Bicep 7s count as 21 reps a set. "&" pairs are supersets
+  (A/B/C). Bike, rower, planks and farmer's-carry laps keep their numbers in Note. Note and As written stay in the sqlite only.
+- Issues listed: 8/4/22 bench 3 @ 185 noted "3/4 rep"; two sets with weight but no reps (farmer's carry 1/29, seated row 2/16).
