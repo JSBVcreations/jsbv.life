@@ -315,3 +315,25 @@ Keep the MX / TXT / DKIM / autodiscover records — they run the jsbv.life busin
 - `#experiments/strata` (drawStrata): daily.json photos (by capture date, type dim) + Lightroom frames (own catalog, so it is
   stacked on top, not part of the library). Items or GB (GB has no per-type split, so it is one layer). Built up or per month.
   There is no game-clip category in the photo data yet.
+
+## IRON//LOG (fitness/, Nov 20, 2026)
+- Source workbooks (Jack's, 2015-2024), to live in `jsbv data`: `MetaData.dot.xlsx`, `The Journey of 1000lbs Begins with a Single
+  Rep.xlsx`, `Training_.xlsx`. `scripts/build_fitness.py` finds them there (or takes the three paths).
+- Seven logs kept apart in `sources[]`: runs2016 (Run Dec-March grid), lift1000 (weekly bests, no reps), comprehensive (2017,
+  every set; its volume sums to the sheet's own 1,466,530 lb), journey (weekly top sets; "Copy of Sheet1" is identical and not
+  read), bwlifts (pushups/pullups by grip + short runs), zimmerman (Mar 2019), training2024 (Nov 2024 logbook).
+- Dates are kept as written. Journey + Comprehensive say Jan-Jul 2017 and the weekly lift log agrees; Jack remembered 2019 and
+  chose (Nov 20) to keep 2017. Suspect cells are listed, never fixed, in the sqlite `issue` table (e.g. a pushup row dated
+  2018-01-01 after 2018-12-31; Zimmerman times typed as h:mm meaning m:ss, read as m:ss).
+- Exercise names: `canon()` + `SYN` merge spellings for the joined tables only (raw names stay in the src_* tables). Big four:
+  squat, bench, deadlift (hex bar counts, named in tooltips), press (OHP / military / standing press). Groups come from the
+  2024 ExerciseTags sheet, then `GROUPS`.
+- Public `fitness/data/fitness.json`: sessions with sets, weekly top sets, 1000 lb club totals, cardio, bodyweight reps. Never:
+  body weight, body fat, macros, sleep, the 2024 notes, anything from the Money sheet (never opened) or the Sleep.Habits habit
+  columns (never read).
+- Private: `meta-log/data/private/fitness.sqlite` (every cell read in `raw_cell`, one src_* table per sheet, joined `session`,
+  `lift_set`, `top_set`, `club_total`, `run`, `bw_reps`, views `best_lift`, `session_volume`, plus `issue`). Body + diet + the
+  hand sleep log become the daily dataset `fitness_body` (`meta-log/data/private/fitness_body.json`), listed in privacy.json,
+  sealed by build_meta_log.py into private.enc.json. The page's Body tab shows only in a browser already unlocked on the home
+  page (it reads the saved key, never asks for the passphrase itself).
+- Axes squeeze any stretch over a year with no entries into a fixed gap (`timeAxis`), so 2016-19 and Nov 2024 both get room.

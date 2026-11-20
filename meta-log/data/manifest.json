@@ -391,6 +391,25 @@
      "through": "2026-11-19"
     }
    ]
+  },
+  {
+   "id": "fitness",
+   "name": "Fitness logs (IRON//LOG)",
+   "kind": "old workbooks (2015-2024)",
+   "builder": "build_fitness.py",
+   "pages": [
+    "fitness/"
+   ],
+   "through": "2026-11-19",
+   "age_days": 1,
+   "stale": false,
+   "files": [
+    {
+     "path": "fitness/data/fitness.json",
+     "kb": 50,
+     "through": "2026-11-19"
+    }
+   ]
   }
  ]
 }

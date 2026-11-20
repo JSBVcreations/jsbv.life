@@ -223,6 +223,20 @@
    "pages": [
     "/#report"
    ]
+  },
+  {
+   "id": "fitness",
+   "name": "Fitness logs (IRON//LOG)",
+   "kind": "old workbooks (2015-2024)",
+   "raw": "jsbv data/MetaData.dot.xlsx, The Journey of 1000lbs Begins with a Single Rep.xlsx, Training_.xlsx",
+   "builder": "build_fitness.py",
+   "outputs": [
+    "fitness/data/fitness.json"
+   ],
+   "pages": [
+    "fitness/"
+   ],
+   "stale_days": 3650
   }
  ]
 }

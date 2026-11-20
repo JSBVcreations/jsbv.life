@@ -1,0 +1,462 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>IRON//LOG · JSBV.LIFE</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<meta name="theme-color" content="#07060f">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="JSBV.LIFE">
+<meta property="og:title" content="IRON//LOG · JSBV.LIFE">
+<meta property="og:description" content="Every lifting session, run and pushup log from 2015 to 2024, from seven separate logs.">
+<meta property="og:url" content="https://jsbv.life/fitness/">
+<meta property="og:image" content="https://jsbv.life/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="description" content="Every lifting session, run and pushup log from 2015 to 2024, from seven separate logs.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="../assets/site.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Monoton&family=Chakra+Petch:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* IRON//LOG. Data: fitness/data/fitness.json (scripts/build_fitness.py from MetaData.dot.xlsx, The Journey of 1000lbs, Training_.xlsx).
+   Seven logs kept apart (sources[]), joined only where they say the same kind of thing: sessions of sets, weekly top sets, cardio, bodyweight reps.
+   Tabs: overview · lifts · sessions · exercises · cardio · bodyweight · body (sealed: shows only in a browser unlocked on the home page;
+   reads the fitness_body dataset from meta-log/data/private.enc.json with the key the home page saved). */
+:root {
+  color-scheme: dark;
+  --void: #07060f; --panel: #0d0b1c; --well: #120f26; --grid: #1f1a3d; --ink: #dcd8ff; --dim: #8a84b8;
+  --step: #3ff0ff; --sound: #ff3fb4; --climb: #ffb347; --trail: #b6ff5c; --violet: #9b7bff; --hot: #fff;
+  --tab-accent: #ffb347;
+  --f-display: "Monoton", "Chakra Petch", system-ui, sans-serif;
+  --f-ui: "Chakra Petch", "Segoe UI", system-ui, sans-serif;
+  --f-data: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --s-0: 0.75rem; --s-1: 0.875rem; --s-2: 1rem; --s-3: 1.25rem;
+}
+* { box-sizing: border-box; }
+html, body { background: var(--void); color: var(--ink); }
+body { margin: 0; font-family: var(--f-ui); font-size: var(--s-1); line-height: 1.5;
+  padding: 24px max(16px, env(safe-area-inset-right, 0px)) 64px max(16px, env(safe-area-inset-left, 0px));
+  background: radial-gradient(ellipse 80% 40% at 50% 0%, rgba(255,179,71,0.08), transparent 70%), var(--void); }
+body::after { content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 50;
+  background: repeating-linear-gradient(to bottom, rgba(0,0,0,0) 0 2px, rgba(0,0,0,0.18) 2px 3px); }
+.wrap { max-width: 1180px; margin: 0 auto; display: grid; gap: 28px; }
+h1 { font-family: var(--f-display); font-weight: 400; margin: 0; font-size: clamp(2.2rem, 7vw, 4.6rem); line-height: 1;
+  color: var(--hot); text-shadow: 0 0 6px var(--climb), 0 0 18px var(--climb), 0 0 42px rgba(255,179,71,0.5); }
+h1 span { text-shadow: 0 0 6px var(--sound), 0 0 18px var(--sound), 0 0 42px rgba(255,63,180,0.6); }
+.readout { display: flex; flex-wrap: wrap; gap: 8px 28px; font-family: var(--f-data); padding: 12px 0; border-block: 1px solid var(--grid); }
+.readout div { display: grid; }
+.readout span { font-size: var(--s-0); text-transform: uppercase; letter-spacing: 0.12em; color: var(--dim); font-family: var(--f-ui); }
+.readout strong { font-size: var(--s-3); font-weight: 600; font-variant-numeric: tabular-nums; }
+.readout small { color: var(--dim); font-size: 10px; }
+section { border: 1px solid var(--grid); background: var(--panel); padding: 18px; display: grid; gap: 12px; min-width: 0; }
+section > * { min-width: 0; }
+h2 { margin: 0; font: 700 var(--s-2)/1.2 var(--f-ui); letter-spacing: 0.18em; text-transform: uppercase; color: var(--hot); }
+h3 { margin: 0; font: 700 var(--s-0)/1.2 var(--f-ui); letter-spacing: 0.16em; text-transform: uppercase; color: var(--dim); }
+.note { margin: 0; color: var(--dim); max-width: 90ch; }
+.ctl { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.ctl button { font: 600 var(--s-0) var(--f-data); letter-spacing: 0.08em; color: var(--dim); background: none;
+  border: 1px solid var(--grid); padding: 6px 10px; cursor: pointer; min-height: 32px; display: inline-flex; gap: 6px; align-items: center; }
+.ctl button[aria-pressed="true"] { color: var(--void); background: var(--climb); border-color: var(--climb); }
+.ctl button.k[aria-pressed="true"] { background: none; color: var(--hot); border-color: var(--kc); box-shadow: inset 0 -2px 0 var(--kc); }
+.ctl button.k i { width: 10px; height: 10px; border-radius: 50%; background: var(--kc); box-shadow: 0 0 6px var(--kc); }
+.ctl button.k[aria-pressed="false"] i { background: none; border: 1px solid var(--kc); box-shadow: none; }
+.ctl .gap { width: 10px; }
+.chart svg { display: block; width: 100%; height: auto; }
+.chart text { font: 400 10px var(--f-data); fill: var(--dim); }
+.split { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+@media (max-width: 900px) { .split { grid-template-columns: minmax(0, 1fr); } }
+.scroll { overflow: auto; }
+.tall { max-height: 68vh; }
+table { border-collapse: collapse; width: 100%; font-family: var(--f-data); font-size: var(--s-0); font-variant-numeric: tabular-nums; }
+th, td { padding: 6px 8px; border-bottom: 1px solid var(--grid); text-align: right; white-space: nowrap; vertical-align: top; }
+th { color: var(--dim); font-weight: 400; text-transform: uppercase; letter-spacing: 0.08em; position: sticky; top: 0; background: var(--panel); z-index: 1; }
+td.l, th.l { text-align: left; } td.w { white-space: normal; min-width: 18ch; }
+td b { color: var(--hot); font-weight: 600; }
+.src { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; background: var(--sc); box-shadow: 0 0 6px var(--sc); }
+tr.ses { cursor: pointer; } tr.ses:hover td { background: rgba(255,179,71,0.05); } tr.ses[aria-expanded="true"] td { color: var(--hot); }
+tr.det td { background: var(--well); padding: 8px 12px; text-align: left; white-space: normal; }
+.sets { display: grid; grid-template-columns: max-content 1fr; gap: 3px 14px; }
+.sets b { color: var(--ink); font-weight: 600; } .sets span { color: var(--dim); }
+.sets em { font-style: normal; color: var(--climb); }
+.bars { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; font: 400 var(--s-0) var(--f-data); }
+.bars li { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) auto; gap: 10px; align-items: center; }
+.bars li.pick { cursor: pointer; } .bars li.pick:hover span, .bars li.on span { color: var(--climb); }
+.bars span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .bars i { height: 8px; border-radius: 4px; background: var(--bc, var(--climb)); box-shadow: 0 0 8px var(--bc, var(--climb)); justify-self: start; }
+.bars b { color: var(--hot); font-weight: 600; }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 16px; font: 400 var(--s-0) var(--f-data); }
+.legend span { display: inline-flex; gap: 6px; align-items: center; } .legend i { width: 10px; height: 10px; border-radius: 2px; background: var(--c); }
+@media (max-width: 640px) { #ov-tbl td.w, #ov-tbl th:last-child, #ov-tbl td:nth-child(2), #ov-tbl th:nth-child(2) { display: none; } }
+#tip { position: fixed; z-index: 70; pointer-events: none; max-width: 280px; background: rgba(7,6,15,0.95); border: 1px solid var(--climb); font: 400 var(--s-0)/1.45 var(--f-data); padding: 6px 9px; color: var(--ink); }
+#tip b { color: var(--hot); }
+footer { font-family: var(--f-data); font-size: var(--s-0); color: var(--dim); }
+[hidden] { display: none !important; }
+</style>
+<link rel="stylesheet" href="../assets/theme.css">
+<body>
+<div class="wrap">
+  <header>
+    <nav class="site" data-here="projects" data-crumb="IRON//LOG"></nav>
+    <h1 style="margin-top:14px">IRON<span>//LOG</span></h1>
+  </header>
+  <p class="note" id="err" hidden>Data failed to load.</p>
+  <div class="readout" id="readout"></div>
+  <nav class="ptabs" data-default="overview" aria-label="Sections of IRON//LOG">
+    <a href="#overview" data-tab="overview">Overview</a>
+    <a href="#lifts" data-tab="lifts" data-alias="big4 1000">Big four</a>
+    <a href="#sessions" data-tab="sessions">Sessions</a>
+    <a href="#exercises" data-tab="exercises">Exercises</a>
+    <a href="#cardio" data-tab="cardio" data-alias="runs">Cardio</a>
+    <a href="#bodyweight" data-tab="bodyweight" data-alias="pushups">Bodyweight</a>
+    <a href="#body" data-tab="body">Body</a>
+  </nav>
+
+  <section data-tab="overview">
+    <h2>Seven logs, 2015 to 2024</h2>
+    <div class="chart" id="ov-chart"></div>
+    <div class="scroll"><table id="ov-tbl"></table></div>
+  </section>
+
+  <section data-tab="lifts">
+    <h2>Squat, bench, deadlift, press</h2>
+    <div class="ctl" id="li-lifts"></div>
+    <div class="ctl" id="li-years"></div>
+    <div class="split">
+      <div><div class="chart" id="li-chart"></div><div class="legend" id="li-legend"></div></div>
+      <div class="scroll"><table id="li-tbl"></table></div>
+    </div>
+  </section>
+
+  <section data-tab="sessions">
+    <h2>Every session</h2>
+    <div class="ctl" id="se-years"></div>
+    <div class="chart" id="se-chart"></div>
+    <div class="scroll tall"><table id="se-tbl"></table></div>
+  </section>
+
+  <section data-tab="exercises">
+    <h2>What got trained</h2>
+    <div class="ctl" id="ex-years"></div>
+    <div class="split">
+      <div style="display:grid;gap:14px"><h3>Pounds moved by group</h3><ul class="bars" id="ex-groups"></ul>
+        <h3 id="ex-one-h">Pick an exercise</h3><div class="chart" id="ex-one"></div></div>
+      <div style="display:grid;gap:8px"><h3>Exercises, by sessions</h3><div class="scroll tall"><ul class="bars" id="ex-list"></ul></div></div>
+    </div>
+  </section>
+
+  <section data-tab="cardio">
+    <h2>Runs, rows and swims</h2>
+    <div class="chart" id="ca-chart"></div>
+    <div class="legend" id="ca-legend"></div>
+    <h3>Every timed effort</h3>
+    <div class="scroll tall"><table id="ca-tbl"></table></div>
+  </section>
+
+  <section data-tab="bodyweight">
+    <h2>Pushups and pullups</h2>
+    <div class="ctl" id="bw-kind"></div>
+    <div class="chart" id="bw-chart"></div>
+    <div class="legend" id="bw-legend"></div>
+    <div class="scroll"><table id="bw-tbl"></table></div>
+  </section>
+  <section data-tab="body" data-off="1">
+    <h2>Body and diet, 2017 to 2019</h2>
+    <div class="ctl" id="bo-metric"></div>
+    <div class="chart" id="bo-chart"></div>
+    <div class="scroll"><table id="bo-tbl"></table></div>
+  </section>
+  <footer id="foot"></footer>
+</div>
+<div id="tip" hidden></div>
+<script src="../assets/site.js"></script>
+<script>
+(async () => {
+  'use strict';
+  const $ = (s) => document.querySelector(s);
+  const NS = 'http://www.w3.org/2000/svg';
+  const sv = (tag, at, txt) => { const e = document.createElementNS(NS, tag); for (const k in at) e.setAttribute(k, at[k]); if (txt != null) e.textContent = txt; return e; };
+  const el = (tag, props = {}, kids = []) => { const e = document.createElement(tag); for (const k in props) { if (k === 'style') e.style.cssText = props[k]; else if (k.startsWith('on')) e.addEventListener(k.slice(2), props[k]); else if (k === 'text') e.textContent = props[k]; else if (k in e) e[k] = props[k]; else e.setAttribute(k, props[k]); } for (const c of [].concat(kids)) if (c != null) e.append(c); return e; };
+  const DAY = 864e5, dn = (s) => Date.UTC(+s.slice(0, 4), +s.slice(5, 7) - 1, +s.slice(8, 10)) / DAY;
+  const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const fmt = (s) => `${MON[+s.slice(5, 7) - 1]} ${+s.slice(8, 10)}, ${s.slice(0, 4)}`;
+  const n0 = (v) => (v == null ? '—' : Math.round(v).toLocaleString('en-US'));
+  const n1 = (v) => (v == null ? '—' : (+v.toFixed(1)).toLocaleString('en-US'));
+  const pace = (m) => { if (m == null || !isFinite(m)) return '—'; const s = Math.round(m * 60); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
+  const C = { grid: '#1f1a3d', ink: '#dcd8ff', dim: '#8a84b8', void: '#07060f' };
+  const tip = $('#tip'), tipAt = (ev, html) => { tip.innerHTML = html; tip.hidden = false; const r = tip.getBoundingClientRect();
+    tip.style.left = Math.max(6, Math.min(innerWidth - r.width - 6, ev.clientX + 14)) + 'px'; tip.style.top = (ev.clientY + 16 + r.height > innerHeight ? ev.clientY - r.height - 10 : ev.clientY + 16) + 'px'; };
+  const tipOff = () => { tip.hidden = true; };
+  const seg = (host, opts, cur, on, cls) => { host.replaceChildren(...opts.map(([k, label, c]) => { const b = el('button', { type: 'button', 'aria-pressed': String(Array.isArray(cur) ? cur.includes(k) : cur === k), className: cls || '', onclick: () => on(k, b) }, [c ? el('i') : null, label]); if (c) b.style.setProperty('--kc', c); b.dataset.k = k; return b; })); };
+  // Time axis with long empty stretches (over a year) squeezed to a fixed gap, so 2016-19 and 2024 both get room.
+  function timeAxis(dates, x0, x1, gapPx = 26) {
+    const ds = [...new Set(dates.map(dn))].sort((p, q) => p - q), segs = [];
+    for (const d of ds) { const g = segs[segs.length - 1]; if (g && d - g.b <= 365) g.b = d; else segs.push({ a: d, b: d }); }
+    for (const g of segs) { const pad = Math.max(10, (g.b - g.a) * 0.03); g.a -= pad; g.b += pad; }
+    const tot = segs.reduce((t, g) => t + (g.b - g.a), 0), room = x1 - x0 - gapPx * (segs.length - 1); let x = x0;
+    for (const g of segs) { g.x0 = x; g.x1 = x + (room * (g.b - g.a)) / tot; x = g.x1 + gapPx; }
+    const X = (d) => { const t = typeof d === 'string' ? dn(d) : d; const g = segs.find((q) => t <= q.b) || segs[segs.length - 1]; return g.x0 + ((Math.max(g.a, Math.min(g.b, t)) - g.a) / (g.b - g.a)) * (g.x1 - g.x0); };
+    return { X, segs };
+  }
+  function drawAxis(S, ax, yTop, yBot) {
+    ax.segs.forEach((g, i) => {
+      if (i) { const xm = (ax.segs[i - 1].x1 + g.x0) / 2, yrs = Math.round((g.a - ax.segs[i - 1].b) / 365.25);
+        S.append(sv('path', { d: `M${xm - 4} ${yTop} l8 6 l-8 6 l8 6`, fill: 'none', stroke: C.dim }), sv('text', { x: xm, y: yBot - 4, 'text-anchor': 'middle', fill: C.dim }, `${yrs}y`)); }
+      const span = g.b - g.a, y0 = new Date(g.a * DAY).getUTCFullYear(), y1 = new Date(g.b * DAY).getUTCFullYear(), w = g.x1 - g.x0;
+      if (span > 420 && w > 120) { for (let y = y0 + 1; y <= y1; y++) { const x = ax.X(`${y}-01-01`); S.append(sv('line', { x1: x, x2: x, y1: yTop, y2: yBot, stroke: C.grid }), sv('text', { x: x + 3, y: yBot + 15 }, String(y))); } }
+      else { const step = span > 200 ? 3 : span > 90 ? 2 : 1, d0 = new Date(g.a * DAY); let first = true;
+        for (let m = new Date(Date.UTC(d0.getUTCFullYear(), d0.getUTCMonth() + 1, 1)); m.getTime() / DAY < g.b; m.setUTCMonth(m.getUTCMonth() + step)) { const x = ax.X(m.toISOString().slice(0, 10)); if (x - g.x0 < 4) continue;
+          S.append(sv('line', { x1: x, x2: x, y1: yTop, y2: yBot, stroke: C.grid })); if (w > 60 || first) S.append(sv('text', { x: x + 3, y: yBot + 15 }, w < 90 ? String(m.getUTCFullYear()) : `${MON[m.getUTCMonth()]} '${String(m.getUTCFullYear()).slice(2)}`)); first = false; if (w < 90) break; }
+        if (first) S.append(sv('text', { x: g.x0 + 2, y: yBot + 15 }, String(y0))); }
+    });
+  }
+  const niceMax = (v) => { const e = Math.pow(10, Math.floor(Math.log10(v || 1))), m = v / e; return (m <= 1 ? 1 : m <= 2 ? 2 : m <= 2.5 ? 2.5 : m <= 5 ? 5 : 10) * e; };
+  const press = (host, f) => { for (const b of host.children) b.setAttribute('aria-pressed', String(f(b.dataset.k))); };
+
+  let D;
+  try { D = await (await fetch('data/fitness.json')).json(); } catch (e) { $('#err').hidden = false; return; }
+  const SC = { runs2016: '#3ff0ff', lift1000: '#9b7bff', comprehensive: '#ffb347', journey: '#ff6fd8', bwlifts: '#b6ff5c', zimmerman: '#ff3b4e', training2024: '#4ea8ff' };
+  const SRC = Object.fromEntries(D.sources.map((s) => [s.id, s])), sname = (id) => (SRC[id] || { name: id }).name;
+  const LIFTS = [['squat', 'Squat', '#ffb347'], ['bench', 'Bench', '#3ff0ff'], ['deadlift', 'Deadlift', '#b6ff5c'], ['ohp', 'Press', '#ff3fb4']];
+  const LC = Object.fromEntries(LIFTS.map(([k, , c]) => [k, c])), LN = Object.fromEntries(LIFTS.map(([k, n]) => [k, n]));
+  const vol = (x) => x[1].reduce((s, r, i) => s + (r || 0) * (x[2][i] || 0), 0);
+  for (const s of D.sessions) { s.vol = s.x.reduce((t, x) => t + vol(x), 0); s.sets = s.x.reduce((t, x) => t + x[1].length, 0); s.reps = s.x.reduce((t, x) => t + x[1].reduce((a, r) => a + (r || 0), 0), 0); }
+  const years = (ds) => [...new Set(ds.map((d) => d.slice(0, 4)))].sort();
+
+  // every heaviest-of-the-day weight for the four lifts, from logged sets and from the weekly top-set logs
+  const BEST = [];
+  for (const s of D.sessions) for (const [id, reps, lbs] of s.x) { const big = D.ex[id] && D.ex[id].big; if (!big) continue;
+    let k = -1; lbs.forEach((w, i) => { if (w != null && (k < 0 || w > lbs[k])) k = i; }); if (k >= 0) BEST.push({ d: s.d, src: s.s, big, lbs: lbs[k], reps: reps[k], ex: D.ex[id].name }); }
+  for (const [d, src, big, lbs, reps] of D.tops) BEST.push({ d, src, big, lbs, reps, ex: null });
+  BEST.sort((a, b) => (a.d < b.d ? -1 : a.d > b.d ? 1 : 0));
+  const pr = Object.fromEntries(LIFTS.map(([k]) => [k, BEST.filter((b) => b.big === k).reduce((p, q) => (!p || q.lbs > p.lbs ? q : p), null)]));
+
+  // ---------------------------------------------------------------- readout
+  const totVol = D.sessions.reduce((s, x) => s + x.vol, 0), totSets = D.sessions.reduce((s, x) => s + x.sets, 0), miles = D.runs.reduce((s, r) => s + (r[2] === 'run' && r[3] ? r[3] : 0), 0);
+  $('#readout').replaceChildren(
+    el('div', {}, [el('span', { text: 'Sessions logged' }), el('strong', { text: n0(D.sessions.length) })]),
+    el('div', {}, [el('span', { text: 'Sets' }), el('strong', { text: n0(totSets), style: 'color:var(--climb)' })]),
+    el('div', {}, [el('span', { text: 'Pounds moved' }), el('strong', { text: n0(totVol), style: 'color:var(--sound)' })]),
+    el('div', {}, [el('span', { text: 'Miles run' }), el('strong', { text: n1(miles), style: 'color:var(--step)' })]),
+    ...LIFTS.map(([k, n, c]) => el('div', {}, [el('span', { text: 'Best ' + n.toLowerCase() }), el('strong', { style: `color:${c}` }, [pr[k] ? `${n0(pr[k].lbs)} lb` : '—', pr[k] ? el('small', { text: ' ' + fmt(pr[k].d) }) : null])])));
+
+  // ---------------------------------------------------------------- overview: one lane per log, a tick per logged day
+  function drawOverview() {
+    const host = $('#ov-chart'), W = Math.max(300, host.clientWidth || 900), mob = W < 560, P = { l: mob ? 8 : 170, r: 10, t: 8, b: 22 }, lh = mob ? 34 : 26, H = P.t + D.sources.length * lh + P.b;
+    const a = dn(D.sources.reduce((m, s) => (s.a < m ? s.a : m), '9999')) - 20, b = dn(D.sources.reduce((m, s) => (s.b > m ? s.b : m), '0000')) + 20, X = (d) => P.l + ((d - a) / (b - a)) * (W - P.l - P.r);
+    const S = sv('svg', { viewBox: `0 0 ${W} ${H}`, width: W, height: H, role: 'img', 'aria-label': 'Each log as a lane, one tick per day with an entry' });
+    for (let y = +new Date(a * DAY).getUTCFullYear() + 1; y <= new Date(b * DAY).getUTCFullYear(); y++) { const x = X(dn(`${y}-01-01`)); S.append(sv('line', { x1: x, x2: x, y1: P.t, y2: H - P.b, stroke: C.grid }), sv('text', { x: x + 3, y: H - 7 }, mob ? `'${String(y).slice(2)}` : String(y))); }
+    const days = {}; const add = (src, d) => (days[src] = days[src] || new Set()).add(d);
+    for (const s of D.sessions) add(s.s, s.d); for (const t of D.tops) add(t[1], t[0]); for (const r of D.runs) add(r[1] === 'bwcardio' ? 'bwlifts' : r[1], r[0]); for (const w of D.bw) add('bwlifts', w[0]);
+    D.sources.forEach((s, k) => { const y = P.t + k * lh, c = SC[s.id] || C.ink;
+      S.append(sv('rect', { x: X(dn(s.a)) - 2, y: y + 4, width: Math.max(4, X(dn(s.b)) - X(dn(s.a)) + 4), height: lh - 8, fill: c, 'fill-opacity': 0.08, rx: 3 }));
+      for (const d of days[s.id] || []) S.append(sv('rect', { x: X(dn(d)) - 0.75, y: y + 6, width: 1.5, height: lh - 12, fill: c }));
+      if (mob) S.append(sv('text', { x: Math.min(W - P.r - 4, X(dn(s.b)) + 6), y: y + lh / 2 + 3, fill: c, 'text-anchor': X(dn(s.b)) > W * 0.75 ? 'end' : 'start' }, s.name));
+      else S.append(sv('text', { x: P.l - 8, y: y + lh / 2 + 3, 'text-anchor': 'end', fill: c, style: 'font:600 11px "Chakra Petch",sans-serif' }, s.name));
+      const hit = sv('rect', { x: P.l, y, width: W - P.l - P.r, height: lh, fill: 'transparent' });
+      hit.onmousemove = (ev) => tipAt(ev, `<b>${s.name}</b><br>${s.book} › ${s.sheet}<br>${fmt(s.a)} – ${fmt(s.b)} · ${s.n} days`); hit.onmouseleave = tipOff; S.append(hit); });
+    host.replaceChildren(S);
+  }
+  (function overviewTable() {
+    const head = el('tr', {}, ['Log', 'Workbook › sheet', 'From', 'To', 'Days', 'Holds'].map((h, i) => el('th', { className: i === 1 || i === 0 || i === 5 ? 'l' : '', text: h })));
+    $('#ov-tbl').replaceChildren(el('thead', {}, head), el('tbody', {}, D.sources.map((s) => el('tr', {}, [
+      el('td', { className: 'l' }, [el('span', { className: 'src', style: `--sc:${SC[s.id]}` }), el('b', { text: s.name })]), el('td', { className: 'l', text: `${s.book} › ${s.sheet}` }),
+      el('td', { text: fmt(s.a) }), el('td', { text: fmt(s.b) }), el('td', { text: String(s.n) }), el('td', { className: 'l w', text: s.note })]))));
+  })();
+
+  // ---------------------------------------------------------------- big four
+  const LV = { on: LIFTS.map(([k]) => k), club: false, yr: 'all' };
+  const LY = years(BEST.map((b) => b.d));
+  seg($('#li-lifts'), [...LIFTS, ['club', '1000 lb club', '#9b7bff']], [...LV.on], (k) => {
+    if (k === 'club') LV.club = !LV.club; else LV.on = LV.on.includes(k) ? LV.on.filter((x) => x !== k) : [...LV.on, k];
+    press($('#li-lifts'), (x) => (x === 'club' ? LV.club : LV.on.includes(x))); drawLifts(); }, 'k');
+  seg($('#li-years'), [['all', 'ALL YEARS'], ...LY.map((y) => [y, y])], LV.yr, (k) => { LV.yr = k; press($('#li-years'), (x) => x === k); drawLifts(); });
+  function drawLifts() {
+    const host = $('#li-chart'), W = Math.max(300, host.clientWidth || 700), H = W < 560 ? 300 : 380, P = { l: 44, r: 12, t: 12, b: 24 };
+    const inY = (d) => LV.yr === 'all' || d.startsWith(LV.yr);
+    const pts = BEST.filter((b) => LV.on.includes(b.big) && inY(b.d)), cl = LV.club ? D.club.filter((c) => inY(c[0])) : [];
+    // one point per lift per day: the heaviest
+    const day = {}; for (const p of pts) { const k = p.big + p.d; if (!day[k] || p.lbs > day[k].lbs || (p.lbs === day[k].lbs && p.reps != null)) day[k] = p; }
+    const P2 = Object.values(day), all = [...P2.map((p) => p.d), ...cl.map((c) => c[0])];
+    if (!all.length) { host.replaceChildren(el('p', { className: 'note', text: 'Nothing logged for that choice.' })); $('#li-tbl').replaceChildren(); return; }
+    const ax = timeAxis(all, P.l, W - P.r);
+    const ymax = Math.ceil(Math.max(...P2.map((p) => p.lbs), ...cl.map((c) => c[2]), 100) / 50) * 50, X = ax.X, Y = (v) => H - P.b - (v / ymax) * (H - P.t - P.b);
+    const S = sv('svg', { viewBox: `0 0 ${W} ${H}`, width: W, height: H, role: 'img', 'aria-label': 'Heaviest weight per day for each lift' });
+    const step = ymax > 500 ? 100 : 50; for (let v = 0; v <= ymax; v += step) S.append(sv('line', { x1: P.l, x2: W - P.r, y1: Y(v), y2: Y(v), stroke: C.grid }), sv('text', { x: P.l - 6, y: Y(v) + 3, 'text-anchor': 'end' }, String(v)));
+    drawAxis(S, ax, P.t, H - P.b);
+    if (cl.length) { const line = cl.map((c, i) => `${i ? 'L' : 'M'}${X(c[0]).toFixed(1)} ${Y(c[2]).toFixed(1)}`).join('');
+      S.append(sv('path', { d: line, fill: 'none', stroke: '#9b7bff', 'stroke-width': 1.6, 'stroke-dasharray': '5 4' }), sv('line', { x1: P.l, x2: W - P.r, y1: Y(1000), y2: Y(1000), stroke: '#9b7bff', 'stroke-opacity': 0.5 }));
+      if (ymax >= 1000) S.append(sv('text', { x: W - P.r - 4, y: Y(1000) - 4, 'text-anchor': 'end', fill: '#9b7bff' }, '1000 LB'));
+      for (const c of cl) { const dot = sv('rect', { x: X(c[0]) - 3, y: Y(c[2]) - 3, width: 6, height: 6, fill: '#9b7bff', transform: `rotate(45 ${X(c[0])} ${Y(c[2])})` });
+        dot.onmousemove = (ev) => tipAt(ev, `<b>1000 lb club total</b><br>${fmt(c[0])}: ${n0(c[2])} lb<br>${sname(c[1])}`); dot.onmouseleave = tipOff; S.append(dot); } }
+    for (const [k, , c] of LIFTS) { if (!LV.on.includes(k)) continue; const ps = P2.filter((p) => p.big === k).sort((p, q) => (p.d < q.d ? -1 : 1)); if (!ps.length) continue;
+      let run = 0; const env = ps.map((p) => [X(p.d), Y((run = Math.max(run, p.lbs)))]);
+      S.append(sv('path', { d: env.map((p, i) => `${i ? (i && 'H' + p[0].toFixed(1) + 'V') : 'M' + p[0].toFixed(1) + ' '}${p[1].toFixed(1)}`).join(''), fill: 'none', stroke: c, 'stroke-width': 1.4, 'stroke-opacity': 0.55 }));
+      for (const p of ps) { const hollow = p.reps == null, dot = sv('circle', { cx: X(p.d), cy: Y(p.lbs), r: hollow ? 3.2 : 3.6, fill: hollow ? C.void : c, stroke: c, 'stroke-width': 1.5, style: `filter:drop-shadow(0 0 3px ${c})` });
+        dot.onmousemove = (ev) => tipAt(ev, `<b>${LN[k]} · ${n0(p.lbs)} lb${p.reps != null ? ' × ' + n1(p.reps) : ''}</b><br>${fmt(p.d)}<br>${p.ex && p.ex !== LN[k] ? p.ex + ' · ' : ''}${sname(p.src)}`); dot.onmouseleave = tipOff; S.append(dot); } }
+    host.replaceChildren(S);
+    $('#li-legend').replaceChildren(el('span', {}, [el('i', { style: '--c:#dcd8ff;border-radius:50%' }), 'set with reps logged']), el('span', {}, [el('i', { style: '--c:transparent;border:1.5px solid #dcd8ff;border-radius:50%' }), 'weekly best, no reps']),
+      el('span', {}, [el('i', { style: '--c:transparent;border-top:1.5px solid #dcd8ff;height:0;border-radius:0' }), 'running best']));
+    // table: best, first, last per lift within the view
+    const rows = LIFTS.filter(([k]) => LV.on.includes(k)).map(([k, n, c]) => { const ps = P2.filter((p) => p.big === k).sort((p, q) => (p.d < q.d ? -1 : 1)); if (!ps.length) return null;
+      const best = ps.reduce((p, q) => (q.lbs > p.lbs ? q : p)), f = ps[0], l = ps[ps.length - 1], cell = (p) => el('td', {}, [el('b', { text: `${n0(p.lbs)}${p.reps != null ? '×' + n1(p.reps) : ''}` }), el('br'), fmt(p.d)]);
+      return el('tr', {}, [el('td', { className: 'l' }, [el('span', { className: 'src', style: `--sc:${c}` }), el('b', { text: n })]), cell(f), cell(best), cell(l)]); }).filter(Boolean);
+    $('#li-tbl').replaceChildren(el('thead', {}, el('tr', {}, ['Lift', 'First', 'Best', 'Last'].map((h, i) => el('th', { className: i ? '' : 'l', text: h })))), el('tbody', {}, rows));
+  }
+
+  // ---------------------------------------------------------------- sessions
+  const SY = years(D.sessions.map((s) => s.d)), SV = { yr: SY[SY.length - 1], open: null };
+  seg($('#se-years'), [...SY.map((y) => [y, y]), ['all', 'ALL']], SV.yr, (k) => { SV.yr = k; SV.open = null; press($('#se-years'), (x) => x === k); drawSessions(); });
+  const exName = (id) => (D.ex[id] ? D.ex[id].name : id);
+  const setLine = (x) => { const [id, reps, lbs] = x, parts = reps.map((r, i) => (lbs[i] != null ? `${n1(r)}×${n1(lbs[i])}` : `${n1(r)}`)); return [el('b', { text: exName(id) }), el('span', {}, [parts.join(' · '), vol(x) ? el('em', { text: `  ${n0(vol(x))} lb` }) : null])]; };
+  function drawSessions() {
+    const ss = D.sessions.filter((s) => SV.yr === 'all' || s.d.startsWith(SV.yr));
+    const host = $('#se-chart'), W = Math.max(300, host.clientWidth || 900), H = 150, P = { l: 52, r: 8, t: 8, b: 22 }, mx = niceMax(Math.max(1, ...ss.map((s) => s.vol))), bw = (W - P.l - P.r) / Math.max(1, ss.length);
+    const S = sv('svg', { viewBox: `0 0 ${W} ${H}`, width: W, height: H, role: 'img', 'aria-label': 'Pounds moved per session' }), Y = (v) => H - P.b - (v / mx) * (H - P.t - P.b);
+    for (const v of [mx / 2, mx]) S.append(sv('line', { x1: P.l, x2: W - P.r, y1: Y(v), y2: Y(v), stroke: C.grid }), sv('text', { x: P.l - 6, y: Y(v) + 3, 'text-anchor': 'end' }, n0(v)));
+    let lastM = '';
+    ss.forEach((s, i) => { const x = P.l + i * bw, c = SC[s.s], m = s.d.slice(0, 7);
+      if (m !== lastM) { lastM = m; S.append(sv('text', { x: x + 1, y: H - 7 }, SV.yr === 'all' ? (m.endsWith('01') || i === 0 ? s.d.slice(0, 4) : '') : MON[+m.slice(5) - 1])); }
+      const r = sv('rect', { x: x + bw * 0.15, width: Math.max(1, bw * 0.7), y: Y(s.vol), height: H - P.b - Y(s.vol), fill: c, 'fill-opacity': SV.open === s ? 1 : 0.75 });
+      r.onmousemove = (ev) => tipAt(ev, `<b>${fmt(s.d)}</b>${s.no ? ' · session ' + s.no : ''}<br>${n0(s.vol)} lb · ${s.sets} sets · ${s.x.length} exercises${s.min ? '<br>' + Math.round(s.min) + ' min' : ''}<br>${sname(s.s)}`); r.onmouseleave = tipOff;
+      r.onclick = () => { SV.open = SV.open === s ? null : s; drawSessions(); const t = document.getElementById('ses-' + s.d + s.s); if (t) t.scrollIntoView({ block: 'nearest' }); }; r.style.cursor = 'pointer'; S.append(r); });
+    host.replaceChildren(S);
+    const body = [];
+    for (const s of [...ss].reverse()) {
+      const open = SV.open === s, tr = el('tr', { className: 'ses', id: 'ses-' + s.d + s.s, 'aria-expanded': String(open), tabindex: '0', onclick: () => { SV.open = open ? null : s; drawSessions(); }, onkeydown: (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); SV.open = open ? null : s; drawSessions(); } } }, [
+        el('td', { className: 'l' }, [el('span', { className: 'src', style: `--sc:${SC[s.s]}` }), el('b', { text: fmt(s.d) })]), el('td', { className: 'l', text: sname(s.s) }),
+        el('td', { className: 'l w', text: s.x.map((x) => exName(x[0])).join(', ') }), el('td', { text: String(s.sets) }), el('td', { text: n0(s.reps) }), el('td', {}, [el('b', { text: n0(s.vol) })]), el('td', { text: s.min ? Math.round(s.min) + ' min' : '—' })]);
+      body.push(tr);
+      if (open) body.push(el('tr', { className: 'det' }, el('td', { colSpan: 7 }, el('div', { className: 'sets' }, s.x.flatMap(setLine)))));
+    }
+    $('#se-tbl').replaceChildren(el('thead', {}, el('tr', {}, ['Date', 'Log', 'Exercises', 'Sets', 'Reps', 'Lb moved', 'Length'].map((h, i) => el('th', { className: i < 3 ? 'l' : '', text: h })))), el('tbody', {}, body));
+  }
+
+  // ---------------------------------------------------------------- exercises
+  const EY = years(D.sessions.map((s) => s.d)), EV = { yr: 'all', pick: null };
+  seg($('#ex-years'), [['all', 'ALL YEARS'], ...EY.map((y) => [y, y])], EV.yr, (k) => { EV.yr = k; press($('#ex-years'), (x) => x === k); drawExercises(); });
+  const GC = { Legs: '#ffb347', Push: '#3ff0ff', Pull: '#b6ff5c', Core: '#ff3fb4', Conditioning: '#ff3b4e', Cardio: '#9b7bff' };
+  function drawExercises() {
+    const ss = D.sessions.filter((s) => EV.yr === 'all' || s.d.startsWith(EV.yr)), by = {}, grp = {};
+    for (const s of ss) for (const x of s.x) { const e = by[x[0]] = by[x[0]] || { id: x[0], n: 0, sets: 0, vol: 0, best: 0 }; e.n++; e.sets += x[1].length; e.vol += vol(x); e.best = Math.max(e.best, ...x[2].map((w) => w || 0));
+      const g = (D.ex[x[0]] && D.ex[x[0]].group) || 'Other'; grp[g] = (grp[g] || 0) + vol(x); }
+    const gl = Object.entries(grp).filter(([, v]) => v > 0).sort((p, q) => q[1] - p[1]), gm = Math.max(1, ...gl.map((g) => g[1])), tot = gl.reduce((s, g) => s + g[1], 0);
+    $('#ex-groups').replaceChildren(...gl.map(([g, v]) => { const i = el('i'); i.style.width = (100 * v / gm) + '%'; i.style.setProperty('--bc', GC[g] || '#8a84b8'); return el('li', {}, [el('span', { text: g }), i, el('b', { text: `${n0(v)} lb · ${Math.round(100 * v / tot)}%` })]); }));
+    const L = Object.values(by).sort((p, q) => q.n - p.n || q.vol - p.vol), mx = Math.max(1, ...L.map((e) => e.n));
+    if (!EV.pick || !by[EV.pick]) EV.pick = L.length ? L[0].id : null;
+    $('#ex-list').replaceChildren(...L.map((e) => { const i = el('i'); i.style.width = (100 * e.n / mx) + '%'; i.style.setProperty('--bc', GC[(D.ex[e.id] || {}).group] || '#8a84b8');
+      return el('li', { className: 'pick' + (e.id === EV.pick ? ' on' : ''), onclick: () => { EV.pick = e.id; drawExercises(); }, title: `${e.sets} sets · ${n0(e.vol)} lb · heaviest ${e.best ? n0(e.best) + ' lb' : '—'}` }, [el('span', { text: exName(e.id) }), i, el('b', { text: `${e.n}×` })]); }));
+    drawOne(ss);
+  }
+  function drawOne(ss) {
+    const host = $('#ex-one'), id = EV.pick; if (!id) { host.replaceChildren(); return; }
+    const pts = ss.flatMap((s) => s.x.filter((x) => x[0] === id).map((x) => ({ d: s.d, src: s.s, top: Math.max(0, ...x[2].map((w) => w || 0)), reps: x[1], lbs: x[2], vol: vol(x) })));
+    $('#ex-one-h').textContent = `${exName(id)} · ${pts.length} session${pts.length === 1 ? '' : 's'}`;
+    const W = Math.max(280, host.clientWidth || 600), H = 200, P = { l: 40, r: 10, t: 14, b: 22 }, useTop = pts.some((p) => p.top > 0), val = (p) => (useTop ? p.top : p.reps.reduce((s, r) => s + (r || 0), 0));
+    const mx = niceMax(Math.max(1, ...pts.map(val)) * 1.05), ax = timeAxis(pts.map((p) => p.d), P.l, W - P.r), X = ax.X, Y = (v) => H - P.b - (v / mx) * (H - P.t - P.b);
+    const S = sv('svg', { viewBox: `0 0 ${W} ${H}`, width: W, height: H, role: 'img', 'aria-label': `${exName(id)} by session` });
+    for (const v of [mx / 2, mx]) S.append(sv('line', { x1: P.l, x2: W - P.r, y1: Y(v), y2: Y(v), stroke: C.grid }), sv('text', { x: P.l - 6, y: Y(v) + 3, 'text-anchor': 'end' }, n0(v)));
+    S.append(sv('text', { x: P.l, y: P.t - 4, fill: C.ink }, useTop ? 'HEAVIEST SET, LB' : 'TOTAL REPS'));
+    drawAxis(S, ax, P.t, H - P.b);
+    if (pts.length > 1) S.append(sv('path', { d: pts.map((p, i) => `${i && dn(p.d) - dn(pts[i - 1].d) <= 365 ? 'L' : 'M'}${X(p.d).toFixed(1)} ${Y(val(p)).toFixed(1)}`).join(''), fill: 'none', stroke: '#ffb347', 'stroke-opacity': 0.5 }));
+    for (const p of pts) { const c = SC[p.src], dot = sv('circle', { cx: X(p.d), cy: Y(val(p)), r: 4, fill: c, style: `filter:drop-shadow(0 0 3px ${c})` });
+      dot.onmousemove = (ev) => tipAt(ev, `<b>${fmt(p.d)}</b><br>${p.reps.map((r, i) => (p.lbs[i] != null ? `${n1(r)}×${n1(p.lbs[i])}` : n1(r))).join(' · ')}${p.vol ? '<br>' + n0(p.vol) + ' lb moved' : ''}<br>${sname(p.src)}`); dot.onmouseleave = tipOff; S.append(dot); }
+    host.replaceChildren(S);
+  }
+
+  // ---------------------------------------------------------------- cardio
+  function drawCardio() {
+    const R = D.runs.filter((r) => r[1] === 'runs2016'), host = $('#ca-chart'), W = Math.max(300, host.clientWidth || 900), mob = W < 560, H = mob ? 260 : 320, P = { l: 40, r: 44, t: 12, b: 24 };
+    const days = {}; for (const r of R) { const e = days[r[0]] = days[r[0]] || { d: r[0], mi: 0, min: 0, goal: r[5], kinds: new Set(), n: 0 }; if (r[3]) { e.mi += r[3]; e.min += r[4] || 0; e.n++; } e.kinds.add(r[2]); }
+    const L = Object.values(days).sort((p, q) => (p.d < q.d ? -1 : 1)); if (!L.length) { host.replaceChildren(); return; }
+    const a = dn(L[0].d) - 1, b = dn(L[L.length - 1].d) + 1, bw = (W - P.l - P.r) / (b - a + 1), X = (d) => P.l + (dn(d) - a) * bw;
+    const mx = Math.ceil(Math.max(...L.map((e) => e.mi), ...L.map((e) => e.goal || 0)) / 2) * 2, Y = (v) => H - P.b - (v / mx) * (H - P.t - P.b);
+    const paces = L.filter((e) => e.mi > 0 && e.min > 0).map((e) => e.min / e.mi), p0 = Math.floor(Math.min(...paces)), p1 = Math.ceil(Math.max(...paces)), YP = (p) => P.t + ((p - p0) / (p1 - p0 || 1)) * (H - P.t - P.b);
+    const S = sv('svg', { viewBox: `0 0 ${W} ${H}`, width: W, height: H, role: 'img', 'aria-label': 'Miles a day with pace, Dec 2015 to Mar 2016' });
+    for (let v = 0; v <= mx; v += mx > 10 ? 4 : 2) S.append(sv('line', { x1: P.l, x2: W - P.r, y1: Y(v), y2: Y(v), stroke: C.grid }), sv('text', { x: P.l - 6, y: Y(v) + 3, 'text-anchor': 'end' }, v + ' mi'));
+    for (let p = p0; p <= p1; p++) S.append(sv('text', { x: W - P.r + 6, y: YP(p) + 3, fill: '#ff3fb4' }, pace(p)));
+    const d0 = new Date(a * DAY); for (let m = new Date(Date.UTC(d0.getUTCFullYear(), d0.getUTCMonth() + 1, 1)); m.getTime() / DAY <= b; m.setUTCMonth(m.getUTCMonth() + 1)) { const iso = m.toISOString().slice(0, 10), x = X(iso); S.append(sv('line', { x1: x, x2: x, y1: P.t, y2: H - P.b, stroke: C.grid }), sv('text', { x: x + 3, y: H - 7 }, `${MON[m.getUTCMonth()]} ${m.getUTCFullYear()}`)); }
+    for (const e of L) { const x = X(e.d);
+      if (e.goal) S.append(sv('line', { x1: x + 1, x2: x + bw - 1, y1: Y(e.goal), y2: Y(e.goal), stroke: '#ffffff', 'stroke-opacity': 0.6, 'stroke-width': 1.5 }));
+      if (e.mi) S.append(sv('rect', { x: x + bw * 0.12, width: bw * 0.76, y: Y(e.mi), height: H - P.b - Y(e.mi), fill: '#3ff0ff', 'fill-opacity': 0.75 }));
+      for (const k of e.kinds) if (k !== 'run') S.append(sv('text', { x: x + bw / 2, y: H - P.b - 4, 'text-anchor': 'middle', fill: k === 'swim' ? '#4ea8ff' : '#b6ff5c', style: 'font:600 9px "JetBrains Mono",monospace' }, k === 'swim' ? 'S' : 'R')); }
+    const pl = L.filter((e) => e.mi > 0 && e.min > 0); S.append(sv('path', { d: pl.map((e, i) => `${i ? 'L' : 'M'}${(X(e.d) + bw / 2).toFixed(1)} ${YP(e.min / e.mi).toFixed(1)}`).join(''), fill: 'none', stroke: '#ff3fb4', 'stroke-width': 1.2, 'stroke-opacity': 0.7 }));
+    for (const e of pl) S.append(sv('circle', { cx: X(e.d) + bw / 2, cy: YP(e.min / e.mi), r: 2.4, fill: '#ff3fb4' }));
+    const hit = sv('rect', { x: P.l, y: P.t, width: W - P.l - P.r, height: H - P.t - P.b, fill: 'transparent' }); S.append(hit);
+    hit.onmousemove = (ev) => { const bb = S.getBoundingClientRect(), i = Math.floor(((ev.clientX - bb.left) * (W / bb.width) - P.l) / bw), d = new Date((a + i) * DAY).toISOString().slice(0, 10), e = days[d];
+      tipAt(ev, `<b>${fmt(d)}</b><br>` + (e ? `${e.mi ? n1(e.mi) + ' mi in ' + Math.round(e.min) + ' min · ' + pace(e.min / e.mi) + ' /mi' : ''}${e.n > 1 ? ' (' + e.n + ' runs)' : ''}${[...e.kinds].filter((k) => k !== 'run').map((k) => '<br>' + k).join('')}${e.goal ? '<br>goal ' + n1(e.goal) + ' mi' : ''}` : 'nothing logged')); };
+    hit.onmouseleave = tipOff; host.replaceChildren(S);
+    const sum = R.filter((r) => r[2] === 'run' && r[3]), mi = sum.reduce((s, r) => s + r[3], 0), mn = sum.reduce((s, r) => s + (r[4] || 0), 0);
+    $('#ca-legend').replaceChildren(el('span', {}, [el('i', { style: '--c:#3ff0ff' }), `miles a day (${n1(mi)} mi in ${sum.length} runs)`]), el('span', {}, [el('i', { style: '--c:transparent;border-top:2px solid #fff;height:0;border-radius:0' }), 'goal']),
+      el('span', {}, [el('i', { style: '--c:#ff3fb4;border-radius:50%' }), `pace, min/mi (overall ${pace(mn / mi)})`]), el('span', {}, [el('b', { text: 'S', style: 'color:#4ea8ff' }), 'swim']), el('span', {}, [el('b', { text: 'R', style: 'color:#b6ff5c' }), 'row']));
+    const rows = D.runs.filter((r) => r[4] != null).slice().sort((p, q) => (p[0] < q[0] ? 1 : -1));
+    $('#ca-tbl').replaceChildren(el('thead', {}, el('tr', {}, ['Date', 'Log', 'What', 'Distance', 'Time', 'Pace /mi'].map((h, i) => el('th', { className: i < 3 ? 'l' : '', text: h })))),
+      el('tbody', {}, rows.map((r) => el('tr', {}, [el('td', { className: 'l' }, [el('span', { className: 'src', style: `--sc:${SC[r[1] === 'bwcardio' ? 'bwlifts' : r[1]]}` }), fmt(r[0])]), el('td', { className: 'l', text: sname(r[1] === 'bwcardio' ? 'bwlifts' : r[1]) }),
+        el('td', { className: 'l', text: r[2] }), el('td', { text: r[3] != null ? n1(r[3]) + ' mi' : r[2] === 'row' && r[1] === 'zimmerman' ? '500 m' : '—' }), el('td', { text: pace(r[4]) }), el('td', {}, [el('b', { text: r[3] ? pace(r[4] / r[3]) : '—' })])]))));
+  }
+
+  // ---------------------------------------------------------------- bodyweight
+  const BV = { kind: 'pushups' }, BK = { pushups: ['Wide pushups', 'Military pushups', 'Close pushups', 'Diamond pushups', 'Sphinx pushups', 'One-arm pushups', 'Handstand pushups', 'Dips'], pullups: ['Chin-ups', 'Pullups', 'Wide-grip pullups'] };
+  const BC = ['#3ff0ff', '#ffb347', '#b6ff5c', '#ff3fb4', '#9b7bff', '#4ea8ff', '#ff6fd8', '#ffd84a'];
+  seg($('#bw-kind'), [['pushups', 'PUSHUPS'], ['pullups', 'PULLUPS']], BV.kind, (k) => { BV.kind = k; press($('#bw-kind'), (x) => x === k); drawBW(); });
+  function drawBW() {
+    const kinds = BK[BV.kind], rows = D.bw.filter((r) => r[1] === BV.kind), byD = {};
+    for (const [d, , k, n] of rows) (byD[d] = byD[d] || {})[k] = n;
+    const ds = Object.keys(byD).sort(), host = $('#bw-chart'), W = Math.max(300, host.clientWidth || 900), H = 270, P = { l: 40, r: 8, t: 10, b: 62 };
+    const tot = (d) => kinds.reduce((s, k) => s + (k === 'Dips' ? 0 : byD[d][k] || 0), 0) + (byD[d].Dips || 0), mx = niceMax(Math.max(1, ...ds.map(tot))), bw = (W - P.l - P.r) / Math.max(1, ds.length), Y = (v) => H - P.b - (v / mx) * (H - P.t - P.b);
+    const S = sv('svg', { viewBox: `0 0 ${W} ${H}`, width: W, height: H, role: 'img', 'aria-label': `${BV.kind} by logged day and grip` });
+    for (const v of [mx / 2, mx]) S.append(sv('line', { x1: P.l, x2: W - P.r, y1: Y(v), y2: Y(v), stroke: C.grid }), sv('text', { x: P.l - 6, y: Y(v) + 3, 'text-anchor': 'end' }, n0(v)));
+    ds.forEach((d, i) => { let y = H - P.b; const x = P.l + i * bw;
+      kinds.forEach((k, j) => { const v = byD[d][k]; if (!v) return; const h = (v / mx) * (H - P.t - P.b); y -= h; S.append(sv('rect', { x: x + bw * 0.15, width: bw * 0.7, y, height: h, fill: BC[j], 'fill-opacity': 0.8 })); });
+      const t = sv('text', { x: x + bw / 2, y: H - P.b + 12, 'text-anchor': 'end', transform: `rotate(-40 ${x + bw / 2} ${H - P.b + 12})` }, `${MON[+d.slice(5, 7) - 1]} ${+d.slice(8)} '${d.slice(2, 4)}`); if (bw >= 14 || i % Math.ceil(14 / bw) === 0) S.append(t);
+      const hit = sv('rect', { x, y: P.t, width: bw, height: H - P.t - P.b, fill: 'transparent' });
+      hit.onmousemove = (ev) => tipAt(ev, `<b>${fmt(d)}</b><br>` + kinds.filter((k) => byD[d][k]).map((k) => `${k}: ${n0(byD[d][k])}`).join('<br>') + `<br><b>${n0(tot(d))} total</b>`); hit.onmouseleave = tipOff; S.append(hit); });
+    host.replaceChildren(S);
+    const used = kinds.filter((k) => rows.some((r) => r[2] === k));
+    $('#bw-legend').replaceChildren(...used.map((k) => el('span', {}, [el('i', { style: `--c:${BC[kinds.indexOf(k)]}` }), k])));
+    const sums = used.map((k) => [k, rows.filter((r) => r[2] === k).reduce((s, r) => s + r[3], 0), Math.max(...rows.filter((r) => r[2] === k).map((r) => r[3]))]);
+    $('#bw-tbl').replaceChildren(el('thead', {}, el('tr', {}, ['Kind', 'Total reps', 'Most in a day'].map((h, i) => el('th', { className: i ? '' : 'l', text: h })))),
+      el('tbody', {}, sums.map(([k, s, m]) => el('tr', {}, [el('td', { className: 'l' }, [el('span', { className: 'src', style: `--sc:${BC[kinds.indexOf(k)]}` }), k]), el('td', {}, [el('b', { text: n0(s) })]), el('td', { text: n0(m) })]))));
+  }
+
+  // ---------------------------------------------------------------- body (sealed): opens only in a browser already unlocked on the home page
+  const BO = { ds: null, k: null };
+  try {
+    let saved = null; for (const st of [localStorage, sessionStorage]) { try { saved = saved || JSON.parse(st.getItem('jsbv-key') || 'null'); } catch (e) {} }
+    if (saved && window.crypto && crypto.subtle) {
+      const box = await (await fetch('../meta-log/data/private.enc.json')).json(), b64d = (x) => Uint8Array.from(atob(x), (c) => c.charCodeAt(0));
+      if (box && box.salt === saved.salt) {
+        const key = await crypto.subtle.importKey('raw', b64d(saved.k), 'AES-GCM', false, ['decrypt']);
+        const P = JSON.parse(new TextDecoder().decode(await crypto.subtle.decrypt({ name: 'AES-GCM', iv: b64d(box.iv) }, key, b64d(box.ct))));
+        BO.ds = (P.datasets || []).find((d) => d.id === 'fitness_body') || null;
+        if (BO.ds) { BO.start = P.start; document.querySelector('section[data-tab="body"]').dataset.off = '0'; }
+      }
+    }
+  } catch (e) { BO.ds = null; }
+  function drawBody() {
+    const ds = BO.ds; if (!ds) return;
+    // offset is days since the box's start date
+    const a0 = dn(BO.start) + (ds.offset || 0), iso = (i) => new Date((a0 + i) * DAY).toISOString().slice(0, 10);
+    if (!BO.k) { BO.k = ds.metrics[0].id; seg($('#bo-metric'), ds.metrics.map((m) => [m.id, m.name.toUpperCase()]), BO.k, (k) => { BO.k = k; press($('#bo-metric'), (x) => x === k); drawBody(); }); }
+    const m = ds.metrics.find((x) => x.id === BO.k), pts = m.v.map((v, i) => (v == null ? null : { d: iso(i), v })).filter(Boolean);
+    const host = $('#bo-chart'), W = Math.max(300, host.clientWidth || 900), H = 300, P = { l: 48, r: 12, t: 12, b: 24 };
+    const lo = Math.min(...pts.map((p) => p.v)), hi = Math.max(...pts.map((p) => p.v)), padv = (hi - lo || hi || 1) * 0.15, y0 = Math.max(0, lo - padv), y1 = hi + padv;
+    const ax = timeAxis(pts.map((p) => p.d), P.l, W - P.r), Y = (v) => H - P.b - ((v - y0) / (y1 - y0)) * (H - P.t - P.b);
+    const S = sv('svg', { viewBox: `0 0 ${W} ${H}`, width: W, height: H, role: 'img', 'aria-label': m.name + ' by day' });
+    for (let k = 0; k <= 4; k++) { const v = y0 + ((y1 - y0) * k) / 4; S.append(sv('line', { x1: P.l, x2: W - P.r, y1: Y(v), y2: Y(v), stroke: C.grid }), sv('text', { x: P.l - 6, y: Y(v) + 3, 'text-anchor': 'end' }, n1(v))); }
+    drawAxis(S, ax, P.t, H - P.b);
+    S.append(sv('path', { d: pts.map((p, i) => `${i && dn(p.d) - dn(pts[i - 1].d) <= 45 ? 'L' : 'M'}${ax.X(p.d).toFixed(1)} ${Y(p.v).toFixed(1)}`).join(''), fill: 'none', stroke: m.color, 'stroke-opacity': 0.6, 'stroke-width': 1.4 }));
+    for (const p of pts) { const c = sv('circle', { cx: ax.X(p.d), cy: Y(p.v), r: 3.4, fill: m.color, style: `filter:drop-shadow(0 0 3px ${m.color})` });
+      c.onmousemove = (ev) => tipAt(ev, `<b>${fmt(p.d)}</b><br>${m.name}: ${n1(p.v)} ${m.unit}`); c.onmouseleave = tipOff; S.append(c); }
+    host.replaceChildren(S);
+    $('#bo-tbl').replaceChildren(el('thead', {}, el('tr', {}, ['Measure', 'Days', 'First', 'Last', 'Low', 'High'].map((h, i) => el('th', { className: i ? '' : 'l', text: h })))),
+      el('tbody', {}, ds.metrics.map((x) => { const q = x.v.map((v, i) => (v == null ? null : [i, v])).filter(Boolean), mn = q.reduce((p, r) => (r[1] < p[1] ? r : p)), mxr = q.reduce((p, r) => (r[1] > p[1] ? r : p));
+        const cell = (r) => el('td', {}, [el('b', { text: `${n1(r[1])} ${x.unit}` }), el('br'), fmt(iso(r[0]))]);
+        return el('tr', {}, [el('td', { className: 'l' }, [el('span', { className: 'src', style: `--sc:${x.color}` }), x.name]), el('td', { text: String(q.length) }), cell(q[0]), cell(q[q.length - 1]), cell(mn), cell(mxr)]); })));
+  }
+
+  $('#foot').textContent = `Built ${D.generated} from ${new Set(D.sources.map((s) => s.book)).size} workbooks, ${D.sources.length} logs · ${D.note}`;
+  const DRAW = { overview: drawOverview, lifts: drawLifts, sessions: drawSessions, exercises: drawExercises, cardio: drawCardio, bodyweight: drawBW, body: drawBody };
+  const redraw = () => { const k = window.SiteTabs && SiteTabs.current; if (DRAW[k]) DRAW[k](); };
+  let rz; addEventListener('tabchange', redraw); addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(redraw, 100); });
+  if (window.SiteTabs) SiteTabs.start(); redraw();
+})();
+</script>

@@ -1746,6 +1746,12 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
       jump([['photo-library/#overview', 'Overview', 'where it stands'], ['photo-library/#captured', 'Captured', 'by date taken'], ['photo-library/#worklog', 'Work log', 'one row per snapshot'],
         ['photo-library/#space', 'Types & space', 'what is sorted, what is big'], ['photo-library/#lightroom', 'Lightroom', 'the proper photography']]),
     ]));
+    cards.push(el('div', { className: 'card iron' }, [
+      el('h3', { text: 'IRON//LOG' }),
+      el('div', { className: 'big2' }, ['2015–2024', el('small', { text: 'seven logs: lifts, runs, pushups' })]),
+      jump([['fitness/#overview', 'Overview', 'every log on one timeline'], ['fitness/#lifts', 'Big four', 'squat, bench, deadlift, press'], ['fitness/#sessions', 'Sessions', 'every set of every session'],
+        ['fitness/#exercises', 'Exercises', 'what got trained'], ['fitness/#cardio', 'Cardio', 'the 2016 running log'], ['fitness/#bodyweight', 'Bodyweight', 'pushups and pullups']]),
+    ]));
     $('#p-cards').replaceChildren(...cards);
   }
 
