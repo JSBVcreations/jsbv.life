@@ -52,3 +52,11 @@ Partly, and only weakly with this much data.
 - PCT//PREP has run 12 days straight (Nov 8–19) with no zero day. Week 1: 32.0 mi vs 29.6 planned.
 - BODY//MAP's 7-day vs 28-day load for feet, shins and calves is about 1.9×, the same front-loaded shape that preceded past collapses.
 - The build that lasted (2017) started slow and peaked late. Schedule zero days now; keep week-over-week growth to roughly 10–15%.
+
+## Collapse tolerance (heat map snapshots, Nov 20)
+`docs/snapshots/A-collapse-risk.png`, `B-phase-tolerance.png`, `C-pct-tolerance.png`.
+- **A. Risk by week and frequency** (103 phase-weeks): chance the phase stops within 3 weeks. Highest in week 2 at 0–1 days (40%) or 3 days (44%), and across weeks 3–8 (26–33%) at most frequencies. From week 9 on at 3+ days a week it falls to 3–4%: a phase that reaches two months at three days a week has survived its danger zone.
+- **B. Every phase, week by week** (load vs the 4 weeks before; under 0.8 = fading, 0.8–1.3 = steady, over 1.5 = spike): phases open with 2–5 weeks of spikes. The long 2017 phase is the only one with more than two steady weeks in a row (6). 5 of the 9 phases that ended in 28+ days off ended on fading weeks; 2024-11 faded for 8 weeks, spiked twice, then stopped.
+- **C. PCT//PREP now**: what each muscle group carries each morning vs what one 3.7-mile loop a day (12 lb) would leave. Legs and feet have stayed at 0.8–1.1× since Nov 13 (0.8–0.95× this morning), inside that tolerance; lower back and traps 0.5×. The load isn't too big; the ramp is: 7-day vs 28-day is 1.8–1.9× in the legs and feet, because the program started from almost nothing in late October.
+- Week-level predictors of a stop within 3 weeks: earlier in the phase (median week 3 vs 6, p = 0.015), fewer sets that week (21 vs 50, p = 0.03), fewer gym days (2 vs 3, p = 0.11), already fading from the phase's best week (32% vs 60% of it, p = 0.09). The size of a spike on its own did not separate stops from non-stops (p = 0.6–0.9).
+- Tolerance rule from this: get past week 8 at 3 days a week; treat two fading weeks in a row as the early warning; keep weekly growth steady instead of opening with spikes.

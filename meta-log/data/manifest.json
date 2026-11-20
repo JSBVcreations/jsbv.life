@@ -17,7 +17,7 @@
    "files": [
     {
      "path": "meta-log/data/health.json",
-     "kb": 28,
+     "kb": 56,
      "through": "2026-11-13"
     }
    ]
@@ -388,7 +388,7 @@
    "files": [
     {
      "path": "meta-log/data/daily.json",
-     "kb": 974,
+     "kb": 995,
      "through": "2026-11-20"
     }
    ]

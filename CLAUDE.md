@@ -5,6 +5,7 @@ Jack's personal data site: a decade of steps, music, photos and trail logs, plus
 - `docs/BLUEPRINT.md`: the whole site on one page (map, pipeline, data shapes, workflow). Paste it into a new chat.
 - `docs/NOTES.md`: per-page and per-dataset detail. Jump to the heading you need; don't read it all.
 - `docs/UPDATING.md`: every data source, where it lives, and how it's refreshed.
+- `docs/EXERCISE-ANALYSIS.md`, `docs/SLEEP-ANALYSIS.md`: findings (Nov 20); charts in `docs/snapshots/`.
 
 ## Stack
 - Static site with no build step and no libraries. Each page is one `index.html` with inline CSS and JS, and fetches its `data/*.json`.
@@ -39,7 +40,7 @@ Jack's personal data site: a decade of steps, music, photos and trail logs, plus
 - `maxfield.life/spotify` is Max's history, not Jack's. Never use it here.
 - Watch list: never publish who he watched with. Scorecard notes ARE published, in full, at Jack's request (Nov 19); flag a new note that names someone he watched with. Call log: never any person, contact, or per-person breakdown.
   Breathwork: the notes column is never read.
-- Health: only the files in `build_health_log.py`'s `MOVE` + `VITALS` maps (movement, heart rate, HRV, sleep) are read. Anything else is Jack's call.
+- Health: only the files in `build_health_log.py`'s `MOVE` + `VITALS` maps (movement, heart rate, HRV, sleep) are read. Anything else is Jack's call. Other HealthView folders in `jsbv data` holding VITALS files (e.g. `heart rate and others`, Dec 2024 on) are merged into health.json's `history` block by `update.py` (`--vitals-from`); their blood oxygen and active heart rate files are not read.
 - Strava: titles and numbers only. No descriptions, GPS tracks, or the home loop's location.
 - Photos: counts and GB only. No file names, album names or ids.
 - Epic Games export (PDF: email, name, IPs, devices, linked accounts, a card purchase): only the "Past Seasons" stats are read.

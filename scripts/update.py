@@ -80,6 +80,13 @@ def newest_health():
     return max(hits, key=name_date) if hits else None
 
 
+def vitals_folders(main):
+    """Other HealthView folders in the data folder (heart rate etc. over a longer span), merged into the history."""
+    hits = [p for p in glob.glob(os.path.join(DATA, '*')) if os.path.isdir(p) and ok_name(p) and p != main
+            and glob.glob(os.path.join(p, 'HealthView_*HEART RATE*.csv'))]
+    return sorted(hits)
+
+
 def sheets(p):
     try:
         return re.findall(r'<sheet [^>]*name="([^"]+)"', zipfile.ZipFile(p).read('xl/workbook.xml').decode('utf-8'))
@@ -135,7 +142,9 @@ def main():
     health = newest_health()
     used['health'] = health
     if health:
-        if not run(f'Apple Health  {short(health)}', [py, os.path.join(S, 'build_health_log.py'), health]): failed.append('health')
+        extra = [x for v in vitals_folders(health) for x in ('--vitals-from', v)]
+        label = f'Apple Health  {short(health)}' + (f" + {', '.join(short(v) for v in vitals_folders(health))}" if extra else '')
+        if not run(label, [py, os.path.join(S, 'build_health_log.py'), health] + extra): failed.append('health')
     for key, label, pats, script in [
         ('watch', 'Watch list', ['*Watch-List*.xlsx', '*Watch-List*.xlsm'], 'build_watch_log.py'),
         ('calls', 'Call log', ['*Call-Log*.xlsx'], 'build_call_log.py'),

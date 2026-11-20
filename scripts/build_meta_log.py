@@ -93,12 +93,13 @@ if HL:
         'metrics': [{'id': 'minutes', 'name': 'Exercise minutes', 'unit': 'min', 'agg': 'sum', 'color': '#b6ff5c', 'v': HL['exercise_min']}],
         'dims': [{'id': 'tod', 'name': 'Time of day', 'cats': tod_cats(), 'v': {'minutes': HL['tod']['exercise_min']}}],
     })
-    V = HL.get('vitals')
+    V = HL.get('history') or HL.get('vitals')            # history: every vitals folder merged (Dec 2024 on)
+    VS = V.get('start', HL['start']); VN = V.get('n', HL['n'])
     if V:                                                 # agg 'mean': null on days with nothing recorded
         datasets.append({
             'id': 'body', 'name': 'Heart + sleep', 'source': 'Apple Health (HealthView export)', 'grain': 'day',
-            'offset': day(HL['start']), 'n': HL['n'],
-            'note': 'Heart + sleep: sleep is counted inside each calendar day, so a night is split at midnight.',
+            'offset': day(VS), 'n': VN,
+            'note': 'Heart + sleep: "Sleep" is counted inside each calendar day (a night is split at midnight); "Sleep, whole night" is the night ending that morning.',
             'metrics': [
                 {'id': 'resting_hr', 'name': 'Resting heart rate', 'unit': 'bpm', 'agg': 'mean', 'color': '#ff3fb4', 'v': V['resting_hr']},
                 {'id': 'hrv', 'name': 'Heart rate variability', 'unit': 'ms', 'agg': 'mean', 'color': '#3ff0ff', 'v': V['hrv']},
@@ -106,7 +107,11 @@ if HL:
                 {'id': 'walking_hr', 'name': 'Walking heart rate', 'unit': 'bpm', 'agg': 'mean', 'color': '#ffb347', 'v': V['walking_hr']},
                 {'id': 'hr_low', 'name': 'Lowest heart rate of the day', 'unit': 'bpm', 'agg': 'mean', 'color': '#4fe0c0', 'v': V['hr_low']},
                 {'id': 'hr_high', 'name': 'Highest heart rate of the day', 'unit': 'bpm', 'agg': 'mean', 'color': '#ff3fb4', 'v': V['hr_high']},
-            ],
+            ] + ([
+                {'id': 'night_h', 'name': 'Sleep, whole night', 'unit': 'h', 'agg': 'mean', 'color': '#9b7bff', 'v': V['night_h']},
+                {'id': 'bed_h', 'name': 'Asleep at (hour)', 'unit': 'h', 'agg': 'mean', 'color': '#4ea8ff', 'v': V['bed_h']},
+                {'id': 'wake_h', 'name': 'Awake at (hour)', 'unit': 'h', 'agg': 'mean', 'color': '#ffd84a', 'v': V['wake_h']},
+            ] if 'night_h' in V else []),
             'dims': [],
         })
 
