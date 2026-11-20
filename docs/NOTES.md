@@ -337,3 +337,16 @@ Keep the MX / TXT / DKIM / autodiscover records — they run the jsbv.life busin
   sealed by build_meta_log.py into private.enc.json. The page's Body tab shows only in a browser already unlocked on the home
   page (it reads the saved key, never asks for the passphrase itself).
 - Axes squeeze any stretch over a year with no entries into a fixed gap (`timeAxis`), so 2016-19 and Nov 2024 both get room.
+
+## IRON//LOG: whiteboard 2025, tally, PRs (Nov 20, 2026)
+- Source 8, `whiteboard2025`: the claude.ai Sheet "Whiteboard Workout Log 2025" (slug a8e17f72-fd4a-4bfc-b747-68e005cf7021; Log 442
+  set rows from 24 whiteboard photos, Mar 27 - Aug 10 2025; Sessions; Best Lifts). "Pull the whiteboard sheet" = Claude reads it
+  with the Docs tools (readCells Log A1:H…, Sessions A1:F…) and writes `jsbv data/Whiteboard-Workout-Log-2025.json` (rows as in the
+  Sheet; the Est. 1RM column is a formula and is left out). Checked on the first pull: 442 rows, 240,150 lb, every Best Lifts
+  heaviest matched. Rows that the Sheet names "Squat" but notes as bodyweight / goblet / sissy keep their name; with no weight
+  they add nothing to volume or PRs. Session minutes come from the Sessions time ranges where both ends are written.
+- Tally (`tally` in fitness.json, `volume_tally` in the sqlite): reps x lbs of every logged set, by day, with the running total.
+  The weekly top-set logs (lift1000, journey) are not added: they repeat logged sets or have no reps. 1,898,519 lb at this build.
+- PRs (`pr`, `pr_event`): walking every weighted set and weekly top set in date order, a PR is a weight above every earlier
+  weight for that exercise with at least one full rep (so 4/24/25's half rep at 225 bench is not one). The first weight logged
+  is kept as the starting mark, not counted. The tab lists the big four and every exercise with a PR; click one for its steps.

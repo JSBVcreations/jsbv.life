@@ -8,6 +8,10 @@ Workbooks (stay OUTSIDE the repo; *.xlsx is git-ignored):
   MetaData.dot.xlsx              2015-2019 logs, one sheet per habit
   The Journey of 1000lbs ... .xlsx   weekly top sets toward the 1000 lb club (dated Jan-Apr 2017 in the file)
   Training_.xlsx                 Nov 2024 logbook
+  Whiteboard-Workout-Log-2025.json   optional: Mar-Aug 2025 whiteboard photos, transcribed into the claude.ai Sheet
+                                 "Whiteboard Workout Log 2025" (a8e17f72-fd4a-4bfc-b747-68e005cf7021) and pulled here
+                                 by Claude ("pull the whiteboard sheet"). Log rows as they are in the Sheet; Sessions tab
+                                 too, but its With and notes columns go to the private database only.
 
 Writes
   fitness/data/fitness.json               public, numbers only: sessions, sets, top sets, runs, bodyweight reps
@@ -15,6 +19,10 @@ Writes
   meta-log/data/private/fitness_body.json git-ignored; body weight, waist, body fat, macros, sleep log as a daily dataset.
                                           Listed in privacy.json, so build_meta_log.py seals it into private.enc.json
                                           (passphrase only, like the smoking log). Jack chose this on Nov 20, 2026.
+
+Also computes the running tally of pounds moved (reps x lbs of every logged set; the weekly top-set logs are not
+counted, they repeat sets that are already logged or have no reps) and personal records: each time a weight beats the
+heaviest earlier weight for that exercise with at least one full rep.
 
 Integrity: every cell that is read is stored as it is in `raw_cell` (workbook, sheet, row, column, value). Each
 source sheet is then parsed into its own table in its own shape (src_*). Only the `session` / `lift_set` / `run` /
@@ -114,6 +122,11 @@ SYN = {'squat': 'Squat', 'squats': 'Squat', 'back squat': 'Squat', 'bench': 'Ben
        'trap bar deadlift': 'Hex bar deadlift', 'ohp': 'Overhead press', 'military press': 'Overhead press', 'standing bb ohp': 'Overhead press',
        'overhead press': 'Overhead press', 'pushups': 'Pushups', 'push ups': 'Pushups', 'pullups': 'Pullups', 'pull ups': 'Pullups',
        'chinups': 'Chin-ups', 'chin ups': 'Chin-ups', 'chinup': 'Chin-ups', 'dips': 'Dips', 'tricep dips': 'Dips', 'triceps dips': 'Dips',
+       'calf raise (raised)': 'Calf raise (raised)', 'calf raise (plate)': 'Calf raise (plate)', "farmer's carry": "Farmer's carry",
+       '21s curl': '21s curl', 'leg raise (dip bar)': 'Leg raise (dip bar)', 'deadlift (hex bar)': 'Hex bar deadlift', 'deadlift (straight bar)': 'Deadlift', 'seated overhead press': 'Seated press',
+       'push-ups': 'Pushups', 'pull-ups': 'Pullups', 'chin-ups': 'Chin-ups', 'close-grip bench': 'Close grip bench press',
+       'incline bench (30°)': 'Incline bench press', 'push-ups (wide)': 'Wide pushups', 'push-ups (diamond)': 'Diamond pushups',
+       'squat (bodyweight)': 'Bodyweight squat', 'pike push-ups': 'Pike pushups', 'skull crushers': 'Skull crushers',
        'standing ohp': 'Overhead press', 'standing press': 'Overhead press', 'seated ohp': 'Seated press',
        'austrlian press': 'Australian press', 'archer pushup': 'Archer pushups', 'plate lifts': 'Plate lift', 'tricep pushdown': 'Triceps pushdown',
        'pushdown': 'Triceps pushdown', 'cable pushdown': 'Triceps pushdown', 'incline bench': 'Incline bench press', 'incline press': 'Incline bench press',
@@ -137,7 +150,14 @@ GROUPS = {'Squat': ('Legs', 'Quads'), 'Bench press': ('Push', 'Chest'), 'Deadlif
           'Incline bench press': ('Push', 'Chest'), 'Chinups (rings)': ('Pull', 'Back'), 'Cable curl': ('Pull', 'Biceps'), 'Hammer curl': ('Pull', 'Biceps'),
           'Single arm extension': ('Push', 'Triceps'), 'Cable pullup': ('Pull', 'Back'), 'Handstand pushup': ('Push', 'Shoulders'), 'Pushup row': ('Pull', 'Back'),
           'Lunges (1 lap)': ('Legs', 'Quads'), 'Straight bar lift': ('Pull', 'Back'), 'Leg lifts': ('Core', 'Abs'), 'Lateral raise': ('Push', 'Shoulders'),
-          'Triceps pushdown': ('Push', 'Triceps'), 'Hanging leg raise': ('Core', 'Abs'), 'Weighted lunges': ('Legs', 'Quads'), 'Bicep curl': ('Pull', 'Biceps')}
+          'Triceps pushdown': ('Push', 'Triceps'), 'Hanging leg raise': ('Core', 'Abs'),
+          'Pullover': ('Pull', 'Back'), 'Pullover (plate)': ('Pull', 'Back'), 'Pullover (barbell)': ('Pull', 'Back'), 'Barbell raise': ('Push', 'Shoulders'),
+          'Static lunge': ('Legs', 'Quads'), 'Nordic curl': ('Legs', 'Hamstrings'), 'Calf raise (raised)': ('Legs', 'Calves'), 'Calf raise (plate)': ('Legs', 'Calves'),
+          "Farmer's carry": ('Conditioning', 'Grip'), 'Skull crushers': ('Push', 'Triceps'), 'Split squat': ('Legs', 'Quads'), 'Plank': ('Core', 'Abs'),
+          'Mountain climbers': ('Core', 'Abs'), 'Barbell row': ('Pull', 'Back'), 'Landmine row': ('Pull', 'Back'), 'Landmine press': ('Push', 'Shoulders'),
+          '21s curl': ('Pull', 'Biceps'), 'Pike pushups': ('Push', 'Shoulders'), 'Dead hang': ('Pull', 'Grip'), 'Leg raise (dip bar)': ('Core', 'Abs'),
+          'Bodyweight squat': ('Legs', 'Quads'), 'Wide pushups': ('Push', 'Chest'), 'Diamond pushups': ('Push', 'Triceps'), 'Dips (wide)': ('Push', 'Chest'),
+          'Front squat': ('Legs', 'Quads'), 'Pec fly': ('Push', 'Chest'), 'Seated press': ('Push', 'Shoulders'), 'Bicep curl': ('Pull', 'Biceps'), 'Weighted lunges': ('Legs', 'Quads'), 'Bicep curl': ('Pull', 'Biceps')}
 
 
 def canon(name):
@@ -159,6 +179,8 @@ def find(args):
     for k, pat in want.items():
         hits = [p for p in pool if re.search(pat, os.path.basename(p).lower())]
         if hits: found[k] = max(hits, key=os.path.getmtime)
+    wb = [p for r in (DATA, ROOT) for p in glob.glob(os.path.join(r, '**', 'Whiteboard-Workout-Log-*.json'), recursive=True)]
+    if wb: found['whiteboard'] = max(wb, key=os.path.getmtime)
     miss = set(want) - set(found)
     if miss: sys.exit(f'workbook(s) not found: {sorted(miss)}. Put them in "{DATA}" or pass the paths.')
     return found
@@ -167,7 +189,7 @@ def find(args):
 # ------------------------------------------------------------------ parse
 def main():
     paths = find(sys.argv[1:])
-    books = {k: load_book(p, READ[k]) for k, p in paths.items()}
+    books = {k: load_book(p, READ[k]) for k, p in paths.items() if k in READ}
     raw, issues = [], []
     for k, sheets in books.items():
         for sh, g in sheets.items():
@@ -350,6 +372,29 @@ def main():
         [(r, day(g.get((r, 1))), clock_min(g.get((r, 2))), clock_min(g.get((r, 3))), num(g.get((r, 4))) if num(g.get((r, 4))) is not None else (float(g[(r, 4)]) if re.fullmatch(r'\d+(\.\d+)?', str(g.get((r, 4), ''))) else None))
          for r in range(2, max(r for r, _ in g) + 1) if day(g.get((r, 1)))])
 
+    # ---- Whiteboard Workout Log 2025 (JSON pulled from the claude.ai Sheet): one row per set, kept as written
+    if 'whiteboard' in paths:
+        W = json.load(open(paths['whiteboard'], encoding='utf-8'))
+        S['src_whiteboard2025'] = (['source_row', 'date', 'exercise', 'set_no', 'reps', 'lbs', 'section', 'notes'], [(i + 2, *r) for i, r in enumerate(W['log'])])
+        def span_min(t):
+            m = re.match(r'\s*(\d{1,2})(?::(\d\d))?\s*(AM|PM)?\s*[–-]\s*(\d{1,2})(?::(\d\d))?\s*(AM|PM)', t or '')
+            if not m: return None
+            h1, m1, a1, h2, m2, a2 = m.groups(); a1 = a1 or a2
+            tm = lambda h, mm, ap: (int(h) % 12 + (12 if ap == 'PM' else 0)) * 60 + int(mm or 0)
+            d = tm(h2, m2, a2) - tm(h1, m1, a1)
+            return d if 0 < d < 360 else None
+        S['src_whiteboard2025_sessions'] = (['source_row', 'date', 'time', 'focus', 'with_whom', 'temp_f', 'notes', 'minutes'],
+                                            [(i + 2, *r, span_min(r[1])) for i, r in enumerate(W['sessions'])])
+        mins = {r[0]: span_min(r[1]) for r in W['sessions']}
+        by_d = collections.OrderedDict()
+        for i, (d, ex, setno, reps, lbs, sec, note) in enumerate(W['log']):
+            s_ = by_d.setdefault(d, {'d': d, 'src': 'whiteboard2025', 'no': None, 'min': mins.get(d), 'row': i + 2, 'x': [], 'cur': None})
+            name = canon(ex)
+            if s_['cur'] is None or s_['cur'][0] != name or setno == 1:
+                s_['cur'] = (name, [], [], i + 2); s_['x'].append(s_['cur'])
+            s_['cur'][1].append(reps); s_['cur'][2].append(lbs)
+        for s_ in by_d.values(): s_.pop('cur'); sessions.append(s_)
+
     # ------------------------------------------------------------------ unify sets
     sessions.sort(key=lambda s: (s['d'], s['src']))
     exn = {}
@@ -368,6 +413,7 @@ def main():
         ('bwlifts', 'Bodyweight lifts', 'MetaData', 'Bodyweight Lifts', 'day', 'Pushup and pullup counts by grip, plus short runs'),
         ('zimmerman', 'Zimmerman challenge', 'MetaData', 'Zimmerman Fitness Challenge', 'session', 'Sets plus timed runs and rows'),
         ('training2024', 'Training logbook', 'Training_', 'Logbook', 'session', 'Every set: reps and pounds, session length, muscle tags'),
+        ('whiteboard2025', 'Whiteboard log', 'Whiteboard Workout Log 2025 (Sheet)', 'Log', 'session', 'Every set from 24 whiteboard photos: reps and pounds, bodyweight sets, session times'),
     ]
     span = collections.defaultdict(list)
     for s in sessions: span[s['src']].append(s['d'])
@@ -376,6 +422,23 @@ def main():
     for x in bw: span['bwlifts'].append(x[0])
     srcs = [{'id': i, 'name': n, 'book': b, 'sheet': sh, 'grain': gr, 'note': nt, 'a': min(span[i]), 'b': max(span[i]), 'n': len(set(span[i]))}
             for i, n, b, sh, gr, nt in SOURCES if span[i]]
+
+    # ------------------------------------------------------------------ tally and personal records
+    day_vol = collections.OrderedDict()
+    for _, d, src, name, k, reps, lbs, r in sorted(sets, key=lambda x: (x[1], x[0], x[4])):
+        day_vol[d] = day_vol.get(d, 0) + ((reps or 0) * (lbs or 0))
+    tally, run = [], 0
+    for d, v in day_vol.items():
+        if v: run += v; tally.append((d, round(v, 1), round(run, 1)))
+    BIGNAME = {'squat': 'Squat', 'bench': 'Bench press', 'deadlift': 'Deadlift', 'ohp': 'Overhead press'}
+    ev = [(d, src, name, lbs, reps, r) for _, d, src, name, k, reps, lbs, r in sets if lbs and reps and reps >= 1]
+    ev += [(d, src, BIGNAME[big], lb, rep, r) for d, src, big, lb, rep, r in tops if lb]
+    ev.sort(key=lambda x: (x[0], -x[3]))
+    best, prs = {}, []
+    for d, src, name, lbs, reps, r in ev:
+        prev = best.get(name)
+        if prev is None or lbs > prev[0]:
+            prs.append((d, src, name, lbs, reps, None if prev is None else prev[0], r)); best[name] = (lbs, d)
 
     # ------------------------------------------------------------------ public JSON (numbers only)
     exs = sorted(exn, key=lambda n: -exn[n])
@@ -391,6 +454,8 @@ def main():
         'club': [[d, src, r1(t)] for d, src, t, _ in sorted(club)],
         'runs': [[d, src, kind, r1(mi), r1(m), r1(goal)] for d, src, kind, mi, m, goal, _, _ in sorted(runs, key=lambda x: (x[0], x[1]))],
         'bw': [[d, grp, kind, r1(n)] for d, grp, kind, n, _ in sorted(bw)],
+        'tally': [[d, r1(v), r1(c)] for d, v, c in tally],
+        'pr': [[d, src, ids[n], r1(lb), r1(rep), r1(prev)] for d, src, n, lb, rep, prev, _ in prs if n in ids],
     }
     os.makedirs(os.path.dirname(OUT_JSON), exist_ok=True)
     with open(OUT_JSON, 'w') as f: json.dump(pub, f, separators=(',', ':'))
@@ -442,6 +507,10 @@ def main():
     db.executemany('INSERT INTO run VALUES (?,?,?,?,?,?,?,?)', runs)
     db.execute('CREATE TABLE bw_reps (date TEXT, log TEXT, kind TEXT, reps REAL, source_row INT)')
     db.executemany('INSERT INTO bw_reps VALUES (?,?,?,?,?)', bw)
+    db.execute('CREATE TABLE pr_event (date TEXT, source TEXT, exercise TEXT, lbs REAL, reps REAL, previous_best REAL, source_row INT)')
+    db.executemany('INSERT INTO pr_event VALUES (?,?,?,?,?,?,?)', prs)
+    db.execute('CREATE TABLE volume_tally (date TEXT PRIMARY KEY, lbs REAL, cumulative_lbs REAL)')
+    db.executemany('INSERT INTO volume_tally VALUES (?,?,?)', tally)
     db.execute('CREATE TABLE issue (source TEXT, source_row INT, what TEXT)')
     db.executemany('INSERT INTO issue VALUES (?,?,?)', issues)
     db.execute('''CREATE VIEW best_lift AS SELECT lift, date, source, lbs, reps FROM (
@@ -454,6 +523,7 @@ def main():
 
     print(f'fitness.json: {len(pub["sessions"])} sessions, {len(sets)} sets, {len(tops)} top sets, {len(runs)} cardio rows, {len(bw)} bodyweight rows, '
           f'{len(exs)} exercises; {os.path.getsize(OUT_JSON) // 1024} KB')
+    print(f'tally: {run:,.0f} lb over {len(tally)} days; {sum(1 for p in prs if p[5] is not None)} PRs ({len(prs)} incl. first marks)')
     print(f'fitness.sqlite: {len(raw)} raw cells, {len(S)} source tables, {len(issues)} issues; fitness_body.json: {len(bodyrows)} logged days (sealed by build_meta_log.py)')
     for s in srcs: print(f"  {s['id']:14} {s['a']} -> {s['b']}  {s['n']} days")
 

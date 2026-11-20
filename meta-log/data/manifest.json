@@ -103,7 +103,7 @@
    "files": [
     {
      "path": "meta-log/data/private.enc.json",
-     "kb": 8,
+     "kb": 56,
      "through": null
     }
    ]
@@ -362,14 +362,14 @@
    "pages": [
     "/ (all views)"
    ],
-   "through": "2026-11-19",
-   "age_days": 1,
+   "through": "2026-11-20",
+   "age_days": 0,
    "stale": false,
    "files": [
     {
      "path": "meta-log/data/daily.json",
      "kb": 913,
-     "through": "2026-11-19"
+     "through": "2026-11-20"
     }
    ]
   },
@@ -400,14 +400,14 @@
    "pages": [
     "fitness/"
    ],
-   "through": "2026-11-19",
-   "age_days": 1,
+   "through": "2026-11-20",
+   "age_days": 0,
    "stale": false,
    "files": [
     {
      "path": "fitness/data/fitness.json",
-     "kb": 50,
-     "through": "2026-11-19"
+     "kb": 70,
+     "through": "2026-11-20"
     }
    ]
   }

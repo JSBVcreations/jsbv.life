@@ -20,7 +20,7 @@
 <style>
 /* IRON//LOG. Data: fitness/data/fitness.json (scripts/build_fitness.py from MetaData.dot.xlsx, The Journey of 1000lbs, Training_.xlsx).
    Seven logs kept apart (sources[]), joined only where they say the same kind of thing: sessions of sets, weekly top sets, cardio, bodyweight reps.
-   Tabs: overview · lifts · sessions · exercises · cardio · bodyweight · body (sealed: shows only in a browser unlocked on the home page;
+   Tabs: overview · tally (running pounds) · prs · lifts · sessions · exercises · cardio · bodyweight · body (sealed: shows only in a browser unlocked on the home page;
    reads the fitness_body dataset from meta-log/data/private.enc.json with the key the home page saved). */
 :root {
   color-scheme: dark;
@@ -73,6 +73,7 @@ th { color: var(--dim); font-weight: 400; text-transform: uppercase; letter-spac
 td.l, th.l { text-align: left; } td.w { white-space: normal; min-width: 18ch; }
 td b { color: var(--hot); font-weight: 600; }
 .src { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; background: var(--sc); box-shadow: 0 0 6px var(--sc); }
+tr.ses, tr.pick { cursor: pointer; } tr.pick:hover td, tr.pick.on td { background: rgba(255,179,71,0.06); } tr.pick.on td:first-child { box-shadow: inset 2px 0 0 var(--climb); }
 tr.ses { cursor: pointer; } tr.ses:hover td { background: rgba(255,179,71,0.05); } tr.ses[aria-expanded="true"] td { color: var(--hot); }
 tr.det td { background: var(--well); padding: 8px 12px; text-align: left; white-space: normal; }
 .sets { display: grid; grid-template-columns: max-content 1fr; gap: 3px 14px; }
@@ -85,6 +86,7 @@ tr.det td { background: var(--well); padding: 8px 12px; text-align: left; white-
 .bars b { color: var(--hot); font-weight: 600; }
 .legend { display: flex; flex-wrap: wrap; gap: 4px 16px; font: 400 var(--s-0) var(--f-data); }
 .legend span { display: inline-flex; gap: 6px; align-items: center; } .legend i { width: 10px; height: 10px; border-radius: 2px; background: var(--c); }
+@media (max-width: 640px) { #pr-tbl th:nth-child(n+3), #pr-tbl td:nth-child(n+3) { display: none; } }
 @media (max-width: 640px) { #ov-tbl td.w, #ov-tbl th:last-child, #ov-tbl td:nth-child(2), #ov-tbl th:nth-child(2) { display: none; } }
 #tip { position: fixed; z-index: 70; pointer-events: none; max-width: 280px; background: rgba(7,6,15,0.95); border: 1px solid var(--climb); font: 400 var(--s-0)/1.45 var(--f-data); padding: 6px 9px; color: var(--ink); }
 #tip b { color: var(--hot); }
@@ -102,6 +104,8 @@ footer { font-family: var(--f-data); font-size: var(--s-0); color: var(--dim); }
   <div class="readout" id="readout"></div>
   <nav class="ptabs" data-default="overview" aria-label="Sections of IRON//LOG">
     <a href="#overview" data-tab="overview">Overview</a>
+    <a href="#tally" data-tab="tally" data-alias="total">Tally</a>
+    <a href="#prs" data-tab="prs" data-alias="pr records">PRs</a>
     <a href="#lifts" data-tab="lifts" data-alias="big4 1000">Big four</a>
     <a href="#sessions" data-tab="sessions">Sessions</a>
     <a href="#exercises" data-tab="exercises">Exercises</a>
@@ -114,6 +118,23 @@ footer { font-family: var(--f-data); font-size: var(--s-0); color: var(--dim); }
     <h2>Seven logs, 2015 to 2024</h2>
     <div class="chart" id="ov-chart"></div>
     <div class="scroll"><table id="ov-tbl"></table></div>
+  </section>
+
+  <section data-tab="tally">
+    <h2>Every pound logged</h2>
+    <div class="chart" id="ta-chart"></div>
+    <div class="split">
+      <div class="scroll"><table id="ta-year"></table></div>
+      <div class="scroll"><table id="ta-src"></table></div>
+    </div>
+  </section>
+
+  <section data-tab="prs">
+    <h2>Personal records</h2>
+    <div class="split">
+      <div class="scroll tall"><table id="pr-tbl"></table></div>
+      <div style="display:grid;gap:8px"><h3 id="pr-h"></h3><div class="chart" id="pr-chart"></div><div class="scroll"><table id="pr-ev"></table></div></div>
+    </div>
   </section>
 
   <section data-tab="lifts">
@@ -213,7 +234,7 @@ footer { font-family: var(--f-data); font-size: var(--s-0); color: var(--dim); }
 
   let D;
   try { D = await (await fetch('data/fitness.json')).json(); } catch (e) { $('#err').hidden = false; return; }
-  const SC = { runs2016: '#3ff0ff', lift1000: '#9b7bff', comprehensive: '#ffb347', journey: '#ff6fd8', bwlifts: '#b6ff5c', zimmerman: '#ff3b4e', training2024: '#4ea8ff' };
+  const SC = { runs2016: '#3ff0ff', lift1000: '#9b7bff', comprehensive: '#ffb347', journey: '#ff6fd8', bwlifts: '#b6ff5c', zimmerman: '#ff3b4e', training2024: '#4ea8ff', whiteboard2025: '#ffd84a' };
   const SRC = Object.fromEntries(D.sources.map((s) => [s.id, s])), sname = (id) => (SRC[id] || { name: id }).name;
   const LIFTS = [['squat', 'Squat', '#ffb347'], ['bench', 'Bench', '#3ff0ff'], ['deadlift', 'Deadlift', '#b6ff5c'], ['ohp', 'Press', '#ff3fb4']];
   const LC = Object.fromEntries(LIFTS.map(([k, , c]) => [k, c])), LN = Object.fromEntries(LIFTS.map(([k, n]) => [k, n]));
@@ -235,6 +256,7 @@ footer { font-family: var(--f-data); font-size: var(--s-0); color: var(--dim); }
     el('div', {}, [el('span', { text: 'Sessions logged' }), el('strong', { text: n0(D.sessions.length) })]),
     el('div', {}, [el('span', { text: 'Sets' }), el('strong', { text: n0(totSets), style: 'color:var(--climb)' })]),
     el('div', {}, [el('span', { text: 'Pounds moved' }), el('strong', { text: n0(totVol), style: 'color:var(--sound)' })]),
+    el('div', {}, [el('span', { text: 'PRs set' }), el('strong', { text: n0((D.pr || []).filter((p) => p[5] != null).length), style: 'color:var(--trail)' })]),
     el('div', {}, [el('span', { text: 'Miles run' }), el('strong', { text: n1(miles), style: 'color:var(--step)' })]),
     ...LIFTS.map(([k, n, c]) => el('div', {}, [el('span', { text: 'Best ' + n.toLowerCase() }), el('strong', { style: `color:${c}` }, [pr[k] ? `${n0(pr[k].lbs)} lb` : '—', pr[k] ? el('small', { text: ' ' + fmt(pr[k].d) }) : null])])));
 
@@ -362,6 +384,65 @@ footer { font-family: var(--f-data); font-size: var(--s-0); color: var(--dim); }
     host.replaceChildren(S);
   }
 
+  // ---------------------------------------------------------------- tally: running total of pounds moved (logged sets, reps x lbs)
+  function drawTally() {
+    const T = D.tally || []; if (!T.length) return;
+    const host = $('#ta-chart'), W = Math.max(300, host.clientWidth || 900), mob = W < 560, H = mob ? 280 : 360, P = { l: 58, r: 14, t: 16, b: 24 };
+    const total = T[T.length - 1][2], ymax = niceMax(total * 1.04), ax = timeAxis(T.map((t) => t[0]), P.l, W - P.r), Y = (v) => H - P.b - (v / ymax) * (H - P.t - P.b);
+    const S = sv('svg', { viewBox: `0 0 ${W} ${H}`, width: W, height: H, role: 'img', 'aria-label': 'Running total of pounds moved' });
+    for (let k = 1; k <= 4; k++) { const v = (ymax * k) / 4; S.append(sv('line', { x1: P.l, x2: W - P.r, y1: Y(v), y2: Y(v), stroke: C.grid }), sv('text', { x: P.l - 6, y: Y(v) + 3, 'text-anchor': 'end' }, tickLb(v))); }
+    drawAxis(S, ax, P.t, H - P.b);
+    const step = total > 1.5e6 ? 500000 : total > 400000 ? 250000 : 100000;
+    for (let m = step; m <= total; m += step) { const hit = T.find((t) => t[2] >= m); if (!hit) continue; const x = ax.X(hit[0]), y = Y(m);
+      S.append(sv('line', { x1: P.l, x2: x, y1: y, y2: y, stroke: '#ffb347', 'stroke-opacity': 0.35, 'stroke-dasharray': '3 4' }), sv('text', { x: P.l + 4, y: y - 4, fill: '#ffb347' }, `${tickLb(m)} · ${fmt(hit[0])}`)); }
+    let d = ''; T.forEach((t, i) => { const x = ax.X(t[0]).toFixed(1), y = Y(t[2]).toFixed(1); const gap = i && dn(t[0]) - dn(T[i - 1][0]) > 365; d += i === 0 ? `M${x} ${Y(0).toFixed(1)}V${y}` : gap ? `M${x} ${Y(T[i - 1][2]).toFixed(1)}V${y}` : `H${x}V${y}`; });
+    S.append(sv('path', { d, fill: 'none', stroke: '#ff3fb4', 'stroke-width': 2, style: 'filter:drop-shadow(0 0 4px #ff3fb4)' }));
+    const srcOf = {}; for (const s of D.sessions) srcOf[s.d] = s.s;
+    for (const t of T) { const c = SC[srcOf[t[0]]] || C.ink, dot = sv('circle', { cx: ax.X(t[0]), cy: Y(t[2]), r: 2.6, fill: c });
+      dot.onmousemove = (ev) => tipAt(ev, `<b>${fmt(t[0])}</b><br>${n0(t[1])} lb that day<br>${n0(t[2])} lb to date<br>${sname(srcOf[t[0]])}`); dot.onmouseleave = tipOff; S.append(dot); }
+    S.append(sv('text', { x: W - P.r - 4, y: Y(total) - 8, 'text-anchor': 'end', fill: C.ink, style: 'font:600 13px "JetBrains Mono",monospace' }, `${n0(total)} lb`));
+    host.replaceChildren(S);
+    const yr = {}; for (const s of D.sessions) { const y = s.d.slice(0, 4), e = yr[y] = yr[y] || { n: 0, sets: 0, vol: 0 }; if (s.vol) { e.n++; e.sets += s.sets; e.vol += s.vol; } }
+    let run = 0; const yrows = Object.entries(yr).filter(([, e]) => e.vol).sort().map(([y, e]) => { run += e.vol; return el('tr', {}, [el('td', { className: 'l' }, [el('b', { text: y })]), el('td', { text: String(e.n) }), el('td', { text: n0(e.sets) }), el('td', {}, [el('b', { text: n0(e.vol) })]), el('td', { text: n0(run) })]); });
+    $('#ta-year').replaceChildren(el('thead', {}, el('tr', {}, ['Year', 'Sessions', 'Sets', 'Lb moved', 'Running total'].map((h, i) => el('th', { className: i ? '' : 'l', text: h })))), el('tbody', {}, yrows));
+    const bs = {}; for (const s of D.sessions) bs[s.s] = (bs[s.s] || 0) + s.vol;
+    $('#ta-src').replaceChildren(el('thead', {}, el('tr', {}, ['Log', 'Lb moved', 'Share'].map((h, i) => el('th', { className: i ? '' : 'l', text: h })))),
+      el('tbody', {}, Object.entries(bs).filter(([, v]) => v).sort((p, q) => q[1] - p[1]).map(([k, v]) => el('tr', {}, [el('td', { className: 'l' }, [el('span', { className: 'src', style: `--sc:${SC[k]}` }), sname(k)]), el('td', {}, [el('b', { text: n0(v) })]), el('td', { text: Math.round((100 * v) / total) + '%' })]))));
+  }
+  const tickLb = (v) => (v >= 1e6 ? +(v / 1e6).toFixed(2) + 'M' : v >= 1e3 ? Math.round(v / 1e3) + 'k' : String(Math.round(v)));
+
+  // ---------------------------------------------------------------- PRs: each time a weight beat every earlier weight for that exercise (1+ full rep)
+  const PV = { pick: 'squat' };
+  function drawPRs() {
+    const PR = D.pr || [], by = {};
+    for (const p of PR) (by[p[2]] = by[p[2]] || []).push(p);
+    const BIGI = ['squat', 'bench-press', 'deadlift', 'hex-bar-deadlift', 'overhead-press'];
+    const ids = Object.keys(by).filter((id) => by[id].length > 1 || BIGI.includes(id)).sort((a, b) => { const ia = BIGI.indexOf(a), ib = BIGI.indexOf(b); if (ia >= 0 || ib >= 0) return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib); return by[b].length - by[a].length || (by[b][by[b].length - 1][0] > by[a][by[a].length - 1][0] ? 1 : -1); });
+    if (!by[PV.pick]) PV.pick = ids[0];
+    $('#pr-tbl').replaceChildren(el('thead', {}, el('tr', {}, ['Exercise', 'PR', 'Set on', 'Log', 'PRs', 'First logged'].map((h, i) => el('th', { className: i === 0 || i === 3 ? 'l' : '', text: h })))),
+      el('tbody', {}, ids.map((id) => { const L = by[id], top = L[L.length - 1], first = L[0], big = D.ex[id] && D.ex[id].big;
+        return el('tr', { className: 'pick' + (id === PV.pick ? ' on' : ''), tabindex: '0', onclick: () => { PV.pick = id; drawPRs(); }, onkeydown: (e) => { if (e.key === 'Enter') { PV.pick = id; drawPRs(); } } }, [
+          el('td', { className: 'l' }, [big ? el('span', { className: 'src', style: `--sc:${LC[big]}` }) : null, el('b', { text: exName(id) })]),
+          el('td', {}, [el('b', { text: `${n0(top[3])} lb` }), top[4] != null ? ` × ${n1(top[4])}` : '']), el('td', { text: fmt(top[0]) }), el('td', { className: 'l', text: sname(top[1]) }),
+          el('td', { text: String(L.length - 1) }), el('td', { text: `${n0(first[3])} lb · ${first[0].slice(0, 4)}` })]); })));
+    const L = by[PV.pick] || []; if (!L.length) return;
+    $('#pr-h').textContent = `${exName(PV.pick)} · ${L.length - 1} PR${L.length === 2 ? '' : 's'} after the first ${n0(L[0][3])} lb`;
+    const host = $('#pr-chart'), W = Math.max(280, host.clientWidth || 500), H = 220, P = { l: 44, r: 12, t: 14, b: 22 };
+    const lo = Math.min(...L.map((p) => p[3])), hi = Math.max(...L.map((p) => p[3])), y0 = Math.max(0, Math.floor((lo * 0.85) / 10) * 10), y1 = Math.ceil((hi * 1.08) / 10) * 10;
+    const ax = timeAxis(L.map((p) => p[0]), P.l, W - P.r), Y = (v) => H - P.b - ((v - y0) / (y1 - y0)) * (H - P.t - P.b);
+    const S = sv('svg', { viewBox: `0 0 ${W} ${H}`, width: W, height: H, role: 'img', 'aria-label': `${exName(PV.pick)} PRs over time` });
+    for (let k = 0; k <= 4; k++) { const v = y0 + ((y1 - y0) * k) / 4; S.append(sv('line', { x1: P.l, x2: W - P.r, y1: Y(v), y2: Y(v), stroke: C.grid }), sv('text', { x: P.l - 6, y: Y(v) + 3, 'text-anchor': 'end' }, n0(v))); }
+    drawAxis(S, ax, P.t, H - P.b);
+    const c = (D.ex[PV.pick] && LC[D.ex[PV.pick].big]) || '#ffb347';
+    S.append(sv('path', { d: L.map((p, i) => (i ? `H${ax.X(p[0]).toFixed(1)}V${Y(p[3]).toFixed(1)}` : `M${ax.X(p[0]).toFixed(1)} ${Y(p[3]).toFixed(1)}`)).join('') + `H${W - P.r}`, fill: 'none', stroke: c, 'stroke-width': 2, style: `filter:drop-shadow(0 0 4px ${c})` }));
+    for (const p of L) { const dot = sv('circle', { cx: ax.X(p[0]), cy: Y(p[3]), r: 4, fill: SC[p[1]] || c, stroke: C.void, 'stroke-width': 1 });
+      dot.onmousemove = (ev) => tipAt(ev, `<b>${n0(p[3])} lb${p[4] != null ? ' × ' + n1(p[4]) : ''}</b><br>${fmt(p[0])}${p[5] != null ? `<br>+${n0(p[3] - p[5])} lb over ${n0(p[5])}` : '<br>first logged'}<br>${sname(p[1])}`); dot.onmouseleave = tipOff; S.append(dot); }
+    host.replaceChildren(S);
+    $('#pr-ev').replaceChildren(el('thead', {}, el('tr', {}, ['Date', 'Weight', 'Gain', 'Log'].map((h, i) => el('th', { className: i === 3 ? 'l' : i ? '' : 'l', text: h })))),
+      el('tbody', {}, [...L].reverse().map((p) => el('tr', {}, [el('td', { className: 'l', text: fmt(p[0]) }), el('td', {}, [el('b', { text: `${n0(p[3])} lb` }), p[4] != null ? ` × ${n1(p[4])}` : '']),
+        el('td', { text: p[5] != null ? `+${n0(p[3] - p[5])}` : 'first' }), el('td', { className: 'l' }, [el('span', { className: 'src', style: `--sc:${SC[p[1]]}` }), sname(p[1])])]))));
+  }
+
   // ---------------------------------------------------------------- cardio
   function drawCardio() {
     const R = D.runs.filter((r) => r[1] === 'runs2016'), host = $('#ca-chart'), W = Math.max(300, host.clientWidth || 900), mob = W < 560, H = mob ? 260 : 320, P = { l: 40, r: 44, t: 12, b: 24 };
@@ -454,7 +535,7 @@ footer { font-family: var(--f-data); font-size: var(--s-0); color: var(--dim); }
   }
 
   $('#foot').textContent = `Built ${D.generated} from ${new Set(D.sources.map((s) => s.book)).size} workbooks, ${D.sources.length} logs · ${D.note}`;
-  const DRAW = { overview: drawOverview, lifts: drawLifts, sessions: drawSessions, exercises: drawExercises, cardio: drawCardio, bodyweight: drawBW, body: drawBody };
+  const DRAW = { overview: drawOverview, tally: drawTally, prs: drawPRs, lifts: drawLifts, sessions: drawSessions, exercises: drawExercises, cardio: drawCardio, bodyweight: drawBW, body: drawBody };
   const redraw = () => { const k = window.SiteTabs && SiteTabs.current; if (DRAW[k]) DRAW[k](); };
   let rz; addEventListener('tabchange', redraw); addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(redraw, 100); });
   if (window.SiteTabs) SiteTabs.start(); redraw();
