@@ -151,9 +151,10 @@ REDATE = {('comprehensive', 39): ('2017-04-13', '2017-04-12'), ('comprehensive',
 REDATE_TOP = {('2019-02-27', 'deadlift'): '2019-03-01', ('2019-02-27', 'squat'): '2019-03-01', ('2019-03-02', 'bench'): '2019-03-04',
               ('2018-01-18', 'bench'): '2018-01-17', ('2018-01-18', 'deadlift'): '2018-01-19', ('2018-01-22', 'bench'): '2018-01-20',
               ('2018-02-03', 'ohp'): '2018-02-07', ('2018-02-26', 'bench'): '2018-02-24', ('2018-02-26', 'ohp'): '2018-02-24',
-              ('2018-03-20', 'bench'): '2018-03-19', ('2018-03-20', 'ohp'): '2018-03-19', ('2019-03-18', 'ohp'): '2019-03-17'}
+              ('2018-03-20', 'bench'): '2018-03-19', ('2018-03-20', 'ohp'): '2018-03-19', ('2019-03-18', 'ohp'): '2019-03-17',
+              ('2018-08-30', 'bench'): '2018-08-31', ('2018-08-30', 'deadlift'): '2018-08-31', ('2018-08-30', 'ohp'): '2018-08-31', ('2018-08-30', 'squat'): '2018-08-31'}
 # Days where another log is replaced by the notebook (Jack: "track the notebook"): (source, date).
-NOTEBOOK_WINS = {('zimmerman', '2019-03-11')}
+NOTEBOOK_WINS = {('zimmerman', '2019-03-11'), ('training2024', '2024-11-07')}
 BIG = {'Squat': 'squat', 'Bench press': 'bench', 'Deadlift': 'deadlift', 'Hex bar deadlift': 'deadlift', 'Overhead press': 'ohp'}
 # muscle groups for names the 2024 ExerciseTags sheet doesn't cover (group, muscle)
 GROUPS = {'Squat': ('Legs', 'Quads'), 'Bench press': ('Push', 'Chest'), 'Deadlift': ('Pull', 'Back'), 'Hex bar deadlift': ('Pull', 'Back'),

@@ -383,3 +383,8 @@ Keep the MX / TXT / DKIM / autodiscover records — they run the jsbv.life busin
 - Batch 4 (IMG_6421-6440, Jan-Jun 2018 + 3/13-4/1/19), Jack's answers: 3/13-3/15/19 keep the Zimmerman log (the notebook adds
   only 3/14's 4-way delts); more 1000 lb club top sets moved to their notebook day (`REDATE_TOP`). "2 half" = two half reps
   (logged as 1); "+20" on a preacher curl = bar plus 20; "+5" after cable weights = 5 lb added to each; HS = handstand pushups.
+- Batch 5 (IMG_6441-6462, Jun-Nov 2018, Dec 2019-Apr 2020, Nov 2024): late June-July 2018 is Jack's study abroad in Singapore,
+  so many weights are in kg; they are logged in lb (x2.2046) with the kg noted. 11/7/24 is tracked from the notebook
+  (`NOTEBOOK_WINS`: the Training logbook's goblet squat weight was bodyweight x weight); 11/1, 11/2 skipped as duplicates, 11/4
+  lunges and 11/8 teakettles added. 1000 lb club 8/30/18 top sets moved to 8/31 (the ORM day). "Rope" = a seated rope-pull
+  machine. Quarantime (Apr 2020) daily counts are pushups.
