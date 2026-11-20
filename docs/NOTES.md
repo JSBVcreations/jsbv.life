@@ -388,3 +388,7 @@ Keep the MX / TXT / DKIM / autodiscover records — they run the jsbv.life busin
   (`NOTEBOOK_WINS`: the Training logbook's goblet squat weight was bodyweight x weight); 11/1, 11/2 skipped as duplicates, 11/4
   lunges and 11/8 teakettles added. 1000 lb club 8/30/18 top sets moved to 8/31 (the ORM day). "Rope" = a seated rope-pull
   machine. Quarantime (Apr 2020) daily counts are pushups.
+- Batch 6 (IMG_6462-6473, Nov 2024-Oct 2025): 11/10-11/18/24 match the Training logbook and are skipped (page notes kept);
+  weighted dips are their own exercise with the added plate weight in Lbs. 1/31/25 was written twice: Jack chose the bigger
+  numbers. The notebook says 2/7-9/18/25 is in whiteboard photos (the whiteboard Sheet covers 3/27-8/10/25). Page notes
+  (substance, bodyweight, mood) stay in the private sqlite only.
