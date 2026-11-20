@@ -139,14 +139,16 @@
    "name": "Spotify (STEP//SONG)",
    "kind": "rare request (~30 days)",
    "raw": "~/Documents/01-Projects/JSBV-Step-Song/JSBV-Spotify-Data-*",
-   "builder": "build_step_song.py",
+   "builder": "build_step_song.py, then build_eras.py",
    "outputs": [
     "step-song/data/meta.json",
     "step-song/data/hourly.json",
-    "step-song/data/plays-YYYY.json"
+    "step-song/data/plays-YYYY.json",
+    "step-song/data/eras.json"
    ],
    "pages": [
-    "step-song/"
+    "step-song/",
+    "/#experiments/eras"
    ],
    "stale_days": 120
   },

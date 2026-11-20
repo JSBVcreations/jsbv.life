@@ -299,3 +299,19 @@ Keep the MX / TXT / DKIM / autodiscover records — they run the jsbv.life busin
 - `#movies/propaganda` (drawProp): titles with a propaganda score, grouped by who's being sold. The group is read from the
   `prop_by` text with the PROP_TAGS rules in index.html ("Big X" → Big X, military, surveillance, retail…; 0 → Nothing sold;
   no match → Unnamed). Add a rule there when a new note doesn't land. "Ranked" shows one list, highest first.
+
+## Lab: screens vs feet, Wim Hof, musical eras, photo strata (Nov 19, 2026; VIZ-PLAN 8, 7, 2, 9)
+- `#experiments/screens` (drawScreens): the latest year with data. Up = Apple exercise minutes (no walking-minutes metric
+  exists); down = watching + call minutes, stacked. Lines are 7-day means (4+ days with data). Fortnite is left out: its daily
+  numbers are season totals spread over days, not time played. Countdown counts to 2027-03-01 from today.
+- `#experiments/wimhof` (drawWimHof): 2026 calendar of HRV / resting HR / sleep (colour from the 5th to 95th percentile),
+  breathwork days dotted. "The morning after" compares the next day's value after a day with 1+ sessions against the next
+  day after a day with none (days with no breathwork record are skipped). Shows means, n, difference and a Welch 95% range.
+  No causal wording.
+- `#experiments/eras` (drawEras): `step-song/data/eras.json` from `scripts/build_eras.py` (reads meta.json + plays-YYYY.json
+  in the repo, so run it after build_step_song.py). Artists = each year's top 2, then the decade's biggest, to 16. Stream
+  is centred, 3-month weighted smoothing for the shape; tooltips use the raw month. Minutes or share of the month's listening.
+  Life chapters (life.json, ranges only) sit behind as bands. Click a chip to isolate an artist.
+- `#experiments/strata` (drawStrata): daily.json photos (by capture date, type dim) + Lightroom frames (own catalog, so it is
+  stacked on top, not part of the library). Items or GB (GB has no per-type split, so it is one layer). Built up or per month.
+  There is no game-clip category in the photo data yet.

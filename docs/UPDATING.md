@@ -22,7 +22,7 @@ The script rebuilds every source it finds, then rebuilds PCT//PREP, `daily.json`
 | Strava hikes | ask Claude | (Strava itself) | Tell Claude **"update Strava"**: it adds new hikes (titles and numbers only) to `pct-training/data/activities.json` | `build_pct_training.py` → `training.json` |
 | Training plan | hand-edited | `pct-training/data/plan.json` (original) and `plan-adjusted.json` (second plan; the page has an Original / Adjusted / Projected toggle; Projected is recomputed from the log on every build) | Edit, or ask Claude | `build_pct_training.py` |
 | Photos + Lightroom | automatic | Photos library, Lightroom catalog | Nothing to do: Update runs `photo_snapshot.py` and `lightroom_snapshot.py` in `~/Documents/01-Projects/photo-library-tracker` | → `photo-library/data/*.json` |
-| Spotify (STEP//SONG, music) | rare, slow | `~/Documents/01-Projects/JSBV-Step-Song/JSBV-Spotify-Data-*` | Request "Extended streaming history" at spotify.com/account/privacy (it can take ~30 days), then ask Claude to rebuild STEP//SONG | `build_step_song.py` → `step-song/data/*` |
+| Spotify (STEP//SONG, music) | rare, slow | `~/Documents/01-Projects/JSBV-Step-Song/JSBV-Spotify-Data-*` | Request "Extended streaming history" at spotify.com/account/privacy (it can take ~30 days), then ask Claude to rebuild STEP//SONG | `build_step_song.py` → `step-song/data/*`, then `build_eras.py` → `step-song/data/eras.json` |
 | Life chapters, hand metrics | hand-edited | `meta-log/data/life.json`, `manual.json` | Edit the JSON (format is in each file) | read by `build_meta_log.py` |
 | AT 2019 log, AT breakdown, trail radio | historic | trail-log workbook, Spotify 2019 | Never; rebuild only if a builder changes | `build_at_log.py`, `build_at_breakdown.py`, `build_trail_radio.py` |
 
@@ -71,4 +71,4 @@ flowchart LR
 ## Notes
 - If macOS refuses to open `Update jsbv.command` the first time, right-click it → Open.
 - The script's "Changed files" list shows which data moved. Only those files need committing.
-- Rebuilding STEP//SONG (the decade of Spotify plus steps) is a separate, heavier job. Its `END` date is set in `build_step_song.py`. Ask Claude to do it when a new Spotify export arrives.
+- Rebuilding STEP//SONG (the decade of Spotify plus steps) is a separate, heavier job. Its `END` date is set in `build_step_song.py`. Ask Claude to do it when a new Spotify export arrives. Afterwards run `python3 scripts/build_eras.py` (Lab > Musical eras).

@@ -56,6 +56,7 @@ data views default to the current year, numbers come from the data, privacy rule
 
 ## Built
 - Nov 19: 4 (`#experiments/ridge`), 5 (`#movies/map`), 1 (`#experiments/clock`), 6 (`#movies/propaganda`). Details in NOTES.md.
+- Nov 19: 8 (`#experiments/screens`), 7 (`#experiments/wimhof`), 2 (`#experiments/eras`), 9 (`#experiments/strata`).
 
 ## Suggested order
 5 and 6 (data ready, small), 4 and 1 (one file each), 8, 7, 2, 9, 3, 10 (largest).

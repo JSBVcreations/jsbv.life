@@ -381,6 +381,20 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
 .pb-m i.on { background: var(--climb); box-shadow: 0 0 6px rgba(255,179,71,0.6); }
 .pb-m em { margin-left: 8px; color: var(--climb); font: normal 600 var(--s-1) var(--f-data); min-width: 2.5ch; text-align: right; font-variant-numeric: tabular-nums; }
 @media (max-width: 640px) { .pb-m i { width: 4px; height: 12px; } .pb-m { gap: 2px; } }
+.e-count { font: 400 clamp(1.5rem, 3vw, 2.1rem)/1 var(--f-display); color: var(--trail); text-shadow: 0 0 8px rgba(182,255,92,0.6); text-align: right; }
+.e-count small { display: block; margin-top: 4px; font: 600 var(--s-0)/1 var(--f-ui); letter-spacing: 0.16em; text-transform: uppercase; color: var(--dim); text-shadow: none; }
+#e-scr-fig svg, #e-eras-fig svg, #e-strata-fig svg { display: block; width: 100%; height: auto; }
+#e-wh-cal svg { display: block; }
+.wh-side { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 0 20px; margin-top: 14px; }
+.wh-h { grid-column: 1 / -1; margin: 0 0 4px; font: 700 var(--s-0)/1.2 var(--f-ui); letter-spacing: 0.16em; text-transform: uppercase; color: var(--dim); }
+.wh-card { display: grid; gap: 4px; width: 100%; text-align: left; background: none; border: 0; border-top: 1px solid var(--grid); padding: 10px 4px; color: var(--ink); cursor: pointer; font: inherit; }
+.wh-card b { font: 700 var(--s-0)/1.2 var(--f-ui); letter-spacing: 0.14em; text-transform: uppercase; color: var(--qc); }
+.wh-card[aria-pressed="true"] { background: rgba(220,216,255,0.04); box-shadow: inset 2px 0 0 var(--qc); }
+.wh-card:hover { background: rgba(220,216,255,0.05); } .wh-card svg { max-width: 100%; }
+.wh-row { display: grid; grid-template-columns: minmax(0, 1fr) auto 5ch; gap: 10px; font: 400 var(--s-0) var(--f-data); color: var(--dim); }
+.wh-row em { font-style: normal; color: var(--hot); font-variant-numeric: tabular-nums; } .wh-row small { text-align: right; }
+.wh-diff { font: 600 var(--s-0) var(--f-data); color: var(--ink); }
+#e-eras-chips .sw { margin-right: 2px; }
 </style>
 <link rel="stylesheet" href="assets/theme.css">
 
@@ -603,6 +617,33 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
         <div class="seg" role="group" aria-label="Clock metric" id="e-clock-seg"></div></div>
       <div class="e-clock-wrap"><canvas id="e-clock-cv" aria-label="One ring per year, 24 hours around, one band per month"></canvas></div>
       <p class="note" id="e-clock-note"></p>
+    </section>
+    <section class="box" id="e-screens">
+      <div class="head"><h2>Screens vs feet</h2><div class="e-count" id="e-scr-count"></div></div>
+      <div id="e-scr-fig"></div>
+      <div class="legend" id="e-scr-legend"></div>
+      <p class="note" id="e-scr-note"></p>
+    </section>
+    <section class="box" id="e-wimhof">
+      <div class="head"><h2>Does Wim Hof work?</h2>
+        <div class="seg" role="group" aria-label="Heart metric" id="e-wh-seg"></div></div>
+      <div class="e-scroll" id="e-wh-cal"></div><div class="legend" id="e-wh-legend"></div>
+      <div class="wh-side" id="e-wh-side"></div>
+      <p class="note" id="e-wh-note"></p>
+    </section>
+    <section class="box" id="e-eras">
+      <div class="head"><h2>Musical eras</h2>
+        <div class="seg" role="group" aria-label="Minutes or share" id="e-eras-seg"></div></div>
+      <div id="e-eras-fig"></div>
+      <div class="e-chips" id="e-eras-chips" role="group" aria-label="Isolate an artist"></div>
+      <p class="note" id="e-eras-note"></p>
+    </section>
+    <section class="box" id="e-strata">
+      <div class="head"><h2>Photo strata</h2>
+        <div class="row" style="gap:10px"><div class="seg" role="group" aria-label="Items or GB" id="e-strata-m"></div><div class="seg" role="group" aria-label="Built up or per month" id="e-strata-v"></div></div></div>
+      <div id="e-strata-fig"></div>
+      <div class="legend" id="e-strata-legend"></div>
+      <p class="note" id="e-strata-note"></p>
     </section>
   </div>
 
@@ -1710,7 +1751,7 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
 
   // ================================================================ EXPERIMENTS
   // One experiment open at a time (#experiments/<key>), chosen from the tab bar under the intro.
-  const E_TABS = [['corr', 'What moves together'], ['rings', 'Year rings'], ['week', 'Shape of a week'], ['tide', 'Tide'], ['pairs', 'Any two numbers'], ['ridge', 'Ridgeline'], ['clock', 'Decade clock']];
+  const E_TABS = [['corr', 'What moves together'], ['rings', 'Year rings'], ['week', 'Shape of a week'], ['tide', 'Tide'], ['pairs', 'Any two numbers'], ['ridge', 'Ridgeline'], ['clock', 'Decade clock'], ['screens', 'Screens vs feet'], ['wimhof', 'Does Wim Hof work?'], ['eras', 'Musical eras'], ['strata', 'Photo strata']];
   let expTab = 'corr';
   function applyExpTab() {
     const ok = (k) => { const e = document.getElementById('e-' + k); return e && e.dataset.off !== '1'; };
@@ -2020,16 +2061,182 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
     note.textContent = peaks.length ? `Busiest hour: ${peaks.join(' · ')}` : '';
   }
 
+  // ---- shared bits for the Nov 19 Lab views
+  const dayVal = (L, i) => (L && i >= L.off && i < L.off + L.n ? L.v[i - L.off] : null);
+  const dimLine = (dsId, dimId, mId, cat) => { const ds = DS[dsId], d = ds && ds.dims.find((x) => x.id === dimId); const v = d && d.v[mId] && d.v[mId][cat]; return v ? { off: ds.offset, n: ds.n, v } : null; };
+  const spline = (pts) => { if (pts.length < 3) return pts.map((p, i) => (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join('');
+    let d = `M${pts[0][0].toFixed(1)} ${pts[0][1].toFixed(1)}`;
+    for (let i = 0; i < pts.length - 1; i++) { const p0 = pts[Math.max(0, i - 1)], p1 = pts[i], p2 = pts[i + 1], p3 = pts[Math.min(pts.length - 1, i + 2)];
+      d += `C${(p1[0] + (p2[0] - p0[0]) / 6).toFixed(1)} ${(p1[1] + (p2[1] - p0[1]) / 6).toFixed(1)} ${(p2[0] - (p3[0] - p1[0]) / 6).toFixed(1)} ${(p2[1] - (p3[1] - p1[1]) / 6).toFixed(1)} ${p2[0].toFixed(1)} ${p2[1].toFixed(1)}`; }
+    return d; };
+  const hm = (min) => (min >= 90 ? `${(min / 60).toFixed(1)} h` : `${Math.round(min)} min`);
+  const tiny = (x, y, t, a = 'start', c = C.dim) => svg('text', { x, y, 'text-anchor': a, fill: c, style: `font:10px ${FD}` }, t);
+
+  // Screens vs feet: exercise minutes up, watching + calls down, 7-day means, countdown to the PCT start.
+  const PCT_START = d2i('2027-03-01');
+  function drawScreens() {
+    const up = asLine('exercise', 'minutes'), dn = [['watch', 'minutes', 'Watching', '#4ea8ff'], ['calls', 'minutes', 'Calls', '#4fe0c0']].map(([d, m, label, c]) => ({ L: asLine(d, m), label, c })).filter((x) => x.L);
+    const host = $('#e-scr-fig');
+    const ends = [up, ...dn.map((x) => x.L)].filter(Boolean).map((L) => L.off + L.n - 1); if (!up || !ends.length) { host.replaceChildren(el('p', { className: 'note', text: 'No exercise data.' })); return; }
+    const b = Math.min(Math.max(...ends), today), yr = YR[b], a = d2i(`${yr}-01-01`), N = b - a + 1;
+    const U = [], D = [];   // minutes
+    for (let i = a; i <= b; i++) { U.push(dayVal(up, i) == null ? null : dayVal(up, i) * 60); D.push(dn.map((x) => (dayVal(x.L, i) || 0) * 60)); }
+    const left = PCT_START - today; $('#e-scr-count').replaceChildren(String(Math.max(0, left)), el('small', { text: left > 0 ? 'days to the PCT' : 'PCT under way' }));
+    const W = Math.max(300, host.clientWidth || 900), mob = W < 560, H = mob ? 300 : 380, P = { l: 46, r: 10, t: 12, b: 24 }, mid = P.t + (H - P.t - P.b) / 2, half = (H - P.t - P.b) / 2;
+    const mx = Math.max(60, ...U.map((x) => x || 0), ...D.map((r) => r.reduce((s, x) => s + x, 0))), sc = half / mx, bw = (W - P.l - P.r) / N, X = (k) => P.l + k * bw;
+    const S = svg('svg', { viewBox: `0 0 ${W} ${H}`, width: W, height: H, role: 'img', 'aria-label': `${yr}: exercise minutes up, watching and calls down, by day` });
+    const step = mx > 400 ? 120 : 60;
+    for (let v = step; v <= mx; v += step) for (const s of [1, -1]) { const y = mid - s * v * sc; S.append(svg('line', { x1: P.l, x2: W - P.r, y1: y, y2: y, stroke: C.grid })); S.append(tiny(P.l - 6, y + 3, hm(v), 'end')); }
+    for (let m = 0; m < 12; m++) { const i = d2i(`${yr}-${String(m + 1).padStart(2, '0')}-01`); if (i > b) break; const x = X(i - a); S.append(svg('line', { x1: x, x2: x, y1: P.t, y2: H - P.b, stroke: C.grid })); S.append(tiny(x + 3, H - 8, mob ? MON[m][0] : MON[m].toUpperCase())); }
+    const bars = svg('g');
+    U.forEach((v, k) => { if (v) bars.append(svg('rect', { x: X(k) + 0.15 * bw, width: Math.max(0.8, bw * 0.7), y: mid - v * sc, height: v * sc, fill: up.color, 'fill-opacity': 0.7 })); });
+    D.forEach((r, k) => { let y = mid; r.forEach((v, j) => { if (!v) return; bars.append(svg('rect', { x: X(k) + 0.15 * bw, width: Math.max(0.8, bw * 0.7), y, height: v * sc, fill: dn[j].c, 'fill-opacity': 0.7 })); y += v * sc; }); });
+    S.append(bars, svg('line', { x1: P.l, x2: W - P.r, y1: mid, y2: mid, stroke: C.ink, 'stroke-opacity': 0.5 }));
+    const roll = (get) => Array.from({ length: N }, (_, k) => { let s = 0, c = 0; for (let j = Math.max(0, k - 6); j <= k; j++) { const v = get(j); if (v != null) { s += v; c++; } } return c >= 4 ? s / c : null; });
+    const rU = roll((j) => U[j]), rD = roll((j) => D[j].reduce((s, x) => s + x, 0));
+    for (const [r, sgn, c] of [[rU, 1, up.color], [rD, -1, '#4ea8ff']]) { const pts = r.map((v, k) => (v == null ? null : [X(k) + bw / 2, mid - sgn * v * sc])).filter(Boolean);
+      S.append(svg('path', { d: spline(pts), fill: 'none', stroke: c, 'stroke-width': 2.2, style: `filter:drop-shadow(0 0 4px ${c})` })); }
+    S.append(svg('text', { x: P.l + 6, y: P.t + 12, fill: up.color, style: `font:600 11px ${FU};letter-spacing:.14em` }, 'EXERCISE ↑'), svg('text', { x: P.l + 6, y: H - P.b - 6, fill: '#4ea8ff', style: `font:600 11px ${FU};letter-spacing:.14em` }, 'SCREENS ↓'));
+    const hit = svg('rect', { x: P.l, y: P.t, width: W - P.l - P.r, height: H - P.t - P.b, fill: 'transparent' }); S.append(hit);
+    hit.onmousemove = (ev) => { const bb = S.getBoundingClientRect(), k = Math.max(0, Math.min(N - 1, Math.floor(((ev.clientX - bb.left) * (W / bb.width) - P.l) / bw)));
+      eTipAt(ev, `<b>${dstr(a + k)}</b><br>Exercise ${U[k] == null ? '—' : hm(U[k])}` + dn.map((x, j) => `<br>${x.label} ${hm(D[k][j])}`).join('') + (rU[k] != null ? `<br>7-day: ${hm(rU[k])} up · ${hm(rD[k] || 0)} down` : '')); };
+    hit.onmouseleave = eTipOff;
+    host.replaceChildren(S);
+    $('#e-scr-legend').replaceChildren(el('span', {}, [sw(up.color), 'Exercise minutes']), ...dn.map((x) => el('span', {}, [sw(x.c), x.label])), el('span', {}, [el('i', { className: 'sw', style: 'background:none;border-top:2px solid #dcd8ff;height:0' }), '7-day mean']));
+    const tu = U.reduce((s, x) => s + (x || 0), 0), td = dn.map((_, j) => D.reduce((s, r) => s + r[j], 0)), more = U.filter((v, k) => v != null && v > D[k].reduce((s, x) => s + x, 0)).length, known = U.filter((v) => v != null).length;
+    $('#e-scr-note').textContent = `${yr} through ${dstr(b)}: exercise ${Math.round(tu / 60)} h · ` + dn.map((x, j) => `${x.label.toLowerCase()} ${Math.round(td[j] / 60)} h`).join(' · ') + ` · more exercise than screens on ${more} of ${known} days`;
+  }
+
+  // Does Wim Hof work? 2026 calendar of HRV / resting HR / sleep with breathwork days dotted; next morning after a breath day vs other days.
+  const EW = { k: 'hrv' }, EW_M = [['hrv', 'HRV'], ['resting_hr', 'Resting HR'], ['sleep_h', 'Sleep']];
+  function wimStats(k) {
+    const L = asLine('body', k), B = asLine('breath', 'sessions'), g = { yes: [], no: [] }; if (!L || !B) return null;
+    for (let i = L.off; i < L.off + L.n - 1; i++) { const nx = dayVal(L, i + 1), br = dayVal(B, i); if (nx == null || br == null) continue; g[br > 0 ? 'yes' : 'no'].push(nx); }
+    const st = (xs) => { const n = xs.length, m = n ? xs.reduce((s, x) => s + x, 0) / n : null, sd = n > 1 ? Math.sqrt(xs.reduce((s, x) => s + (x - m) ** 2, 0) / (n - 1)) : 0; return { n, m, sd }; };
+    const y = st(g.yes), n = st(g.no), se = y.n > 1 && n.n > 1 ? Math.sqrt(y.sd ** 2 / y.n + n.sd ** 2 / n.n) : null;
+    return { L, g, y, n, diff: y.m != null && n.m != null ? y.m - n.m : null, se };
+  }
+  function drawWimHof() {
+    const L = asLine('body', EW.k), B = asLine('breath', 'sessions'), host = $('#e-wh-cal');
+    if (!L) { host.replaceChildren(el('p', { className: 'note', text: 'No heart data.' })); return; }
+    const last = L.off + L.n - 1, yr = YR[Math.min(last, today)], a = d2i(`${yr}-01-01`), sh = (DOW[a] + 1) % 7, nW = Math.ceil((d2i(`${yr + 1}-01-01`) - a + sh) / 7);
+    const W = Math.max(300, host.clientWidth || 700), cs = Math.max(9, Math.min(20, Math.floor((W - 34) / nW))), P = { l: 30, t: 18 }, Wd = P.l + nW * cs + 4, Hd = P.t + 7 * cs + 4;
+    const vals = []; for (let i = a; i <= last; i++) { const v = dayVal(L, i); if (v != null) vals.push(v); } vals.sort((p, q) => p - q);
+    const lo = vals[Math.floor(vals.length * 0.05)], hi = vals[Math.floor(vals.length * 0.95)], rgb = L.color.match(/\w\w/g).map((h) => parseInt(h, 16)).join(',');
+    const S = svg('svg', { viewBox: `0 0 ${Wd} ${Hd}`, width: Wd, height: Hd, role: 'img', 'aria-label': `${L.name} by day in ${yr}, breathwork days dotted` });
+    ['S', 'M', 'T', 'W', 'T', 'F', 'S'].forEach((d, r) => { if (r % 2) S.append(tiny(P.l - 6, P.t + r * cs + cs * 0.7, d, 'end')); });
+    for (let m = 0; m < 12; m++) { const i = d2i(`${yr}-${String(m + 1).padStart(2, '0')}-01`); S.append(tiny(P.l + Math.floor((i - a + sh) / 7) * cs, 11, MON[m])); }
+    const cells = svg('g'); let nb = 0;
+    for (let i = a; i < d2i(`${yr + 1}-01-01`); i++) { const k = i - a + sh, x = P.l + Math.floor(k / 7) * cs, y = P.t + (k % 7) * cs, v = dayVal(L, i), br = dayVal(B, i);
+      const t = v == null ? null : Math.max(0, Math.min(1, (v - lo) / (hi - lo || 1)));
+      cells.append(svg('rect', { x: x + 1, y: y + 1, width: cs - 2, height: cs - 2, rx: 2, fill: t == null ? C.well : `rgba(${rgb},${(0.12 + 0.88 * t).toFixed(2)})` }));
+      if (br > 0) { if (i <= last) nb++; cells.append(svg('circle', { cx: x + cs / 2, cy: y + cs / 2, r: Math.max(1.6, cs * 0.16), fill: '#fff', style: 'filter:drop-shadow(0 0 2px #07060f)' })); } }
+    S.append(cells);
+    const hit = svg('rect', { x: P.l, y: P.t, width: nW * cs, height: 7 * cs, fill: 'transparent' }); S.append(hit);
+    hit.onmousemove = (ev) => { const bb = S.getBoundingClientRect(), x = (ev.clientX - bb.left) * (Wd / bb.width) - P.l, y = (ev.clientY - bb.top) * (Hd / bb.height) - P.t, i = a + Math.floor(x / cs) * 7 + Math.floor(y / cs) - sh;
+      if (YR[i] !== yr) { eTipOff(); return; } const v = dayVal(L, i), br = dayVal(B, i);
+      eTipAt(ev, `<b>${dstr(i)}</b><br>${L.name}: ${v == null ? '—' : num(v, L.unit)}<br>Breathwork: ${br ? br + ' session' + (br === 1 ? '' : 's') : 'none'}`); };
+    hit.onmouseleave = eTipOff;
+    host.replaceChildren(S);
+    $('#e-wh-legend').replaceChildren(el('span', {}, [el('i', { className: 'sw', style: `background:linear-gradient(90deg,rgba(${rgb},.12),rgb(${rgb}))` }), `${num(lo, L.unit)} → ${num(hi, L.unit)}`]), el('span', {}, [el('i', { className: 'sw', style: 'background:#fff;border-radius:50%;width:7px;height:7px' }), `breathwork day (${nb})`]));
+    // side panel: one card per metric, the open one highlighted
+    $('#e-wh-side').replaceChildren(el('h3', { className: 'wh-h', text: 'The morning after' }), ...EW_M.map(([k, label]) => { const s = wimStats(k); if (!s || !s.y.n || !s.n.n) return el('div');
+      const u = s.L.unit, card = el('button', { type: 'button', className: 'wh-card', 'aria-pressed': String(k === EW.k), onclick: () => { EW.k = k; for (const b of $('#e-wh-seg').children) b.setAttribute('aria-pressed', String(b.dataset.k === k)); drawWimHof(); } });
+      card.style.setProperty('--qc', s.L.color);
+      const sw2 = 260, all = [...s.g.yes, ...s.g.no].sort((p, q) => p - q), x0 = all[Math.floor(all.length * 0.02)], x1 = all[Math.ceil(all.length * 0.98) - 1], sx = (v) => 4 + Math.max(0, Math.min(1, (v - x0) / (x1 - x0 || 1))) * (sw2 - 8);
+      const strip = svg('svg', { viewBox: `0 0 ${sw2} 34`, width: sw2, height: 34, 'aria-hidden': 'true' });
+      [['yes', 8, '#fff'], ['no', 24, C.dim]].forEach(([g, y, c]) => { for (const v of s.g[g]) strip.append(svg('circle', { cx: sx(v), cy: y + (((v * 997) % 7) - 3) * 0.7, r: 1.6, fill: c, 'fill-opacity': 0.55 }));
+        const m = g === 'yes' ? s.y.m : s.n.m; strip.append(svg('line', { x1: sx(m), x2: sx(m), y1: y - 6, y2: y + 6, stroke: g === 'yes' ? s.L.color : C.ink, 'stroke-width': 2.5 })); });
+      const ci = s.se != null ? ` (95% range ${s.diff - 1.96 * s.se > 0 ? '+' : ''}${num(s.diff - 1.96 * s.se)} to ${s.diff + 1.96 * s.se > 0 ? '+' : ''}${num(s.diff + 1.96 * s.se)})` : '';
+      card.append(el('b', { text: label }),
+        el('span', { className: 'wh-row' }, [el('span', { text: 'After a breath day' }), el('em', { text: num(s.y.m, u) }), el('small', { text: 'n ' + s.y.n })]),
+        el('span', { className: 'wh-row' }, [el('span', { text: 'After other days' }), el('em', { text: num(s.n.m, u) }), el('small', { text: 'n ' + s.n.n })]),
+        strip, el('span', { className: 'wh-diff', text: `Difference ${s.diff > 0 ? '+' : ''}${num(s.diff, u)}${ci}` }));
+      return card; }));
+    const bAll = (() => { let n = 0; for (let i = a; i <= last; i++) if (dayVal(B, i) > 0) n++; return n; })();
+    $('#e-wh-note').textContent = `${yr} through ${dstr(last)} · ${bAll} breathwork days · next-day comparison uses every 2026 day with heart data and a breathwork record`;
+  }
+
+  // Musical eras: streamgraph of the artists that defined each year (step-song/data/eras.json, build_eras.py), life chapters behind.
+  const EE = { D: undefined, mode: 'min', iso: null };
+  const ERA_COL = ['#ff3fb4', '#3ff0ff', '#ffb347', '#b6ff5c', '#9b7bff', '#4ea8ff', '#ff6fd8', '#ffd84a', '#4fe0c0', '#ff3b4e', '#ff8a3d', '#9d6bff', '#e8c39e', '#7cffb2', '#ff9ad5', '#5fb8ff'];
+  async function drawEras() {
+    const host = $('#e-eras-fig');
+    if (EE.D === undefined) { host.replaceChildren(el('p', { className: 'note', text: 'Loading…' })); EE.D = await get('step-song/data/eras.json', true); }
+    const D = EE.D; if (!D) { host.replaceChildren(el('p', { className: 'note', text: 'eras.json not built yet (scripts/build_eras.py).' })); return; }
+    const M = D.months.length, A = D.artists.map((r, k) => ({ ...r, c: ERA_COL[k % ERA_COL.length] }));
+    const val = (r, m) => { const raw = r.min[m]; return EE.mode === 'share' ? (D.total[m] ? (100 * raw) / D.total[m] : 0) : raw; };
+    const sm = A.map((r) => Array.from({ length: M }, (_, m) => { let s = 0, c = 0; for (let j = Math.max(0, m - 1); j <= Math.min(M - 1, m + 1); j++) { s += val(r, j) * (j === m ? 2 : 1); c += j === m ? 2 : 1; } return s / c; }));
+    const tot = Array.from({ length: M }, (_, m) => sm.reduce((s, r) => s + r[m], 0)), mx = Math.max(...tot) || 1;
+    const W = Math.max(300, host.clientWidth || 900), mob = W < 560, H = mob ? 340 : 440, P = { l: 8, r: 8, t: 26, b: 24 }, cy = P.t + (H - P.t - P.b) / 2, sc = (H - P.t - P.b) / mx, X = (m) => P.l + (m / (M - 1)) * (W - P.l - P.r);
+    const m0 = +D.months[0].slice(0, 4) * 12 + +D.months[0].slice(5, 7) - 1, Xi = (i) => X(MO[i] - m0 + (new Date(T0 + i * DAY).getUTCDate() - 1) / 30);
+    const S = svg('svg', { viewBox: `0 0 ${W} ${H}`, width: W, height: H, role: 'img', 'aria-label': 'Minutes per month for the top artists of each year, stacked as a stream' });
+    for (const l of LIFE) { if (l.point || l.b < d2i(D.months[0] + '-01')) continue; const xa = Math.max(P.l, Xi(l.a)), xb = Math.min(W - P.r, Xi(Math.min(l.b, d2i(D.months[M - 1] + '-28')))); if (xb <= xa) continue;
+      S.append(svg('rect', { x: xa, y: P.t - 8, width: xb - xa, height: H - P.t - P.b + 8, fill: l.color || C.violet || '#9b7bff', 'fill-opacity': 0.07 }));
+      S.append(svg('line', { x1: xa, x2: xb, y1: P.t - 8, y2: P.t - 8, stroke: l.color || '#9b7bff', 'stroke-width': 2 }));
+      if (xb - xa > 40) S.append(svg('text', { x: xa + 4, y: P.t - 13, fill: l.color || '#9b7bff', style: `font:600 10px ${FU};letter-spacing:.1em` }, l.label.toUpperCase())); }
+    for (let y = +D.months[0].slice(0, 4) + 1; y <= +D.months[M - 1].slice(0, 4); y++) { const m = (y * 12) - m0, x = X(m); S.append(svg('line', { x1: x, x2: x, y1: P.t, y2: H - P.b, stroke: C.grid })); S.append(tiny(x + 3, H - 8, mob ? "'" + String(y).slice(2) : String(y))); }
+    const base = tot.map((t) => cy - (t * sc) / 2), acc = base.slice(), layers = [];
+    A.forEach((r, k) => { const top = acc.map((y) => y), bot = acc.map((y, m) => y + sm[k][m] * sc); for (let m = 0; m < M; m++) acc[m] = bot[m];
+      const ptsT = top.map((y, m) => [X(m), y]), ptsB = bot.map((y, m) => [X(m), y]).reverse();
+      const p = svg('path', { d: spline(ptsT) + spline(ptsB).replace(/^M/, 'L') + 'Z', fill: r.c, 'fill-opacity': EE.iso == null || EE.iso === k ? 0.85 : 0.08, stroke: C.void, 'stroke-width': 0.4 });
+      p.style.transition = 'fill-opacity .15s'; p.dataset.k = k;
+      p.onmouseenter = () => setIso(k, true); p.onmouseleave = () => setIso(null, true);
+      p.onmousemove = (ev) => { const bb = S.getBoundingClientRect(), m = Math.max(0, Math.min(M - 1, Math.round((((ev.clientX - bb.left) * (W / bb.width) - P.l) / (W - P.l - P.r)) * (M - 1)))), [yy, mm] = D.months[m].split('-');
+        eTipAt(ev, `<b>${r.name}</b><br>${MON[+mm - 1]} ${yy}: ${num(r.min[m])} min${D.total[m] ? ` (${Math.round((100 * r.min[m]) / D.total[m])}% of listening)` : ''}<br>Biggest month: ${MON[+r.peak.slice(5) - 1]} ${r.peak.slice(0, 4)}`); };
+      p.addEventListener('mouseleave', eTipOff); layers.push(p); S.append(p); });
+    host.replaceChildren(S);
+    function setIso(k, hover) { if (!hover) EE.iso = EE.iso === k ? null : k; const on = hover ? (k == null ? EE.iso : k) : EE.iso;
+      layers.forEach((p, j) => p.setAttribute('fill-opacity', on == null || on === j ? 0.85 : 0.08));
+      for (const b of $('#e-eras-chips').children) b.setAttribute('aria-pressed', String(+b.dataset.k === EE.iso)); }
+    $('#e-eras-chips').replaceChildren(...A.map((r, k) => { const b = el('button', { type: 'button', 'aria-pressed': String(EE.iso === k), onclick: () => setIso(k, false) }, [sw(r.c), ' ' + r.name]); b.dataset.k = k; return b; }));
+    const yrs = {}; D.months.forEach((mo, m) => { const y = mo.slice(0, 4); (yrs[y] = yrs[y] || A.map(() => 0)); A.forEach((r, k) => (yrs[y][k] += r.min[m])); });
+    $('#e-eras-note').textContent = 'Most played each year: ' + Object.entries(yrs).map(([y, v]) => `${y} ${A[v.indexOf(Math.max(...v))].name}`).join(' · ');
+  }
+
+  // Photo strata: the library by capture month, stacked by type (daily.json photos + Lightroom frames), built up or per month.
+  const EST = { m: 'items', view: 'cum' };
+  function drawStrata() {
+    const host = $('#e-strata-fig'), ds = DS.photos; if (!ds) { host.replaceChildren(el('p', { className: 'note', text: 'No photo data.' })); return; }
+    const tdim = ds.dims.find((d) => d.id === 'type'), LR = asLine('lightroom', 'frames');
+    const layers = EST.m === 'gb' ? [{ name: 'Library storage', color: '#9b7bff', L: asLine('photos', 'gb'), unit: 'GB' }]
+      : [...tdim.cats.map((c) => ({ name: c.name, color: c.color, L: dimLine('photos', 'type', 'items', c.id), unit: 'items' })), ...(LR ? [{ name: 'Lightroom frames (own catalog)', color: '#ffd84a', L: LR, unit: 'frames' }] : [])].filter((x) => x.L);
+    const a = ds.offset, b = Math.max(...layers.map((x) => x.L.off + x.L.n - 1)), B = makeBuckets(a, b, 'month'), N = B.length;
+    const V = layers.map((x) => { let run = 0; return B.map((k) => { const s = sumRange(x.L, k.a, k.b).sum; run += s; return EST.view === 'cum' ? run : s; }); });
+    const tot = B.map((_, m) => V.reduce((s, r) => s + r[m], 0)), mx = Math.max(...tot) || 1;
+    const W = Math.max(300, host.clientWidth || 900), mob = W < 560, H = mob ? 300 : 400, P = { l: 52, r: 10, t: 12, b: 24 }, X = (m) => P.l + (m / Math.max(1, N - 1)) * (W - P.l - P.r), Y = (v) => H - P.b - (v / mx) * (H - P.t - P.b);
+    const S = svg('svg', { viewBox: `0 0 ${W} ${H}`, width: W, height: H, role: 'img', 'aria-label': 'Photo library by capture month, stacked by type' });
+    for (let k = 1; k <= 4; k++) { const v = (mx * k) / 4, y = Y(v); S.append(svg('line', { x1: P.l, x2: W - P.r, y1: y, y2: y, stroke: C.grid }), tiny(P.l - 6, y + 3, tick(v), 'end')); }
+    B.forEach((k, m) => { if (MO[k.a] % 12 === 0) { const x = X(m); S.append(svg('line', { x1: x, x2: x, y1: P.t, y2: H - P.b, stroke: C.grid }), tiny(x + 3, H - 8, mob ? "'" + String(YR[k.a]).slice(2) : String(YR[k.a]))); } });
+    const acc = new Array(N).fill(0);
+    V.forEach((r, j) => { const lo = acc.slice(); for (let m = 0; m < N; m++) acc[m] += r[m];
+      const top = acc.map((v, m) => [X(m), Y(v)]), bot = lo.map((v, m) => [X(m), Y(v)]).reverse();
+      S.append(svg('path', { d: top.map((p, i) => (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join('') + bot.map((p) => 'L' + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join('') + 'Z', fill: layers[j].color, 'fill-opacity': 0.75, stroke: layers[j].color, 'stroke-width': 0.6 })); });
+    const guide = svg('line', { y1: P.t, y2: H - P.b, stroke: C.ink, 'stroke-opacity': 0, 'stroke-dasharray': '3 3' }), hit = svg('rect', { x: P.l, y: P.t, width: W - P.l - P.r, height: H - P.t - P.b, fill: 'transparent' }); S.append(guide, hit);
+    hit.onmousemove = (ev) => { const bb = S.getBoundingClientRect(), m = Math.max(0, Math.min(N - 1, Math.round((((ev.clientX - bb.left) * (W / bb.width) - P.l) / (W - P.l - P.r)) * (N - 1))));
+      guide.setAttribute('x1', X(m)); guide.setAttribute('x2', X(m)); guide.setAttribute('stroke-opacity', 0.6);
+      eTipAt(ev, `<b>${B[m].label}${EST.view === 'cum' ? ' (to date)' : ''}</b>` + layers.map((x, j) => `<br><span style="color:${x.color}">■</span> ${x.name}: ${num(V[j][m], x.unit)}`).reverse().join('')); };
+    hit.onmouseleave = () => { eTipOff(); guide.setAttribute('stroke-opacity', 0); };
+    host.replaceChildren(S);
+    $('#e-strata-legend').replaceChildren(...layers.map((x) => el('span', {}, [sw(x.color), x.name])).reverse());
+    const all = layers.map((x) => sumRange(x.L, a, b).sum);
+    $('#e-strata-note').textContent = `${dstr(a)} to ${dstr(b)} · ` + layers.map((x, j) => `${x.name} ${num(all[j], x.unit)}`).join(' · ');
+  }
+
   let expWired = false;
   function renderExperiments() {
     if (!expWired) { expWired = true; wirePairs();
       $('#e-ring-seg').replaceChildren(...E_RINGS.map(([k, label]) => el('button', { type: 'button', text: label, 'aria-pressed': String(EXP.ring === k), onclick: (ev) => { EXP.ring = k; for (const b of $('#e-ring-seg').children) b.setAttribute('aria-pressed', String(b === ev.target)); drawRings(); } })));
       $('#e-ridge-seg').replaceChildren(...E_RIDGE.map(([k, label]) => el('button', { type: 'button', text: label, 'aria-pressed': String(ER.k === k), onclick: (ev) => { ER.k = k; for (const b of $('#e-ridge-seg').children) b.setAttribute('aria-pressed', String(b === ev.target)); drawRidge(); } })));
       $('#e-clock-seg').replaceChildren(...Object.entries(EC_M).map(([k, M]) => el('button', { type: 'button', text: M.label, 'aria-pressed': String(EC.k === k), onclick: (ev) => { EC.k = k; for (const b of $('#e-clock-seg').children) b.setAttribute('aria-pressed', String(b === ev.target)); drawClock(); } })));
+      $('#e-wh-seg').replaceChildren(...EW_M.map(([k, label]) => { const b = el('button', { type: 'button', text: label, 'aria-pressed': String(EW.k === k), onclick: () => { EW.k = k; for (const c of $('#e-wh-seg').children) c.setAttribute('aria-pressed', String(c === b)); drawWimHof(); } }); b.dataset.k = k; return b; }));
+      $('#e-eras-seg').replaceChildren(...[['min', 'Minutes'], ['share', 'Share']].map(([k, label]) => el('button', { type: 'button', text: label, 'aria-pressed': String(EE.mode === k), onclick: (ev) => { EE.mode = k; for (const c of $('#e-eras-seg').children) c.setAttribute('aria-pressed', String(c === ev.target)); drawEras(); } })));
+      $('#e-strata-m').replaceChildren(...[['items', 'Items'], ['gb', 'GB']].map(([k, label]) => el('button', { type: 'button', text: label, 'aria-pressed': String(EST.m === k), onclick: (ev) => { EST.m = k; for (const c of $('#e-strata-m').children) c.setAttribute('aria-pressed', String(c === ev.target)); drawStrata(); } })));
+      $('#e-strata-v').replaceChildren(...[['cum', 'Built up'], ['month', 'Per month']].map(([k, label]) => el('button', { type: 'button', text: label, 'aria-pressed': String(EST.view === k), onclick: (ev) => { EST.view = k; for (const c of $('#e-strata-v').children) c.setAttribute('aria-pressed', String(c === ev.target)); drawStrata(); } })));
       $('#e-win-seg').replaceChildren(...[['year', 'This year'], ['all', 'All years']].map(([k, label]) => el('button', { type: 'button', text: label, 'aria-pressed': String(EXP.win === k), onclick: (ev) => { EXP.win = k; EXP.pair = null; for (const b of $('#e-win-seg').children) b.setAttribute('aria-pressed', String(b === ev.target)); drawCorr(); drawWeekShape(); } }))); }
     if (!$('#e-tabs').children.length) $('#e-tabs').replaceChildren(...E_TABS.map(([k, label]) => { const a = el('a', { href: '#experiments/' + k, text: label }); a.dataset.k = k; return a; }));
     applyExpTab();   // open the tab first, so the drawing below measures its real width
-    ({ rings: drawRings, corr: drawCorr, week: drawWeekShape, tide: drawTide, pairs: drawPairs, ridge: drawRidge, clock: drawClock })[expTab]();
+    ({ rings: drawRings, corr: drawCorr, week: drawWeekShape, tide: drawTide, pairs: drawPairs, ridge: drawRidge, clock: drawClock, screens: drawScreens, wimhof: drawWimHof, eras: drawEras, strata: drawStrata })[expTab]();
   }
 
   // ---------------------------------------------------------------- GANTT: one lane per dataset (days with any recorded activity), toggleable
@@ -2128,7 +2335,7 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
   $('#boot').remove();
   try { await Promise.race([document.fonts.ready, new Promise((r) => setTimeout(r, 1500))]); } catch (e) {}
   window.addEventListener('hashchange', route);
-  let rz; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { if (!$('#v-explore').hidden) renderExplorer(); if (!$('#v-gantt').hidden) renderGantt(); if (!$('#v-experiments').hidden) ({ rings: drawRings, corr: drawCorr, week: drawWeekShape, tide: drawTide, pairs: drawPairs, ridge: drawRidge, clock: drawClock })[expTab]();
+  let rz; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { if (!$('#v-explore').hidden) renderExplorer(); if (!$('#v-gantt').hidden) renderGantt(); if (!$('#v-experiments').hidden) ({ rings: drawRings, corr: drawCorr, week: drawWeekShape, tide: drawTide, pairs: drawPairs, ridge: drawRidge, clock: drawClock, screens: drawScreens, wimhof: drawWimHof, eras: drawEras, strata: drawStrata })[expTab]();
     if (!$('#v-watched').hidden && wTab === 'map') drawMap();
     if (!$('#v-report').hidden) drawRace(); }, 120); });
   route();

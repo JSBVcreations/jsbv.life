@@ -46,7 +46,7 @@
     },
     {
      "path": "meta-log/data/watch-scores.json",
-     "kb": 25,
+     "kb": 29,
      "through": null
     }
    ]
@@ -198,12 +198,13 @@
    "id": "spotify",
    "name": "Spotify (STEP//SONG)",
    "kind": "rare request (~30 days)",
-   "builder": "build_step_song.py",
+   "builder": "build_step_song.py, then build_eras.py",
    "pages": [
-    "step-song/"
+    "step-song/",
+    "/#experiments/eras"
    ],
-   "through": "2026-10-15",
-   "age_days": 36,
+   "through": "2026-11-20",
+   "age_days": 0,
    "stale": false,
    "files": [
     {
@@ -270,6 +271,11 @@
      "path": "step-song/data/plays-2026.json",
      "kb": 444,
      "through": null
+    },
+    {
+     "path": "step-song/data/eras.json",
+     "kb": 8,
+     "through": "2026-11-20"
     }
    ]
   },
