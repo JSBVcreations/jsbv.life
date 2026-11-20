@@ -246,9 +246,12 @@
    "raw": "jsbv data/MetaData.dot.xlsx, The Journey of 1000lbs Begins with a Single Rep.xlsx, Training_.xlsx",
    "builder": "build_fitness.py",
    "outputs": [
-    "fitness/data/fitness.json"
+    "fitness/data/fitness.json",
+    "meta-log/data/lifting.json"
    ],
    "pages": [
+    "/#experiments/corr",
+    "/#explore",
     "fitness/"
    ],
    "stale_days": 3650

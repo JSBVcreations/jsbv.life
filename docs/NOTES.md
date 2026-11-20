@@ -392,3 +392,10 @@ Keep the MX / TXT / DKIM / autodiscover records — they run the jsbv.life busin
   weighted dips are their own exercise with the added plate weight in Lbs. 1/31/25 was written twice: Jack chose the bigger
   numbers. The notebook says 2/7-9/18/25 is in whiteboard photos (the whiteboard Sheet covers 3/27-8/10/25). Page notes
   (substance, bodyweight, mood) stay in the private sqlite only.
+
+## Lifting in META//LOG (Nov 20, 2026)
+- build_fitness.py also writes `meta-log/data/lifting.json` (dataset `lifting`: pounds lifted, sets, training days, logged cardio
+  miles per day), folded into daily.json by build_meta_log.py; `site.corr` puts volume and training days in "What moves together".
+- Coverage: a day counts when any log has an entry within 7 days; covered days with nothing logged are 0 (rest), longer gaps
+  are null so missing records never read as rest. Weekly top-set logs are left out.
+- `group_of` falls back to keywords for exercise names no table covers (legs before pull, so "stiff leg deadlift" is legs).

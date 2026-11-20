@@ -236,9 +236,18 @@ def main():
     for r in range(2, max(r for r, _ in g) + 1):
         n = text(g.get((r, 1)))
         if n: tags[canon(n).lower()] = (text(g.get((r, 3))), (text(g.get((r, 4))) or '').strip() or None)
+    KW = [('Legs', ('squat', 'leg ', 'leg-', 'lunge', 'calf', 'hack', 'quad', 'abduct', 'jump', 'good morning', 'stiff leg', 'sumo', 'leg curl', 'hike')),
+          ('Core', ('plank', 'leg raise', 'hlr', 'ab roll', 'crunch', 'twist', 'bicycle', 'toe touch', 'knee raise', 'teakettle', 'back extension')),
+          ('Pull', ('row', 'pull', 'chin', 'curl', 'australian', 'shrug', 'face', 't-bar', 'lat ', 'deadlift', 'bicep', 'carry')),
+          ('Push', ('press', 'push', 'dip', 'fly', 'delt', 'raise', 'kickback', 'extension', 'skull', 'pec', 'crossover', 'tricep', 'plate')),
+          ('Conditioning', ('run', 'row machine', 'bike', 'rope', 'sprint', 'trampoline', 'burpee', 'walk'))]
     def group_of(name):
         if name.lower() in tags and tags[name.lower()][0] not in (None, 'Unknown'): return tags[name.lower()]
-        return GROUPS.get(name, (None, None))
+        if name in GROUPS: return GROUPS[name]
+        low = name.lower() + ' '
+        for g, keys in KW:                     # keyword fallback for names no table covers (order matters: legs before pull)
+            if any(k in low for k in keys): return (g, None)
+        return (None, None)
 
     # ---- Lift Data - 1000lb (2016-2019): weekly best weights, no reps
     g = books['metadata']['Lift Data - 1000lb']; rows = []
@@ -545,6 +554,49 @@ def main():
     }
     os.makedirs(os.path.dirname(OUT_JSON), exist_ok=True)
     with open(OUT_JSON, 'w') as f: json.dump(pub, f, separators=(',', ':'))
+
+    # ---- day dataset for META//LOG (explorer + "What moves together"): numbers only, folded in by build_meta_log.py.
+    # A day counts as covered when some log has an entry within 7 days of it; covered days with nothing logged are 0
+    # (a rest day), days in the long stretches no log covers are null, so gaps in the records never read as rest.
+    # The weekly top-set logs (lift1000, journey) are left out: they summarize sets, they are not days trained.
+    tdays = collections.defaultdict(lambda: [0.0, 0, 0, 0.0])          # volume, sets, sessions, cardio miles
+    for _, d, src, name, k, reps, lbs, r in sets:
+        tdays[d][0] += (reps or 0) * (lbs or 0); tdays[d][1] += 1
+    for s_ in sessions: tdays[s_['d']][2] = 1
+    for x in runs:
+        tdays[x[0]][2] = 1; tdays[x[0]][3] += x[3] or 0
+    for x in bw: tdays[x[0]][2] = 1
+    D0 = dt.date(2015, 1, 1)
+    keys = sorted(tdays); a0 = dt.date.fromisoformat(keys[0]); b0 = dt.date.fromisoformat(keys[-1]); n = (b0 - a0).days + 1
+    logged = [False] * n
+    for k in keys: logged[(dt.date.fromisoformat(k) - a0).days] = True
+    near = [False] * n; last = -99
+    for i in range(n):
+        if logged[i]: last = i
+        near[i] = i - last <= 7
+    last = 10 ** 9
+    for i in range(n - 1, -1, -1):
+        if logged[i]: last = i
+        near[i] = near[i] or last - i <= 7
+    def col(j, rnd=1):
+        out = []
+        for i in range(n):
+            if not near[i]: out.append(None); continue
+            v = tdays.get((a0 + dt.timedelta(days=i)).isoformat(), [0, 0, 0, 0])[j]
+            out.append(round(v, rnd) if rnd else int(v))
+        return out
+    lifting = {'id': 'lifting', 'name': 'Lifting', 'source': 'IRON//LOG (fitness logs, notebooks, whiteboard)', 'grain': 'day',
+               'start': a0.isoformat(), 'n': n,
+               'note': 'Lifting: days within a week of a logged workout count; a day with nothing logged there is a rest day (0). Longer stretches with no records are blank, not zero.',
+               'site': {'blurb': 'Pounds moved, sets and training days from every gym log.', 'corr': ['volume', 'sessions']},
+               'metrics': [
+                   {'id': 'volume', 'name': 'Pounds lifted', 'unit': 'lb', 'agg': 'sum', 'color': '#ffb347', 'v': col(0, 0)},
+                   {'id': 'sets', 'name': 'Sets', 'unit': 'sets', 'agg': 'sum', 'color': '#ff8a3d', 'v': col(1, 0)},
+                   {'id': 'sessions', 'name': 'Training days', 'unit': 'days', 'agg': 'sum', 'color': '#ffd84a', 'v': col(2, 0)},
+                   {'id': 'cardio_mi', 'name': 'Logged cardio', 'unit': 'mi', 'agg': 'sum', 'color': '#3ff0ff', 'v': col(3, 2)},
+               ]}
+    with open(os.path.join(ROOT, 'meta-log', 'data', 'lifting.json'), 'w') as f: json.dump(lifting, f, separators=(',', ':'))
+    print(f'lifting.json: {sum(1 for x in near if x)} covered days of {n}, {sum(logged)} logged')
 
     # ------------------------------------------------------------------ sealed body + diet dataset (daily, nulls where nothing logged)
     bodyrows = {}   # date -> {metric: value}; for weight on one day: Bodyweight Tracking, then Macros (avg), then Journey
