@@ -147,6 +147,10 @@ SYN = {'squat': 'Squat', 'squats': 'Squat', 'back squat': 'Squat', 'bench': 'Ben
 # Comprehensive Workout Data sessions whose date Jack corrected from his paper notebooks (Nov 20, 2026). The workbook cell
 # stays as written (raw_cell, src_comprehensive); the joined tables use the notebook date and the change is listed in `issue`.
 REDATE = {('comprehensive', 39): ('2017-04-13', '2017-04-12'), ('comprehensive', 66): ('2017-07-03', '2017-07-02')}
+# 1000 lb club top sets whose day Jack corrected from the paper notebook (Nov 20, 2026): (date, lift) -> notebook date.
+REDATE_TOP = {('2019-02-27', 'deadlift'): '2019-03-01', ('2019-02-27', 'squat'): '2019-03-01', ('2019-03-02', 'bench'): '2019-03-04'}
+# Days where another log is replaced by the notebook (Jack: "track the notebook"): (source, date).
+NOTEBOOK_WINS = {('zimmerman', '2019-03-11')}
 BIG = {'Squat': 'squat', 'Bench press': 'bench', 'Deadlift': 'deadlift', 'Hex bar deadlift': 'deadlift', 'Overhead press': 'ohp'}
 # muscle groups for names the 2024 ExerciseTags sheet doesn't cover (group, muscle)
 GROUPS = {'Squat': ('Legs', 'Quads'), 'Bench press': ('Push', 'Chest'), 'Deadlift': ('Pull', 'Back'), 'Hex bar deadlift': ('Pull', 'Back'),
@@ -240,7 +244,10 @@ def main():
         vals = [num(g.get((r, c))) for c in range(2, 7)]
         rows.append((r, d, *vals))
         for big, v in zip(['bench', 'ohp', 'squat', 'deadlift'], vals[:4]):
-            if v: tops.append((d, 'lift1000', big, v, None, r))
+            if v:
+                dd = REDATE_TOP.get((d, big), d)
+                if dd != d: issue('lift1000', r, f'{big} {v} re-dated {d} -> {dd} to match the paper notebook (Jack, Nov 20)')
+                tops.append((dd, 'lift1000', big, v, None, r))
         if vals[4]: club.append((d, 'lift1000', vals[4], r))
         if g.get((r, 13)) or g.get((r, 14)): issue('lift1000', r, f'side note in M/N (reads like a target): {g.get((r, 13))} {g.get((r, 14))}')
     S['src_lift1000'] = (['source_row', 'date', 'bench', 'ohp', 'squat', 'deadlift', 'club_1000'], rows)
@@ -459,6 +466,14 @@ def main():
                 s_['cur'] = (name, [], [], i + 2); s_['x'].append(s_['cur'])
             s_['cur'][1].append(reps); s_['cur'][2].append(lbs)
         for s_ in by_d.values(): s_.pop('cur'); sessions.append(s_)
+
+    # ---- the notebook replaces another log on these days (Jack, Nov 20): drop that log's session and cardio there
+    if 'notebooks' in paths:
+        for src, d in NOTEBOOK_WINS:
+            if any(s_['d'] == d for s_ in sessions if s_['src'] == src):
+                issue(src, None, f'{d}: replaced by the paper notebook (Jack, Nov 20); kept in src_{src} only')
+            sessions[:] = [s_ for s_ in sessions if not (s_['src'] == src and s_['d'] == d)]
+            runs[:] = [x for x in runs if not (x[1] == src and x[0] == d)]
 
     # ------------------------------------------------------------------ unify sets
     sessions.sort(key=lambda s: (s['d'], s['src']))

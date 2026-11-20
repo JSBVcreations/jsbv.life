@@ -375,3 +375,8 @@ Keep the MX / TXT / DKIM / autodiscover records — they run the jsbv.life busin
   Planks list the weight on his back in Lbs with the time in Seconds.
 - First pages (IMG_6378-6379): 1/1/17 and 1/2/17 home workouts, 1/4/17 run 1.09 mi in 9:31. 1/15 and 1/16 matched Comprehensive
   Workout Data and were skipped.
+- Batch 3 (IMG_6401-6420, 8/29/17-3/11/19), Jack's answers: 3/11/19 is tracked from the notebook, not the Zimmerman log
+  (`NOTEBOOK_WINS`; Zimmerman's 3/11 session and mile stay in src_zimmerman only). The 1000 lb club log's 2/27/19 deadlift 165 and
+  squat 155 move to 3/1/19 and its 3/2/19 bench 185 to 3/4/19 (`REDATE_TOP`). A day crossed out with an X means he left halfway:
+  the lifts written there are logged (9/15/17). Bodyweight exercises (pushups, pullups, dips...) count with no weight; only a
+  weighted set with no reps is dropped.
