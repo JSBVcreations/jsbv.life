@@ -380,3 +380,6 @@ Keep the MX / TXT / DKIM / autodiscover records — they run the jsbv.life busin
   squat 155 move to 3/1/19 and its 3/2/19 bench 185 to 3/4/19 (`REDATE_TOP`). A day crossed out with an X means he left halfway:
   the lifts written there are logged (9/15/17). Bodyweight exercises (pushups, pullups, dips...) count with no weight; only a
   weighted set with no reps is dropped.
+- Batch 4 (IMG_6421-6440, Jan-Jun 2018 + 3/13-4/1/19), Jack's answers: 3/13-3/15/19 keep the Zimmerman log (the notebook adds
+  only 3/14's 4-way delts); more 1000 lb club top sets moved to their notebook day (`REDATE_TOP`). "2 half" = two half reps
+  (logged as 1); "+20" on a preacher curl = bar plus 20; "+5" after cable weights = 5 lb added to each; HS = handstand pushups.

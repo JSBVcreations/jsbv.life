@@ -148,7 +148,10 @@ SYN = {'squat': 'Squat', 'squats': 'Squat', 'back squat': 'Squat', 'bench': 'Ben
 # stays as written (raw_cell, src_comprehensive); the joined tables use the notebook date and the change is listed in `issue`.
 REDATE = {('comprehensive', 39): ('2017-04-13', '2017-04-12'), ('comprehensive', 66): ('2017-07-03', '2017-07-02')}
 # 1000 lb club top sets whose day Jack corrected from the paper notebook (Nov 20, 2026): (date, lift) -> notebook date.
-REDATE_TOP = {('2019-02-27', 'deadlift'): '2019-03-01', ('2019-02-27', 'squat'): '2019-03-01', ('2019-03-02', 'bench'): '2019-03-04'}
+REDATE_TOP = {('2019-02-27', 'deadlift'): '2019-03-01', ('2019-02-27', 'squat'): '2019-03-01', ('2019-03-02', 'bench'): '2019-03-04',
+              ('2018-01-18', 'bench'): '2018-01-17', ('2018-01-18', 'deadlift'): '2018-01-19', ('2018-01-22', 'bench'): '2018-01-20',
+              ('2018-02-03', 'ohp'): '2018-02-07', ('2018-02-26', 'bench'): '2018-02-24', ('2018-02-26', 'ohp'): '2018-02-24',
+              ('2018-03-20', 'bench'): '2018-03-19', ('2018-03-20', 'ohp'): '2018-03-19', ('2019-03-18', 'ohp'): '2019-03-17'}
 # Days where another log is replaced by the notebook (Jack: "track the notebook"): (source, date).
 NOTEBOOK_WINS = {('zimmerman', '2019-03-11')}
 BIG = {'Squat': 'squat', 'Bench press': 'bench', 'Deadlift': 'deadlift', 'Hex bar deadlift': 'deadlift', 'Overhead press': 'ohp'}
