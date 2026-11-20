@@ -165,6 +165,8 @@ def main():
     if any(offloaded(p) for p in water):
         print(f'  ! Water  {short(water[0])}\n      skipped: {ICLOUD}.'); failed.append('water')
     elif water and not run(f'Water  {len(water)} log{"" if len(water) == 1 else "s"}', [py, os.path.join(S, 'build_water_log.py')] + water): failed.append('water')
+    att = glob.glob(os.path.join(DATA, 'ATT', 'raw', 'ATT-usage-*.xlsx'))     # AT&T usage exports + the call log -> phone/ (aliases only)
+    if att and not run(f'Phone (AT&T)  {len(att)} bills', [py, os.path.join(S, 'build_phone.py')]): failed.append('phone')
     sc = os.path.join(DATA, 'scorecard.json')            # Screening Scorecard scores (Claude saves this file when asked to "pull my scorecard")
     if os.path.isfile(sc) and not run(f'Scorecard  {short(sc)}', [py, os.path.join(S, 'build_scorecard.py'), sc]): failed.append('scorecard')
     pdf, cal = newest_file(['*fortnite-data*.pdf', '*Epic*Games*.pdf']), newest_file(['*Fortnite-Library-Manager*.numbers'])

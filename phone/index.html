@@ -1,0 +1,550 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PHONE//LINES · JSBV.LIFE</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<meta name="theme-color" content="#07060f">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="JSBV.LIFE">
+<meta property="og:title" content="PHONE//LINES · JSBV.LIFE">
+<meta property="og:description" content="17 months of cellular calls, texts and data, with every person anonymized.">
+<meta property="og:url" content="https://jsbv.life/phone/">
+<meta property="og:image" content="https://jsbv.life/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="description" content="17 months of cellular calls, texts and data, with every person anonymized.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="../assets/site.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Monoton&family=Chakra+Petch:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* PHONE//LINES. Data: phone/data/phone.json (scripts/build_phone.py from AT&T usage exports + the call log, both outside the repo).
+   Every person is an alias (Adjective Noun, colour family = vibe, brightness = how much he talks to them). No number, name or place
+   is in the JSON. "Decode" reads Jack's private phone-decoder.json from his disk into this tab's memory only; nothing is stored or sent.
+   Tabs: overview · people · rhythm · capture (AT&T vs the call log) · links (correlations with the rest of the site). */
+:root {
+  color-scheme: dark;
+  --void: #07060f; --panel: #0d0b1c; --well: #120f26; --grid: #1f1a3d; --ink: #dcd8ff; --dim: #8a84b8;
+  --step: #3ff0ff; --sound: #ff3fb4; --climb: #ffb347; --trail: #b6ff5c; --violet: #9b7bff; --hot: #fff;
+  --tab-accent: #3ff0ff;
+  --f-display: "Monoton", "Chakra Petch", system-ui, sans-serif;
+  --f-ui: "Chakra Petch", "Segoe UI", system-ui, sans-serif;
+  --f-data: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --s-0: 0.75rem; --s-1: 0.875rem; --s-2: 1rem; --s-3: 1.25rem;
+}
+* { box-sizing: border-box; }
+html, body { background: var(--void); color: var(--ink); }
+body { margin: 0; font-family: var(--f-ui); font-size: var(--s-1); line-height: 1.5;
+  padding: 24px max(16px, env(safe-area-inset-right, 0px)) 64px max(16px, env(safe-area-inset-left, 0px));
+  background: radial-gradient(ellipse 80% 40% at 50% 0%, rgba(63,240,255,0.08), transparent 70%), var(--void); }
+body::after { content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 50;
+  background: repeating-linear-gradient(to bottom, rgba(0,0,0,0) 0 2px, rgba(0,0,0,0.18) 2px 3px); }
+.wrap { max-width: 1180px; margin: 0 auto; display: grid; gap: 22px; }
+h1 { font-family: var(--f-display); font-weight: 400; margin: 0; font-size: clamp(2.2rem, 7vw, 4.6rem); line-height: 1;
+  color: var(--hot); text-shadow: 0 0 6px var(--step), 0 0 18px var(--step), 0 0 42px rgba(63,240,255,0.5); }
+h1 span { text-shadow: 0 0 6px var(--sound), 0 0 18px var(--sound), 0 0 42px rgba(255,63,180,0.6); }
+.readout { display: flex; flex-wrap: wrap; gap: 8px 28px; font-family: var(--f-data); padding: 12px 0; border-block: 1px solid var(--grid); }
+.readout div { display: grid; }
+.readout span { font-size: var(--s-0); text-transform: uppercase; letter-spacing: 0.12em; color: var(--dim); font-family: var(--f-ui); }
+.readout strong { font-size: var(--s-3); font-weight: 600; font-variant-numeric: tabular-nums; }
+.readout small { color: var(--dim); font-size: var(--s-0); }
+section { border: 1px solid var(--grid); background: var(--panel); padding: 18px; display: grid; gap: 12px; min-width: 0; }
+section > * { min-width: 0; }
+h2 { margin: 0; font: 700 var(--s-2)/1.2 var(--f-ui); letter-spacing: 0.18em; text-transform: uppercase; color: var(--hot); }
+h3 { margin: 0; font: 600 var(--s-0)/1.2 var(--f-ui); letter-spacing: 0.14em; text-transform: uppercase; color: var(--dim); }
+.note { margin: 0; color: var(--dim); max-width: 80ch; font-size: var(--s-0); }
+.top { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; justify-content: space-between; }
+.ctl { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.ctl button, button.mini { font: 600 var(--s-0) var(--f-data); letter-spacing: 0.06em; color: var(--dim); background: none;
+  border: 1px solid var(--grid); padding: 6px 10px; cursor: pointer; min-height: 32px; }
+.ctl button[aria-pressed="true"] { color: var(--void); background: var(--step); border-color: var(--step); }
+.ctl .gap { width: 10px; }
+.ctl label { font-family: var(--f-data); font-size: var(--s-0); color: var(--dim); }
+.chart { position: relative; }
+.chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+.chart text { font: 400 11px var(--f-data); fill: var(--dim); }
+.chart .lab { fill: var(--ink); }
+.chart .hit { cursor: pointer; }
+.read { font-family: var(--f-data); font-size: var(--s-0); color: var(--ink); min-height: 3em; }
+.read b { color: var(--hot); }
+.grid2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }
+.split { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 16px; }
+@media (max-width: 820px) { .grid2, .split { grid-template-columns: minmax(0, 1fr); } .plist { max-height: 250px; } }
+.plist { display: grid; gap: 2px; max-height: 560px; overflow-y: auto; padding-right: 4px; }
+.plist button { display: grid; grid-template-columns: 22px 12px minmax(0, 1fr) auto; gap: 8px; align-items: center; text-align: left;
+  font: 500 var(--s-0) var(--f-data); color: var(--ink); background: none; border: 1px solid transparent; padding: 5px 6px; cursor: pointer; }
+.plist button:hover { border-color: var(--grid); }
+.plist button[aria-pressed="true"] { border-color: var(--step); background: var(--well); }
+.plist .rk { color: var(--dim); text-align: right; }
+.dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+.plist .nm { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.plist .v { color: var(--dim); font-variant-numeric: tabular-nums; }
+.pcard { display: grid; gap: 12px; }
+.pname { font: 700 var(--s-3)/1.1 var(--f-ui); letter-spacing: 0.06em; }
+.pname small { display: block; font: 400 var(--s-0) var(--f-data); color: var(--dim); letter-spacing: 0.04em; margin-top: 4px; }
+.stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; }
+.stats div { border: 1px solid var(--grid); background: var(--well); padding: 8px 10px; display: grid; }
+.stats span { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--dim); }
+.stats b { font: 600 var(--s-2) var(--f-data); font-variant-numeric: tabular-nums; color: var(--hot); }
+.scroll { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-family: var(--f-data); font-size: var(--s-0); font-variant-numeric: tabular-nums; }
+th, td { padding: 6px 10px; border-bottom: 1px solid var(--grid); text-align: right; white-space: nowrap; }
+th { color: var(--dim); font-weight: 400; text-transform: uppercase; letter-spacing: 0.08em; background: var(--panel); }
+th:first-child, td:first-child { text-align: left; }
+td .b { display: inline-block; height: 8px; vertical-align: middle; margin-right: 6px; }
+.corr td.c { cursor: pointer; text-align: center; min-width: 54px; color: var(--void); font-weight: 600; }
+.corr td.c.on { outline: 2px solid var(--hot); outline-offset: -2px; }
+.corr th { white-space: normal; min-width: 54px; text-align: center; vertical-align: bottom; line-height: 1.2; }
+.corr th:first-child { text-align: left; }
+.decode { display: flex; gap: 8px; align-items: center; font-family: var(--f-data); font-size: var(--s-0); color: var(--dim); }
+.decode.on { color: var(--climb); }
+.tip { position: absolute; pointer-events: none; background: #000c; border: 1px solid var(--grid); padding: 6px 8px; font: 400 var(--s-0) var(--f-data); color: var(--ink); white-space: nowrap; z-index: 5; }
+footer { font-family: var(--f-data); font-size: var(--s-0); color: var(--dim); }
+[hidden] { display: none !important; }
+</style>
+<link rel="stylesheet" href="../assets/theme.css">
+<body>
+<div class="wrap">
+  <header>
+    <nav class="site" data-here="data" data-crumb="Datasets|Phone"></nav>
+    <h1 style="margin-top:14px">PHONE<span>//LINES</span></h1>
+  </header>
+  <p class="note" id="err" hidden>Data failed to load.</p>
+  <div class="top">
+    <div class="ctl" id="range" aria-label="Range"></div>
+    <div class="decode" id="decode">
+      <button class="mini" id="dec-btn" type="button">DECODE</button>
+      <input type="file" id="dec-file" accept=".json,application/json" hidden>
+      <span id="dec-state">aliases</span>
+    </div>
+  </div>
+  <div class="readout" id="readout"></div>
+  <nav class="ptabs" data-default="overview" aria-label="Sections of Phone">
+    <a href="#overview" data-tab="overview">Overview</a>
+    <a href="#people" data-tab="people" data-alias="who">People</a>
+    <a href="#rhythm" data-tab="rhythm" data-alias="hours">Rhythm</a>
+    <a href="#capture" data-tab="capture" data-alias="log">Capture</a>
+    <a href="#links" data-tab="links" data-alias="correlations">Links</a>
+  </nav>
+
+  <section data-tab="overview">
+    <div class="top"><h2>Volume</h2>
+      <div class="ctl" id="ov-m"></div>
+      <div class="ctl" id="ov-g"></div></div>
+    <div class="chart" id="ov-chart"></div>
+    <div class="read" id="ov-read"></div>
+    <div class="grid2">
+      <div><h3>By weekday (per day)</h3><div class="chart" id="ov-dow"></div></div>
+      <div><h3>Top 10 in range</h3><div class="chart" id="ov-top"></div></div>
+    </div>
+  </section>
+
+  <section data-tab="people">
+    <div class="top"><h2>People</h2><div class="ctl" id="pp-sort"></div></div>
+    <div class="split">
+      <div class="plist" id="pp-list" role="list"></div>
+      <div class="pcard" id="pp-card"></div>
+    </div>
+  </section>
+
+  <section data-tab="rhythm">
+    <div class="top"><h2>Week × hour · all months</h2><div class="ctl" id="rh-m"></div></div>
+    <div class="chart" id="rh-heat"></div>
+    <div class="read" id="rh-read"></div>
+    <h3>First and last contact of the day</h3>
+    <div class="chart" id="rh-span"></div>
+  </section>
+
+  <section data-tab="capture">
+    <h2>Call log vs AT&amp;T</h2>
+    <div class="readout" id="cp-readout"></div>
+    <div class="chart" id="cp-chart"></div>
+    <div class="read" id="cp-read"></div>
+    <div class="scroll"><table id="cp-table"></table></div>
+    <h3>Logged share of AT&amp;T talk time, by person</h3>
+    <div class="chart" id="cp-people"></div>
+  </section>
+
+  <section data-tab="links">
+    <div class="top"><h2>Links</h2><div class="ctl" id="lk-lag"></div></div>
+    <div class="scroll"><table class="corr" id="lk-table"></table></div>
+    <div class="grid2">
+      <div><div class="read" id="lk-read"></div><div class="chart" id="lk-scatter"></div></div>
+      <div><h3>Weekly, both scaled</h3><div class="chart" id="lk-line"></div></div>
+    </div>
+  </section>
+  <footer id="foot">AT&amp;T usage details · call log</footer>
+</div>
+<script src="../assets/site.js"></script>
+<script>
+(async () => {
+  const $ = (s) => document.querySelector(s);
+  const NS = 'http://www.w3.org/2000/svg';
+  const sv = (tag, at, kids) => { const e = document.createElementNS(NS, tag); for (const k in at) if (at[k] != null) e.setAttribute(k, at[k]); if (kids) e.append(...kids); return e; };
+  const txt = (x, y, s, at) => { const t = sv('text', Object.assign({ x, y }, at || {})); t.textContent = s; return t; };
+  const el = (tag, props, kids) => { const e = Object.assign(document.createElement(tag), props || {}); if (kids) e.append(...kids); return e; };
+  const n0 = (x) => x == null || isNaN(x) ? '—' : Math.round(x).toLocaleString('en-US');
+  const n1 = (x) => x == null || isNaN(x) ? '—' : (Math.round(x * 10) / 10).toLocaleString('en-US');
+  const n2 = (x) => x == null || isNaN(x) ? '—' : x.toFixed(2);
+  const pct = (x) => x == null ? '—' : (x * 100).toFixed(1) + '%';
+  const hm = (m) => m == null ? '—' : `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(Math.round(m % 60)).padStart(2, '0')}`;
+  const hrs = (m) => m >= 120 ? n1(m / 60) + ' h' : n0(m) + ' min';
+
+  let D;
+  try {
+    const inl = document.getElementById('phone-data');
+    D = inl ? JSON.parse(inl.textContent) : await (await fetch('data/phone.json', { cache: 'no-cache' })).json();
+  } catch (e) { $('#err').hidden = false; if (window.SiteTabs) SiteTabs.start(); return; }
+
+  // ---------------------------------------------------------------- days
+  const T0 = Date.UTC(+D.start.slice(0, 4), +D.start.slice(5, 7) - 1, +D.start.slice(8, 10));
+  const N = D.n, dateOf = (i) => new Date(T0 + i * 864e5);
+  const iso = (i) => dateOf(i).toISOString().slice(0, 10);
+  const fmtD = (i) => dateOf(i).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+  const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const dowOf = (i) => dateOf(i).getUTCDay();
+  const yr = (y) => Math.max(0, Math.round((Date.UTC(y, 0, 1) - T0) / 864e5));
+  const lastYear = dateOf(N - 1).getUTCFullYear();
+  const RANGES = [
+    [String(lastYear), yr(lastYear), N],
+    ['LAST 90 D', N - 90, N],
+    ['LAST 12 MO', N - 365, N],
+    [String(lastYear - 1), 0, yr(lastYear)],
+    ['ALL', 0, N],
+  ].filter((r) => r[2] > r[1]);
+  const V = { r: 0, ovm: 'texts', ovg: 'week', sort: 'score', pid: null, rh: 'texts', lag: 0, cell: null };
+  const A = () => Math.max(0, RANGES[V.r][1]), B = () => RANGES[V.r][2];
+
+  // ---------------------------------------------------------------- names (aliases, or decoded in memory)
+  let NAMES = null;
+  const P = D.participants, PID = Object.fromEntries(P.map((p) => [p.id, p]));
+  const nameOf = (p) => (NAMES && NAMES[p.alias]) || p.alias;
+  $('#dec-btn').onclick = () => { if (NAMES) { NAMES = null; setDec(); renderAll(); } else $('#dec-file').click(); };
+  $('#dec-file').onchange = async (ev) => {
+    const f = ev.target.files[0]; if (!f) return;
+    try { const j = JSON.parse(await f.text()); NAMES = j.names || j; } catch (e) { NAMES = null; }
+    ev.target.value = ''; setDec(); renderAll();
+  };
+  function setDec() {
+    $('#decode').classList.toggle('on', !!NAMES);
+    $('#dec-state').textContent = NAMES ? `names shown in this tab only (${Object.keys(NAMES).length})` : 'aliases';
+    $('#dec-btn').textContent = NAMES ? 'HIDE NAMES' : 'DECODE';
+  }
+
+  // ---------------------------------------------------------------- shared helpers
+  const day = D.day;
+  const M = {
+    texts: { name: 'Texts', parts: [['texts_out', 'Sent', '#ff3fb4'], ['texts_in', 'Received', '#3ff0ff']], unit: 'texts' },
+    calls: { name: 'Calls', parts: [['calls_out', 'Out', '#b6ff5c'], ['calls_in', 'In', '#4fe0c0']], unit: 'calls' },
+    talk: { name: 'Talk time', parts: [['talk_min', 'Talk min', '#ffb347']], unit: 'min' },
+    people: { name: 'People', parts: [['people', 'People reached', '#9b7bff']], unit: 'people', avg: true },
+    data: { name: 'Mobile data', parts: [['data_mb', 'MB', '#ffb347']], unit: 'MB' },
+    spam: { name: 'Spam & bots', parts: [['spam_calls', 'Spam calls', '#6b6880'], ['service_texts', 'Service texts', '#8a84b8']], unit: '' },
+  };
+  const sum = (arr, a, b) => { let s = 0; for (let i = a; i < b; i++) s += arr[i] || 0; return s; };
+  function bins(a, b, g) {           // [{a,b,label}] weeks start Sunday
+    const out = [];
+    if (g === 'day') { for (let i = a; i < b; i++) out.push({ a: i, b: i + 1, label: fmtD(i) }); return out; }
+    let i = a;
+    while (i < b) {
+      const d = dateOf(i); let j;
+      if (g === 'week') j = i + (7 - d.getUTCDay());
+      else j = Math.round((Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 1) - T0) / 864e5);
+      j = Math.min(j, b);
+      out.push({ a: i, b: j, label: g === 'week' ? 'Week of ' + fmtD(i) : MON[d.getUTCMonth()] + ' ' + d.getUTCFullYear(), m: MON[d.getUTCMonth()], y: d.getUTCFullYear() });
+      i = j;
+    }
+    return out;
+  }
+  function niceMax(v) { if (v <= 0) return 0.25; const p = Math.pow(10, Math.floor(Math.log10(v))); for (const m of [1, 2, 2.5, 5, 10]) if (m * p >= v) return m * p; return 10 * p; }
+  const tipEl = (host) => { let t = host.querySelector('.tip'); if (!t) { t = el('div', { className: 'tip' }); host.append(t); } t.hidden = true; return t; };
+
+  // stacked bars: rows=[{label, vals:[...], sub}] series=[{name,color}]
+  function stackBars(host, rows, series, opt) {
+    opt = opt || {};
+    host.replaceChildren(); const W = host.clientWidth; if (W < 60) return;
+    const H = opt.h || (W < 560 ? 220 : 280), padL = 46, padR = 8, top = 10, bot = 24, ih = H - top - bot;
+    const tot = rows.map((r) => r.vals.reduce((s, x) => s + x, 0));
+    const vmax = Math.max(...tot, 0) || 1, stp = niceMax(vmax / 4), nt = Math.max(1, Math.ceil(vmax / stp - 1e-9)), ymax = stp * nt, bw = (W - padL - padR) / Math.max(1, rows.length);
+    const svg = sv('svg', { viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': opt.aria || 'bar chart' });
+    for (let k = 0; k <= nt; k++) {
+      const y = top + ih - ih * k / nt, v = stp * k;
+      svg.append(sv('line', { x1: padL, x2: W - padR, y1: y, y2: y, stroke: '#1f1a3d' }), txt(padL - 6, y + 4, stp < 1 ? v.toFixed(stp < 0.1 ? 2 : 1) : v % 1 ? v.toFixed(1) : n0(v), { 'text-anchor': 'end' }));
+    }
+    const step = Math.ceil(rows.length / Math.max(1, Math.floor((W - padL) / 56)));
+    rows.forEach((r, i) => {
+      const x = padL + i * bw; let y = top + ih;
+      r.vals.forEach((v, s) => { if (!v) return; const h = v / ymax * ih; y -= h;
+        svg.append(sv('rect', { x: x + Math.min(1, bw * 0.1), y, width: Math.max(1, bw - Math.min(2, bw * 0.2)), height: h, fill: series[s].color, opacity: V.hi != null && V.hi !== i ? 0.5 : 0.95 })); });
+      if (i % step === 0) svg.append(txt(x + bw / 2, H - 6, r.short != null ? r.short : r.label, { 'text-anchor': 'middle' }));
+      const hit = sv('rect', { x, y: top, width: bw, height: ih, fill: 'transparent', class: 'hit' });
+      hit.addEventListener('mouseenter', () => opt.onHover && opt.onHover(i, r));
+      hit.addEventListener('click', () => opt.onHover && opt.onHover(i, r));
+      svg.append(hit);
+    });
+    host.append(svg);
+  }
+
+  function hBars(host, rows, opt) {         // rows=[{label,value,color,sub}]
+    host.replaceChildren(); const W = host.clientWidth; if (W < 60) return;
+    const rh = 20, H = rows.length * rh + 4, lab = Math.min(170, W * 0.42), vmax = Math.max(1, ...rows.map((r) => r.value));
+    const svg = sv('svg', { viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': opt && opt.aria || 'ranking' });
+    rows.forEach((r, i) => {
+      const y = i * rh + 2, w = (W - lab - 120) * r.value / vmax;
+      svg.append(txt(lab - 6, y + 13, r.label.length > 22 ? r.label.slice(0, 21) + '…' : r.label, { 'text-anchor': 'end', class: 'lab' }),
+        sv('rect', { x: lab, y: y + 3, width: Math.max(1, w), height: rh - 7, fill: r.color }),
+        txt(lab + w + 6, y + 13, r.sub != null ? r.sub : n0(r.value)));
+      if (opt && opt.click) { const hit = sv('rect', { x: 0, y, width: W, height: rh, fill: 'transparent', class: 'hit' }); hit.addEventListener('click', () => opt.click(r)); svg.append(hit); }
+    });
+    host.append(svg);
+  }
+
+  // ---------------------------------------------------------------- per-participant sums in range
+  function pRange(p, a, b) {
+    let ti = 0, to = 0, c = 0, m = 0, dd = 0, tdays = 0;
+    for (const [i, a1, b1, c1, m1] of p.d) { if (i < a || i >= b) continue; ti += a1; to += b1; c += c1; m += m1; dd++; if (a1 + b1) tdays++; }
+    return { ti, to, t: ti + to, c, m, days: dd, tdays, score: m + 2 * (ti + to) + 3 * c };
+  }
+
+  // ---------------------------------------------------------------- readout
+  function renderReadout() {
+    const a = A(), b = B(), nd = b - a;
+    const ti = sum(day.texts_in, a, b), to = sum(day.texts_out, a, b), ci = sum(day.calls_in, a, b), co = sum(day.calls_out, a, b);
+    const tm = sum(day.talk_min, a, b), mb = sum(day.data_mb, a, b);
+    const cells = [
+      ['Days', `${n0(nd)}`, `${fmtD(a)} – ${fmtD(b - 1)}`],
+      ['Texts / day', n1((ti + to) / nd), `${n0(to)} sent · ${n0(ti)} received`],
+      ['Calls / day', n1((ci + co) / nd), `${n0(co)} out · ${n0(ci)} in`],
+      ['Talk time', hrs(tm), `${n1(tm / nd)} min / day`],
+      ['People', n0(P.filter((p) => pRange(p, a, b).days).length), `of the top ${P.length} reached`],
+      ['Mobile data', mb > 1024 ? n1(mb / 1024) + ' GB' : n0(mb) + ' MB', `${n0(mb / nd)} MB / day`],
+    ];
+    $('#readout').replaceChildren(...cells.map(([k, v, s]) => el('div', {}, [el('span', { textContent: k }), el('strong', { textContent: v }), el('small', { textContent: s })])));
+  }
+
+  // ---------------------------------------------------------------- overview
+  function renderOverview() {
+    const a = A(), b = B(), m = M[V.ovm];
+    const bs = bins(a, b, V.ovg);
+    const rows = bs.map((x) => ({ label: x.label, short: V.ovg === 'month' ? x.m + (x.m === 'Jan' ? ' ' + String(x.y).slice(2) : '') : V.ovg === 'week' ? MON[dateOf(x.a).getUTCMonth()] + ' ' + dateOf(x.a).getUTCDate() : MON[dateOf(x.a).getUTCMonth()] + ' ' + dateOf(x.a).getUTCDate(),
+      vals: m.parts.map(([k]) => m.avg ? sum(day[k], x.a, x.b) / (x.b - x.a) : sum(day[k], x.a, x.b)), days: x.b - x.a }));
+    const read = (i, r) => {
+      $('#ov-read').innerHTML = `<b>${r.label}</b> · ` + m.parts.map(([k, nm], s) => `${nm} ${m.avg ? n1(r.vals[s]) + '/day' : n0(r.vals[s])}`).join(' · ')
+        + (m.avg ? '' : ` · ${n1(r.vals.reduce((s, v) => s + v, 0) / r.days)} per day`);
+    };
+    stackBars($('#ov-chart'), rows, m.parts.map(([, name, color]) => ({ name, color })), { onHover: read, aria: m.name });
+    if (rows.length) read(rows.length - 1, rows[rows.length - 1]);
+    // weekday
+    const cnt = Array(7).fill(0), acc = m.parts.map(() => Array(7).fill(0));
+    for (let i = a; i < b; i++) { const w = dowOf(i); cnt[w]++; m.parts.forEach(([k], s) => acc[s][w] += day[k][i] || 0); }
+    stackBars($('#ov-dow'), DOW.map((d, w) => ({ label: d, vals: acc.map((x) => cnt[w] ? x[w] / cnt[w] : 0) })), m.parts.map(([, name, color]) => ({ name, color })), { h: 170 });
+    // top 10
+    const key = V.ovm === 'calls' ? 'c' : V.ovm === 'talk' ? 'm' : 't';
+    const ranked = P.map((p) => ({ p, r: pRange(p, a, b) })).filter((x) => x.r[key]).sort((x, y) => y.r[key] - x.r[key]).slice(0, 10);
+    hBars($('#ov-top'), ranked.map(({ p, r }) => ({ label: nameOf(p), value: r[key], color: p.color, p, sub: key === 'm' ? hrs(r.m) : n0(r[key]) + (key === 't' ? ' texts' : ' calls') })),
+      { click: (r) => { V.pid = r.p.id; SiteTabsShow('people'); } });
+  }
+
+  // ---------------------------------------------------------------- people
+  function renderPeople() {
+    const a = A(), b = B(), nd = b - a;
+    const key = { score: 'score', talk: 'm', texts: 't', calls: 'c' }[V.sort];
+    const list = P.map((p) => ({ p, r: pRange(p, a, b) })).sort((x, y) => y.r[key] - x.r[key] || x.p.rank - y.p.rank);
+    if (!V.pid || !PID[V.pid]) V.pid = list[0].p.id;
+    $('#pp-list').replaceChildren(...list.map(({ p, r }, i) => {
+      const btn = el('button', { type: 'button' }, [
+        el('span', { className: 'rk', textContent: r[key] ? i + 1 : '·' }), Object.assign(el('span', { className: 'dot' }), { style: `background:${p.color};box-shadow:0 0 8px ${p.color}` }),
+        el('span', { className: 'nm', textContent: nameOf(p) }),
+        el('span', { className: 'v', textContent: key === 'm' ? hrs(r.m) : key === 'score' ? (r.days ? r.days + ' d' : '—') : n0(r[key]) })]);
+      btn.setAttribute('aria-pressed', p.id === V.pid); btn.setAttribute('role', 'listitem');
+      btn.onclick = () => { V.pid = p.id; renderPeople(); };
+      return btn;
+    }));
+    const p = PID[V.pid], r = pRange(p, a, b);
+    const card = $('#pp-card');
+    const lg = p.logged;
+    card.replaceChildren(
+      el('div', { className: 'pname', style: `color:${p.color};text-shadow:0 0 12px ${p.color}` }, [document.createTextNode(nameOf(p)),
+        el('small', { textContent: `#${p.rank} overall · ${p.vibe_name} · ${p.first.replace('-', '/')} – ${p.last.replace('-', '/')}` + (NAMES && NAMES[p.alias] ? ` · alias ${p.alias}` : '') })]),
+      el('div', { className: 'stats' }, [
+        ['Texts / day', n2(r.t / nd)], ['Texts / texting day', r.tdays ? n1(r.t / r.tdays) : '—'], ['Sent · received', `${n0(r.to)} · ${n0(r.ti)}`],
+        ['Calls', n0(r.c)], ['Talk time', hrs(r.m)], ['Avg call', r.c ? n1(r.m / r.c) + ' min' : '—'],
+        ['Days in touch', `${n0(r.days)} / ${n0(nd)}`], ['Logged (2026)', lg && lg.rate != null ? pct(lg.rate) : '—'],
+      ].map(([k, v]) => el('div', {}, [el('span', { textContent: k }), el('b', { textContent: v })]))),
+      el('h3', { textContent: 'Week by week' }), Object.assign(el('div', { className: 'chart' }), { id: 'pp-weeks' }), Object.assign(el('div', { className: 'read' }), { id: 'pp-read' }),
+      el('h3', { textContent: 'Hour of day (all months)' }), Object.assign(el('div', { className: 'chart' }), { id: 'pp-hours' }));
+    const byDay = new Map(p.d.map((x) => [x[0], x]));
+    const bs = bins(a, b, nd > 200 ? 'week' : nd > 60 ? 'week' : 'day');
+    const rows = bs.map((x) => { let t = 0, m = 0, c = 0; for (let i = x.a; i < x.b; i++) { const q = byDay.get(i); if (q) { t += q[1] + q[2]; c += q[3]; m += q[4]; } } return { label: x.label, short: MON[dateOf(x.a).getUTCMonth()] + ' ' + dateOf(x.a).getUTCDate(), vals: [m, t], c }; });
+    stackBars($('#pp-weeks'), rows, [{ name: 'Talk min', color: p.color }, { name: 'Texts', color: '#3ff0ff' }], { h: 190, onHover: (i, q) => { $('#pp-read').innerHTML = `<b>${q.label}</b> · ${n0(q.vals[0])} talk min in ${q.c} calls · ${n0(q.vals[1])} texts`; } });
+    stackBars($('#pp-hours'), p.hours.map((v, h) => ({ label: String(h).padStart(2, '0') + ':00', short: h % 3 ? '' : String(h).padStart(2, '0'), vals: [v] })), [{ name: 'Contacts', color: p.color }], { h: 140 });
+  }
+
+  // ---------------------------------------------------------------- rhythm
+  function renderRhythm() {
+    const host = $('#rh-heat'); host.replaceChildren(); const W = host.clientWidth; if (W < 60) return;
+    const H = D.heat[V.rh], padL = 38, top = 18, cw = (W - padL) / 24, ch = Math.max(16, Math.min(30, cw * 1.1)), Hh = top + 7 * ch + 4;
+    const max = Math.max(1, ...H.flat());
+    const col = { texts: [63, 240, 255], calls: [182, 255, 92], minutes: [255, 179, 71], data_mb: [255, 63, 180] }[V.rh];
+    const svg = sv('svg', { viewBox: `0 0 ${W} ${Hh}`, role: 'img', 'aria-label': 'weekday by hour heatmap' });
+    for (let h = 0; h < 24; h += 3) svg.append(txt(padL + h * cw + cw / 2, 12, String(h).padStart(2, '0'), { 'text-anchor': 'middle' }));
+    H.forEach((row, w) => {
+      svg.append(txt(padL - 6, top + w * ch + ch / 2 + 4, DOW[w], { 'text-anchor': 'end' }));
+      row.forEach((v, h) => {
+        const f = Math.sqrt(v / max);
+        const r = sv('rect', { x: padL + h * cw + 1, y: top + w * ch + 1, width: cw - 2, height: ch - 2, fill: v ? `rgba(${col.join(',')},${0.08 + 0.92 * f})` : '#120f26', class: 'hit' });
+        r.addEventListener('mouseenter', () => { $('#rh-read').innerHTML = `<b>${DOW[w]} ${String(h).padStart(2, '0')}:00–${String(h + 1).padStart(2, '0')}:00</b> · ${n0(v)} ${V.rh === 'data_mb' ? 'MB' : V.rh === 'minutes' ? 'talk min' : V.rh} (all ${n0(D.n / 30.4)} months)`; });
+        svg.append(r);
+      });
+    });
+    host.append(svg);
+    // first / last contact per day
+    const sh = $('#rh-span'); sh.replaceChildren(); const W2 = sh.clientWidth, H2 = W2 < 560 ? 200 : 240, pl = 46, pt = 8, pb = 22, ih = H2 - pt - pb;
+    const a = A(), b = B(), xw = (W2 - pl - 8) / Math.max(1, b - a);
+    const svg2 = sv('svg', { viewBox: `0 0 ${W2} ${H2}`, role: 'img', 'aria-label': 'first and last contact times' });
+    const Y = (m) => pt + ih * (m / 1440);
+    for (const h of [0, 6, 12, 18, 24]) svg2.append(sv('line', { x1: pl, x2: W2 - 8, y1: Y(h * 60), y2: Y(h * 60), stroke: '#1f1a3d' }), txt(pl - 6, Y(h * 60) + 4, String(h).padStart(2, '0') + ':00', { 'text-anchor': 'end' }));
+    let lastM = -1;
+    for (let i = a; i < b; i++) {
+      const x = pl + (i - a) * xw + xw / 2, f = D.first_act[i], l = D.last_act[i];
+      if (f != null && l != null) svg2.append(sv('line', { x1: x, x2: x, y1: Y(f), y2: Y(l), stroke: '#3ff0ff', 'stroke-opacity': 0.25, 'stroke-width': Math.max(1, xw * 0.6) }));
+      if (f != null) svg2.append(sv('circle', { cx: x, cy: Y(f), r: 1.6, fill: '#b6ff5c' }));
+      if (l != null) svg2.append(sv('circle', { cx: x, cy: Y(l), r: 1.6, fill: '#ff3fb4' }));
+      const d = dateOf(i); if (d.getUTCDate() === 1 && d.getUTCMonth() !== lastM && (b - a) > 40) { lastM = d.getUTCMonth(); svg2.append(txt(x, H2 - 6, MON[lastM], { 'text-anchor': 'middle' })); }
+    }
+    sh.append(svg2);
+  }
+
+  // ---------------------------------------------------------------- capture
+  function renderCapture() {
+    const C = D.capture || [];
+    if (!C.length) { $('#cp-chart').textContent = 'No call log.'; return; }
+    const att = C.reduce((s, m) => s + m.att_min, 0), got = C.reduce((s, m) => s + m.got_min, 0), miss = att - got;
+    const lo = C.reduce((s, m) => s + (m.log_only_min || 0), 0), lc = C.reduce((s, m) => s + (m.log_calls || 0), 0), loc = C.reduce((s, m) => s + (m.log_only_calls || 0), 0);
+    $('#cp-readout').replaceChildren(...[
+      ['Captured', pct(got / att), `${hrs(got)} of ${hrs(att)} on AT&T`],
+      ['Missed', hrs(miss), `${n0(C.reduce((s, m) => s + m.missed_calls, 0))} calls never logged`],
+      ['Avg month', pct(C.reduce((s, m) => s + (m.rate_min || 0), 0) / C.length), `${C.length} months`],
+      ['Off-cellular', pct(loc / lc), `${n0(loc)} logged calls (${hrs(lo)}) not on AT&T`],
+    ].map(([k, v, s]) => el('div', {}, [el('span', { textContent: k }), el('strong', { textContent: v }), el('small', { textContent: s })])));
+    const lab = (m) => MON[+m.month.slice(5) - 1];
+    stackBars($('#cp-chart'), C.map((m) => ({ label: lab(m) + ' ' + m.month.slice(0, 4), short: lab(m), vals: [m.got_min, m.missed_min, m.log_only_min || 0], m })),
+      [{ name: 'Logged', color: '#b6ff5c' }, { name: 'Missed', color: '#ff3fb4' }, { name: 'Off-cellular (log only)', color: '#4a4470' }],
+      { onHover: (i, r) => { const m = r.m; $('#cp-read').innerHTML = `<b>${r.label}</b> · AT&T ${n0(m.att_min)} min · logged ${n0(m.got_min)} (${pct(m.rate_min)}) · missed ${n0(m.missed_min)} min in ${m.missed_calls} calls`
+        + (m.dropped_min ? ` (${n0(m.dropped_min)} min were dropped calls whose call-back was logged)` : '')
+        + (m.missed_by && m.missed_by.length ? ' · most missed: ' + m.missed_by.map(([id, v]) => `${PID[id] ? nameOf(PID[id]) : 'others'} ${v}`).join(', ') : '')
+        + ` · off-cellular ${n0(m.log_only_min || 0)} min`; } });
+    $('#cp-read').innerHTML = 'Green = logged, magenta = on AT&T but not in the log, grey = logged calls that never hit AT&T (FaceTime, WhatsApp, Wi-Fi).';
+    const t = $('#cp-table');
+    t.replaceChildren(el('thead', {}, [el('tr', {}, ['Month', 'AT&T calls', 'AT&T min', 'Logged min', 'Missed min', 'Captured', 'Typo-matched', 'Log-only calls', 'Log-only min'].map((h) => el('th', { textContent: h })))]),
+      el('tbody', {}, C.map((m) => el('tr', {}, [lab(m) + ' ' + m.month.slice(0, 4), n0(m.att_calls), n0(m.att_min), n0(m.got_min), n0(m.missed_min), pct(m.rate_min), n0(m.typo_calls || 0), n0(m.log_only_calls || 0), n0(m.log_only_min || 0)].map((v, k) => {
+        const td = el('td'); if (k === 5) { const f = m.rate_min || 0; td.append(Object.assign(el('span', { className: 'b' }), { style: `width:${Math.round(f * 50)}px;background:${f > 0.95 ? '#b6ff5c' : f > 0.9 ? '#ffb347' : '#ff3fb4'}` })); }
+        td.append(document.createTextNode(v)); return td; })))));
+    const pl = P.filter((p) => p.logged && p.logged.att_min >= 30).sort((x, y) => x.logged.rate - y.logged.rate).slice(0, 15);
+    hBars($('#cp-people'), pl.map((p) => ({ label: nameOf(p), value: p.logged.rate, color: p.color, sub: `${pct(p.logged.rate)} of ${hrs(p.logged.att_min)}`, p })), { click: (r) => { V.pid = r.p.id; SiteTabsShow('people'); } });
+  }
+
+  // ---------------------------------------------------------------- links (correlations)
+  const firstA = D.first_act, lastA = D.last_act;
+  const PHM = [
+    ['Texts sent', day.texts_out], ['Texts received', day.texts_in], ['Cell calls', day.calls_in.map((v, i) => v + day.calls_out[i])],
+    ['Talk min', day.talk_min], ['People reached', day.people], ['Mobile data MB', day.data_mb],
+    ['First contact (h)', firstA.map((v) => v == null ? null : v / 60)], ['Last contact (h)', lastA.map((v) => v == null ? null : v / 60)],
+  ];
+  const CTX = Object.entries(D.context || {}).map(([k, c]) => [c.name, c.v, c.color]);
+  function corr(x, y, a, b, lag) {
+    let n = 0, sx = 0, sy = 0, sxx = 0, syy = 0, sxy = 0; const pts = [];
+    for (let i = a; i < b; i++) { const j = i + lag; if (j < 0 || j >= N) continue; const u = x[i], v = y[j]; if (u == null || v == null) continue;
+      n++; sx += u; sy += v; sxx += u * u; syy += v * v; sxy += u * v; pts.push([u, v, i]); }
+    if (n < 10) return { r: null, n, pts };
+    const cov = sxy - sx * sy / n, vx = sxx - sx * sx / n, vy = syy - sy * sy / n;
+    if (vx <= 0 || vy <= 0) return { r: null, n, pts };
+    const r = cov / Math.sqrt(vx * vy), t = r * Math.sqrt((n - 2) / Math.max(1e-9, 1 - r * r));
+    const p = 2 * (1 - normCdf(Math.abs(t)));
+    return { r, n, p, pts, slope: cov / vx, icpt: (sy - (cov / vx) * sx) / n };
+  }
+  function normCdf(z) { const t = 1 / (1 + 0.2316419 * z), d = 0.3989423 * Math.exp(-z * z / 2); return 1 - d * t * (0.3193815 + t * (-0.3565638 + t * (1.781478 + t * (-1.821256 + t * 1.330274)))); }
+  function rColor(r) { if (r == null) return '#120f26'; const f = Math.min(1, Math.abs(r) / 0.5); return r > 0 ? `rgba(63,240,255,${0.12 + 0.88 * f})` : `rgba(255,63,180,${0.12 + 0.88 * f})`; }
+  function renderLinks() {
+    const a = A(), b = B();
+    const t = $('#lk-table');
+    const head = el('tr', {}, [el('th', { textContent: V.lag === 0 ? 'Same day' : V.lag === 1 ? 'Phone → next day' : 'Day before → phone' }), ...CTX.map(([nm]) => el('th', { textContent: nm }))]);
+    const body = PHM.map(([pn, px], pi) => el('tr', {}, [el('td', { textContent: pn }), ...CTX.map(([cn, cy], ci) => {
+      const q = V.lag >= 0 ? corr(px, cy, a, b, V.lag) : corr(cy, px, a, b, 1);
+      const td = el('td', { className: 'c' + (V.cell && V.cell[0] === pi && V.cell[1] === ci ? ' on' : ''), textContent: q.r == null ? '·' : (q.r >= 0 ? '+' : '−') + Math.abs(q.r).toFixed(2).slice(1) + (q.p < 0.01 ? '*' : '') });
+      td.style.background = rColor(q.r); if (q.r != null && Math.abs(q.r) < 0.2) td.style.color = 'var(--ink)';
+      td.title = `${pn} × ${cn}: r ${q.r == null ? '—' : q.r.toFixed(3)}, n ${q.n}${q.p != null ? ', p ' + q.p.toExponential(1) : ''}`;
+      td.onclick = () => { V.cell = [pi, ci]; renderLinks(); };
+      return td; })]));
+    t.replaceChildren(el('thead', {}, [head]), el('tbody', {}, body));
+    if (!V.cell) {   // open on the strongest link in range
+      let best = null; PHM.forEach(([, px], pi) => CTX.forEach(([cn, cy], ci) => { if (cn === 'Logged call min') return; const q = corr(px, cy, a, b, 0); if (q.r != null && q.n >= 30 && (!best || Math.abs(q.r) > Math.abs(best[2]))) best = [pi, ci, q.r]; }));
+      if (best) { V.cell = [best[0], best[1]]; return renderLinks(); }
+    }
+    if (!V.cell) return;
+    const [pi, ci] = V.cell, [pn, px] = PHM[pi], [cn, cy, cc] = CTX[ci];
+    const q = V.lag >= 0 ? corr(px, cy, a, b, V.lag) : corr(cy, px, a, b, 1);
+    const xn = V.lag >= 0 ? pn : cn + ' (day before)', yn = V.lag >= 0 ? cn + (V.lag ? ' (next day)' : '') : pn;
+    $('#lk-read').innerHTML = q.r == null ? `<b>${pn} × ${cn}</b> · not enough overlapping days (${q.n})` :
+      `<b>${xn} × ${yn}</b> · r ${q.r.toFixed(3)} · r² ${(q.r * q.r * 100).toFixed(1)}% · ${q.n} days · p ${q.p < 1e-4 ? '< 0.0001' : q.p.toFixed(4)} · slope ${q.slope.toPrecision(3)}`;
+    // scatter
+    const host = $('#lk-scatter'); host.replaceChildren(); const W = host.clientWidth; if (W < 60) return;
+    const H = 260, pl = 46, pr = 8, pt = 8, pb = 26, xs = q.pts.map((p) => p[0]), ys = q.pts.map((p) => p[1]);
+    const x0 = Math.min(0, ...xs), x1 = Math.max(1e-9, ...xs), y0 = Math.min(0, ...ys), y1 = Math.max(1e-9, ...ys);
+    const X = (v) => pl + (v - x0) / (x1 - x0 || 1) * (W - pl - pr), Y = (v) => pt + (1 - (v - y0) / (y1 - y0 || 1)) * (H - pt - pb);
+    const svg = sv('svg', { viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': 'scatter' });
+    for (let k = 0; k <= 4; k++) { const v = y0 + (y1 - y0) * k / 4; svg.append(sv('line', { x1: pl, x2: W - pr, y1: Y(v), y2: Y(v), stroke: '#1f1a3d' }), txt(pl - 6, Y(v) + 4, n1(v), { 'text-anchor': 'end' })); }
+    for (let k = 0; k <= 4; k++) { const v = x0 + (x1 - x0) * k / 4; svg.append(txt(X(v), H - 8, n1(v), { 'text-anchor': 'middle' })); }
+    const tip = el('div', { className: 'tip', hidden: true });
+    for (const [u, v, i] of q.pts) { const c = sv('circle', { cx: X(u), cy: Y(v), r: 3, fill: cc, 'fill-opacity': 0.55 });
+      c.addEventListener('mouseenter', () => { tip.hidden = false; tip.textContent = `${fmtD(i)} · ${n1(u)} · ${n1(v)}`; tip.style.left = Math.min(W - 160, X(u) + 8) + 'px'; tip.style.top = Y(v) - 28 + 'px'; });
+      c.addEventListener('mouseleave', () => tip.hidden = true); svg.append(c); }
+    if (q.r != null) svg.append(sv('line', { x1: X(x0), x2: X(x1), y1: Y(q.icpt + q.slope * x0), y2: Y(q.icpt + q.slope * x1), stroke: '#fff', 'stroke-width': 1.5, 'stroke-dasharray': '4 3' }));
+    host.append(svg, tip);
+    // weekly lines, each scaled to its own max
+    const lh = $('#lk-line'); lh.replaceChildren(); const W2 = lh.clientWidth, H2 = 260, bs = bins(a, b, 'week');
+    const wk = (arr, lag) => bs.map((x) => { let s = 0, c = 0; for (let i = x.a; i < x.b; i++) { const v = arr[i + lag]; if (v != null) { s += v; c++; } } return c ? s / c : null; });
+    const s1 = wk(V.lag >= 0 ? px : cy, 0), s2 = wk(V.lag >= 0 ? cy : px, V.lag >= 0 ? V.lag : 1);
+    const svg2 = sv('svg', { viewBox: `0 0 ${W2} ${H2}`, role: 'img', 'aria-label': 'weekly lines' });
+    const X2 = (k) => 30 + k * (W2 - 40) / Math.max(1, bs.length - 1);
+    [[s1, '#3ff0ff', xn], [s2, cc === '#3ff0ff' ? '#ff3fb4' : cc, yn]].forEach(([s, c, nm], si) => {
+      const mx = Math.max(1e-9, ...s.filter((v) => v != null)), mn = Math.min(...s.filter((v) => v != null));
+      let d = ''; s.forEach((v, k) => { if (v == null) return; const y = 16 + (1 - (v - mn) / ((mx - mn) || 1)) * (H2 - 44); d += (d ? 'L' : 'M') + X2(k).toFixed(1) + ' ' + y.toFixed(1); });
+      svg2.append(sv('path', { d, fill: 'none', stroke: c, 'stroke-width': 2 }), sv('rect', { x: 30 + si * 170, y: H2 - 14, width: 10, height: 10, fill: c }), txt(44 + si * 170, H2 - 5, nm.length > 22 ? nm.slice(0, 21) + '…' : nm, { class: 'lab' }));
+    });
+    lh.append(svg2);
+  }
+
+  // ---------------------------------------------------------------- controls
+  function seg(host, items, get, set) {
+    host.replaceChildren(...items.map(([k, label]) => { const b = el('button', { type: 'button', textContent: label }); b.setAttribute('aria-pressed', get() === k); b.onclick = () => { set(k); seg(host, items, get, set); }; return b; }));
+  }
+  seg($('#range'), RANGES.map((r, i) => [i, r[0]]), () => V.r, (k) => { V.r = k; V.cell = null; renderAll(); });
+  seg($('#ov-m'), Object.entries(M).map(([k, m]) => [k, m.name.toUpperCase()]), () => V.ovm, (k) => { V.ovm = k; renderOverview(); });
+  seg($('#ov-g'), [['day', 'DAY'], ['week', 'WEEK'], ['month', 'MONTH']], () => V.ovg, (k) => { V.ovg = k; renderOverview(); });
+  seg($('#pp-sort'), [['score', 'OVERALL'], ['talk', 'TALK'], ['texts', 'TEXTS'], ['calls', 'CALLS']], () => V.sort, (k) => { V.sort = k; renderPeople(); });
+  seg($('#rh-m'), [['texts', 'TEXTS'], ['calls', 'CALLS'], ['minutes', 'TALK MIN'], ['data_mb', 'DATA']], () => V.rh, (k) => { V.rh = k; renderRhythm(); });
+  seg($('#lk-lag'), [[0, 'SAME DAY'], [1, 'PHONE → NEXT DAY'], [-1, 'DAY BEFORE → PHONE']], () => V.lag, (k) => { V.lag = k; renderLinks(); });
+
+  const R = { overview: renderOverview, people: renderPeople, rhythm: renderRhythm, capture: renderCapture, links: renderLinks };
+  let cur = 'overview';
+  function renderAll() { renderReadout(); (R[cur] || renderOverview)(); }
+  function SiteTabsShow(k) { if (window.SiteTabs) SiteTabs.show(k, { push: true }); else fallbackShow(k, true); }
+  addEventListener('tabchange', (ev) => { cur = ev.detail.tab; (R[cur] || (() => {}))(); });
+  let rz; addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => (R[cur] || (() => {}))(), 120); });
+  // standalone copy (no site.js): tiny tab switcher
+  function fallbackShow(k, push) {
+    if (!R[k]) k = 'overview'; cur = k;
+    for (const e of document.querySelectorAll('[data-tab]')) { if (e.closest('nav.ptabs')) { e.toggleAttribute('aria-current', e.dataset.tab === k); continue; } e.hidden = e.dataset.tab !== k; }
+    if (push) history.replaceState(null, '', '#' + k);
+    renderAll();
+  }
+  D.totals && ($('#foot').textContent = `AT&T usage details (${D.totals.periods} bills, ${D.start} – ${iso(N - 1)}) · call log ${D.log_window ? D.log_window.join(' – ') : ''} · ${D.caveats.join(' ')} · ${D.totals.spam_numbers} spam numbers and ${D.totals.services} services left out of people.`);
+  if (window.SiteTabs) { SiteTabs.start(); cur = (location.hash.slice(1) in R) ? location.hash.slice(1) : cur; renderReadout(); }
+  else {
+    document.querySelectorAll('nav.ptabs a[data-tab]').forEach((a) => a.addEventListener('click', (ev) => { ev.preventDefault(); fallbackShow(a.dataset.tab, true); }));
+    fallbackShow(location.hash.slice(1) || 'overview');
+  }
+})();
+</script>

@@ -71,6 +71,31 @@
    ]
   },
   {
+   "id": "phone",
+   "name": "AT&T usage (calls, texts, data)",
+   "kind": "manual export",
+   "builder": "build_phone.py",
+   "pages": [
+    "/phone/",
+    "/#explore"
+   ],
+   "through": "2026-11-16",
+   "age_days": 4,
+   "stale": false,
+   "files": [
+    {
+     "path": "phone/data/phone.json",
+     "kb": 83,
+     "through": "2026-11-16"
+    },
+    {
+     "path": "meta-log/data/phone.json",
+     "kb": 10,
+     "through": "2026-11-16"
+    }
+   ]
+  },
+  {
    "id": "breath",
    "name": "Breathwork (Wim Hof)",
    "kind": "manual export",
@@ -388,7 +413,7 @@
    "files": [
     {
      "path": "meta-log/data/daily.json",
-     "kb": 995,
+     "kb": 1004,
      "through": "2026-11-20"
     }
    ]
@@ -407,7 +432,7 @@
    "files": [
     {
      "path": "meta-log/data/seasons.json",
-     "kb": 30,
+     "kb": 29,
      "through": "2026-11-19"
     }
    ]

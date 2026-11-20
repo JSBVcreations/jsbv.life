@@ -283,7 +283,8 @@ for n, es in by_num.items():
     v = vibe(s)
     rec = key.get(n)
     if rec is None:
-        rec = key[n] = {'alias': new_alias(v if cls == 'person' else 'rare'), 'vibe_at_naming': v, 'named_on': str(dt.date.today())}
+        fam = v if cls == 'person' else 'rare'
+        rec = key[n] = {'alias': new_alias(fam), 'vibe_at_naming': fam,'named_on': str(dt.date.today())}
     rec.update({'class': cls, 'vibe': v, 'name': nm, 'name_confidence': conf, 'name_votes': dict(names), 'stats': {k: (str(x) if isinstance(x, dt.date) else x) for k, x in s.items()}})
     people.append((n, rec, s))
 
@@ -301,8 +302,7 @@ for n, rec, s in people:
 def colour(rec, rank, total):
     hue = VIBES[rec['vibe_at_naming']][1]          # the colour family stays with the name it was given
     f = 1 - (rank - 1) / max(1, total - 1)                  # 1 = most talked to
-    f = f ** 0.6
-    return f"hsl({hue} {round(35 + 65 * f)}% {round(30 + 42 * f)}%)"
+    return f"hsl({hue} {round(30 + 70 * f)}% {round(30 + 44 * f)}%)"
 
 os.makedirs(ATT, exist_ok=True)
 with open(PEOPLE_F, 'w') as f: json.dump(key, f, indent=1, sort_keys=True)
@@ -487,9 +487,9 @@ with open(PUB_DAY, 'w') as f:
                    {'id': 'texts_out', 'name': 'Texts sent', 'unit': 'texts', 'agg': 'sum', 'color': '#ff3fb4', 'v': day['texts_out']},
                    {'id': 'calls', 'name': 'Cell calls', 'unit': 'calls', 'agg': 'sum', 'color': '#b6ff5c', 'v': [a + b for a, b in zip(day['calls_in'], day['calls_out'])]},
                    {'id': 'talk_min', 'name': 'Cell talk time', 'unit': 'min', 'agg': 'sum', 'color': '#4fe0c0', 'v': day['talk_min']},
-                   {'id': 'people', 'name': 'People reached', 'unit': 'people', 'agg': 'sum', 'color': '#9b7bff', 'v': day['people']},
+                   {'id': 'people', 'name': 'People reached a day', 'unit': 'people', 'agg': 'mean', 'color': '#9b7bff', 'v': day['people']},
                    {'id': 'data_mb', 'name': 'Mobile data', 'unit': 'MB', 'agg': 'sum', 'color': '#ffb347', 'v': day['data_mb']},
-               ]}, f, separators=(',', ':'))
+               ], 'dims': []}, f, separators=(',', ':'))
 nm_hi = sum(1 for n, rec, s in persons if rec['name'] and rec['name_confidence'] in ('high', 'medium'))
 print(f'people {len(persons)} (named {nm_hi}, top {TOP} published as aliases)  spam {pub["totals"]["spam_numbers"]}  services {pub["totals"]["services"]}')
 for m in capture: print(f"  {m['month']}  AT&T {m['att_min']:>5} min  logged {m['got_min']:>5}  missed {m['missed_min']:>5}  ({(m['rate_min'] or 0) * 100:5.1f}%)  typo-matched {m.get('typo_calls', 0)}  missed-but-call-back-logged {m.get('dropped_min', 0)} min  log-only {m.get('log_only_calls', 0)} calls / {m.get('log_only_min', 0)} min")

@@ -15,3 +15,9 @@ meta-log/data/life.private.json
 __pycache__/
 # plain copies of private datasets (published only sealed, as meta-log/data/private.enc.json)
 meta-log/data/private/
+# AT&T exports and the phone alias key name real people: they live in jsbv data/ATT, never here
+ATT-*/
+*phone-decoder*.json
+*phone-people*
+phone-records*.csv
+call-matches*.csv

@@ -49,6 +49,22 @@
    "stale_days": 30
   },
   {
+   "id": "phone",
+   "name": "AT&T usage (calls, texts, data)",
+   "kind": "manual export",
+   "raw": "jsbv data/ATT/raw/ATT-usage-*.xlsx",
+   "builder": "build_phone.py",
+   "outputs": [
+    "phone/data/phone.json",
+    "meta-log/data/phone.json"
+   ],
+   "pages": [
+    "/phone/",
+    "/#explore"
+   ],
+   "stale_days": 45
+  },
+  {
    "id": "breath",
    "name": "Breathwork (Wim Hof)",
    "kind": "manual export",
