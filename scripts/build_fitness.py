@@ -144,6 +144,9 @@ SYN = {'squat': 'Squat', 'squats': 'Squat', 'back squat': 'Squat', 'bench': 'Ben
        'tricep cable pulldown': 'Triceps pushdown', 'overhead dumbbell press': 'DB overhead press',
        'hlr': 'Hanging leg raise', 'planks': 'Plank', 'plate lifts': 'Plate lift',
        'dumbbell fly': 'DB fly', 'db fly': 'DB fly', 'calf raise': 'Calf raise', 'calf raises': 'Calf raise', 'calf lifts': 'Calf raise'}
+# Comprehensive Workout Data sessions whose date Jack corrected from his paper notebooks (Nov 20, 2026). The workbook cell
+# stays as written (raw_cell, src_comprehensive); the joined tables use the notebook date and the change is listed in `issue`.
+REDATE = {('comprehensive', 39): ('2017-04-13', '2017-04-12'), ('comprehensive', 66): ('2017-07-03', '2017-07-02')}
 BIG = {'Squat': 'squat', 'Bench press': 'bench', 'Deadlift': 'deadlift', 'Hex bar deadlift': 'deadlift', 'Overhead press': 'ohp'}
 # muscle groups for names the 2024 ExerciseTags sheet doesn't cover (group, muscle)
 GROUPS = {'Squat': ('Legs', 'Quads'), 'Bench press': ('Push', 'Chest'), 'Deadlift': ('Pull', 'Back'), 'Hex bar deadlift': ('Pull', 'Back'),
@@ -283,6 +286,9 @@ def main():
             k = max([i + 1 for i in range(6) if reps[i] or lbs[i]] or [0]); reps, lbs = reps[:k], lbs[:k]
             rows.append((r, sn, dd, g[(r, 3)], *[(reps + [None] * 6)[i] for i in range(6)], *[(lbs + [None] * 6)[i] for i in range(6)], num(g.get((r, 10)))))
             if k: xs.append((name, reps, lbs, r))
+        fix = REDATE.get(('comprehensive', sn))
+        if fix and fix[0] == dd:
+            issue('comprehensive', a, f'session {sn} re-dated {dd} -> {fix[1]} to match the paper notebook (Jack, Nov 20)'); dd = fix[1]
         sessions.append({'d': dd, 'src': 'comprehensive', 'no': sn, 'min': None, 'row': a, 'x': xs})
     S['src_comprehensive'] = (['source_row', 'session_no', 'date', 'exercise'] + [f'reps_{i}' for i in range(1, 7)] + [f'lbs_{i}' for i in range(1, 7)] + ['exercise_total'], rows)
 
@@ -422,7 +428,7 @@ def main():
         by_d = collections.OrderedDict()
         for i, r in enumerate(G['log']):
             d, ex, setno, reps, lbs = r[:5]
-            if reps is None and lbs is not None: issue('gymnotes2023', i + 2, f'{ex}: weight with no reps written')
+            if reps is None and lbs is not None: issue('gymnotes2023', i + 2, f'{ex}: weight with no reps, not logged (set not done)'); continue
             if '3/4' in str(r[6] or ''): issue('gymnotes2023', i + 2, f'{ex} {reps} x {lbs}: note says "{r[6]}" (partial rep?)')
             s_ = by_d.setdefault(d, {'d': d, 'src': 'gymnotes2023', 'no': None, 'min': None, 'row': i + 2, 'x': [], 'cur': None})
             name = canon(ex)
@@ -444,6 +450,7 @@ def main():
         by_d = collections.OrderedDict()
         for i, r in enumerate(N['log']):
             d, ex, setno, reps, lbs, secs, mi, tm = r[:8]
+            if reps is None and lbs is not None and secs is None: continue   # a weight with no reps: the set was not done (Jack)
             if ex.strip().lower() in ('run', 'walk', 'row', 'bike'):
                 runs.append((d, 'notebooks', ex.strip().lower(), mi, mmss(tm), None, i + 2, None)); continue
             s_ = by_d.setdefault(d, {'d': d, 'src': 'notebooks', 'no': None, 'min': None, 'row': i + 2, 'x': [], 'cur': None})

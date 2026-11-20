@@ -369,5 +369,9 @@ Keep the MX / TXT / DKIM / autodiscover records — they run the jsbv.life busin
   and Note "X". BW in Note = bodyweight, no pounds. Jack (Nov 20): keep every note, past and future, including notes on
   pages whose sets are skipped as duplicates (Pages "Notes on page"). They live in the sqlite only (`src_notebooks`,
   `src_notebooks_pages`), never fitness.json.
+- Jack's answers (Nov 20): where a notebook date and Comprehensive Workout Data disagree, the notebook wins. `REDATE` in
+  build_fitness.py moves Comprehensive session 39 (4/13 -> 4/12/17) and 66 (7/3 -> 7/2/17); the workbook cell stays as written and
+  the change is listed in `issue`. A weight with no reps means the set was not done: not logged (notebooks and gym notes alike).
+  Planks list the weight on his back in Lbs with the time in Seconds.
 - First pages (IMG_6378-6379): 1/1/17 and 1/2/17 home workouts, 1/4/17 run 1.09 mi in 9:31. 1/15 and 1/16 matched Comprehensive
   Workout Data and were skipped.
