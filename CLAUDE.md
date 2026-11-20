@@ -17,7 +17,7 @@ Jack's personal data site: a decade of steps, music, photos and trail logs, plus
 ## Map
 | Path | What | Data (builder) |
 |---|---|---|
-| `index.html` | Hash views: Home `#report` (heroes, year by season, low tide, tiles) · `#trails` · `#projects` · Data (`#data` `#explore` `#calendar` `#watched` and the Lab `#experiments/<key>`) | `daily.json` (`build_meta_log.py`), `seasons.json` (`build_seasons.py`), `training.json` |
+| `index.html` | Hash views: Home `#report` (heroes, year by season, low tide, tiles) · `#trails` · `#projects` · Movies & TV `#movies` (alias `#watched`: every title in one grid; a tile opens its report card) · Data (`#data` `#explore` `#calendar` and the Lab `#experiments/<key>`) | `daily.json` (`build_meta_log.py`), `seasons.json` (`build_seasons.py`), `training.json` |
 | `pct-training/` | PCT//PREP: plan · calendar · low-tide (2019 pre-AT walking as the floor) · days · recovery · pace · trail-weeks | `training.json` (`build_pct_training.py`) from plan.json (original plan, never edited by Claude), plan-adjusted.json (toggleable second plan, Nov 18), a "Projected" third option computed by the build from the last 14 days' rate of increase (never hand-edited), activities.json (Strava), Health export |
 | `step-song/` | STEP//SONG: decade · trail (AT log, weeks, states, hours, calendar) · day · cuts | `build_step_song.py`, `build_at_log.py`, `build_at_breakdown.py` |
 | `trail/` | TRAIL//RADIO: AT 2019 songs by stretch, Spotify iFrame player | `build_trail_radio.py` |
@@ -27,14 +27,14 @@ Jack's personal data site: a decade of steps, music, photos and trail logs, plus
 | `assets/site.js`, `assets/site.css` | Shared nav (Home · Trails · Projects · Data), breadcrumbs, page tabs | — |
 | `assets/theme.css` | Shared look, loaded last on every page (glass panels, pill nav, controls, tables) | — |
 | `scripts/config/` | `registry.json` (every source; `build_manifest.py` → `meta-log/data/manifest.json`), `genres.json`, `at_profile.json` | — |
-| Scorecard on `#watched` | Screening Scorecard scores: badge, stars, quadrant bars, propaganda; sort by any scale | `watch-scores.json` (`build_scorecard.py`) from `jsbv data/scorecard.json`, which Claude pulls from the Scorecard page (slug d91a6afc-01bd-493a-b1ee-f06b91daa5c2, collection `scores`) without the notes |
+| Scorecard on `#movies` | Screening Scorecard scores: badge, stars, quadrant bars, propaganda; sort by any scale; report card (scored rows only, notes in full, IMDb button) | `watch-scores.json` (`build_scorecard.py`) from `jsbv data/scorecard.json`, which Claude pulls from the Scorecard page (slug d91a6afc-01bd-493a-b1ee-f06b91daa5c2, collection `scores`) with Jack's notes |
 | `scripts/update.py`, `Update jsbv.command` | One-click refresh of every source (runs `fill_posters.py` for new watch-list titles first) | — |
 | `meta-log/`, `data/`, `highlights/`, `experiments/` | Redirect stubs (`meta-log/data/` holds the JSON) | — |
 
 ## Hard privacy rules (never break)
 - Raw Spotify JSON contains IP addresses. It is never copied into the repo; only track IDs and play data derived through the builders.
 - `maxfield.life/spotify` is Max's history, not Jack's. Never use it here.
-- Watch list: never publish who he watched with. Scorecard notes are never published (they can name people). Call log: never any person, contact, or per-person breakdown.
+- Watch list: never publish who he watched with. Scorecard notes ARE published, in full, at Jack's request (Nov 19); flag a new note that names someone he watched with. Call log: never any person, contact, or per-person breakdown.
   Breathwork: the notes column is never read.
 - Health: only the files in `build_health_log.py`'s `MOVE` + `VITALS` maps (movement, heart rate, HRV, sleep) are read. Anything else is Jack's call.
 - Strava: titles and numbers only. No descriptions, GPS tracks, or the home loop's location.

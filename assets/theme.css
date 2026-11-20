@@ -108,5 +108,6 @@ footer { opacity: 0.7; line-height: 1.7; }
   nav.tabs, nav.site.primary { border-radius: var(--r); width: 100%; justify-content: space-between; }
   nav.tabs, nav.site.primary { flex-wrap: nowrap !important; gap: 2px; padding: 4px; }
   nav.tabs a, nav.site.primary a { padding: 9px 6px; flex: 1 1 0; min-width: 0; justify-content: center; text-align: center; letter-spacing: 0.08em !important; font-size: 0.7rem !important; }
+  nav.tabs a, nav.site.primary a { padding: 8px 3px; letter-spacing: 0.04em !important; font-size: 0.64rem !important; line-height: 1.15; }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } html { scroll-behavior: auto; } .tile:hover, .card:hover { transform: none; } }

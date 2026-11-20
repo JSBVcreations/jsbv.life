@@ -155,6 +155,38 @@ a.title:focus-visible { outline: none; }
 .title .qs i { display: block; height: 4px; background: var(--grid); position: relative; }
 .title .qs i::after { content: ''; position: absolute; inset: 0 auto 0 0; width: var(--w, 0%); background: var(--qc, var(--cool)); }
 .title .prop { font: 400 var(--s-0)/1.35 var(--f-data); color: var(--climb); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.title { cursor: pointer; font: inherit; text-align: left; background: none; border: 0; padding: 0; }
+button.title:hover .cover, button.title:focus-visible .cover { border-color: var(--sound); box-shadow: 0 0 18px rgba(255,63,180,0.3); }
+button.title:focus-visible { outline: none; }
+#rc { width: min(760px, calc(100vw - 24px)); max-height: calc(100dvh - 24px); padding: 0; border: 1px solid var(--grid); background: var(--panel); color: var(--ink); overflow: auto; }
+#rc::backdrop { background: rgba(7,6,15,0.78); backdrop-filter: blur(3px); }
+.rc-in { display: grid; gap: 18px; padding: clamp(16px, 3vw, 26px); }
+.rc-top { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 18px; align-items: start; }
+.rc-top .pc { aspect-ratio: 2 / 3; background: var(--well); border: 1px solid var(--grid); overflow: hidden; }
+.rc-top .pc img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.rc-top h3 { margin: 0; font: 700 clamp(1.4rem, 3.4vw, 2rem)/1.1 var(--f-ui); color: var(--hot); text-transform: none; letter-spacing: 0.01em; }
+.rc-top .meta { font: 400 var(--s-0)/1.5 var(--f-data); color: var(--dim); margin-top: 6px; }
+.rc-big { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 16px; margin-top: 12px; }
+.rc-big b { font: 600 3rem/1 var(--f-data); color: var(--sc, var(--ink)); text-shadow: 0 0 14px var(--scg, transparent); }
+.rc-big .stars { color: var(--climb); font-size: 1.2rem; letter-spacing: 2px; }
+.rc-big .vd { font: 600 var(--s-0) var(--f-data); letter-spacing: 0.08em; text-transform: uppercase; border: 1px solid var(--dim); padding: 3px 8px; }
+.rc-q { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.rc-q div { display: grid; gap: 4px; font: 400 var(--s-0) var(--f-data); color: var(--dim); }
+.rc-q div b { font: 600 var(--s-2) var(--f-data); color: var(--ink); }
+.rc-q i { height: 6px; background: var(--grid); position: relative; } .rc-q i::after { content: ''; position: absolute; inset: 0 auto 0 0; width: var(--w); background: var(--qc); }
+.rc-sec h4 { margin: 0 0 8px; font: 700 var(--s-0) var(--f-ui); letter-spacing: 0.18em; text-transform: uppercase; color: var(--qc, var(--dim)); }
+.rc-row { display: grid; grid-template-columns: 150px minmax(0, 1fr) 34px; gap: 4px 12px; align-items: center; padding: 9px 0; border-top: 1px solid var(--grid); }
+.rc-row .nm { font: 600 var(--s-1) var(--f-ui); }
+.rc-row .bar { height: 8px; background: var(--well); border: 1px solid var(--grid); position: relative; } .rc-row .bar::after { content: ''; position: absolute; inset: 0 auto 0 0; width: var(--w); background: var(--qc); box-shadow: 0 0 8px var(--qc); }
+.rc-row .v { font: 600 var(--s-2) var(--f-data); text-align: right; font-variant-numeric: tabular-nums; }
+.rc-row .band { grid-column: 2 / -1; font: 400 var(--s-0)/1.45 var(--f-data); color: var(--dim); }
+.rc-row .cmt { grid-column: 2 / -1; font: 400 var(--s-1)/1.5 var(--f-ui); color: var(--ink); border-left: 2px solid var(--qc); padding-left: 10px; white-space: pre-wrap; }
+.rc-extra p { margin: 0; font: 400 var(--s-1)/1.5 var(--f-ui); white-space: pre-wrap; }
+.rc-acts { display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between; border-top: 1px solid var(--grid); padding-top: 16px; }
+.rc-acts a, .rc-acts button { font: 600 var(--s-0) var(--f-data); letter-spacing: 0.1em; text-transform: uppercase; min-height: 44px; padding: 0 16px; display: inline-flex; align-items: center; border: 1px solid var(--grid); background: var(--well); color: var(--ink); cursor: pointer; text-decoration: none; }
+.rc-acts a.imdb { border-color: #f5c518; color: #f5c518; } .rc-acts a.imdb:hover, .rc-acts a.imdb:focus-visible { background: #f5c518; color: #07060f; }
+.rc-acts button:hover, .rc-acts button:focus-visible { border-color: var(--dim); }
+@media (max-width: 560px) { .rc-top { grid-template-columns: 84px minmax(0, 1fr); } .rc-big b { font-size: 2.3rem; } .rc-q { grid-template-columns: repeat(2, minmax(0, 1fr)); } .rc-row { grid-template-columns: minmax(0, 1fr) 34px; } .rc-row .bar { grid-column: 1 / -1; grid-row: 2; } .rc-row .band, .rc-row .cmt { grid-column: 1 / -1; } }
 .sc-prog { display: flex; align-items: center; gap: 10px; font: 400 var(--s-0) var(--f-data); color: var(--dim); }
 .sc-prog .bar { flex: 0 1 220px; height: 8px; background: var(--well); border: 1px solid var(--grid); position: relative; }
 .sc-prog .bar i { position: absolute; inset: 0 auto 0 0; background: var(--sound); box-shadow: 0 0 8px rgba(255,63,180,0.5); }
@@ -326,13 +358,13 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
     <a href="#report" data-nav="home">Home</a>
     <a href="#trails" data-nav="trails">Trails</a>
     <a href="#projects" data-nav="projects">Projects</a>
+    <a href="#movies" data-nav="movies">Movies &amp; TV</a>
     <a href="#data" data-nav="data">Data</a>
   </nav>
   <nav class="ptabs inview" id="subnav" aria-label="Data views" hidden>
     <a href="#data">All data</a>
     <a href="#explore">Explorer</a>
     <a href="#calendar">Calendar</a>
-    <a href="#watched" id="tab-watched" hidden>Watched</a>
     <a href="#experiments">Lab</a>
     <a href="timelines/">Timelines</a>
   </nav>
@@ -514,7 +546,7 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
   <!-- ============================================================ WATCHED -->
   <div class="view" id="v-watched" hidden>
     <section class="box">
-      <h2>Watched</h2>
+      <h2>Movies &amp; TV</h2>
       <p class="note" id="w-note"></p>
       <div class="sc-prog" id="w-prog" hidden></div>
       <div class="row">
@@ -531,11 +563,11 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
         </select></label>
         <label class="field"><span>Find a title</span><input type="text" id="w-find" placeholder="type to filter"></label>
       </div>
-      <div class="pager" id="w-pager-top" role="navigation" aria-label="Pages of titles"></div>
       <div class="wall" id="w-wall"></div>
-      <div class="pager" id="w-pager" role="navigation" aria-label="Pages of titles"></div>
     </section>
   </div>
+
+  <dialog id="rc" aria-labelledby="rc-t"><div class="rc-in" id="rc-in"></div></dialog>
 
   <section class="box priv" id="priv" aria-labelledby="priv-h">
     <h2 id="priv-h">Private data</h2>
@@ -1336,8 +1368,45 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
         return el('span', { title: `${Q}: ${v == null ? 'skipped' : Math.round(v)}` }, [{ Story: 'Story', Movie: 'Movie', Critical: 'Crit.', Personal: 'Pers.' }[Q] + ' ' + (v == null ? '–' : Math.round(v)), i]); })));
       if (t.sc.prop) kids.push(el('small', { className: 'prop', text: `Propaganda ${t.sc.prop}/10${t.sc.prop_by ? ': ' + t.sc.prop_by : ''}`, title: t.sc.prop_by || '' }));
     }
-    return t.id ? el('a', { className: 'title', href: `https://www.imdb.com/title/${t.id}/`, target: '_blank', rel: 'noopener', title: `${t.t} on IMDb` }, kids)
-      : el('div', { className: 'title' }, kids);
+    return el('button', { type: 'button', className: 'title', 'aria-haspopup': 'dialog', 'aria-label': `${t.t}: open report card`, onclick: () => openCard(t) }, kids);
+  }
+  function openCard(t) {
+    const r = t.sc, dlg = $('#rc'), qcol = (Q) => QC[Q.toLowerCase()], kids = [];
+    const pc = el('div', { className: 'pc' }); if (t.poster) pc.append(el('img', { src: t.poster, alt: '', referrerPolicy: 'no-referrer', onerror: (e) => e.target.remove() }));
+    const when = t.first === t.last ? dshort(t.first) : `${dshort(t.first)} – ${dshort(t.last)}`;
+    const what = t.type === 'tv' ? `${t.n} episode${t.n === 1 ? '' : 's'}` : t.sit > 1 ? `${t.sit} sittings` : 'movie';
+    const info = [el('h3', { id: 'rc-t', text: t.t }), el('div', { className: 'meta', text: [t.year, (r && r.sgenre) || (t.genre || []).join(', '), t.dir].filter(Boolean).join(' · ') }),
+      el('div', { className: 'meta', text: `Watched ${when} · ${hrs(t.min)} · ${what}` + (t.rewatch ? ' · rewatch' : '') + (t.theater ? ' · in theaters' : '') })];
+    if (r && r.final != null) {
+      const big = el('div', { className: 'rc-big' }, [el('b', { text: String(Math.round(r.final)) }), el('span', { className: 'stars', text: '★'.repeat(Math.floor(r.stars)) + (r.stars % 1 ? '½' : ''), title: `${r.stars} stars` }), ...(r.verdict ? [el('span', { className: 'vd', text: r.verdict })] : [])]);
+      const c = scCol(r.final); big.style.setProperty('--sc', c); big.style.setProperty('--scg', c + '66'); info.push(big);
+    } else info.push(el('p', { className: 'note', text: r ? 'Partly scored: not enough for a Final yet.' : 'Not scored yet.' }));
+    kids.push(el('div', { className: 'rc-top' }, [pc, el('div', {}, info)]));
+    if (r) {
+      const qs = WS.quads.filter((Q) => r.q[Q.toLowerCase()] != null);
+      if (qs.length) kids.push(el('div', { className: 'rc-q' }, qs.map((Q) => { const v = r.q[Q.toLowerCase()], i = el('i'); i.style.setProperty('--w', v + '%'); i.style.setProperty('--qc', qcol(Q)); return el('div', {}, [Q, el('b', { text: String(Math.round(v)) }), i]); })));
+      for (const Q of WS.quads) {
+        const cs = WS.cats.filter((c) => c.quad === Q && r.s[c.k] != null); if (!cs.length) continue;
+        const sec = el('section', { className: 'rc-sec' }, [el('h4', { text: Q })]); sec.style.setProperty('--qc', qcol(Q));
+        for (const c of cs) { const v = r.s[c.k], bar = el('span', { className: 'bar' }); bar.style.setProperty('--w', v * 10 + '%');
+          const row = el('div', { className: 'rc-row' }, [el('span', { className: 'nm', text: c.name }), bar, el('span', { className: 'v', text: String(v) }),
+            el('span', { className: 'band', text: c.bands[Math.min(4, Math.floor((v - 1) / 2))] }), ...(r.notes && r.notes[c.k] ? [el('span', { className: 'cmt', text: r.notes[c.k] })] : [])]);
+          sec.append(row); }
+        kids.push(sec);
+      }
+      if (r.prop != null) { const sec = el('section', { className: 'rc-sec rc-extra' }, [el('h4', { text: `Propaganda meter · ${r.prop}/10` })]); sec.style.setProperty('--qc', '#ffb347'); if (r.prop_by) sec.append(el('p', { text: r.prop_by })); kids.push(sec); }
+      if (r.custom) { const sec = el('section', { className: 'rc-sec' }, [el('h4', { text: 'Custom scales' })]); sec.style.setProperty('--qc', '#ffb347');
+        for (const c of r.custom) { const bar = el('span', { className: 'bar' }); bar.style.setProperty('--w', (c.v || 0) * 10 + '%'); sec.append(el('div', { className: 'rc-row' }, [el('span', { className: 'nm', text: c.name }), bar, el('span', { className: 'v', text: c.v == null ? '–' : String(c.v) }), ...(c.note ? [el('span', { className: 'cmt', text: c.note })] : [])])); }
+        kids.push(sec); }
+      if (r.guys) { const sec = el('section', { className: 'rc-sec rc-extra' }, [el('h4', { text: 'Hey! I know that guy!' })]); sec.style.setProperty('--qc', '#3ff0ff');
+        for (const g of r.guys) sec.append(el('p', {}, [el('b', { text: g.name }), g.note ? ' · ' + g.note : ''])); kids.push(sec); }
+    }
+    const acts = [el('button', { type: 'button', text: 'Close', onclick: () => dlg.close() })];
+    if (t.id) acts.unshift(el('a', { className: 'imdb', href: `https://www.imdb.com/title/${t.id}/`, target: '_blank', rel: 'noopener', text: 'Open on IMDb ↗' }));
+    kids.push(el('div', { className: 'rc-acts' }, acts));
+    $('#rc-in').replaceChildren(...kids);
+    dlg.onclick = (e) => { if (e.target === dlg) dlg.close(); };
+    dlg.showModal(); dlg.scrollTop = 0;
   }
   function renderWatched() {
     if (!WT) return;
@@ -1353,18 +1422,10 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
       $('#w-prog').replaceChildren(el('span', { text: 'Scorecard' }), bar, el('span', { text: `${done} of ${mvAll.length} movies scored` })); }
     const mv = rows.filter((t) => t.type === 'movie').length;
     $('#w-note').textContent = `${rows.length} title${rows.length === 1 ? '' : 's'} (${mv} movie${mv === 1 ? '' : 's'}, ${rows.length - mv} show${rows.length - mv === 1 ? '' : 's'}), ${hrs(rows.reduce((a, t) => a + t.min, 0))} watched, through ${dshort(WT.through)}`;
-    const pages = Math.max(1, Math.ceil(rows.length / W_PER)); WV.page = Math.min(WV.page, pages - 1);
-    $('#w-wall').replaceChildren(...(rows.length ? rows.slice(WV.page * W_PER, (WV.page + 1) * W_PER).map(titleCard) : [el('p', { className: 'note', text: 'Nothing matches those filters.' })]));
-    const pager = (bottom) => { if (pages < 2) return [];
-      const go = (k) => { WV.page = k; renderWatched(); if (bottom) $('#w-pager-top').scrollIntoView({ block: 'start' }); };
-      const nums = [...Array(pages).keys()].map((k) => { const b = el('button', { type: 'button', text: String(k + 1), 'aria-label': `Page ${k + 1}`, onclick: () => go(k) }); if (k === WV.page) b.setAttribute('aria-current', 'page'); return b; });
-      return [el('span', { className: 'lab', text: `${WV.page * W_PER + 1}–${Math.min(rows.length, (WV.page + 1) * W_PER)} of ${rows.length}` }),
-        el('button', { type: 'button', text: '◀', 'aria-label': 'Previous page', disabled: WV.page === 0, onclick: () => go(WV.page - 1) }), ...nums,
-        el('button', { type: 'button', text: '▶', 'aria-label': 'Next page', disabled: WV.page === pages - 1, onclick: () => go(WV.page + 1) })]; };
-    $('#w-pager-top').replaceChildren(...pager(false)); $('#w-pager').replaceChildren(...pager(true));
+    $('#w-wall').replaceChildren(...(rows.length ? rows.map(titleCard) : [el('p', { className: 'note', text: 'Nothing matches those filters.' })]));
+
   }
   if (WT) {
-    $('#tab-watched').hidden = false;
     const wt = $('#w-type');
     wt.replaceChildren(...[['all', 'ALL'], ['movie', 'MOVIES'], ['tv', 'TV']].map(([v, label]) => el('button', { type: 'button', text: label, 'aria-pressed': String(WV.type === v),
       onclick: () => { WV.page = 0; WV.type = v; for (const b of wt.children) b.setAttribute('aria-pressed', String(b.textContent === label)); renderWatched(); } })));
@@ -1393,7 +1454,7 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
     music: { blurb: 'Every Spotify play, by genre, time of day and how much of the track got heard.', links: [['step-song/', 'Open STEP//SONG']] },
     photos: { blurb: 'The photo library by capture date, type and how much of it is sorted. Numbers only.', links: [['photo-library/', 'Open PHOTO//SORT']] },
     lightroom: { blurb: 'The proper photography: frames shot per month and how far the ratings have got.', links: [['photo-library/#proper', 'Open PHOTO//SORT']] },
-    watch: { blurb: 'Movies and TV watched this year, with the covers.', links: [['#watched', 'Open the poster wall']] },
+    watch: { blurb: 'Movies and TV watched this year, with the covers.', links: [['#movies', 'Open Movies & TV']] },
     calls: { blurb: 'Phone calls by count, length and time of day. Not who they were with.', links: [] },
     breath: { blurb: 'Wim Hof breathing sessions: rounds per sitting and how long each breath was held.', links: [] },
   };
@@ -1722,15 +1783,15 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
   }
 
   const VIEWS = { report: renderReport, trails: renderTrails, projects: renderProjects, data: renderData, experiments: renderExperiments, explore: renderExplorer, calendar: renderCalendar, ...(WT ? { watched: renderWatched } : {}) };
-  const TITLES = { trails: 'Trails', projects: 'Projects', data: 'Data', experiments: 'Lab', explore: 'Explorer', calendar: 'Calendar', watched: 'Watched' };   // browser tab + history
-  const NAV_OF = { report: 'home', trails: 'trails', projects: 'projects', data: 'data', experiments: 'data', explore: 'data', calendar: 'data', watched: 'data' };
+  const TITLES = { watched: 'Movies & TV', trails: 'Trails', projects: 'Projects', data: 'Data', experiments: 'Lab', explore: 'Explorer', calendar: 'Calendar' };   // browser tab + history
+  const NAV_OF = { report: 'home', trails: 'trails', projects: 'projects', data: 'data', experiments: 'data', explore: 'data', calendar: 'data', watched: 'movies' };
   function route() {
-    const [base, sub] = location.hash.slice(1).split('/'), alias = { highlights: 'trails', report: 'report' }, v = VIEWS[alias[base] || base] ? alias[base] || base : 'report';
+    const [base, sub] = location.hash.slice(1).split('/'), alias = { highlights: 'trails', report: 'report', movies: 'watched' }, v = VIEWS[alias[base] || base] ? alias[base] || base : 'report';
     if (base === 'experiments' && sub === 'race') { location.replace('pct-training/#low-tide'); return; }
     if (v === 'experiments' && E_TABS.some(([k]) => k === sub)) expTab = sub;
     for (const k in VIEWS) $('#v-' + k).hidden = k !== v;
     for (const a of document.querySelectorAll('nav.tabs a')) { if (a.dataset.nav === NAV_OF[v]) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); }
-    const tool = v === 'data' || v === 'explore' || v === 'calendar' || v === 'watched' || v === 'experiments'; $('#subnav').hidden = !tool;
+    const tool = v === 'data' || v === 'explore' || v === 'calendar' || v === 'experiments'; $('#subnav').hidden = !tool;
     $('#priv').hidden = !PRIV.box || !(window.crypto && crypto.subtle) || !(v === 'report' || v === 'data');
     for (const a of document.querySelectorAll('#subnav a')) { if (a.getAttribute('href') === '#' + v) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); }
     document.title = (v === 'experiments' ? (E_TABS.find(([k]) => k === expTab) || [, ''])[1] + ' · ' : '') + (TITLES[v] ? TITLES[v] + ' · ' : '') + 'JSBV.LIFE';

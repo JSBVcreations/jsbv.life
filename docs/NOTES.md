@@ -83,7 +83,9 @@ Rule: a page should be about a screen or two tall per tab. Long pages get tabs, 
     To add one: a `section.box#e-<key>` in `#v-experiments`, a draw function, an `E_TABS` entry and an entry in the two
     `{ rings: drawRings, ... }` maps.
   - Life calendar: four-year eras (`ERAS`, newest first, buttons in `#c-eras`). `showDay` switches era when it needs to.
-  - Watched wall: 24 per page (`W_PER`), pagers above and below; any filter change goes back to page 1.
+  - Movies & TV (`#movies`, alias `#watched`; its own top-level tab since Nov 19): every title in one grid, no paging. A tile is a
+    button that opens the report card (`<dialog id="rc">`): Final, stars, verdict, quadrant bars, then only the categories Jack scored
+    (band text + his note in full), propaganda, custom scales, surprise actors, and the only IMDb link (a button).
 - Sub-pages load the shared `assets/site.css` and `assets/site.js` (before their own script). They declare
   `<nav class="site" data-here="trails|projects|data|experiments" data-crumb="Section part|Page"></nav>`; site.js fills
   in the five links (with the current one marked) and a breadcrumb.
