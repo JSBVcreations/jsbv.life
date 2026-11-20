@@ -359,3 +359,15 @@ Keep the MX / TXT / DKIM / autodiscover records — they run the jsbv.life busin
 - The notes flip notation: Aug 2022 is reps@lbs, Jan-Feb 2023 is lbs@reps. Bicep 7s count as 21 reps a set. "&" pairs are supersets
   (A/B/C). Bike, rower, planks and farmer's-carry laps keep their numbers in Note. Note and As written stay in the sqlite only.
 - Issues listed: 8/4/22 bench 3 @ 185 noted "3/4 rep"; two sets with weight but no reps (farmer's carry 1/29, seated row 2/16).
+
+## IRON//LOG: gym notebooks (Nov 20, 2026)
+- Source 10, `notebooks`: Jack's paper gym notebooks, photographed a page at a time and transcribed into the claude.ai Sheet
+  "Gym Notebooks" (slug 056a433e-b48f-4eaa-92e6-7936d2246f70). Log: date, exercise, set, reps, lbs, seconds, miles, time, note,
+  photo. Pages: each dated entry on each photo, Added or "Duplicate, skipped" (a day already in another log, set for set).
+- "Pull the notebooks sheet" = read Log A1:J… and write `jsbv data/Gym-Notebooks.json` as `{"log": [[…10 columns…], …]}`.
+- Run / walk / row / bike rows go to cardio (miles + m:ss time); everything else is sets. An X on the page is a row with no reps
+  and Note "X". BW in Note = bodyweight, no pounds. Jack (Nov 20): keep every note, past and future, including notes on
+  pages whose sets are skipped as duplicates (Pages "Notes on page"). They live in the sqlite only (`src_notebooks`,
+  `src_notebooks_pages`), never fitness.json.
+- First pages (IMG_6378-6379): 1/1/17 and 1/2/17 home workouts, 1/4/17 run 1.09 mi in 9:31. 1/15 and 1/16 matched Comprehensive
+  Workout Data and were skipped.

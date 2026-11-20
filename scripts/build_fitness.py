@@ -16,6 +16,11 @@ Workbooks (stay OUTSIDE the repo; *.xlsx is git-ignored):
                                  "Gym Notes 2022-23" (5e081d89-a7b0-4027-8aab-c1b20bfb4814) and pulled here by Claude
                                  ("pull the gym notes sheet"). Same Log shape as the whiteboard; Note and As written go
                                  to the private database only.
+  Gym-Notebooks.json             optional: Jack's paper gym notebooks, photographed page by page and transcribed into the
+                                 claude.ai Sheet "Gym Notebooks" (056a433e-b48f-4eaa-92e6-7936d2246f70; Log + Pages) and
+                                 pulled here ("pull the notebooks sheet"). Days already in another log are skipped there.
+                                 Every note is kept (Log Note, Pages "Notes on page", incl. notes on skipped days), in
+                                 the private database only.
 
 Writes
   fitness/data/fitness.json               public, numbers only: sessions, sets, top sets, runs, bodyweight reps
@@ -137,6 +142,7 @@ SYN = {'squat': 'Squat', 'squats': 'Squat', 'back squat': 'Squat', 'bench': 'Ben
        'fly machine': 'Machine fly', 'calves': 'Calf raise', 'hammer curls': 'Hammer curl', 'side lateral raise': 'Lateral raise', 'handstand pushups': 'Handstand pushup',
        'hex bar shrug': 'Hexbar shrugs', 'tricep pulldown': 'Triceps pushdown', 'triceps pulldown': 'Triceps pushdown',
        'tricep cable pulldown': 'Triceps pushdown', 'overhead dumbbell press': 'DB overhead press',
+       'hlr': 'Hanging leg raise', 'planks': 'Plank', 'plate lifts': 'Plate lift',
        'dumbbell fly': 'DB fly', 'db fly': 'DB fly', 'calf raise': 'Calf raise', 'calf raises': 'Calf raise', 'calf lifts': 'Calf raise'}
 BIG = {'Squat': 'squat', 'Bench press': 'bench', 'Deadlift': 'deadlift', 'Hex bar deadlift': 'deadlift', 'Overhead press': 'ohp'}
 # muscle groups for names the 2024 ExerciseTags sheet doesn't cover (group, muscle)
@@ -165,7 +171,8 @@ GROUPS = {'Squat': ('Legs', 'Quads'), 'Bench press': ('Push', 'Chest'), 'Deadlif
           'Bodyweight squat': ('Legs', 'Quads'), 'Wide pushups': ('Push', 'Chest'), 'Diamond pushups': ('Push', 'Triceps'), 'Dips (wide)': ('Push', 'Chest'),
           'Front squat': ('Legs', 'Quads'), 'Pec fly': ('Push', 'Chest'), 'Seated press': ('Push', 'Shoulders'), 'Bicep curl': ('Pull', 'Biceps'), 'Weighted lunges': ('Legs', 'Quads'), 'Bicep curl': ('Pull', 'Biceps'),
           'Chest press': ('Push', 'Chest'), 'Dumbbell row': ('Pull', 'Back'), 'Russian twists': ('Core', 'Abs'), 'Bicycles': ('Core', 'Abs'),
-          'Stationary bike': ('Conditioning', 'Cardio'), 'Row machine': ('Conditioning', 'Cardio')}
+          'Stationary bike': ('Conditioning', 'Cardio'), 'Jumping jacks': ('Conditioning', 'Cardio'),
+          'Side bends': ('Core', 'Obliques'), 'Front raises': ('Push', 'Shoulders'), 'Row machine': ('Conditioning', 'Cardio')}
 
 
 def canon(name):
@@ -191,6 +198,8 @@ def find(args):
     if wb: found['whiteboard'] = max(wb, key=os.path.getmtime)
     gn = [p for r in (DATA, ROOT) for p in glob.glob(os.path.join(r, '**', 'Gym-Notes-*.json'), recursive=True)]
     if gn: found['gymnotes'] = max(gn, key=os.path.getmtime)
+    nb = [p for r in (DATA, ROOT) for p in glob.glob(os.path.join(r, '**', 'Gym-Notebooks.json'), recursive=True)]
+    if nb: found['notebooks'] = max(nb, key=os.path.getmtime)
     miss = set(want) - set(found)
     if miss: sys.exit(f'workbook(s) not found: {sorted(miss)}. Put them in "{DATA}" or pass the paths.')
     return found
@@ -422,6 +431,28 @@ def main():
             s_['cur'][1].append(reps); s_['cur'][2].append(lbs)
         for s_ in by_d.values(): s_.pop('cur'); sessions.append(s_)
 
+    # ---- Gym Notebooks (JSON pulled from the claude.ai Sheet): paper notebook pages, one row per set; runs go to cardio
+    if 'notebooks' in paths:
+        N = json.load(open(paths['notebooks'], encoding='utf-8'))
+        S['src_notebooks'] = (['source_row', 'date', 'exercise', 'set_no', 'reps', 'lbs', 'seconds', 'miles', 'time', 'note', 'photo'],
+                              [(i + 2, *r[:10]) for i, r in enumerate(N['log'])])
+        S['src_notebooks_pages'] = (['source_row', 'photo', 'date', 'status', 'note', 'page_note'],
+                                    [(i + 2, *(list(r) + [None] * 5)[:5]) for i, r in enumerate(N.get('pages', []))])
+        def mmss(t):
+            m = re.fullmatch(r"\s*'?(\d+):(\d\d)\s*", str(t or ''))
+            return round(int(m.group(1)) + int(m.group(2)) / 60, 2) if m else None
+        by_d = collections.OrderedDict()
+        for i, r in enumerate(N['log']):
+            d, ex, setno, reps, lbs, secs, mi, tm = r[:8]
+            if ex.strip().lower() in ('run', 'walk', 'row', 'bike'):
+                runs.append((d, 'notebooks', ex.strip().lower(), mi, mmss(tm), None, i + 2, None)); continue
+            s_ = by_d.setdefault(d, {'d': d, 'src': 'notebooks', 'no': None, 'min': None, 'row': i + 2, 'x': [], 'cur': None})
+            name = canon(ex)
+            if s_['cur'] is None or s_['cur'][0] != name or setno == 1:
+                s_['cur'] = (name, [], [], i + 2); s_['x'].append(s_['cur'])
+            s_['cur'][1].append(reps); s_['cur'][2].append(lbs)
+        for s_ in by_d.values(): s_.pop('cur'); sessions.append(s_)
+
     # ------------------------------------------------------------------ unify sets
     sessions.sort(key=lambda s: (s['d'], s['src']))
     exn = {}
@@ -441,6 +472,7 @@ def main():
         ('zimmerman', 'Zimmerman challenge', 'MetaData', 'Zimmerman Fitness Challenge', 'session', 'Sets plus timed runs and rows'),
         ('training2024', 'Training logbook', 'Training_', 'Logbook', 'session', 'Every set: reps and pounds, session length, muscle tags'),
         ('gymnotes2023', 'Gym notes', 'Gym Notes 2022-23 (Sheet)', 'Log', 'session', 'Every set from phone notes, Aug 2022 and Jan-Feb 2023: reps and pounds, supersets'),
+        ('notebooks', 'Gym notebooks', 'Gym Notebooks (Sheet)', 'Log', 'session', 'Paper notebook pages, photographed and transcribed: reps, pounds, runs'),
         ('whiteboard2025', 'Whiteboard log', 'Whiteboard Workout Log 2025 (Sheet)', 'Log', 'session', 'Every set from 24 whiteboard photos: reps and pounds, bodyweight sets, session times'),
     ]
     span = collections.defaultdict(list)
