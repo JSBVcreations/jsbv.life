@@ -26,7 +26,8 @@
    "pre": "fill_posters.py",
    "outputs": [
     "meta-log/data/watch.json",
-    "meta-log/data/watch-titles.json"
+    "meta-log/data/watch-titles.json",
+    "meta-log/data/watch-scores.json"
    ],
    "pages": [
     "/#watched"

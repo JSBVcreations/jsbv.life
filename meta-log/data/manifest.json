@@ -1,5 +1,5 @@
 {
- "generated": "2026-11-19",
+ "generated": "2026-11-20",
  "sources": [
   {
    "id": "health",
@@ -12,7 +12,7 @@
     "pct-training/#recovery"
    ],
    "through": "2026-11-13",
-   "age_days": 6,
+   "age_days": 7,
    "stale": false,
    "files": [
     {
@@ -31,7 +31,7 @@
     "/#watched"
    ],
    "through": "2026-11-07",
-   "age_days": 12,
+   "age_days": 13,
    "stale": false,
    "files": [
     {
@@ -43,6 +43,11 @@
      "path": "meta-log/data/watch-titles.json",
      "kb": 64,
      "through": "2026-11-07"
+    },
+    {
+     "path": "meta-log/data/watch-scores.json",
+     "kb": 25,
+     "through": null
     }
    ]
   },
@@ -55,7 +60,7 @@
     "/#explore"
    ],
    "through": "2026-11-07",
-   "age_days": 12,
+   "age_days": 13,
    "stale": false,
    "files": [
     {
@@ -74,7 +79,7 @@
     "/#explore"
    ],
    "through": "2026-11-16",
-   "age_days": 3,
+   "age_days": 4,
    "stale": false,
    "files": [
     {
@@ -112,7 +117,7 @@
     "games/"
    ],
    "through": "2026-11-15",
-   "age_days": 4,
+   "age_days": 5,
    "stale": false,
    "files": [
     {
@@ -131,7 +136,7 @@
     "pct-training/"
    ],
    "through": "2026-11-19",
-   "age_days": 0,
+   "age_days": 1,
    "stale": false,
    "files": [
     {
@@ -155,7 +160,7 @@
     "pct-training/#plan"
    ],
    "through": "2026-11-19",
-   "age_days": 0,
+   "age_days": 1,
    "stale": false,
    "files": [
     {
@@ -174,7 +179,7 @@
     "photo-library/"
    ],
    "through": "2026-11-19",
-   "age_days": 0,
+   "age_days": 1,
    "stale": false,
    "files": [
     {
@@ -198,7 +203,7 @@
     "step-song/"
    ],
    "through": "2026-10-15",
-   "age_days": 35,
+   "age_days": 36,
    "stale": false,
    "files": [
     {
@@ -278,7 +283,7 @@
     "trail/"
    ],
    "through": "2026-11-15",
-   "age_days": 4,
+   "age_days": 5,
    "stale": false,
    "files": [
     {
@@ -333,7 +338,7 @@
     "/#explore (overlay)"
    ],
    "through": "2026-11-19",
-   "age_days": 0,
+   "age_days": 1,
    "stale": false,
    "files": [
     {
@@ -352,7 +357,7 @@
     "/ (all views)"
    ],
    "through": "2026-11-19",
-   "age_days": 0,
+   "age_days": 1,
    "stale": false,
    "files": [
     {
@@ -371,7 +376,7 @@
     "/#report"
    ],
    "through": "2026-11-19",
-   "age_days": 0,
+   "age_days": 1,
    "stale": false,
    "files": [
     {

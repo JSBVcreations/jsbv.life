@@ -150,6 +150,8 @@ def main():
             print('  > Posters (OMDb) for new titles', flush=True)
             subprocess.run([py, os.path.join(S, 'fill_posters.py'), f], cwd=ROOT)
         if f and not run(f'{label}  {short(f)}', [py, os.path.join(S, script), f]): failed.append(key)
+    sc = os.path.join(DATA, 'scorecard.json')            # Screening Scorecard scores (Claude saves this file when asked to "pull my scorecard")
+    if os.path.isfile(sc) and not run(f'Scorecard  {short(sc)}', [py, os.path.join(S, 'build_scorecard.py'), sc]): failed.append('scorecard')
     pdf, cal = newest_file(['*fortnite-data*.pdf', '*Epic*Games*.pdf']), newest_file(['*Fortnite-Library-Manager*.numbers'])
     used['fortnite'] = pdf
     if pdf and cal and (offloaded(pdf) or offloaded(cal)):

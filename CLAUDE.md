@@ -27,13 +27,14 @@ Jack's personal data site: a decade of steps, music, photos and trail logs, plus
 | `assets/site.js`, `assets/site.css` | Shared nav (Home · Trails · Projects · Data), breadcrumbs, page tabs | — |
 | `assets/theme.css` | Shared look, loaded last on every page (glass panels, pill nav, controls, tables) | — |
 | `scripts/config/` | `registry.json` (every source; `build_manifest.py` → `meta-log/data/manifest.json`), `genres.json`, `at_profile.json` | — |
+| Scorecard on `#watched` | Screening Scorecard scores: badge, stars, quadrant bars, propaganda; sort by any scale | `watch-scores.json` (`build_scorecard.py`) from `jsbv data/scorecard.json`, which Claude pulls from the Scorecard page (slug d91a6afc-01bd-493a-b1ee-f06b91daa5c2, collection `scores`) without the notes |
 | `scripts/update.py`, `Update jsbv.command` | One-click refresh of every source (runs `fill_posters.py` for new watch-list titles first) | — |
 | `meta-log/`, `data/`, `highlights/`, `experiments/` | Redirect stubs (`meta-log/data/` holds the JSON) | — |
 
 ## Hard privacy rules (never break)
 - Raw Spotify JSON contains IP addresses. It is never copied into the repo; only track IDs and play data derived through the builders.
 - `maxfield.life/spotify` is Max's history, not Jack's. Never use it here.
-- Watch list: never publish who he watched with. Call log: never any person, contact, or per-person breakdown.
+- Watch list: never publish who he watched with. Scorecard notes are never published (they can name people). Call log: never any person, contact, or per-person breakdown.
   Breathwork: the notes column is never read.
 - Health: only the files in `build_health_log.py`'s `MOVE` + `VITALS` maps (movement, heart rate, HRV, sleep) are read. Anything else is Jack's call.
 - Strava: titles and numbers only. No descriptions, GPS tracks, or the home loop's location.
