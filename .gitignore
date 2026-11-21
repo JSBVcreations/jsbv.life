@@ -21,3 +21,5 @@ ATT-*/
 *phone-people*
 phone-records*.csv
 call-matches*.csv
+# natal chart source (birth date, time, place): stays local; only what's built from it is committed
+JSBV meta/

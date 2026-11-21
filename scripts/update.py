@@ -192,6 +192,7 @@ def main():
     if not run('PCT//PREP training.json', cmd): failed.append('pct')
     if not run('timelines.json', [py, os.path.join(S, 'build_timelines.py'), DATA]): failed.append('timelines')
     if newest_file(['*MetaData*.xlsx']) and not run('fitness.json (IRON//LOG)', [py, os.path.join(S, 'build_fitness.py')]): failed.append('fitness')
+    if not run('astro.json (STAR//LOG)', [py, os.path.join(S, 'build_astro.py')]): failed.append('astro')
     if not run('daily.json', [py, os.path.join(S, 'build_meta_log.py')]): failed.append('daily')
     if 'daily' not in failed and not run('seasons.json', [py, os.path.join(S, 'build_seasons.py')]): failed.append('seasons')
     if 'daily' not in failed and not run('months.json (report cards)', [py, os.path.join(S, 'build_report_cards.py')]): failed.append('months')

@@ -233,6 +233,22 @@
    "fresh_by_build": true
   },
   {
+   "id": "astro",
+   "name": "Natal chart + sky (STAR//LOG)",
+   "kind": "derived",
+   "raw": "JSBV meta/text.txt (git-ignored)",
+   "builder": "build_astro.py",
+   "outputs": [
+    "meta-log/data/astro.json"
+   ],
+   "pages": [
+    "astro/",
+    "/#experiments/corr",
+    "/#explore"
+   ],
+   "fresh_by_build": true
+  },
+  {
    "id": "daily",
    "name": "Combined daily table",
    "kind": "derived",

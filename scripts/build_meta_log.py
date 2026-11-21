@@ -16,7 +16,7 @@ A monthly dataset stores each month's value on the 1st and zeros elsewhere.
 Every array in a dataset has length n; day i is start + offset + i. Days after a dataset's last
 record are left out (no data), days inside its span with nothing logged are 0.
 """
-import json, os, sys, datetime as dt, collections
+import json, math, os, sys, datetime as dt, collections
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SS = os.path.join(ROOT, 'step-song', 'data')
@@ -253,6 +253,29 @@ if os.path.exists(fp):
             'dims': [{'id': 'chapter', 'name': 'Chapter', 'cats': [{'id': c.lower().replace(' ', ''), 'name': c, 'color': CH_COL.get(c, '#8a84b8')} for c in CH],
                       'v': {'wins': {c.lower().replace(' ', ''): by_ch[c] for c in CH}}}],
         })
+
+# ---------------------------------------------------------------- sky (built by scripts/build_astro.py), through today
+# Lunar illumination and retrograde days for the Explorer and the Lab's correlation table. Its own page: astro/ (STAR//LOG).
+ap = os.path.join(OUT, 'astro.json')
+if os.path.exists(ap):
+    A = load(ap); a0 = day(A['daily']['start']); n = min(A['daily']['n'], (dt.date.today() - START).days - a0 + 1)
+    el = A['daily']['el'][:n]
+    def rx_days(p):
+        v = [0] * n
+        for s, e in A['retro'].get(p, []):
+            for k in range(max(0, day(s) - a0), min(n, day(e) - a0 + 1)): v[k] = 1
+        return v
+    datasets.append({
+        'id': 'astro', 'name': 'Sky', 'source': 'Computed ephemeris + natal chart (astro/)', 'grain': 'day', 'offset': a0, 'n': n,
+        'site': {'blurb': 'Moon phase, retrogrades and transits to the natal chart.', 'corr': ['mercury_rx', 'load']},
+        'metrics': [
+            {'id': 'illum', 'name': 'Moon lit', 'unit': '%', 'agg': 'mean', 'color': '#dcd8ff', 'v': [round((1 - math.cos(math.radians(x))) * 50) for x in el]},
+            {'id': 'mercury_rx', 'name': 'Mercury retrograde', 'unit': 'days', 'agg': 'sum', 'color': '#ffb347', 'v': rx_days('mercury')},
+            {'id': 'venus_rx', 'name': 'Venus retrograde', 'unit': 'days', 'agg': 'sum', 'color': '#ff6fd8', 'v': rx_days('venus')},
+            {'id': 'mars_rx', 'name': 'Mars retrograde', 'unit': 'days', 'agg': 'sum', 'color': '#ff4d6d', 'v': rx_days('mars')},
+            {'id': 'load', 'name': 'Transit load', 'unit': 'pts', 'agg': 'mean', 'color': '#9b7bff', 'v': A['daily']['load'][:n]},
+        ],
+    })
 
 # ---------------------------------------------------------------- library snapshots for the report card
 snap = {'photos': P.get('snapshots', []), 'lightroom': load(lrp).get('snapshots', []) if os.path.exists(lrp) else []}

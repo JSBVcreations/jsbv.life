@@ -1682,8 +1682,8 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
     breath: { blurb: 'Wim Hof breathing sessions: rounds per sitting and how long each breath was held.', links: [] },
   };
   for (const d of daily.datasets) if (d.site && d.site.blurb && !DIR[d.id]) DIR[d.id] = { blurb: d.site.blurb, links: [] };
-  const DS_C = { move: '#3ff0ff', exercise: '#00e59b', body: '#ff4d6d', music: '#ff3fb4', photos: '#ffd84a', lightroom: '#ffb347', watch: '#4ea8ff', calls: '#ff8a3d', phone: '#3ff0ff', breath: '#4fe0c0', fortnite: '#c77dff', trail: '#b6ff5c' };
-  const HIDE_IN_DATA = new Set(['trail', 'fortnite']);   // trail lives under Trails; fortnite under the Video games card
+  const DS_C = { move: '#3ff0ff', exercise: '#00e59b', body: '#ff4d6d', music: '#ff3fb4', photos: '#ffd84a', lightroom: '#ffb347', watch: '#4ea8ff', calls: '#ff8a3d', phone: '#3ff0ff', breath: '#4fe0c0', fortnite: '#c77dff', trail: '#b6ff5c', astro: '#c7a6ff' };
+  const HIDE_IN_DATA = new Set(['trail', 'fortnite', 'astro']);   // trail lives under Trails; fortnite under the Video games card; astro (the sky) under the Star Log card
   const totalIn = (dsId, mId, a, b) => { const L = asLine(dsId, mId); if (!L) return null; let t = 0;
     for (let i = Math.max(a, L.off); i <= Math.min(b, L.off + L.n - 1); i++) t += L.v[i - L.off] || 0; return t; };
   const linkRow = (items) => el('div', { className: 'links' }, items.map(([to, label]) => typeof to === 'function'
@@ -1732,7 +1732,8 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
       el('div', { className: 'card', style: '--acc:#ff6fd8' }, [el('h3', { text: 'Timelines' }), ...(TLS && TLS.timelines.length ? [el('dl', {}, TLS.timelines.flatMap((t) => [el('dt', { text: t.name }), el('dd', { text: `${t.start} → ${t.end}` })]))] : []), linkRow([['timelines/', 'Open Timelines']])]),
       el('div', { className: 'card' }, [el('h3', { text: 'Calendar' }), linkRow([['#calendar', 'Open the calendar']])]),
       el('div', { className: 'card', style: '--acc:#9b7bff' }, [el('h3', { text: 'Report cards' }), linkRow([['months/', 'Open the report cards']])]),
-      el('div', { className: 'card', style: '--acc:#ffb347' }, [el('h3', { text: 'Sky Wheel' }), linkRow([['sky/', 'Open the sky wheel']])]));
+      el('div', { className: 'card', style: '--acc:#ffb347' }, [el('h3', { text: 'Sky Wheel' }), linkRow([['sky/', 'Open the sky wheel']])]),
+      el('div', { className: 'card', style: '--acc:#c7a6ff' }, [el('h3', { text: 'Star Log' }), linkRow([['astro/#now', 'Transits now'], ['astro/#lens', 'Data by Moon + retrograde'], ['astro/#sky', 'Sky table']])]));
   }
   // ================================================================ TRAILS + PROJECTS
   // Section indexes. Each card's links open the target page on the right tab (see assets/site.js on those pages).
@@ -2323,7 +2324,7 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
   // ---------------------------------------------------------------- GANTT: one lane per dataset (days with any recorded activity), toggleable
   const GV = { range: 'all', mode: 'heat', life: true, on: null };
   function renderGantt() {
-    const sets = daily.datasets.filter((d) => d.metrics.length);
+    const sets = daily.datasets.filter((d) => d.metrics.length && d.id !== 'astro');   // the sky has a value every day: not activity
     if (!GV.on) GV.on = new Set(sets.map((d) => d.id));
     const col = (d) => DS_C[d.id] || d.metrics[0].color || '#9b7bff';
     const end = Math.max(DATA_B, today), R = { all: [DATA_A, end], y3: [Math.max(DATA_A, d2i(`${YR[end] - 2}-01-01`)), end], ty: [d2i(`${YR[end]}-01-01`), end] }[GV.range];

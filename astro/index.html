@@ -1,0 +1,546 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Star Log · JSBV.LIFE</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<meta name="theme-color" content="#07060f">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="JSBV.LIFE">
+<meta property="og:title" content="Star Log · JSBV.LIFE">
+<meta property="og:description" content="A natal chart against ten years of the sky and ten years of data: transits, eclipses, retrogrades and lunar phases.">
+<meta property="og:url" content="https://jsbv.life/astro/">
+<meta property="og:image" content="https://jsbv.life/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="description" content="A natal chart against ten years of the sky and ten years of data: transits, eclipses, retrogrades and lunar phases.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="../assets/site.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Monoton&family=Chakra+Petch:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&family=Noto+Sans+Symbols:wght@400;500&family=Noto+Sans+Symbols+2&display=swap">
+<style>
+/* STAR//LOG (under Data). Data: meta-log/data/astro.json (scripts/build_astro.py, from the git-ignored JSBV meta/ natal text),
+   daily.json (every dataset) and life.json (chapters). Live positions for the chart's outer ring are computed in the page.
+   Tabs: chart (natal + transits bi-wheel) · now (in effect, coming up) · timeline (transits, moments, retrogrades, life) ·
+   periods (every transit, house period and moment, with the record during it) · lens (one metric by lunar phase and retrograde) ·
+   sky (every metric against the sky). Effects use each day's value minus its centred 91-day mean ("vs usual"); p-values come
+   from circular-shift permutations (the sky series slid against the data), which keeps both series' own runs and seasons intact. */
+:root {
+  color-scheme: dark;
+  --void: #07060f; --panel: #0d0b1c; --grid: #1f1a3d; --ink: #dcd8ff; --dim: #8a84b8;
+  --step: #3ff0ff; --sound: #ff3fb4; --climb: #ffb347; --trail: #b6ff5c; --violet: #9b7bff; --hot: #fff;
+  --tab-accent: #c7a6ff;
+  --f-display: "Monoton", "Chakra Petch", system-ui, sans-serif;
+  --f-ui: "Chakra Petch", "Segoe UI", system-ui, sans-serif;
+  --f-data: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --sym: "Noto Sans Symbols", "Noto Sans Symbols 2", "Segoe UI Symbol", sans-serif;
+  --s-0: 0.75rem; --s-1: 0.875rem; --s-2: 1rem; --s-3: 1.25rem;
+}
+* { box-sizing: border-box; }
+html, body { background: var(--void); color: var(--ink); }
+body { margin: 0; font-family: var(--f-ui); font-size: var(--s-1); line-height: 1.5; overflow-x: clip;
+  padding: 24px max(16px, env(safe-area-inset-right, 0px)) 64px max(16px, env(safe-area-inset-left, 0px)); }
+body::after { content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 50;
+  background: repeating-linear-gradient(to bottom, rgba(0,0,0,0) 0 2px, rgba(0,0,0,0.18) 2px 3px); }
+.wrap { max-width: 1180px; margin: 0 auto; display: grid; gap: 22px; }
+h1 { font-family: var(--f-display); font-weight: 400; margin: 14px 0 0; font-size: clamp(2.2rem, 7vw, 4.6rem); line-height: 1;
+  color: var(--hot); text-shadow: 0 0 6px var(--violet), 0 0 18px var(--violet), 0 0 42px rgba(155,123,255,0.5); }
+h1 span { text-shadow: 0 0 6px #c7a6ff, 0 0 18px #c7a6ff, 0 0 42px rgba(199,166,255,0.6); }
+.readout { display: flex; flex-wrap: wrap; gap: 8px 28px; font-family: var(--f-data); padding: 12px 0; border-block: 1px solid var(--grid); }
+.readout div { display: grid; }
+.readout span { font-size: var(--s-0); text-transform: uppercase; letter-spacing: 0.12em; color: var(--dim); font-family: var(--f-ui); }
+.readout strong { font-size: var(--s-2); font-weight: 600; font-variant-numeric: tabular-nums; }
+.g { font-family: var(--sym); }
+section { border: 1px solid var(--grid); background: var(--panel); padding: 18px; display: grid; gap: 14px; min-width: 0; }
+section > * { min-width: 0; }
+h2 { margin: 0; font: 700 var(--s-2)/1.2 var(--f-ui); letter-spacing: 0.18em; text-transform: uppercase; color: var(--hot); }
+h3 { margin: 0; font: 600 var(--s-0)/1.2 var(--f-ui); letter-spacing: 0.14em; text-transform: uppercase; color: var(--dim); }
+.note { margin: 0; color: var(--dim); max-width: 80ch; font-size: var(--s-0); }
+.ctl { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.ctl button { font: 600 var(--s-0) var(--f-data); letter-spacing: 0.08em; color: var(--dim); background: none;
+  border: 1px solid var(--grid); padding: 6px 10px; cursor: pointer; min-height: 36px; }
+.ctl button[aria-pressed="true"] { color: var(--void); background: #c7a6ff; border-color: #c7a6ff; }
+.ctl .gap { width: 12px; }
+.ctl select, .ctl input { font: 400 var(--s-1) var(--f-data); color: var(--ink); background: rgba(18,15,38,.9); border: 1px solid var(--grid); min-height: 36px; padding: 0 8px; border-radius: 9px; }
+.split { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+.wheel { position: relative; aspect-ratio: 1; width: 100%; max-width: 620px; }
+.wheel canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.scroll { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-family: var(--f-data); font-size: var(--s-0); font-variant-numeric: tabular-nums; }
+th, td { padding: 6px 8px; border-bottom: 1px solid var(--grid); text-align: right; white-space: nowrap; }
+th { color: var(--dim); font-weight: 400; text-transform: uppercase; letter-spacing: 0.08em; background: var(--panel); }
+th:first-child, td:first-child, td.l, th.l { text-align: left; }
+td .g { font-size: 15px; }
+.rx { color: var(--sound); }
+.items { display: grid; gap: 10px; }
+details.item > summary { cursor: pointer; list-style: none; display: grid; gap: 2px; }
+details.item > summary::-webkit-details-marker { display: none; }
+details.item[open] > summary { margin-bottom: 4px; }
+.item { border: 1px solid var(--grid); border-left: 3px solid var(--c, var(--violet)); padding: 10px 12px; display: grid; gap: 4px; background: rgba(18,15,38,.5); }
+.item .t { font-weight: 600; color: var(--hot); font-size: var(--s-1); }
+.item .d { font: var(--s-0) var(--f-data); color: var(--dim); }
+.item .x { font-size: var(--s-1); color: var(--ink); max-width: 90ch; }
+.item .rec { font: var(--s-0) var(--f-data); color: var(--dim); display: flex; flex-wrap: wrap; gap: 4px 14px; }
+.up { color: var(--step); } .dn { color: var(--sound); }
+.chart { position: relative; }
+.chart svg { display: block; width: 100%; }
+.chart text { font: 400 11px var(--f-data); fill: var(--dim); }
+.tip { position: fixed; z-index: 60; pointer-events: none; max-width: 340px; background: rgba(13,11,28,.96); border: 1px solid var(--grid); padding: 8px 10px;
+  font: var(--s-0)/1.45 var(--f-data); color: var(--ink); border-radius: 8px; }
+.tip b { color: var(--hot); }
+.rows { display: grid; gap: 6px; align-content: start; }
+.row { display: grid; grid-template-columns: 130px minmax(0, 1fr) 215px; gap: 10px; align-items: center; font: var(--s-0) var(--f-data); }
+.row .lab { color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.row .bar { position: relative; height: 18px; background: rgba(31,26,61,.5); }
+.row .bar i { position: absolute; top: 2px; bottom: 2px; }
+.row .bar .mid { position: absolute; left: 50%; top: 0; bottom: 0; width: 1px; background: var(--dim); opacity: .5; }
+.row .v { text-align: right; color: var(--dim); white-space: nowrap; }
+.cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; }
+td.c { min-width: 74px; }
+td.sig { font-weight: 700; color: var(--hot); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font: var(--s-0) var(--f-data); color: var(--dim); }
+.legend i { display: inline-block; width: 12px; height: 8px; margin-right: 6px; vertical-align: middle; }
+.prog { font: var(--s-0) var(--f-data); color: var(--dim); }
+footer { font-family: var(--f-data); font-size: var(--s-0); color: var(--dim); }
+[hidden] { display: none !important; }
+@media (max-width: 860px) { .split, .cols { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 560px) { .row { grid-template-columns: minmax(0, 1fr) auto; } .row .bar { grid-column: 1 / -1; order: 3; height: 12px; } }
+</style>
+<link rel="stylesheet" href="../assets/theme.css">
+<body>
+<div class="wrap">
+  <header>
+    <nav class="site" data-here="data" data-crumb="Star Log"></nav>
+    <h1>STAR<span>//LOG</span></h1>
+  </header>
+  <p class="note" id="err" hidden>Data failed to load.</p>
+  <div class="readout">
+    <div><span>Sun · Moon · Rising</span><strong id="r-big3">—</strong></div>
+    <div><span>Moon now</span><strong id="r-moon">—</strong></div>
+    <div><span>Transits in effect</span><strong id="r-now">—</strong></div>
+    <div><span>Transit load</span><strong id="r-load">—</strong></div>
+    <div><span>Next marker</span><strong id="r-next">—</strong></div>
+  </div>
+  <nav class="ptabs" data-default="chart" aria-label="Sections of Star Log">
+    <a href="#chart" data-tab="chart" data-alias="natal">Chart</a>
+    <a href="#now" data-tab="now">Now</a>
+    <a href="#timeline" data-tab="timeline">Timeline</a>
+    <a href="#periods" data-tab="periods" data-alias="transits">Periods</a>
+    <a href="#lens" data-tab="lens">Lens</a>
+    <a href="#sky" data-tab="sky" data-alias="correlations">Sky table</a>
+  </nav>
+
+  <section data-tab="chart">
+    <h2>Natal chart, transits outside</h2>
+    <div class="ctl"><label>Transits on <input type="date" id="c-date"></label><button id="c-today">TODAY</button></div>
+    <div class="split">
+      <div class="wheel"><canvas id="c-wheel" role="img" aria-label="Natal chart wheel with the transiting planets on the outer ring"></canvas></div>
+      <div style="display:grid;gap:14px">
+        <div class="scroll"><table id="c-tbl"></table></div>
+        <h3>Natal aspects</h3>
+        <div class="scroll"><table id="c-asp"></table></div>
+      </div>
+    </div>
+  </section>
+
+  <section data-tab="now">
+    <h2>In effect</h2>
+    <div class="items" id="n-now"></div>
+    <h2>Next twelve months</h2>
+    <div class="items" id="n-next"></div>
+  </section>
+
+  <section data-tab="timeline">
+    <h2>Transits, moments and retrogrades</h2>
+    <div class="ctl" id="t-span"></div>
+    <div class="chart" id="t-chart"></div>
+    <div class="legend" id="t-legend"></div>
+    <div class="items" id="t-pick"></div>
+  </section>
+
+  <section data-tab="periods">
+    <h2>Every period</h2>
+    <div class="ctl" id="p-ctl"></div>
+    <div class="items" id="p-list"></div>
+  </section>
+
+  <section data-tab="lens">
+    <h2>One metric through the sky</h2>
+    <div class="ctl"><select id="l-metric" aria-label="Metric"></select><span class="gap"></span><span id="l-span"></span></div>
+    <div class="cols">
+      <div class="rows" id="l-moon"></div>
+      <div class="rows" id="l-rx"></div>
+    </div>
+    <div class="legend" id="l-stat"></div>
+    <div class="chart" id="l-chart"></div>
+  </section>
+
+  <section data-tab="sky">
+    <h2>Every metric against the sky</h2>
+    <div class="ctl" id="s-span"></div>
+    <div class="prog" id="s-prog"></div>
+    <div class="scroll"><table id="s-tbl"></table></div>
+    <div class="legend"><span>Δ: vs usual, as % of the metric's average</span><span>r: correlation vs usual</span><span><b style="color:var(--hot)">bold ✦</b> q &lt; 0.05 after correcting for every cell</span><span>p: 400 circular shifts of the sky</span></div>
+  </section>
+  <footer>Natal chart: Astro-Seek, Placidus · Sky: JPL elements, Meeus Moon, tropical · Data: every daily dataset on the site</footer>
+</div>
+<div class="tip" id="tip" hidden></div>
+<script src="../assets/site.js"></script>
+<script>
+// ---- compact ephemeris (same as SKY//WHEEL) for the chart's live outer ring
+const D2R = Math.PI / 180, R2D = 180 / Math.PI;
+const norm360 = (a) => ((a % 360) + 360) % 360, norm180 = (a) => { a = norm360(a); return a > 180 ? a - 360 : a; };
+const TOf = (ms) => (ms / 86400000 + 2440587.5 - 2451545) / 36525;
+const EL = {
+  mercury: [0.38709927, 0.00000037, 0.20563593, 0.00001906, 7.00497902, -0.00594749, 252.25032350, 149472.67411175, 77.45779628, 0.16047689, 48.33076593, -0.12534081],
+  venus: [0.72333566, 0.00000390, 0.00677672, -0.00004107, 3.39467605, -0.00078890, 181.97909950, 58517.81538729, 131.60246718, 0.00268329, 76.67984255, -0.27769418],
+  earth: [1.00000261, 0.00000562, 0.01671123, -0.00004392, -0.00001531, -0.01294668, 100.46457166, 35999.37244981, 102.93768193, 0.32327364, 0, 0],
+  mars: [1.52371034, 0.00001847, 0.09339410, 0.00007882, 1.84969142, -0.00813131, -4.55343205, 19140.30268499, -23.94362959, 0.44441088, 49.55953891, -0.29257343],
+  jupiter: [5.20288700, -0.00011607, 0.04838624, -0.00013253, 1.30439695, -0.00183714, 34.39644051, 3034.74612775, 14.72847983, 0.21252668, 100.47390909, 0.20469106],
+  saturn: [9.53667594, -0.00125060, 0.05386179, -0.00050991, 2.48599187, 0.00193609, 49.95424423, 1222.49362201, 92.59887831, -0.41897216, 113.66242448, -0.28867794],
+  uranus: [19.18916464, -0.00196176, 0.04725744, -0.00004397, 0.77263783, -0.00242939, 313.23810451, 428.48202785, 170.95427630, 0.40805281, 74.01692503, 0.04240589],
+  neptune: [30.06992276, 0.00026291, 0.00859048, 0.00005105, 1.77004347, 0.00035372, -55.12002969, 218.45945325, 44.96476227, -0.32241464, 131.78422574, -0.00508664],
+  pluto: [39.48211675, -0.00031596, 0.24882730, 0.00005170, 17.14001206, 0.00004818, 238.92903833, 145.20780515, 224.06891629, -0.04062942, 110.30393684, -0.01183482]
+};
+function helio(name, T) {
+  const e0 = EL[name], a = e0[0] + e0[1] * T, e = e0[2] + e0[3] * T, I = (e0[4] + e0[5] * T) * D2R, L = e0[6] + e0[7] * T, vp = e0[8] + e0[9] * T, Om = e0[10] + e0[11] * T;
+  const M = norm180(L - vp) * D2R, w = (vp - Om) * D2R, O = Om * D2R; let E = M + e * Math.sin(M);
+  for (let i = 0; i < 8; i++) E -= (E - e * Math.sin(E) - M) / (1 - e * Math.cos(E));
+  const xp = a * (Math.cos(E) - e), yp = a * Math.sqrt(1 - e * e) * Math.sin(E), cw = Math.cos(w), sw = Math.sin(w), cO = Math.cos(O), sO = Math.sin(O), cI = Math.cos(I);
+  return [(cw * cO - sw * sO * cI) * xp + (-sw * cO - cw * sO * cI) * yp, (cw * sO + sw * cO * cI) * xp + (-sw * sO + cw * cO * cI) * yp];
+}
+function moonLon(T) {
+  const Lp = 218.3164477 + 481267.88123421 * T, D = (297.8501921 + 445267.1114034 * T) * D2R, M = (357.5291092 + 35999.0502909 * T) * D2R, Mp = (134.9633964 + 477198.8675055 * T) * D2R, F = (93.2720950 + 483202.0175233 * T) * D2R, E = 1 - 0.002516 * T, s = Math.sin;
+  return norm360(Lp + 6.288774 * s(Mp) + 1.274027 * s(2 * D - Mp) + 0.658314 * s(2 * D) + 0.213618 * s(2 * Mp) - 0.185116 * E * s(M) - 0.114332 * s(2 * F) + 0.058793 * s(2 * D - 2 * Mp) + 0.057066 * E * s(2 * D - M - Mp) + 0.053322 * s(2 * D + Mp) + 0.045758 * E * s(2 * D - M) - 0.040923 * E * s(M - Mp) - 0.034720 * s(D) - 0.030383 * E * s(M + Mp) + 0.015327 * s(2 * D - 2 * F) - 0.012528 * s(Mp + 2 * F) + 0.010980 * s(Mp - 2 * F) + 0.010675 * s(4 * D - Mp) + 0.010034 * s(3 * Mp) + 0.008548 * s(4 * D - 2 * Mp) - 0.007888 * E * s(2 * D + M - Mp) - 0.006766 * E * s(2 * D + M) - 0.005163 * s(D - Mp) + 0.004987 * E * s(D + M) + 0.004036 * E * s(2 * D - M + Mp));
+}
+function lonOf(id, ms) {
+  const T = TOf(ms);
+  if (id === 'moon') return moonLon(T);
+  if (id === 'node') return norm360(125.04452 - 1934.136261 * T);
+  const E = helio('earth', T);
+  if (id === 'sun') return norm360(Math.atan2(-E[1], -E[0]) * R2D + 1.396971 * T);
+  const P = helio(id, T); return norm360(Math.atan2(P[1] - E[1], P[0] - E[0]) * R2D + 1.396971 * T);
+}
+</script>
+<script>
+(async () => {
+  const $ = (s) => document.querySelector(s);
+  const NS = 'http://www.w3.org/2000/svg';
+  const sv = (tag, at, kids) => { const e = document.createElementNS(NS, tag); for (const k in at) e.setAttribute(k, at[k]); if (kids) e.append(...kids); return e; };
+  const el = (tag, props, kids) => { const e = Object.assign(document.createElement(tag), props || {}); if (kids) e.append(...kids.filter(Boolean)); return e; };
+  const DAY = 864e5, BASE = Date.UTC(2015, 0, 1) / DAY;
+  const idx = (s) => Date.UTC(+s.slice(0, 4), +s.slice(5, 7) - 1, +s.slice(8, 10)) / DAY - BASE;
+  const iso = (i) => new Date((i + BASE) * DAY).toISOString().slice(0, 10);
+  const fmt = (s) => new Date(Date.UTC(+s.slice(0, 4), +s.slice(5, 7) - 1, +s.slice(8, 10))).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+  const fmtM = (s) => new Date(Date.UTC(+s.slice(0, 4), +s.slice(5, 7) - 1, 1)).toLocaleDateString('en-US', { month: 'short', year: 'numeric', timeZone: 'UTC' });
+  const now = new Date(), TODAY = idx(`${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`);
+  const SIGNS = ['Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo', 'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'];
+  const SG = ['♈', '♉', '♊', '♋', '♌', '♍', '♎', '♏', '♐', '♑', '♒', '♓'].map((g) => g + '︎');
+  const GL = { sun: '☉', moon: '☽', mercury: '☿', venus: '♀', mars: '♂', jupiter: '♃', saturn: '♄', uranus: '♅', neptune: '♆', pluto: '♇', node: '☊', chiron: '⚷', asc: 'AC', mc: 'MC' };
+  const PC = { sun: '#ffd36b', moon: '#e3e8f4', mercury: '#bcc7da', venus: '#f6b8c6', mars: '#ff7a5c', jupiter: '#f0b07a', saturn: '#dcc78c', uranus: '#7fe0e8', neptune: '#86a2ff', pluto: '#c792dc', node: '#a3abc0', chiron: '#9fd39b', asc: '#ffb347', mc: '#ffb347' };
+  const NM = { sun: 'Sun', moon: 'Moon', mercury: 'Mercury', venus: 'Venus', mars: 'Mars', jupiter: 'Jupiter', saturn: 'Saturn', uranus: 'Uranus', neptune: 'Neptune', pluto: 'Pluto', node: 'North Node', chiron: 'Chiron', asc: 'Ascendant', mc: 'Midheaven' };
+  const AC = { conj: '#ffb347', opp: '#ff3fb4', sq: '#ff3fb4', tri: '#3ff0ff', sext: '#3ff0ff' };
+  const AG = { conj: '☌', opp: '☍', sq: '□', tri: '△', sext: '⚹' };
+  const ELEM = ['#ff8a65', '#a5d66f', '#8fd3ff', '#8e9bff'];
+  const PH8 = ['New', 'Crescent', 'First quarter', 'Gibbous', 'Full', 'Disseminating', 'Last quarter', 'Balsamic'];
+  const ph8 = (e) => Math.floor(norm360(e + 22.5) / 45) % 8;
+  const deg = (l) => { const x = norm360(l) % 30; let d = Math.floor(x), m = Math.round((x - d) * 60); if (m === 60) { d++; m = 0; } return `${d}°${String(m).padStart(2, '0')}′`; };
+  const pos = (l) => `${deg(l)} ${SIGNS[Math.floor(norm360(l) / 30)]}`;
+  const tip = $('#tip');
+  const tipAt = (ev, html) => { tip.innerHTML = html; tip.hidden = false; const r = tip.getBoundingClientRect();
+    tip.style.left = Math.max(6, Math.min(innerWidth - r.width - 6, ev.clientX + 14)) + 'px'; tip.style.top = (ev.clientY + 16 + r.height > innerHeight ? ev.clientY - r.height - 10 : ev.clientY + 16) + 'px'; };
+  const tipOff = () => { tip.hidden = true; };
+  const seg = (host, opts, cur, on) => { host.replaceChildren(...opts.map(([k, label]) => { const b = el('button', { type: 'button', textContent: label }); b.setAttribute('aria-pressed', String(k === cur));
+    b.onclick = () => { for (const c of host.children) c.setAttribute('aria-pressed', String(c === b)); on(k); }; return b; })); };
+
+  let A, DJ, LIFE;
+  try {
+    const [a, d, l] = await Promise.all(['../meta-log/data/astro.json', '../meta-log/data/daily.json', '../meta-log/data/life.json'].map((u) => fetch(u, { cache: 'no-cache' }).then((r) => (r.ok ? r.json() : null))));
+    if (!a || !d) throw 0; A = a; DJ = d; LIFE = l || [];
+  } catch (e) { $('#err').hidden = false; SiteTabs.start(); return; }
+
+  const NAT = Object.fromEntries(A.natal.points.map((p) => [p.id, p])), CUSPS = A.natal.cusps;
+  const T = A.transits.map((t) => ({ ...t, a0: idx(t.start), a1: idx(t.end) }));
+  const MOM = A.moments.map((m) => ({ ...m, i: idx(m.date) }));
+  const ELA = A.daily.el, LOAD = A.daily.load, NA = A.daily.n;
+  const RX = {}; for (const [p, runs] of Object.entries(A.retro)) { const v = new Uint8Array(NA); for (const [s, e] of runs) for (let k = Math.max(0, idx(s)); k <= Math.min(NA - 1, idx(e)); k++) v[k] = 1; RX[p] = v; }
+  const PHA = new Uint8Array(NA), ILA = new Float64Array(NA); for (let j = 0; j < NA; j++) { PHA[j] = Math.floor(norm360(ELA[j] + 22.5) / 45) % 8; ILA[j] = (1 - Math.cos(ELA[j] * Math.PI / 180)) / 2; }
+  const houseOf = (lon) => { for (let i = 0; i < 12; i++) { const a = CUSPS[i], b = CUSPS[(i + 1) % 12]; if (norm360(lon - a) < norm360(b - a)) return i + 1; } return 1; };
+  const ord = (h) => h + (h === 1 ? 'st' : h === 2 ? 'nd' : h === 3 ? 'rd' : 'th');
+
+  // ---- readout
+  const msNow = Date.now(), elNow = norm360(lonOf('moon', msNow) - lonOf('sun', msNow)), mNow = lonOf('moon', msNow);
+  $('#r-big3').innerHTML = `${SIGNS[Math.floor(NAT.sun.lon / 30)]} · ${SIGNS[Math.floor(NAT.moon.lon / 30)]} · ${SIGNS[Math.floor(NAT.asc.lon / 30)]}`;
+  $('#r-moon').textContent = `${PH8[ph8(elNow)]} in ${SIGNS[Math.floor(mNow / 30)]}, ${ord(houseOf(mNow))} house`;
+  const active = T.filter((t) => t.a0 <= TODAY && t.a1 >= TODAY).sort((a, b) => b.w - a.w);
+  $('#r-now').textContent = String(active.length);
+  if (TODAY < NA) { const ys = LOAD.slice(0, Math.min(NA, TODAY + 1)), sorted = [...ys].sort((a, b) => a - b), pct = Math.round(sorted.findIndex((x) => x >= LOAD[TODAY]) / sorted.length * 100);
+    $('#r-load').textContent = `${LOAD[TODAY].toFixed(1)} · ${pct}th pct`; }
+  const nextM = MOM.filter((m) => m.i > TODAY && m.w >= 3)[0];
+  $('#r-next').textContent = nextM ? `${nextM.title.replace(' (exact)', '')}, ${fmt(nextM.date)}` : '—';
+
+  // ================================================================ CHART
+  const cv = $('#c-wheel'), cx2 = cv.getContext('2d'); let cDay = TODAY;
+  function drawWheel() {
+    const box = cv.parentElement, W = box.clientWidth; if (!W) return;
+    const dpr = Math.min(2, devicePixelRatio || 1); cv.width = W * dpr; cv.height = W * dpr; const x = cx2; x.setTransform(dpr, 0, 0, dpr, 0, 0); x.clearRect(0, 0, W, W);
+    const c = W / 2, R = W / 2 - 22, asc = NAT.asc.lon, ang = (l) => Math.PI + (l - asc) * D2R, P = (l, r) => [c + r * Math.cos(ang(l)), c - r * Math.sin(ang(l))];
+    const rZo = R, rZi = R * .88, rT = R * .80, rTi = R * .72, rN = R * .62, rHi = R * .30, fs = Math.max(11, R * .055);
+    x.lineWidth = 1;
+    for (let i = 0; i < 12; i++) { x.fillStyle = ELEM[i % 4] + '18'; x.beginPath(); x.arc(c, c, rZo, -ang(i * 30), -ang(i * 30 + 30), true); x.arc(c, c, rZi, -ang(i * 30 + 30), -ang(i * 30), false); x.closePath(); x.fill();
+      const [gx, gy] = P(i * 30 + 15, (rZo + rZi) / 2); x.fillStyle = ELEM[i % 4]; x.font = `${fs}px ${getComputedStyle(document.body).getPropertyValue('--sym')}`; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(SG[i], gx, gy); }
+    x.strokeStyle = 'rgba(220,216,255,.22)'; for (const r of [rZo, rZi, rTi, rHi]) { x.beginPath(); x.arc(c, c, r, 0, 7); x.stroke(); }
+    x.beginPath(); for (let d = 0; d < 360; d += 5) { const [a1, b1] = P(d, rZi), [a2, b2] = P(d, rZi - (d % 30 ? R * .015 : R * .03)); x.moveTo(a1, b1); x.lineTo(a2, b2); } x.stroke();
+    for (let i = 0; i < 12; i++) { const ax = i % 3 === 0; x.strokeStyle = ax ? 'rgba(255,179,71,.8)' : 'rgba(220,216,255,.2)'; x.lineWidth = ax ? 1.6 : 1;
+      const [a1, b1] = P(CUSPS[i], rHi), [a2, b2] = P(CUSPS[i], ax ? rZo + 6 : rTi); x.beginPath(); x.moveTo(a1, b1); x.lineTo(a2, b2); x.stroke();
+      const mid = CUSPS[i] + norm360(CUSPS[(i + 1) % 12] - CUSPS[i]) / 2, [nx, ny] = P(mid, rHi + R * .05); x.fillStyle = 'rgba(220,216,255,.45)'; x.font = `500 ${fs * .7}px 'Chakra Petch',sans-serif`; x.fillText(i + 1, nx, ny); }
+    x.lineWidth = 1;
+    // natal aspects
+    for (const a of A.natal.aspects) { if (a.k === 'conj' || a.a === 'asc' || a.a === 'mc' || a.b === 'asc' || a.b === 'mc' || a.a === 'chiron' || a.b === 'chiron') continue;
+      const [a1, b1] = P(NAT[a.a].lon, rHi), [a2, b2] = P(NAT[a.b].lon, rHi); x.strokeStyle = AC[a.k] + (a.orb < 3 ? 'aa' : '55'); x.beginPath(); x.moveTo(a1, b1); x.lineTo(a2, b2); x.stroke(); }
+    const spread = (items, r) => { const sep = fs * 1.5 / r; items.sort((p, q) => p.a - q.a); items.forEach((it) => (it.d = it.a));
+      for (let k = 0; k < 60; k++) for (let i = 0; i < items.length; i++) { const A1 = items[i], B1 = items[(i + 1) % items.length]; let df = B1.d - A1.d; if (i === items.length - 1) df += Math.PI * 2; if (df < sep) { A1.d -= (sep - df) / 2; B1.d += (sep - df) / 2; } } return items; };
+    const glyph = (id, lon, r, rim, label) => ({ id, lon, r, rim, label, a: norm360(ang(lon) * R2D) * D2R });
+    const nat = spread(A.natal.points.filter((p) => !['asc', 'mc'].includes(p.id)).map((p) => glyph(p.id, p.lon, rN, rTi, deg(p.lon).split('°')[0] + '°')), rN);
+    const ms = (cDay + BASE) * DAY + 17 * 3600e3, tids = ['sun', 'moon', 'mercury', 'venus', 'mars', 'jupiter', 'saturn', 'uranus', 'neptune', 'pluto', 'node'];
+    const tr = spread(tids.map((id) => glyph(id, lonOf(id, ms), rT, rZi, '')), rT);
+    for (const set of [nat, tr]) for (const g of set) {
+      const gx = c + g.r * Math.cos(g.d), gy = c - g.r * Math.sin(g.d), [tx, ty] = P(g.lon, g.rim);
+      x.strokeStyle = PC[g.id] + '88'; x.beginPath(); x.moveTo(tx, ty); x.lineTo(gx, gy); x.stroke();
+      x.fillStyle = 'rgba(7,6,15,.85)'; x.beginPath(); x.arc(gx, gy, fs * .68, 0, 7); x.fill();
+      if (set === tr) { x.strokeStyle = PC[g.id] + '66'; x.beginPath(); x.arc(gx, gy, fs * .68, 0, 7); x.stroke(); }
+      x.fillStyle = PC[g.id]; x.font = `${fs * 1.05}px ${getComputedStyle(document.body).getPropertyValue('--sym')}`; x.fillText(GL[g.id] + '︎', gx, gy + 1);
+      if (g.label) { x.fillStyle = 'rgba(220,216,255,.6)'; x.font = `${fs * .55}px 'JetBrains Mono',monospace`; x.fillText(g.label, c + (g.r - fs * 1.25) * Math.cos(g.d), c - (g.r - fs * 1.25) * Math.sin(g.d)); }
+    }
+    x.font = `600 ${fs * .68}px 'Chakra Petch',sans-serif`; x.fillStyle = '#ffb347';
+    [['ASC', asc], ['DSC', asc + 180], ['MC', NAT.mc.lon], ['IC', NAT.mc.lon + 180]].forEach(([t, l]) => { const [lx, ly] = P(l, rZo + 13); x.fillText(t, lx, ly); });
+    // transit aspects to natal points (tight) in the table
+    const hits = [];
+    for (const g of tr) for (const p of A.natal.points) for (const [k, an] of [['conj', 0], ['opp', 180], ['sq', 90], ['tri', 120], ['sext', 60]]) {
+      const o = Math.abs(Math.abs(norm180(g.lon - p.lon)) - an); if (o <= (['moon', 'sun', 'mercury', 'venus', 'mars'].includes(g.id) ? 1 : 2)) hits.push([g.id, k, p.id, o]); }
+    hits.sort((a, b) => a[3] - b[3]);
+    $('#c-tbl').innerHTML = '<tr><th>Natal</th><th class="l">Position</th><th>House</th><th class="l">Transiting now</th></tr>' + A.natal.points.map((p) => {
+      const tl = tids.includes(p.id) ? lonOf(p.id, ms) : null;
+      return `<tr><td><span class="g" style="color:${PC[p.id]}">${GL[p.id]}︎</span> ${NM[p.id]}${p.rx ? ' <span class="rx">℞</span>' : ''}</td><td class="l">${pos(p.lon)}</td><td>${p.house || '—'}</td><td class="l">${tl == null ? '' : `${pos(tl)} · ${ord(houseOf(tl))}`}</td></tr>`; }).join('');
+    $('#c-asp').innerHTML = '<tr><th>Transit</th><th class="l">to natal</th><th>Orb</th></tr>' + (hits.length ? hits.slice(0, 6).map(([p, k, t, o]) => `<tr><td><span class="g" style="color:${PC[p]}">${GL[p]}︎</span> ${NM[p]}</td><td class="l"><span class="g" style="color:${AC[k]}">${AG[k]}</span> ${NM[t]}</td><td>${o.toFixed(1)}°</td></tr>`).join('') : '<tr><td colspan="3">None within orb</td></tr>')
+      + '<tr><th colspan="3" class="l" style="padding-top:14px">Natal</th></tr>' + A.natal.aspects.filter((a) => a.orb < 4 && !['chiron'].includes(a.a) && !['chiron'].includes(a.b)).sort((a, b) => a.orb - b.orb).slice(0, 8).map((a) =>
+      `<tr><td><span class="g" style="color:${PC[a.a]}">${GL[a.a]}︎</span> ${NM[a.a]}</td><td class="l"><span class="g" style="color:${AC[a.k]}">${AG[a.k]}</span> ${NM[a.b]}</td><td>${a.orb.toFixed(1)}°</td></tr>`).join('');
+    $('#c-asp').rows[0].cells[0].textContent = 'Transit on ' + fmt(iso(cDay)).replace(/, \d{4}$/, '');
+  }
+  $('#c-date').value = iso(TODAY); $('#c-date').onchange = (e) => { if (e.target.value) { cDay = idx(e.target.value); drawWheel(); } };
+  $('#c-today').onclick = () => { cDay = TODAY; $('#c-date').value = iso(TODAY); drawWheel(); };
+
+  // ================================================================ record during a period (vs the rest of that metric's record)
+  const DS = Object.fromEntries(DJ.datasets.map((d) => [d.id, d]));
+  const REC = [['move', 'steps', 'Steps', ''], ['body', 'sleep_h', 'Sleep', 'h'], ['body', 'resting_hr', 'Resting HR', ''], ['music', 'minutes', 'Music', 'min'], ['phone', 'texts', 'Texts', '']].filter(([d, m]) => DS[d] && DS[d].metrics.find((x) => x.id === m));
+  const series = (d, m) => { const ds = DS[d], mm = ds.metrics.find((x) => x.id === m); return { off: ds.offset, v: mm.v }; };
+  const meanIn = (S, a, b) => { let s = 0, n = 0; for (let i = Math.max(a, S.off); i <= Math.min(b, S.off + S.v.length - 1); i++) { const x = S.v[i - S.off]; if (x != null) { s += x; n++; } } return n ? [s / n, n] : [null, 0]; };
+  const RECS = REC.map(([d, m, name, u]) => { const S = series(d, m), all = meanIn(S, 0, 1e9); return { S, name, u, all }; });
+  function record(a, b) {
+    const out = [];
+    for (const R of RECS) { const [mi, n] = meanIn(R.S, a, b); if (!n || n < 7 || R.all[1] - n < 30) continue;
+      const [ma] = (() => { let s = R.all[0] * R.all[1] - mi * n; return [s / (R.all[1] - n)]; })(); const d = (mi - ma) / ma * 100;
+      out.push(el('span', { innerHTML: `${R.name} <span class="${d >= 0 ? 'up' : 'dn'}">${d >= 0 ? '+' : '−'}${Math.abs(d).toFixed(0)}%</span>` })); }
+    return out.length ? el('div', { className: 'rec' }, [el('span', { textContent: 'Record vs rest:' }), ...out]) : null;
+  }
+  const sum = (kids) => el('summary', {}, kids);
+  const itemT = (t, showRec, open) => el('details', { className: 'item', open: !!open, style: `--c:${AC[t.a] || '#c7a6ff'}` }, [sum([
+    el('div', { className: 't', innerHTML: `<span class="g" style="color:${PC[t.p]}">${GL[t.p]}︎</span> <span class="g" style="color:${AC[t.a]}">${AG[t.a]}</span> <span class="g" style="color:${PC[t.t]}">${GL[t.t]}︎</span> ${t.title}` }),
+    el('div', { className: 'd', textContent: `${fmt(t.start)} → ${fmt(t.end)} · exact ${t.exact.length ? t.exact.map((x) => fmt(x)).join(', ') : '(outside 2015–2027)'} · weight ${t.w}` })]),
+    el('div', { className: 'x', textContent: t.text }),
+    showRec && t.a0 <= TODAY ? record(t.a0, Math.min(t.a1, TODAY)) : null]);
+  const itemM = (m, open) => el('details', { className: 'item', open: !!open, style: `--c:${m.kind === 'eclipse' ? '#ffd36b' : m.kind === 'return' ? '#b6ff5c' : '#7fe0e8'}` }, [
+    sum([el('div', { className: 't', textContent: m.title }), el('div', { className: 'd', textContent: `${fmt(m.date)} · ${m.kind}` })]), el('div', { className: 'x', textContent: m.text }),
+    m.i <= TODAY ? record(m.i - 3, Math.min(m.i + 10, TODAY)) : null]);
+
+  // ================================================================ NOW
+  function renderNow() {
+    $('#n-now').replaceChildren(...(active.length ? active.map((t, k) => itemT(t, true, k < 2)) : [el('p', { className: 'note', textContent: 'No major transits in orb today.' })]));
+    const nx = [...T.filter((t) => t.a0 > TODAY && t.a0 <= TODAY + 365).map((t) => ({ i: t.a0, n: itemT(t, false), w: t.w })), ...MOM.filter((m) => m.i > TODAY && m.i <= TODAY + 365 && m.kind !== 'return').map((m) => ({ i: m.i, n: itemM(m), w: m.w }))].sort((a, b) => a.i - b.i);
+    $('#n-next').replaceChildren(...nx.map((x) => x.n));
+  }
+
+  // ================================================================ TIMELINE
+  const TV = { span: 'year', pick: null };
+  seg($('#t-span'), [['year', String(new Date().getFullYear())], ['3y', 'LAST 3 YEARS + NEXT'], ['all', '2015–2027']], TV.span, (k) => { TV.span = k; drawTimeline(); });
+  $('#t-legend').innerHTML = [['#ffb347', 'conjunct'], ['#ff3fb4', 'square / opposite'], ['#3ff0ff', 'trine / sextile'], ['#ffd36b', 'eclipse on chart'], ['#b6ff5c', 'return'], ['#7fe0e8', 'station on chart']].map(([c, l]) => `<span><i style="background:${c}"></i>${l}</span>`).join('');
+  function drawTimeline() {
+    const host = $('#t-chart'), W = host.clientWidth; if (!W) return;
+    const yr = new Date().getFullYear(), [a, b] = TV.span === 'year' ? [idx(`${yr}-01-01`), idx(`${yr}-12-31`)] : TV.span === '3y' ? [idx(`${yr - 3}-01-01`), idx(`${yr + 1}-12-31`)] : [0, NA - 1];
+    const lab = W < 520 ? 64 : 92, X = (i) => lab + (Math.max(a, Math.min(b + 1, i)) - a) / (b + 1 - a) * (W - lab - 8);
+    const lanes = [];
+    const PL = ['jupiter', 'saturn', 'uranus', 'neptune', 'pluto', 'node'];
+    for (const p of PL) { const items = T.filter((t) => t.p === p && t.a1 >= a && t.a0 <= b).sort((q, r) => q.a0 - r.a0), rows = [];
+      for (const t of items) { let k = rows.findIndex((end) => end < t.a0 - 3); if (k < 0) { rows.push(0); k = rows.length - 1; } rows[k] = t.a1; t._row = k; }
+      lanes.push({ p, items, rows: Math.max(1, rows.length) }); }
+    const rh = 12, gap = 8; let y = 34;
+    const s = sv('svg', { viewBox: `0 0 ${W} 10`, role: 'img', 'aria-label': 'Transit timeline' });
+    // years / months axis
+    const span = b - a, step = span > 900 ? 365 : 0;
+    for (let i = a; i <= b; i++) { const d = iso(i); if ((step && d.endsWith('01-01')) || (!step && d.endsWith('-01'))) { s.append(sv('line', { x1: X(i), x2: X(i), y1: 14, y2: 4000, stroke: '#1f1a3d' }));
+      s.append(sv('text', { x: X(i) + 3, y: 12 }, [step ? d.slice(0, 4) : fmtM(d).replace(/ \d{4}$/, '')])); } }
+    // life chapters
+    s.append(sv('text', { x: 0, y: y + 9, style: 'fill:var(--ink)' }, ['Life']));
+    for (const L of LIFE) { const i0 = idx(L.start || L.date), i1 = idx(L.end || L.date); if (i1 < a || i0 > b) continue;
+      const r = sv('rect', { x: X(i0), y, width: Math.max(3, X(i1 + 1) - X(i0)), height: rh, fill: L.color, opacity: .55, rx: 2 }); r.addEventListener('mousemove', (ev) => tipAt(ev, `<b>${L.label}</b><br>${fmt(L.start || L.date)}${L.end ? ' → ' + fmt(L.end) : ''}`)); r.addEventListener('mouseleave', tipOff); s.append(r); }
+    y += rh + gap;
+    // moments
+    s.append(sv('text', { x: 0, y: y + 9, style: 'fill:var(--ink)' }, ['Moments']));
+    for (const m of MOM) { if (m.i < a || m.i > b || (m.kind === 'station' && m.w < 2)) continue;
+      const c = m.kind === 'eclipse' ? '#ffd36b' : m.kind === 'return' ? '#b6ff5c' : '#7fe0e8', d = sv('circle', { cx: X(m.i), cy: y + 6, r: m.kind === 'return' ? 5 : 4, fill: c, stroke: '#07060f', class: 'hit' });
+      d.addEventListener('mousemove', (ev) => tipAt(ev, `<b>${m.title}</b><br>${fmt(m.date)}`)); d.addEventListener('mouseleave', tipOff); d.addEventListener('click', () => { $('#t-pick').replaceChildren(itemM(m, true)); }); s.append(d); }
+    y += rh + gap;
+    for (const L of lanes) {
+      s.append(sv('text', { x: 0, y: y + 9, style: 'fill:var(--ink)' }, [NM[L.p]]));
+      for (const t of L.items) { const yy = y + t._row * (rh + 3), r = sv('rect', { x: X(t.a0), y: yy, width: Math.max(3, X(t.a1 + 1) - X(t.a0)), height: rh, fill: AC[t.a], opacity: (0.35 + t.w / 15).toFixed(2), rx: 2, class: 'hit' });
+        r.addEventListener('mousemove', (ev) => tipAt(ev, `<b>${t.title}</b><br>${fmt(t.start)} → ${fmt(t.end)}<br>weight ${t.w}`)); r.addEventListener('mouseleave', tipOff);
+        r.addEventListener('click', () => { $('#t-pick').replaceChildren(itemT(t, true, true)); }); s.append(r);
+        for (const e of t.exact) { const i = idx(e); if (i >= a && i <= b) s.append(sv('line', { x1: X(i), x2: X(i), y1: yy - 1, y2: yy + rh + 1, stroke: '#fff', 'stroke-width': 1.5 })); } }
+      y += L.rows * (rh + 3) + gap; }
+    // retrogrades
+    for (const p of ['mercury', 'venus', 'mars']) { s.append(sv('text', { x: 0, y: y + 8, style: 'fill:var(--ink)' }, [`${NM[p]} ℞`]));
+      for (const [s0, e0] of A.retro[p]) { const i0 = idx(s0), i1 = idx(e0); if (i1 < a || i0 > b) continue; const r = sv('rect', { x: X(i0), y, width: Math.max(2, X(i1 + 1) - X(i0)), height: 10, fill: PC[p], opacity: .7, rx: 2 });
+        r.addEventListener('mousemove', (ev) => tipAt(ev, `<b>${NM[p]} retrograde</b><br>${fmt(s0)} → ${fmt(e0)}`)); r.addEventListener('mouseleave', tipOff); s.append(r); }
+      y += 10 + gap; }
+    // load line
+    const lh = 46, mx = Math.max(...LOAD.slice(a, b + 1)) || 1; s.append(sv('text', { x: 0, y: y + 14, style: 'fill:var(--ink)' }, ['Load']));
+    let dd = ''; for (let i = a; i <= Math.min(b, NA - 1); i++) dd += `${i === a ? 'M' : 'L'}${X(i).toFixed(1)},${(y + lh - LOAD[i] / mx * lh).toFixed(1)}`;
+    s.append(sv('path', { d: dd, fill: 'none', stroke: '#c7a6ff', 'stroke-width': 1.4 })); y += lh + 6;
+    if (TODAY >= a && TODAY <= b) { s.append(sv('line', { x1: X(TODAY), x2: X(TODAY), y1: 16, y2: y, stroke: '#fff', 'stroke-dasharray': '3 3', opacity: .6 })); s.append(sv('text', { x: X(TODAY) + 3, y: 26, style: 'fill:#fff' }, ['today'])); }
+    s.setAttribute('viewBox', `0 0 ${W} ${y}`); s.setAttribute('height', y); host.replaceChildren(s);
+  }
+
+  // ================================================================ PERIODS
+  const PV = { kind: 'transits', p: 'all', sort: 'date' };
+  function renderPeriods() {
+    const ctl = $('#p-ctl'); ctl.replaceChildren();
+    const k1 = el('span', { className: 'ctl' }), k2 = el('span', { className: 'ctl' }), k3 = el('span', { className: 'ctl' }); ctl.append(k1, el('span', { className: 'gap' }), k2, el('span', { className: 'gap' }), k3);
+    seg(k1, [['transits', 'TRANSITS'], ['houses', 'HOUSES'], ['moments', 'MOMENTS']], PV.kind, (k) => { PV.kind = k; renderPeriods(); });
+    if (PV.kind !== 'moments') seg(k2, [['all', 'ALL'], ...['jupiter', 'saturn', 'uranus', 'neptune', 'pluto', ...(PV.kind === 'transits' ? ['node'] : [])].map((p) => [p, NM[p].toUpperCase()])], PV.p, (k) => { PV.p = k; renderPeriods(); });
+    if (PV.kind === 'transits') seg(k3, [['date', 'BY DATE'], ['w', 'BY WEIGHT']], PV.sort, (k) => { PV.sort = k; renderPeriods(); });
+    let items;
+    if (PV.kind === 'transits') items = T.filter((t) => PV.p === 'all' || t.p === PV.p).sort((a, b) => PV.sort === 'w' ? b.w - a.w : a.a0 - b.a0).map((t) => itemT(t, true));
+    else if (PV.kind === 'houses') items = A.houses.filter((h) => PV.p === 'all' || h.p === PV.p).sort((a, b) => idx(a.start) - idx(b.start)).map((h) => el('details', { className: 'item', style: `--c:${PC[h.p]}` }, [
+      sum([el('div', { className: 't', innerHTML: `<span class="g" style="color:${PC[h.p]}">${GL[h.p]}︎</span> ${NM[h.p]} through the ${ord(h.h)} house` }), el('div', { className: 'd', textContent: `${fmt(h.start)} → ${fmt(h.end)}` })]),
+      el('div', { className: 'x', textContent: h.text }), idx(h.start) <= TODAY ? record(idx(h.start), Math.min(idx(h.end), TODAY)) : null]));
+    else items = MOM.map(itemM);
+    $('#p-list').replaceChildren(...items);
+  }
+
+  // ================================================================ shared stats: vs-usual residuals and circular-shift permutations
+  const METRICS = DJ.datasets.filter((d) => d.grain === 'day' && !['astro', 'fortnite', 'trail'].includes(d.id)).flatMap((d) => d.metrics.map((m) => ({ d, m, key: d.id + ':' + m.id, name: m.name, unit: m.unit })));
+  function resid(Mx, a, b) {   // residual = value − centred 91-day mean (needs 30 values in the window)
+    const { d, m } = Mx, n = b - a + 1, raw = new Array(n).fill(null), out = new Array(n).fill(null);
+    for (let i = 0; i < n; i++) { const k = a + i - d.offset; if (k >= 0 && k < m.v.length && m.v[k] != null) raw[i] = m.v[k]; }
+    const W = 45; let s = 0, c = 0; const add = (j, sg) => { if (j >= 0 && j < n && raw[j] != null) { s += sg * raw[j]; c += sg; } };
+    for (let j = 0; j <= W; j++) add(j, 1);
+    for (let i = 0; i < n; i++) { if (i > 0) { add(i + W, 1); add(i - W - 1, -1); } if (raw[i] != null && c >= 30) out[i] = raw[i] - s / c; }
+    let ms = 0, mc = 0; for (const x of raw) if (x != null) { ms += x; mc++; }
+    return { raw, r: out, mean: mc ? ms / mc : 0, cnt: out.filter((x) => x != null).length };
+  }
+  const TESTS = [['fn', 'Full − New'], ['il', 'Moon lit r'], ['me', 'Mercury ℞ Δ'], ['ve', 'Venus ℞ Δ'], ['ma', 'Mars ℞ Δ'], ['lo', 'Load r']];
+  function stats(r, a, n, shift) {   // r: residuals for days a..a+n-1; sky read at (i + shift) mod n inside the window
+    const acc = { f: [0, 0], nw: [0, 0], me: [0, 0, 0, 0], ve: [0, 0, 0, 0], ma: [0, 0, 0, 0] }; let sx = 0, sy = 0, sxx = 0, syy = 0, sxy = 0, ly = 0, lyy = 0, lxy = 0, cnt = 0;
+    for (let i = 0; i < n; i++) { const v = r[i]; if (v == null) continue; const j = a + ((i + shift) % n);
+      const p = PHA[j], il = ILA[j], ld = LOAD[j];
+      if (p === 4) { acc.f[0] += v; acc.f[1]++; } else if (p === 0) { acc.nw[0] += v; acc.nw[1]++; }
+      for (const [k, P] of [['me', RX.mercury], ['ve', RX.venus], ['ma', RX.mars]]) { if (P[j]) { acc[k][0] += v; acc[k][1]++; } else { acc[k][2] += v; acc[k][3]++; } }
+      sx += v; sxx += v * v; sy += il; syy += il * il; sxy += v * il; ly += ld; lyy += ld * ld; lxy += v * ld; cnt++; }
+    const pr = (sY, sYY, sXY) => { const num = cnt * sXY - sx * sY, den = Math.sqrt((cnt * sxx - sx * sx) * (cnt * sYY - sY * sY)); return den ? num / den : null; };
+    const d = (q) => (q[1] >= 7 && q[3] >= 7 ? q[0] / q[1] - q[2] / q[3] : null);
+    return { fn: acc.f[1] >= 7 && acc.nw[1] >= 7 ? acc.f[0] / acc.f[1] - acc.nw[0] / acc.nw[1] : null, il: pr(sy, syy, sxy), me: d(acc.me), ve: d(acc.ve), ma: d(acc.ma), lo: pr(ly, lyy, lxy),
+      n: { fn: Math.min(acc.f[1], acc.nw[1]), me: acc.me[1], ve: acc.ve[1], ma: acc.ma[1], il: cnt, lo: cnt } };
+  }
+  let rng = 12345; const rand = () => (rng = (rng * 16807) % 2147483647) / 2147483647;
+  function permute(r, a, n, obs, S) {
+    const hit = {}; for (const k of Object.keys(obs)) if (k !== 'n') hit[k] = 0;
+    for (let s = 0; s < S; s++) { const sh = 40 + Math.floor(rand() * (n - 80)), st = stats(r, a, n, sh);
+      for (const k in hit) if (obs[k] != null && st[k] != null && Math.abs(st[k]) >= Math.abs(obs[k]) - 1e-12) hit[k]++; }
+    const p = {}; for (const k in hit) p[k] = obs[k] == null ? null : (1 + hit[k]) / (1 + S); return p;
+  }
+  const spanOf = (k) => k === 'year' ? [Math.max(0, idx(`${new Date().getFullYear()}-01-01`)), Math.min(NA - 1, TODAY)] : [0, Math.min(NA - 1, TODAY)];
+  const pfmt = (p) => p == null ? '—' : p < 0.001 ? '<0.001' : p.toFixed(3);
+  const num = (x, u) => x == null ? '—' : (Math.abs(x) >= 100 ? Math.round(x).toLocaleString('en-US') : Math.abs(x) >= 10 ? x.toFixed(1) : x.toFixed(2)) + (u ? ' ' + u : '');
+
+  // ================================================================ LENS
+  const LV = { key: 'move:steps', span: 'year' };
+  $('#l-metric').innerHTML = DJ.datasets.filter((d) => d.grain === 'day' && !['astro', 'fortnite', 'trail'].includes(d.id)).map((d) => `<optgroup label="${d.name}">${d.metrics.map((m) => `<option value="${d.id}:${m.id}">${m.name}</option>`).join('')}</optgroup>`).join('');
+  $('#l-metric').value = LV.key; $('#l-metric').onchange = (e) => { LV.key = e.target.value; drawLens(); };
+  seg($('#l-span'), [['year', String(new Date().getFullYear())], ['all', 'ALL YEARS']], LV.span, (k) => { LV.span = k; drawLens(); });
+  $('#l-span').className = 'ctl';
+  function moonIcon(e, r) { const k = Math.cos(e * D2R), w = e > 180; return `<svg width="${2 * r}" height="${2 * r}" viewBox="${-r} ${-r} ${2 * r} ${2 * r}" style="vertical-align:middle;margin-right:6px"><circle r="${r}" fill="#1b1f2b" stroke="#8a84b8" stroke-width=".6"/><path transform="${w ? 'scale(-1,1)' : ''}" d="M0,${-r}A${r},${r} 0 0 1 0,${r}A${Math.abs(k) * r},${r} 0 0 ${k > 0 ? 0 : 1} 0,${-r}Z" fill="#e3e8f4"/></svg>`; }
+  function drawLens() {
+    const Mx = METRICS.find((x) => x.key === LV.key); if (!Mx) return;
+    const [a0, b0] = spanOf(LV.span), lo = Math.max(a0, Mx.d.offset), hi = Math.min(b0, Mx.d.offset + Mx.m.v.length - 1);
+    if (hi - lo < 60) { $('#l-moon').replaceChildren(el('p', { className: 'note', textContent: 'Not enough days in this span.' })); $('#l-rx').replaceChildren(); $('#l-stat').replaceChildren(); $('#l-chart').replaceChildren(); return; }
+    const R = resid(Mx, lo, hi), n = hi - lo + 1, base = Math.abs(R.mean) || 1, u = Mx.unit;
+    // by phase
+    const ph = Array.from({ length: 8 }, () => [0, 0, 0, 0]);
+    for (let i = 0; i < n; i++) { const p = ph8(ELA[lo + i]); if (R.r[i] != null) { ph[p][0] += R.r[i]; ph[p][1]++; } if (R.raw[i] != null) { ph[p][2] += R.raw[i]; ph[p][3]++; } }
+    const pv = ph.map((q) => (q[1] ? q[0] / q[1] / base * 100 : null)), mx = Math.max(5, ...pv.map((x) => Math.abs(x || 0)));
+    const barRow = (labHtml, v, mxv, right) => { const w = v == null ? 0 : Math.abs(v) / mxv * 50; return el('div', { className: 'row' }, [el('div', { className: 'lab', innerHTML: labHtml }),
+      el('div', { className: 'bar', innerHTML: `<span class="mid"></span><i style="left:${v >= 0 ? 50 : 50 - w}%;width:${w}%;background:${v >= 0 ? '#3ff0ff' : '#ff3fb4'}"></i>` }), el('div', { className: 'v', textContent: right })]); };
+    $('#l-moon').replaceChildren(el('h3', { textContent: 'By lunar phase · vs usual' }), ...ph.map((q, k) => barRow(moonIcon(k * 45, 8) + PH8[k], pv[k], mx, `${pv[k] == null ? '—' : (pv[k] >= 0 ? '+' : '−') + Math.abs(pv[k]).toFixed(1) + '%'} · ${num(q[3] ? q[2] / q[3] : null, u)} · ${q[3]}d`)));
+    const obs = stats(R.r, lo, n, 0), p = permute(R.r, lo, n, obs, 500);
+    const rxRows = [['me', 'mercury'], ['ve', 'venus'], ['ma', 'mars']].map(([k, pl]) => { let on = [0, 0], off = [0, 0]; for (let i = 0; i < n; i++) { if (R.raw[i] == null) continue; (RX[pl][lo + i] ? on : off)[0] += R.raw[i]; (RX[pl][lo + i] ? on : off)[1]++; }
+      const v = obs[k] == null ? null : obs[k] / base * 100; return { k, pl, v, on, off }; });
+    const mx2 = Math.max(5, ...rxRows.map((x) => Math.abs(x.v || 0)));
+    $('#l-rx').replaceChildren(el('h3', { textContent: 'Retrograde vs direct · vs usual' }), ...rxRows.map((x) => barRow(`<span class="g" style="color:${PC[x.pl]}">${GL[x.pl]}︎</span> ${NM[x.pl]} ℞`, x.v, mx2,
+      x.on[1] ? `${x.v == null ? '—' : (x.v >= 0 ? '+' : '−') + Math.abs(x.v).toFixed(1) + '%'} · p ${pfmt(p[x.k])} · ${x.on[1]}d` : 'no ℞ days')),
+      barRow('Full − New', obs.fn == null ? null : obs.fn / base * 100, mx2, `${obs.fn == null ? '—' : ((obs.fn >= 0 ? '+' : '−') + Math.abs(obs.fn / base * 100).toFixed(1) + '%')} · p ${pfmt(p.fn)}`));
+    $('#l-stat').innerHTML = `<span>${fmt(iso(lo))} → ${fmt(iso(hi))}</span><span>${R.cnt} days vs usual</span><span>average ${num(R.mean, u)}</span><span>Moon lit r ${obs.il == null ? '—' : obs.il.toFixed(3)} (p ${pfmt(p.il)})</span><span>Load r ${obs.lo == null ? '—' : obs.lo.toFixed(3)} (p ${pfmt(p.lo)})</span>`;
+    // strip: 7-day mean with Mercury ℞ shading and full moons
+    const host = $('#l-chart'), W = host.clientWidth, H = 150, m = { l: 8, r: 8, t: 10, b: 22 }, X = (i) => m.l + (i - lo) / (hi - lo || 1) * (W - m.l - m.r);
+    const sm = []; for (let i = 0; i < n; i++) { let s = 0, c = 0; for (let j = Math.max(0, i - 3); j <= Math.min(n - 1, i + 3); j++) if (R.raw[j] != null) { s += R.raw[j]; c++; } sm.push(c >= 3 ? s / c : null); }
+    const vals = sm.filter((x) => x != null), y0 = Math.min(...vals), y1 = Math.max(...vals), Y = (v) => H - m.b - (v - y0) / (y1 - y0 || 1) * (H - m.t - m.b);
+    const s = sv('svg', { viewBox: `0 0 ${W} ${H}`, height: H, role: 'img', 'aria-label': 'Seven-day average with Mercury retrograde shaded' });
+    for (const [s0, e0] of A.retro.mercury) { const i0 = Math.max(lo, idx(s0)), i1 = Math.min(hi, idx(e0)); if (i1 >= i0) s.append(sv('rect', { x: X(i0), y: m.t, width: Math.max(1, X(i1 + 1) - X(i0)), height: H - m.t - m.b, fill: '#ffb347', opacity: .12 })); }
+    for (let i = lo; i <= hi; i++) if (ph8(ELA[i]) === 4 && (i === lo || ph8(ELA[i - 1]) !== 4)) s.append(sv('circle', { cx: X(i + 1), cy: H - m.b + 9, r: 2.5, fill: '#e3e8f4' }));
+    let d = ''; sm.forEach((v, i) => { if (v == null) return; d += (d && sm[i - 1] != null ? 'L' : 'M') + X(lo + i).toFixed(1) + ',' + Y(v).toFixed(1); });
+    s.append(sv('path', { d, fill: 'none', stroke: Mx.m.color || '#3ff0ff', 'stroke-width': 1.5 }));
+    s.append(sv('text', { x: m.l, y: m.t + 10 }, [`${num(y1, u)} · 7-day average · Mercury ℞ shaded · full moons as dots`]));
+    host.replaceChildren(s);
+  }
+
+  // ================================================================ SKY TABLE
+  const SV = { span: 'all', run: 0, show: 'top' };
+  { const a = el('span', { className: 'ctl' }), b = el('span', { className: 'ctl' }); $('#s-span').append(a, el('span', { className: 'gap' }), b);
+    seg(a, [['all', 'ALL YEARS'], ['year', String(new Date().getFullYear())]], SV.span, (k) => { SV.span = k; drawSky(); });
+    seg(b, [['top', 'STRONGEST 15'], ['all', 'EVERY METRIC']], SV.show, (k) => { SV.show = k; if (SV.paint) SV.paint(); }); }
+  function drawSky() {
+    const run = ++SV.run, [a0, b0] = spanOf(SV.span), rows = [];
+    for (const Mx of METRICS) { const lo = Math.max(a0, Mx.d.offset), hi = Math.min(b0, Mx.d.offset + Mx.m.v.length - 1); if (hi - lo < 120) continue;
+      const R = resid(Mx, lo, hi); if (R.cnt < 120) continue; rows.push({ Mx, lo, hi, R, obs: stats(R.r, lo, hi - lo + 1, 0), p: null }); }
+    const tbl = $('#s-tbl');
+    const paint = () => {
+      const all = []; for (const r of rows) if (r.p) for (const [k] of TESTS) if (r.p[k] != null) all.push([r, k, r.p[k]]);
+      all.sort((x, y) => x[2] - y[2]); const m = all.length; let prev = 1; for (let i = m - 1; i >= 0; i--) { prev = Math.min(prev, all[i][2] * m / (i + 1)); all[i][0].q = all[i][0].q || {}; all[i][0].q[all[i][1]] = prev; }
+      const done = rows.every((r) => r.p), minP = (r) => Math.min(...TESTS.map(([k]) => (r.p && r.p[k] != null ? r.p[k] : 1)));
+      const shown = done && SV.show === 'top' ? [...rows].sort((x, y) => minP(x) - minP(y)).slice(0, 15) : rows;
+      tbl.innerHTML = '<thead><tr><th>Metric</th><th>Days</th>' + TESTS.map(([, l]) => `<th>${l}</th>`).join('') + '</tr></thead><tbody>' + shown.map((r) => {
+        const base = Math.abs(r.R.mean) || 1;
+        return `<tr><td>${r.Mx.d.name} · ${r.Mx.name}</td><td>${r.R.cnt.toLocaleString('en-US')}</td>` + TESTS.map(([k]) => {
+          const v = r.obs[k]; if (v == null) return '<td class="c">—</td>';
+          const isR = k === 'il' || k === 'lo', shown = isR ? v : v / base * 100, mag = isR ? Math.min(1, Math.abs(v) / 0.15) : Math.min(1, Math.abs(shown) / 15);
+          const q = r.q && r.q[k], sig = q != null && q < 0.05, bg = `rgba(${v >= 0 ? '63,240,255' : '255,63,180'},${(0.05 + 0.45 * mag).toFixed(2)})`;
+          const title = `n ${r.obs.n[k]} · p ${pfmt(r.p && r.p[k])} · q ${q == null ? '…' : pfmt(q)}`;
+          return `<td class="c${sig ? ' sig' : ''}" style="background:${bg}" title="${title}">${isR ? (v >= 0 ? '+' : '−') + Math.abs(v).toFixed(3) : (shown >= 0 ? '+' : '−') + Math.abs(shown).toFixed(1) + '%'}${sig ? ' ✦' : ''}</td>`; }).join('') + '</tr>'; }).join('') + '</tbody>';
+    };
+    SV.paint = paint; paint();
+    let i = 0; const step = () => { if (run !== SV.run) return; const t0 = performance.now();
+      while (i < rows.length && performance.now() - t0 < 30) { const r = rows[i++]; r.p = permute(r.R.r, r.lo, r.hi - r.lo + 1, r.obs, 400); }
+      $('#s-prog').textContent = i < rows.length ? `Permutation tests: ${i} of ${rows.length} metrics` : `${rows.length} metrics · ${rows.length * TESTS.length} tests · ${fmt(iso(a0))} → ${fmt(iso(b0))}`;
+      if (i < rows.length) setTimeout(step, 0); else paint(); };
+    step();
+  }
+
+  // ================================================================ tabs
+  const drawn = {};
+  const DRAW = { chart: drawWheel, now: renderNow, timeline: drawTimeline, periods: renderPeriods, lens: drawLens, sky: drawSky };
+  addEventListener('tabchange', (e) => { const k = e.detail.tab; if (k === 'sky' && drawn.sky) return; drawn[k] = 1; requestAnimationFrame(() => DRAW[k] && DRAW[k]()); });
+  let rt; addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => { const k = SiteTabs.current; if (k === 'chart') drawWheel(); if (k === 'timeline') drawTimeline(); if (k === 'lens') drawLens(); }, 120); });
+  if (document.fonts) document.fonts.ready.then(() => { if (SiteTabs.current === 'chart') drawWheel(); });
+  SiteTabs.start();
+})();
+</script>
+</body>
+</html>

@@ -29,6 +29,7 @@ Jack's personal data site: a decade of steps, music, photos and trail logs, plus
 | `photo-library/` | PHOTO//SORT: overview · captured · worklog · space · lightroom | tracker scripts in `~/Documents/01-Projects/photo-library-tracker` |
 | `body/` | BODY//MAP (Fitness): front/back body, 19 muscle groups, colour by recovery · 10-day load · last hit; stretches + exercises per group | `body/data/body.json` (`build_body_map.py`) from fitness.json + activities.json |
 | `sky/` | SKY//WHEEL (Data tools card): live chart wheel, Earth at the hub (day/night, clouds from Open-Meteo or simulated), houses (Placidus/Whole/Equal/Porphyry), planets, aspects, Moon phase + next lunations, time-lapse | none: computed in the page (JPL elements, Meeus Moon); land mask baked in |
+| `astro/` | STAR//LOG (Data tools card): chart (natal + live transits bi-wheel) · now (in effect, next 12 months) · timeline (transits, moments, retrogrades, life, load) · periods (transits / houses / moments, each with the record vs the rest) · lens (one metric by lunar phase and retrograde, vs its 91-day usual) · sky (every metric × full−new, Moon lit, Mercury/Venus/Mars ℞, load; circular-shift permutation p, BH q) | `meta-log/data/astro.json` (`build_astro.py`, from git-ignored `JSBV meta/text.txt`) + daily.json; the `astro` day dataset (Moon lit, ℞ days, transit load) feeds the Explorer and the Lab matrix |
 | `months/` | Report cards (Data): one card per month of the year, Fitness + Health graded A–F against every month on record, Media ungraded | `meta-log/data/months.json` (`build_report_cards.py`) |
 | `assets/site.js`, `assets/site.css` | Shared nav (Home · Fitness · Health · Media · Data; old trails/projects/movies hashes alias in), breadcrumbs, page tabs | — |
 | `assets/theme.css` | Shared look, loaded last on every page (glass panels, pill nav, controls, tables) | — |
@@ -55,6 +56,7 @@ Jack's personal data site: a decade of steps, music, photos and trail logs, plus
   `build_meta_log.py` seals them into `meta-log/data/private.enc.json` (`scripts/private_box.py`: AES-256-GCM, PBKDF2-SHA256
   600k). The key file `jsbv data/jsbv-private-key.txt` (passphrase + salt) stays outside the repo. The home page's "Private
   data" panel (Home and Data views) unlocks in the browser; "remember" stores the derived key, not the passphrase.
+- Natal chart: `JSBV meta/` (birth date, time, place; Astro-Seek chart + PDF) is git-ignored and stays local. Builders may read it; only their computed output is committed, never the birth time or place themselves.
 - `meta-log/data/life.private.json` stays git-ignored. Raw workbooks and exports (`*.xlsx`, `*.csv`, `*.numbers`, `*.pdf`) are git-ignored.
 
 ## Jack's standing preferences for the site
