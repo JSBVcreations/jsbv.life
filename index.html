@@ -1731,7 +1731,8 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
       el('div', { className: 'card' }, [el('h3', { text: 'Explorer' }), linkRow([['#explore', 'Open the explorer']])]),
       el('div', { className: 'card', style: '--acc:#ff6fd8' }, [el('h3', { text: 'Timelines' }), ...(TLS && TLS.timelines.length ? [el('dl', {}, TLS.timelines.flatMap((t) => [el('dt', { text: t.name }), el('dd', { text: `${t.start} → ${t.end}` })]))] : []), linkRow([['timelines/', 'Open Timelines']])]),
       el('div', { className: 'card' }, [el('h3', { text: 'Calendar' }), linkRow([['#calendar', 'Open the calendar']])]),
-      el('div', { className: 'card', style: '--acc:#9b7bff' }, [el('h3', { text: 'Report cards' }), linkRow([['months/', 'Open the report cards']])]));
+      el('div', { className: 'card', style: '--acc:#9b7bff' }, [el('h3', { text: 'Report cards' }), linkRow([['months/', 'Open the report cards']])]),
+      el('div', { className: 'card', style: '--acc:#ffb347' }, [el('h3', { text: 'Sky Wheel' }), linkRow([['sky/', 'Open the sky wheel']])]));
   }
   // ================================================================ TRAILS + PROJECTS
   // Section indexes. Each card's links open the target page on the right tab (see assets/site.js on those pages).
