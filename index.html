@@ -1679,10 +1679,11 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
     watch: { blurb: 'Movies and TV watched this year, with the covers.', links: [['#movies', 'Open Movies & TV']] },
     calls: { blurb: 'Phone calls by count, length and time of day. Not who they were with.', links: [['phone/#capture', 'Capture rate']] },
     phone: { blurb: 'Cellular calls, texts and mobile data from AT&T, every person an alias.', links: [['phone/', 'Open PHONE//LINES']] },
+    moon: { blurb: 'New and full moons, the sign each falls in, and how lit the Moon is every day.', links: [['astro/#lens', 'Data by lunar phase'], ['astro/#sky', 'Sky table']] },
     breath: { blurb: 'Wim Hof breathing sessions: rounds per sitting and how long each breath was held.', links: [] },
   };
   for (const d of daily.datasets) if (d.site && d.site.blurb && !DIR[d.id]) DIR[d.id] = { blurb: d.site.blurb, links: [] };
-  const DS_C = { move: '#3ff0ff', exercise: '#00e59b', body: '#ff4d6d', music: '#ff3fb4', photos: '#ffd84a', lightroom: '#ffb347', watch: '#4ea8ff', calls: '#ff8a3d', phone: '#3ff0ff', breath: '#4fe0c0', fortnite: '#c77dff', trail: '#b6ff5c', astro: '#c7a6ff' };
+  const DS_C = { move: '#3ff0ff', exercise: '#00e59b', body: '#ff4d6d', music: '#ff3fb4', photos: '#ffd84a', lightroom: '#ffb347', watch: '#4ea8ff', calls: '#ff8a3d', phone: '#3ff0ff', breath: '#4fe0c0', fortnite: '#c77dff', trail: '#b6ff5c', astro: '#c7a6ff', moon: '#e3e8f4' };
   const HIDE_IN_DATA = new Set(['trail', 'fortnite', 'astro']);   // trail lives under Trails; fortnite under the Video games card; astro (the sky) under the Star Log card
   const totalIn = (dsId, mId, a, b) => { const L = asLine(dsId, mId); if (!L) return null; let t = 0;
     for (let i = Math.max(a, L.off); i <= Math.min(b, L.off + L.n - 1); i++) t += L.v[i - L.off] || 0; return t; };
@@ -1708,11 +1709,11 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
     ]);
   }
   function renderData() {
-    gamesCard().then((c) => { const host = $('#d-cards'); host.querySelector('.card.games')?.remove(); if (c) { c.classList.add('games'); host.append(c); } });   // lands at the end of Media
+    gamesCard().then((c) => { const host = $('#d-cards'); host.querySelector('.card.games')?.remove(); if (c) { c.classList.add('games'); const sky = host.querySelector('h2.dgrp.sky'); if (sky) host.insertBefore(c, sky); else host.append(c); } });   // lands at the end of Media
     $('#d-span').replaceChildren(...[['year', String(lastYear)], ['all', 'ALL TIME']].map(([v, label]) => el('button', { type: 'button', text: label, 'aria-pressed': String(DV.span === v), onclick: () => { DV.span = v; renderData(); } })));
-    const CLUSTER = { move: 'fitness', exercise: 'fitness', lifting: 'fitness', trail: 'fitness', body: 'health', breath: 'health', water: 'health' };
+    const CLUSTER = { move: 'fitness', exercise: 'fitness', lifting: 'fitness', trail: 'fitness', body: 'health', breath: 'health', water: 'health', moon: 'sky' };
     const clusterOf = (d) => CLUSTER[d.id] || (d.site && d.site.group ? 'health' : 'media');
-    const groups = [['fitness', 'Fitness'], ['health', 'Health'], ['media', 'Media']];
+    const groups = [['fitness', 'Fitness'], ['health', 'Health'], ['media', 'Media'], ['sky', 'Sky']];
     const cardFor = (ds) => {
       const info = DIR[ds.id] || { blurb: '', links: [] }, a = DV.span === 'year' ? Math.max(ds.offset, d2i(`${lastYear}-01-01`)) : ds.offset, inSpan = a <= ds.end;
       return el('div', { className: 'card', style: `--acc:${DS_C[ds.id] || (ds.metrics[0] && ds.metrics[0].color) || '#9b7bff'}` }, [
@@ -1726,7 +1727,7 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
       ]);
     };
     $('#d-cards').replaceChildren(...groups.flatMap(([k, label]) => { const ds = daily.datasets.filter((d) => !HIDE_IN_DATA.has(d.id) && clusterOf(d) === k);
-      return ds.length ? [el('h2', { className: 'sec dgrp', text: label }), ...ds.map(cardFor)] : []; }));
+      return ds.length ? [el('h2', { className: 'sec dgrp' + (k === 'sky' ? ' sky' : ''), text: label }), ...ds.map(cardFor)] : []; }));
     $('#d-tools').replaceChildren(
       el('div', { className: 'card' }, [el('h3', { text: 'Explorer' }), linkRow([['#explore', 'Open the explorer']])]),
       el('div', { className: 'card', style: '--acc:#ff6fd8' }, [el('h3', { text: 'Timelines' }), ...(TLS && TLS.timelines.length ? [el('dl', {}, TLS.timelines.flatMap((t) => [el('dt', { text: t.name }), el('dd', { text: `${t.start} → ${t.end}` })]))] : []), linkRow([['timelines/', 'Open Timelines']])]),
@@ -2324,7 +2325,7 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
   // ---------------------------------------------------------------- GANTT: one lane per dataset (days with any recorded activity), toggleable
   const GV = { range: 'all', mode: 'heat', life: true, on: null };
   function renderGantt() {
-    const sets = daily.datasets.filter((d) => d.metrics.length && d.id !== 'astro');   // the sky has a value every day: not activity
+    const sets = daily.datasets.filter((d) => d.metrics.length && d.id !== 'astro' && d.id !== 'moon');   // the sky has a value every day: not activity
     if (!GV.on) GV.on = new Set(sets.map((d) => d.id));
     const col = (d) => DS_C[d.id] || d.metrics[0].color || '#9b7bff';
     const end = Math.max(DATA_B, today), R = { all: [DATA_A, end], y3: [Math.max(DATA_A, d2i(`${YR[end] - 2}-01-01`)), end], ty: [d2i(`${YR[end]}-01-01`), end] }[GV.range];

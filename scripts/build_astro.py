@@ -15,11 +15,14 @@ astro.json
   transits[] major transits of Jupiter, Saturn, Uranus, Neptune, Pluto and the node to natal points:
              {p, a, t, start, end, exact[], w, kind, title, text}   (in orb = within ORB degrees; passes merged)
   houses[]   outer planets through the natal houses {p, h, start, end, text}
-  moments[]  eclipses on natal points, stations on natal points, returns and lunations of note {date, kind, title, text, w}
+  moments[]  {date, kind, title, text, w}: eclipses on natal points, stations on natal points, returns (Saturn, Jupiter, solar,
+             Mercury, Venus, Mars), planets entering their natal sign, Mars on the luminaries/angles/Venus, outer planets on the
+             Descendant/IC, new and full moons on natal points, Mercury/Venus/Mars retrograde over natal points
   eclipses[] {date, kind, lon, hits[]}   (hits: natal points within 3°, conjunct or opposite)
   retro      {planet: [[start, end], ...]}  retrograde periods (stations to stations)
-  lunations  [[iso datetime UTC, k (0 new, 1 first quarter, 2 full, 3 last quarter), lon], ...]
-  daily      {start, n, el[] (Moon-Sun elongation, whole degrees), load[] (sum of active transit weights)}
+  lunations  [[iso datetime UTC, k (0 new, 1 first quarter, 2 full, 3 last quarter), Moon lon, local date], ...]
+  daily      {start, n, el[] (Moon-Sun elongation, whole degrees), load[] (sum of active transit weights),
+             lun[] (0, 1 new moon, 2 full moon, 3 first quarter, 4 last quarter: the Connecticut day it falls on)}
 """
 import json, math, os, re, datetime as dt
 
@@ -171,6 +174,100 @@ def text_for(p, a, t, house):
     h = f' Natally this sits in your {house}{"st" if house == 1 else "nd" if house == 2 else "rd" if house == 3 else "th"} house ({HT[house]}).' if house else ''
     return title, f'{NAMES[p] if p != "node" else "The node"} {verb} your {TP[t]}: {theme} that {does}. {q}{h}'
 
+# ---------------------------------------------------------------- personal moments (conventional "timing" events for one chart)
+# Weights follow the usual ranking in natal-transit practice: eclipses and outer-planet stations on the chart and the big returns
+# first; then the solar return, Mars events, lunations on the angles and luminaries; Mercury and Venus events last.
+PERSONAL = ['sun', 'moon', 'mercury', 'venus', 'mars', 'asc', 'mc']
+ANGLES = {'asc': 'Ascendant', 'mc': 'Midheaven'}
+RET = {'sun': ('Solar return', 4, 'The Sun returns to its birth degree: the personal new year. The chart of this moment is read for the year ahead.'),
+       'mercury': ('Mercury return', 1.5, 'Mercury back at its birth degree: a reset for how you think, write and plan.'),
+       'venus': ('Venus return', 2, 'Venus back at its birth degree: relationships, money and taste start a new cycle.'),
+       'mars': ('Mars return', 3, 'Mars back at its birth degree (about every two years): a new cycle of drive, effort and appetite for a fight.')}
+HOME = {'sun': 2, 'mercury': 1.5, 'venus': 1.5, 'mars': 2, 'jupiter': 3, 'saturn': 3}
+
+def crossings(series, target, days):
+    """fractional day indexes where series (degrees) crosses target"""
+    out = []
+    prev = n180(series(0) - target)
+    for i in range(1, days):
+        cur = n180(series(i) - target)
+        if (prev < 0) != (cur < 0) and abs(cur - prev) < 30: out.append(i - 1 + prev / (prev - cur))
+        prev = cur
+    return out
+
+def personal_moments(nat, ids, days, L, speed, iso, lunations, eclipses, retro):
+    out = []
+    fi = lambda f: iso(int(round(f)))
+    # returns of the Sun and personal planets
+    for p, (title, w, text) in RET.items():
+        for f in crossings(lambda i: L(p, i), nat[p]['lon'], days):
+            out.append({'date': fi(f), 'kind': 'return', 'w': w, 'title': title, 'text': text})
+    # a planet coming home to its natal sign (Mercury entering Virgo, Mars entering Scorpio...)
+    for p, w in HOME.items():
+        home = int(nat[p]['lon'] // 30)
+        for i in range(1, days):
+            a, b = int(L(p, i - 1) // 30), int(L(p, i) // 30)
+            if a != b and b == home:
+                again = speed(p, i) < 0
+                out.append({'date': iso(i), 'kind': 'ingress', 'w': w,
+                            'title': f'{NAMES[p]} {"backs into" if again else "enters"} {SIGNS[home]}, its natal sign',
+                            'text': f'{NAMES[p]} returns to the sign it held at your birth: its themes ({TP[p]}) run on familiar ground'
+                                    + (' while retrograde: a review of what started there.' if again else ' until it leaves the sign.')})
+    # Mars crossing the luminaries, angles and Venus
+    for t in ['sun', 'moon', 'asc', 'mc', 'venus']:
+        for f in crossings(lambda i: L('mars', i), nat[t]['lon'], days):
+            out.append({'date': fi(f), 'kind': 'mars', 'w': 2.5 if t in ('asc', 'mc') else 2,
+                        'title': f'Mars conjunct your {NAMES[t]}', 'text': f'Mars charges your {TP[t]}: energy, initiative and friction for a few days either side.'})
+    # outer planets crossing the angles from the other side (Descendant, IC): conjunct ASC/MC are already transits
+    for p in ['jupiter', 'saturn', 'uranus', 'neptune', 'pluto']:
+        for t, nm, th in [('asc', 'Descendant', 'partnership and the people you meet one-on-one'), ('mc', 'IC', 'home, family and roots')]:
+            for f in crossings(lambda i: L(p, i), n360(nat[t]['lon'] + 180), days):
+                out.append({'date': fi(f), 'kind': 'angle', 'w': {'jupiter': 3, 'saturn': 4}.get(p, 5),
+                            'title': f'{NAMES[p]} crosses your {nm}', 'text': f'{NAMES[p]} sits on an angle of the chart: {PT[p][0]} in {th}. Angles are where transits show most in outer life.'})
+    # new and full moons on natal points (eclipses already listed)
+    ecl = {e['date'] for e in eclipses}
+    for tm, k, ml in lunations:
+        if k not in (0, 2) or tm in ecl: continue
+        sl = n360(ml - (0 if k == 0 else 180))
+        for t in [x for x in ids if x != 'chiron']:
+            hit = abs(n180(ml - nat[t]['lon'])) <= 3 or (k == 2 and abs(n180(sl - nat[t]['lon'])) <= 3)
+            if not hit: continue
+            w = 2.5 if t in ('sun', 'moon', 'asc', 'mc') else 1.5 if t in PERSONAL or t == 'node' else 1
+            out.append({'date': tm[:10], 'kind': 'lunation', 'w': w, 'title': f'{"New" if k == 0 else "Full"} Moon on your {NAMES[t]}',
+                        'text': (f'A new moon on your {TP[t]}: a start, an intention, a month-long cycle that begins here.' if k == 0
+                                 else f'A full moon across your {TP[t]}: something comes to a head, shows, or completes.')})
+    # Mercury, Venus and Mars retrograde over a natal point (the arc between the two stations)
+    for p, w0 in [('mercury', 1.2), ('venus', 2.5), ('mars', 3)]:
+        for s, e in retro[p]:
+            i0, i1 = (dt.date.fromisoformat(s) - START).days, (dt.date.fromisoformat(e) - START).days
+            a, b = L(p, i1), L(p, i0)          # direct station .. retro station (retrograde runs backwards)
+            arc = n360(b - a)
+            for t in [x for x in ids if x != 'chiron']:
+                if n360(nat[t]['lon'] - a) <= arc:
+                    big = t in ('sun', 'moon', 'asc', 'mc', p)
+                    out.append({'date': s, 'kind': 'retro', 'w': round(w0 * (1.6 if big else 1), 1),
+                                'title': f'{NAMES[p]} retrograde over your {NAMES[t]}', 'end': e,
+                                'text': f'{NAMES[p]} backs over your {TP[t]} ({fmt_d(s)} to {fmt_d(e)}): a review period; old matters of this point return to be redone.'})
+    return out
+
+def lun_days(lunations, days):
+    """per day: 1 new moon, 2 full moon, 3 first quarter, 4 last quarter (the day it falls on in Connecticut), else 0"""
+    try:
+        from zoneinfo import ZoneInfo; tz = ZoneInfo('America/New_York')
+    except Exception:
+        tz = dt.timezone(dt.timedelta(hours=-5))
+    v = [0] * days
+    for L_ in lunations:
+        tm, k = L_[0], L_[1]
+        d = dt.datetime.strptime(tm, '%Y-%m-%dT%H:%MZ').replace(tzinfo=dt.timezone.utc).astimezone(tz).date()
+        L_.append(d.isoformat())             # local (Connecticut) date of the lunation
+        i = (d - START).days
+        if 0 <= i < days: v[i] = {0: 1, 2: 2, 1: 3, 3: 4}[k]
+    return v
+
+def fmt_d(s):
+    d = dt.date.fromisoformat(s); return f'{d.strftime("%b")} {d.day}'
+
 def main():
     if not os.path.exists(SRC):
         print('astro    skipped: no natal text at', SRC); return
@@ -319,14 +416,15 @@ def main():
         if tr['kind'] == 'return':
             for x in tr['exact']:
                 moments.append({'date': x[:10], 'kind': 'return', 'w': 6, 'title': tr['title'] + ' (exact)', 'text': tr['text']})
-    moments.sort(key=lambda m: m['date'])
+    moments += personal_moments(nat, ids, days, L, speed, iso, lunations, eclipses, retro)
+    moments.sort(key=lambda m: (m['date'], -m['w']))
 
     out = {
         'generated': dt.date.today().isoformat(), 'start': START.isoformat(), 'end': END.isoformat(),
         'natal': {'points': pts, 'cusps': cusps, 'aspects': nasp},
         'transits': transits, 'houses': hperiods, 'moments': moments, 'eclipses': eclipses, 'retro': retro, 'lunations': lunations,
         'daily': {'start': START.isoformat(), 'n': days, 'el': [int(round(n360(L('moon', i) - L('sun', i)))) % 360 for i in range(days)],
-                  'load': [round(x, 1) for x in load]},
+                  'load': [round(x, 1) for x in load], 'lun': lun_days(lunations, days)},
     }
     with open(OUT, 'w') as f: json.dump(out, f, separators=(',', ':'), ensure_ascii=False)
     print(f'astro    {len(transits)} transits, {len(hperiods)} house periods, {len(moments)} moments, {len(eclipses)} eclipses, '

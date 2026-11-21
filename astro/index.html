@@ -264,6 +264,10 @@ function lonOf(id, ms) {
   const ELA = A.daily.el, LOAD = A.daily.load, NA = A.daily.n;
   const RX = {}; for (const [p, runs] of Object.entries(A.retro)) { const v = new Uint8Array(NA); for (const [s, e] of runs) for (let k = Math.max(0, idx(s)); k <= Math.min(NA - 1, idx(e)); k++) v[k] = 1; RX[p] = v; }
   const PHA = new Uint8Array(NA), ILA = new Float64Array(NA); for (let j = 0; j < NA; j++) { PHA[j] = Math.floor(norm360(ELA[j] + 22.5) / 45) % 8; ILA[j] = (1 - Math.cos(ELA[j] * Math.PI / 180)) / 2; }
+  const LUN = A.daily.lun || [], FW = new Uint8Array(NA), NW = new Uint8Array(NA);
+  for (let j = 0; j < NA; j++) if (LUN[j] === 1 || LUN[j] === 2) for (let k = Math.max(0, j - 1); k <= Math.min(NA - 1, j + 1); k++) (LUN[j] === 2 ? FW : NW)[k] = 1;
+  const KC = { eclipse: '#ffd36b', return: '#b6ff5c', station: '#7fe0e8', ingress: '#c7a6ff', lunation: '#e3e8f4', retro: '#ff6fd8', mars: '#ff7a5c', angle: '#ffb347' };
+  const KN = { eclipse: 'eclipse on the chart', return: 'return', station: 'station on the chart', ingress: 'planet home in its natal sign', lunation: 'new / full moon on the chart', retro: 'retrograde over the chart', mars: 'Mars on the chart', angle: 'outer planet on an angle' };
   const houseOf = (lon) => { for (let i = 0; i < 12; i++) { const a = CUSPS[i], b = CUSPS[(i + 1) % 12]; if (norm360(lon - a) < norm360(b - a)) return i + 1; } return 1; };
   const ord = (h) => h + (h === 1 ? 'st' : h === 2 ? 'nd' : h === 3 ? 'rd' : 'th');
 
@@ -348,21 +352,21 @@ function lonOf(id, ms) {
     el('div', { className: 'd', textContent: `${fmt(t.start)} → ${fmt(t.end)} · exact ${t.exact.length ? t.exact.map((x) => fmt(x)).join(', ') : '(outside 2015–2027)'} · weight ${t.w}` })]),
     el('div', { className: 'x', textContent: t.text }),
     showRec && t.a0 <= TODAY ? record(t.a0, Math.min(t.a1, TODAY)) : null]);
-  const itemM = (m, open) => el('details', { className: 'item', open: !!open, style: `--c:${m.kind === 'eclipse' ? '#ffd36b' : m.kind === 'return' ? '#b6ff5c' : '#7fe0e8'}` }, [
-    sum([el('div', { className: 't', textContent: m.title }), el('div', { className: 'd', textContent: `${fmt(m.date)} · ${m.kind}` })]), el('div', { className: 'x', textContent: m.text }),
+  const itemM = (m, open) => el('details', { className: 'item', open: !!open, style: `--c:${KC[m.kind] || '#7fe0e8'}` }, [
+    sum([el('div', { className: 't', textContent: m.title }), el('div', { className: 'd', textContent: `${fmt(m.date)}${m.end ? ' → ' + fmt(m.end) : ''} · ${KN[m.kind] || m.kind} · impact ${m.w}` })]), el('div', { className: 'x', textContent: m.text }),
     m.i <= TODAY ? record(m.i - 3, Math.min(m.i + 10, TODAY)) : null]);
 
   // ================================================================ NOW
   function renderNow() {
     $('#n-now').replaceChildren(...(active.length ? active.map((t, k) => itemT(t, true, k < 2)) : [el('p', { className: 'note', textContent: 'No major transits in orb today.' })]));
-    const nx = [...T.filter((t) => t.a0 > TODAY && t.a0 <= TODAY + 365).map((t) => ({ i: t.a0, n: itemT(t, false), w: t.w })), ...MOM.filter((m) => m.i > TODAY && m.i <= TODAY + 365 && m.kind !== 'return').map((m) => ({ i: m.i, n: itemM(m), w: m.w }))].sort((a, b) => a.i - b.i);
+    const nx = [...T.filter((t) => t.a0 > TODAY && t.a0 <= TODAY + 365).map((t) => ({ i: t.a0, n: itemT(t, false), w: t.w })), ...MOM.filter((m) => m.i > TODAY && m.i <= TODAY + 365 && m.w >= 2 && !/\(exact\)$/.test(m.title)).map((m) => ({ i: m.i, n: itemM(m), w: m.w }))].sort((a, b) => a.i - b.i);
     $('#n-next').replaceChildren(...nx.map((x) => x.n));
   }
 
   // ================================================================ TIMELINE
   const TV = { span: 'year', pick: null };
   seg($('#t-span'), [['year', String(new Date().getFullYear())], ['3y', 'LAST 3 YEARS + NEXT'], ['all', '2015–2027']], TV.span, (k) => { TV.span = k; drawTimeline(); });
-  $('#t-legend').innerHTML = [['#ffb347', 'conjunct'], ['#ff3fb4', 'square / opposite'], ['#3ff0ff', 'trine / sextile'], ['#ffd36b', 'eclipse on chart'], ['#b6ff5c', 'return'], ['#7fe0e8', 'station on chart']].map(([c, l]) => `<span><i style="background:${c}"></i>${l}</span>`).join('');
+  $('#t-legend').innerHTML = [['#ffb347', 'conjunct'], ['#ff3fb4', 'square / opposite'], ['#3ff0ff', 'trine / sextile'], ...Object.entries(KC).map(([k, c]) => [c, KN[k]])].map(([c, l]) => `<span><i style="background:${c}"></i>${l}</span>`).join('');
   function drawTimeline() {
     const host = $('#t-chart'), W = host.clientWidth; if (!W) return;
     const yr = new Date().getFullYear(), [a, b] = TV.span === 'year' ? [idx(`${yr}-01-01`), idx(`${yr}-12-31`)] : TV.span === '3y' ? [idx(`${yr - 3}-01-01`), idx(`${yr + 1}-12-31`)] : [0, NA - 1];
@@ -385,10 +389,15 @@ function lonOf(id, ms) {
     y += rh + gap;
     // moments
     s.append(sv('text', { x: 0, y: y + 9, style: 'fill:var(--ink)' }, ['Moments']));
-    for (const m of MOM) { if (m.i < a || m.i > b || (m.kind === 'station' && m.w < 2)) continue;
-      const c = m.kind === 'eclipse' ? '#ffd36b' : m.kind === 'return' ? '#b6ff5c' : '#7fe0e8', d = sv('circle', { cx: X(m.i), cy: y + 6, r: m.kind === 'return' ? 5 : 4, fill: c, stroke: '#07060f', class: 'hit' });
+    const wMin = b - a > 400 ? 3 : 1.5;
+    for (const m of [...MOM].sort((p, q) => p.w - q.w)) { if (m.i < a || m.i > b || m.w < wMin || /\(exact\)$/.test(m.title)) continue;
+      const c = KC[m.kind] || '#7fe0e8', d = sv('circle', { cx: X(m.i), cy: y + 6, r: Math.min(7, 2 + m.w * 0.8), fill: c, stroke: '#07060f', class: 'hit' });
       d.addEventListener('mousemove', (ev) => tipAt(ev, `<b>${m.title}</b><br>${fmt(m.date)}`)); d.addEventListener('mouseleave', tipOff); d.addEventListener('click', () => { $('#t-pick').replaceChildren(itemM(m, true)); }); s.append(d); }
     y += rh + gap;
+    if (b - a <= 400) { s.append(sv('text', { x: 0, y: y + 9, style: 'fill:var(--ink)' }, ['Lunations']));
+      for (let i = a; i <= Math.min(b, NA - 1); i++) if (LUN[i] === 1 || LUN[i] === 2) { const d = sv('circle', { cx: X(i + 0.5), cy: y + 6, r: 4.5, fill: LUN[i] === 2 ? '#e3e8f4' : '#07060f', stroke: '#e3e8f4' });
+        d.addEventListener('mousemove', (ev) => tipAt(ev, `<b>${LUN[i] === 2 ? 'Full' : 'New'} moon</b><br>${fmt(iso(i))}`)); d.addEventListener('mouseleave', tipOff); s.append(d); }
+      y += rh + gap; }
     for (const L of lanes) {
       s.append(sv('text', { x: 0, y: y + 9, style: 'fill:var(--ink)' }, [NM[L.p]]));
       for (const t of L.items) { const yy = y + t._row * (rh + 3), r = sv('rect', { x: X(t.a0), y: yy, width: Math.max(3, X(t.a1 + 1) - X(t.a0)), height: rh, fill: AC[t.a], opacity: (0.35 + t.w / 15).toFixed(2), rx: 2, class: 'hit' });
@@ -410,24 +419,29 @@ function lonOf(id, ms) {
   }
 
   // ================================================================ PERIODS
-  const PV = { kind: 'transits', p: 'all', sort: 'date' };
+  const PV = { kind: 'transits', p: 'all', sort: 'date', mk: 'all', when: 'next', msort: 'w' };
   function renderPeriods() {
     const ctl = $('#p-ctl'); ctl.replaceChildren();
     const k1 = el('span', { className: 'ctl' }), k2 = el('span', { className: 'ctl' }), k3 = el('span', { className: 'ctl' }); ctl.append(k1, el('span', { className: 'gap' }), k2, el('span', { className: 'gap' }), k3);
     seg(k1, [['transits', 'TRANSITS'], ['houses', 'HOUSES'], ['moments', 'MOMENTS']], PV.kind, (k) => { PV.kind = k; renderPeriods(); });
     if (PV.kind !== 'moments') seg(k2, [['all', 'ALL'], ...['jupiter', 'saturn', 'uranus', 'neptune', 'pluto', ...(PV.kind === 'transits' ? ['node'] : [])].map((p) => [p, NM[p].toUpperCase()])], PV.p, (k) => { PV.p = k; renderPeriods(); });
     if (PV.kind === 'transits') seg(k3, [['date', 'BY DATE'], ['w', 'BY WEIGHT']], PV.sort, (k) => { PV.sort = k; renderPeriods(); });
+    if (PV.kind === 'moments') { const k4 = el('span', { className: 'ctl' }); ctl.append(el('span', { className: 'gap' }), k4);
+      seg(k2, [['next', 'NEXT 12 MONTHS'], ['past', 'PAST'], ['all', '2015–2027']], PV.when, (k) => { PV.when = k; renderPeriods(); });
+      seg(k3, [['w', 'BY IMPACT'], ['date', 'BY DATE']], PV.msort, (k) => { PV.msort = k; renderPeriods(); });
+      seg(k4, [['all', 'ALL'], ...Object.keys(KC).map((k) => [k, { eclipse: 'ECLIPSES', return: 'RETURNS', station: 'STATIONS', ingress: 'HOME SIGN', lunation: 'NEW / FULL', retro: 'RETROGRADES', mars: 'MARS', angle: 'ANGLES' }[k]])], PV.mk, (k) => { PV.mk = k; renderPeriods(); }); }
     let items;
     if (PV.kind === 'transits') items = T.filter((t) => PV.p === 'all' || t.p === PV.p).sort((a, b) => PV.sort === 'w' ? b.w - a.w : a.a0 - b.a0).map((t) => itemT(t, true));
     else if (PV.kind === 'houses') items = A.houses.filter((h) => PV.p === 'all' || h.p === PV.p).sort((a, b) => idx(a.start) - idx(b.start)).map((h) => el('details', { className: 'item', style: `--c:${PC[h.p]}` }, [
       sum([el('div', { className: 't', innerHTML: `<span class="g" style="color:${PC[h.p]}">${GL[h.p]}︎</span> ${NM[h.p]} through the ${ord(h.h)} house` }), el('div', { className: 'd', textContent: `${fmt(h.start)} → ${fmt(h.end)}` })]),
       el('div', { className: 'x', textContent: h.text }), idx(h.start) <= TODAY ? record(idx(h.start), Math.min(idx(h.end), TODAY)) : null]));
-    else items = MOM.map(itemM);
+    else items = MOM.filter((m) => (PV.mk === 'all' || m.kind === PV.mk) && (PV.when === 'all' || (PV.when === 'next' ? m.i > TODAY && m.i <= TODAY + 365 : m.i <= TODAY)))
+      .sort((p, q) => (PV.msort === 'w' ? q.w - p.w || p.i - q.i : PV.when === 'past' ? q.i - p.i : p.i - q.i)).map((m) => itemM(m));
     $('#p-list').replaceChildren(...items);
   }
 
   // ================================================================ shared stats: vs-usual residuals and circular-shift permutations
-  const METRICS = DJ.datasets.filter((d) => d.grain === 'day' && !['astro', 'fortnite', 'trail'].includes(d.id)).flatMap((d) => d.metrics.map((m) => ({ d, m, key: d.id + ':' + m.id, name: m.name, unit: m.unit })));
+  const METRICS = DJ.datasets.filter((d) => d.grain === 'day' && !['astro', 'moon', 'fortnite', 'trail'].includes(d.id)).flatMap((d) => d.metrics.map((m) => ({ d, m, key: d.id + ':' + m.id, name: m.name, unit: m.unit })));
   function resid(Mx, a, b) {   // residual = value − centred 91-day mean (needs 30 values in the window)
     const { d, m } = Mx, n = b - a + 1, raw = new Array(n).fill(null), out = new Array(n).fill(null);
     for (let i = 0; i < n; i++) { const k = a + i - d.offset; if (k >= 0 && k < m.v.length && m.v[k] != null) raw[i] = m.v[k]; }
@@ -437,18 +451,18 @@ function lonOf(id, ms) {
     let ms = 0, mc = 0; for (const x of raw) if (x != null) { ms += x; mc++; }
     return { raw, r: out, mean: mc ? ms / mc : 0, cnt: out.filter((x) => x != null).length };
   }
-  const TESTS = [['fn', 'Full − New'], ['il', 'Moon lit r'], ['me', 'Mercury ℞ Δ'], ['ve', 'Venus ℞ Δ'], ['ma', 'Mars ℞ Δ'], ['lo', 'Load r']];
+  const TESTS = [['fn', 'Full − New'], ['il', 'Moon lit r'], ['me', 'Mercury ℞ Δ'], ['ve', 'Venus ℞ Δ'], ['ma', 'Mars ℞ Δ'], ['fw', 'Full moon ±1d Δ'], ['nw', 'New moon ±1d Δ'], ['lo', 'Load r']];
   function stats(r, a, n, shift) {   // r: residuals for days a..a+n-1; sky read at (i + shift) mod n inside the window
-    const acc = { f: [0, 0], nw: [0, 0], me: [0, 0, 0, 0], ve: [0, 0, 0, 0], ma: [0, 0, 0, 0] }; let sx = 0, sy = 0, sxx = 0, syy = 0, sxy = 0, ly = 0, lyy = 0, lxy = 0, cnt = 0;
+    const acc = { f: [0, 0], nw: [0, 0], me: [0, 0, 0, 0], ve: [0, 0, 0, 0], ma: [0, 0, 0, 0], fw: [0, 0, 0, 0], nw2: [0, 0, 0, 0] }; let sx = 0, sy = 0, sxx = 0, syy = 0, sxy = 0, ly = 0, lyy = 0, lxy = 0, cnt = 0;
     for (let i = 0; i < n; i++) { const v = r[i]; if (v == null) continue; const j = a + ((i + shift) % n);
       const p = PHA[j], il = ILA[j], ld = LOAD[j];
       if (p === 4) { acc.f[0] += v; acc.f[1]++; } else if (p === 0) { acc.nw[0] += v; acc.nw[1]++; }
-      for (const [k, P] of [['me', RX.mercury], ['ve', RX.venus], ['ma', RX.mars]]) { if (P[j]) { acc[k][0] += v; acc[k][1]++; } else { acc[k][2] += v; acc[k][3]++; } }
+      for (const [k, P] of [['me', RX.mercury], ['ve', RX.venus], ['ma', RX.mars], ['fw', FW], ['nw2', NW]]) { if (P[j]) { acc[k][0] += v; acc[k][1]++; } else { acc[k][2] += v; acc[k][3]++; } }
       sx += v; sxx += v * v; sy += il; syy += il * il; sxy += v * il; ly += ld; lyy += ld * ld; lxy += v * ld; cnt++; }
     const pr = (sY, sYY, sXY) => { const num = cnt * sXY - sx * sY, den = Math.sqrt((cnt * sxx - sx * sx) * (cnt * sYY - sY * sY)); return den ? num / den : null; };
     const d = (q) => (q[1] >= 7 && q[3] >= 7 ? q[0] / q[1] - q[2] / q[3] : null);
-    return { fn: acc.f[1] >= 7 && acc.nw[1] >= 7 ? acc.f[0] / acc.f[1] - acc.nw[0] / acc.nw[1] : null, il: pr(sy, syy, sxy), me: d(acc.me), ve: d(acc.ve), ma: d(acc.ma), lo: pr(ly, lyy, lxy),
-      n: { fn: Math.min(acc.f[1], acc.nw[1]), me: acc.me[1], ve: acc.ve[1], ma: acc.ma[1], il: cnt, lo: cnt } };
+    return { fn: acc.f[1] >= 7 && acc.nw[1] >= 7 ? acc.f[0] / acc.f[1] - acc.nw[0] / acc.nw[1] : null, il: pr(sy, syy, sxy), me: d(acc.me), ve: d(acc.ve), ma: d(acc.ma), fw: d(acc.fw), nw: d(acc.nw2), lo: pr(ly, lyy, lxy),
+      n: { fn: Math.min(acc.f[1], acc.nw[1]), me: acc.me[1], ve: acc.ve[1], ma: acc.ma[1], fw: acc.fw[1], nw: acc.nw2[1], il: cnt, lo: cnt } };
   }
   let rng = 12345; const rand = () => (rng = (rng * 16807) % 2147483647) / 2147483647;
   function permute(r, a, n, obs, S) {
@@ -463,7 +477,7 @@ function lonOf(id, ms) {
 
   // ================================================================ LENS
   const LV = { key: 'move:steps', span: 'year' };
-  $('#l-metric').innerHTML = DJ.datasets.filter((d) => d.grain === 'day' && !['astro', 'fortnite', 'trail'].includes(d.id)).map((d) => `<optgroup label="${d.name}">${d.metrics.map((m) => `<option value="${d.id}:${m.id}">${m.name}</option>`).join('')}</optgroup>`).join('');
+  $('#l-metric').innerHTML = DJ.datasets.filter((d) => d.grain === 'day' && !['astro', 'moon', 'fortnite', 'trail'].includes(d.id)).map((d) => `<optgroup label="${d.name}">${d.metrics.map((m) => `<option value="${d.id}:${m.id}">${m.name}</option>`).join('')}</optgroup>`).join('');
   $('#l-metric').value = LV.key; $('#l-metric').onchange = (e) => { LV.key = e.target.value; drawLens(); };
   seg($('#l-span'), [['year', String(new Date().getFullYear())], ['all', 'ALL YEARS']], LV.span, (k) => { LV.span = k; drawLens(); });
   $('#l-span').className = 'ctl';
@@ -481,6 +495,10 @@ function lonOf(id, ms) {
       el('div', { className: 'bar', innerHTML: `<span class="mid"></span><i style="left:${v >= 0 ? 50 : 50 - w}%;width:${w}%;background:${v >= 0 ? '#3ff0ff' : '#ff3fb4'}"></i>` }), el('div', { className: 'v', textContent: right })]); };
     $('#l-moon').replaceChildren(el('h3', { textContent: 'By lunar phase · vs usual' }), ...ph.map((q, k) => barRow(moonIcon(k * 45, 8) + PH8[k], pv[k], mx, `${pv[k] == null ? '—' : (pv[k] >= 0 ? '+' : '−') + Math.abs(pv[k]).toFixed(1) + '%'} · ${num(q[3] ? q[2] / q[3] : null, u)} · ${q[3]}d`)));
     const obs = stats(R.r, lo, n, 0), p = permute(R.r, lo, n, obs, 500);
+    const pct = (v) => (v == null ? '—' : (v >= 0 ? '+' : '−') + Math.abs(v / base * 100).toFixed(1) + '%');
+    $('#l-moon').append(el('h3', { textContent: 'Lunation days ±1 vs the rest · vs usual', style: 'margin-top:8px' }),
+      barRow(moonIcon(180, 8) + 'Full moon ±1d', obs.fw == null ? null : obs.fw / base * 100, mx, `${pct(obs.fw)} · p ${pfmt(p.fw)} · ${obs.n.fw}d`),
+      barRow(moonIcon(0, 8) + 'New moon ±1d', obs.nw == null ? null : obs.nw / base * 100, mx, `${pct(obs.nw)} · p ${pfmt(p.nw)} · ${obs.n.nw}d`));
     const rxRows = [['me', 'mercury'], ['ve', 'venus'], ['ma', 'mars']].map(([k, pl]) => { let on = [0, 0], off = [0, 0]; for (let i = 0; i < n; i++) { if (R.raw[i] == null) continue; (RX[pl][lo + i] ? on : off)[0] += R.raw[i]; (RX[pl][lo + i] ? on : off)[1]++; }
       const v = obs[k] == null ? null : obs[k] / base * 100; return { k, pl, v, on, off }; });
     const mx2 = Math.max(5, ...rxRows.map((x) => Math.abs(x.v || 0)));

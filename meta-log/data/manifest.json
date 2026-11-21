@@ -415,7 +415,7 @@
    "files": [
     {
      "path": "meta-log/data/astro.json",
-     "kb": 198,
+     "kb": 272,
      "through": "2026-11-21"
     }
    ]
@@ -434,7 +434,7 @@
    "files": [
     {
      "path": "meta-log/data/daily.json",
-     "kb": 1063,
+     "kb": 1285,
      "through": "2026-11-21"
     }
    ]

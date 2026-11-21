@@ -255,7 +255,7 @@ if os.path.exists(fp):
         })
 
 # ---------------------------------------------------------------- sky (built by scripts/build_astro.py), through today
-# Lunar illumination and retrograde days for the Explorer and the Lab's correlation table. Its own page: astro/ (STAR//LOG).
+# Retrograde days and transit load (astro) plus new/full moons and illumination (moon), for the Explorer and the Lab. Page: astro/ (STAR//LOG).
 ap = os.path.join(OUT, 'astro.json')
 if os.path.exists(ap):
     A = load(ap); a0 = day(A['daily']['start']); n = min(A['daily']['n'], (dt.date.today() - START).days - a0 + 1)
@@ -267,14 +267,34 @@ if os.path.exists(ap):
         return v
     datasets.append({
         'id': 'astro', 'name': 'Sky', 'source': 'Computed ephemeris + natal chart (astro/)', 'grain': 'day', 'offset': a0, 'n': n,
-        'site': {'blurb': 'Moon phase, retrogrades and transits to the natal chart.', 'corr': ['mercury_rx', 'load']},
+        'site': {'blurb': 'Retrogrades and transits to the natal chart.', 'corr': ['mercury_rx', 'load']},
         'metrics': [
-            {'id': 'illum', 'name': 'Moon lit', 'unit': '%', 'agg': 'mean', 'color': '#dcd8ff', 'v': [round((1 - math.cos(math.radians(x))) * 50) for x in el]},
             {'id': 'mercury_rx', 'name': 'Mercury retrograde', 'unit': 'days', 'agg': 'sum', 'color': '#ffb347', 'v': rx_days('mercury')},
             {'id': 'venus_rx', 'name': 'Venus retrograde', 'unit': 'days', 'agg': 'sum', 'color': '#ff6fd8', 'v': rx_days('venus')},
             {'id': 'mars_rx', 'name': 'Mars retrograde', 'unit': 'days', 'agg': 'sum', 'color': '#ff4d6d', 'v': rx_days('mars')},
             {'id': 'load', 'name': 'Transit load', 'unit': 'pts', 'agg': 'mean', 'color': '#9b7bff', 'v': A['daily']['load'][:n]},
         ],
+    })
+    # Moon: new and full moons on the Connecticut day they fall, by the sign they fall in, and how lit the Moon is
+    SGN = ['aries', 'taurus', 'gemini', 'cancer', 'leo', 'virgo', 'libra', 'scorpio', 'sagittarius', 'capricorn', 'aquarius', 'pisces']
+    SCOL = ['#ff8a65', '#a5d66f', '#8fd3ff', '#8e9bff'] * 3
+    new_m, full_m = [0] * n, [0] * n
+    by = {'new': {s: [0] * n for s in SGN}, 'full': {s: [0] * n for s in SGN}}
+    for tm, k, lon, local in A['lunations']:
+        i = day(local) - a0
+        if k not in (0, 2) or not 0 <= i < n: continue
+        key = 'new' if k == 0 else 'full'
+        (new_m if k == 0 else full_m)[i] = 1; by[key][SGN[int(lon // 30)]][i] = 1
+    datasets.append({
+        'id': 'moon', 'name': 'Moon', 'source': 'Computed lunations (astro/)', 'grain': 'day', 'offset': a0, 'n': n,
+        'site': {'blurb': 'New and full moons by sign, and how lit the Moon is each day.'},
+        'metrics': [
+            {'id': 'full', 'name': 'Full moons', 'unit': 'full moons', 'agg': 'sum', 'color': '#e3e8f4', 'v': full_m},
+            {'id': 'new', 'name': 'New moons', 'unit': 'new moons', 'agg': 'sum', 'color': '#8a84b8', 'v': new_m},
+            {'id': 'lit', 'name': 'Moon lit', 'unit': '%', 'agg': 'mean', 'color': '#dcd8ff', 'v': [round((1 - math.cos(math.radians(x))) * 50) for x in el]},
+        ],
+        'dims': [{'id': 'sign', 'name': 'Sign', 'cats': [{'id': s, 'name': s.title(), 'color': SCOL[j]} for j, s in enumerate(SGN)],
+                  'v': {'full': by['full'], 'new': by['new']}}],
     })
 
 # ---------------------------------------------------------------- library snapshots for the report card
