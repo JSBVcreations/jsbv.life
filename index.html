@@ -169,6 +169,7 @@ button.title:focus-visible { outline: none; }
 .rc-big { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 16px; margin-top: 12px; }
 .rc-big b { font: 600 3rem/1 var(--f-data); color: var(--sc, var(--ink)); text-shadow: 0 0 14px var(--scg, transparent); }
 .rc-big .stars { color: var(--climb); font-size: 1.2rem; letter-spacing: 2px; }
+.rc-badges { display: flex; flex-wrap: wrap; gap: 6px; } .rc-badges span { font: 600 var(--s-0) var(--f-data); letter-spacing: 0.06em; color: var(--climb); border: 1px dashed var(--climb); padding: 3px 8px; }
 .rc-big .vd { font: 600 var(--s-0) var(--f-data); letter-spacing: 0.08em; text-transform: uppercase; border: 1px solid var(--dim); padding: 3px 8px; }
 .rc-q { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
 .rc-q div { display: grid; gap: 4px; font: 400 var(--s-0) var(--f-data); color: var(--dim); }
@@ -1528,7 +1529,18 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
     if (r) {
       const qs = WS.quads.filter((Q) => r.q[Q.toLowerCase()] != null);
       if (qs.length) kids.push(el('div', { className: 'rc-q' }, qs.map((Q) => { const v = r.q[Q.toLowerCase()], i = el('i'); i.style.setProperty('--w', v + '%'); i.style.setProperty('--qc', qcol(Q)); return el('div', {}, [Q, el('b', { text: String(Math.round(v)) }), i]); })));
-      for (const Q of WS.quads) {
+      if (r.badges && r.badges.length) kids.push(el('div', { className: 'rc-badges' }, r.badges.map((b) => el('span', { text: b }))));
+      if (r.items && r.items.length) {   // Scorecard v3 export: every scored row with its own descriptor, genre craft included
+        const groups = []; for (const it of r.items) { let g = groups.find((x) => x.name === it.group); if (!g) groups.push(g = { name: it.group, quad: it.quad, rows: [] }); g.rows.push(it); }
+        const order = (g) => WS.quads.indexOf(g.quad) * 2 + (g.name === g.quad ? 0 : 1);
+        for (const g of groups.sort((a, b) => order(a) - order(b))) {
+          const sec = el('section', { className: 'rc-sec' }, [el('h4', { text: g.name })]); sec.style.setProperty('--qc', qcol(g.quad));
+          for (const it of g.rows) { const bar = el('span', { className: 'bar' }); bar.style.setProperty('--w', it.v * 10 + '%');
+            sec.append(el('div', { className: 'rc-row' }, [el('span', { className: 'nm', text: it.name }), bar, el('span', { className: 'v', text: String(it.v) }),
+              el('span', { className: 'band', text: it.desc || '' }), ...(r.notes && r.notes[it.k] ? [el('span', { className: 'cmt', text: r.notes[it.k] })] : [])])); }
+          kids.push(sec);
+        }
+      } else for (const Q of WS.quads) {
         const cs = WS.cats.filter((c) => c.quad === Q && r.s[c.k] != null); if (!cs.length) continue;
         const sec = el('section', { className: 'rc-sec' }, [el('h4', { text: Q })]); sec.style.setProperty('--qc', qcol(Q));
         for (const c of cs) { const v = r.s[c.k], bar = el('span', { className: 'bar' }); bar.style.setProperty('--w', v * 10 + '%');
@@ -1591,6 +1603,9 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
   const W_TABS = [['wall', 'Wall', ''], ['map', 'Guilty-pleasure map', 'map'], ['propaganda', 'Propaganda board', 'prop']];
   let wTab = 'wall';
   const V_COL = { 'Masterpiece': '#b6ff5c', 'Guilty pleasure': '#ff3fb4', "Respect, don't love": '#3ff0ff', 'Pass': '#ff3b4e' };
+  const V_FAM = { 'All-timer': 'Masterpiece', 'Admire it': 'Masterpiece', 'Personal favourite': 'Guilty pleasure', 'Junk food': 'Guilty pleasure', 'Acclaimed': "Respect, don't love", 'Well made': "Respect, don't love",
+    'Forgettable': 'Pass', 'Crime against cinema': 'Pass', 'Weak': 'Pass', 'Disaster': 'Pass' };
+  for (const [v, f] of Object.entries(V_FAM)) V_COL[v] = V_COL[f]; V_COL['Solid watch'] = V_COL['Watchable'] = '#ffb347';
   const mapX = (r) => { const xs = ['story', 'movie', 'critical'].map((k) => r.q[k]).filter((v) => v != null); return xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : null; };
   const W_MAP_SPLIT = 65;
   function drawMap() {
@@ -1601,7 +1616,7 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
     const m = W_MAP_SPLIT, quads = [['Guilty pleasure', 0, m, m, 100, 'start', 'top'], ['Masterpiece', m, 100, m, 100, 'end', 'top'], ['Pass', 0, m, 0, m, 'start', 'bottom'], ["Respect, don't love", m, 100, 0, m, 'end', 'bottom']];
     for (const [v, x0, x1, y0, y1, ta, va] of quads) {
       S.append(svg('rect', { x: sx(x0), y: sy(y1), width: sx(x1) - sx(x0), height: sy(y0) - sy(y1), fill: V_COL[v], 'fill-opacity': 0.045 }));
-      const n = rows.filter((t) => t.sc.verdict === v).length;
+      const n = rows.filter((t) => { const x = mapX(t.sc), y = t.sc.q.personal; return x != null && y != null && (x >= m) === (x0 >= m) && (y >= m) === (y0 >= m); }).length;
       S.append(svg('text', { x: ta === 'start' ? sx(x0) + 10 : sx(x1) - 10, y: va === 'top' ? P.t - (W < 560 && ta === 'end' ? 28 : 12) : sy(y0) - 10, 'text-anchor': ta, fill: V_COL[v], 'fill-opacity': 0.8,
         style: `font:700 ${W < 560 ? 10 : 13}px ${FU};letter-spacing:.16em` }, `${v.toUpperCase()} · ${n}`));
     }

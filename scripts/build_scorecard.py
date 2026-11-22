@@ -142,12 +142,17 @@ for r in src['rows']:
     if isinstance(d.get('propaganda'), (int, float)):
         row['prop'] = d['propaganda']
         if (d.get('propaganda_by') or '').strip(): row['prop_by'] = d['propaganda_by'].strip()
-    notes = {k: v.strip() for k, v in (d.get('notes') or {}).items() if k in KEYS and isinstance(v, str) and v.strip()}
+    notes = {k: v.strip() for k, v in (d.get('notes') or {}).items() if (k in KEYS or k.startswith('g:')) and isinstance(v, str) and v.strip()}
     if notes: row['notes'] = notes
     cs = [{'name': c['name'].strip(), 'v': c.get('v'), 'note': (c.get('note') or '').strip()} for c in (d.get('custom') or []) if (c.get('name') or '').strip()]
     if cs: row['custom'] = cs
     gs = [{'name': g['name'].strip(), 'note': (g.get('note') or '').strip()} for g in (d.get('guys') or []) if (g.get('name') or '').strip()]
     if gs: row['guys'] = gs
+    its = [{'k': i['k'], 'name': i['name'], 'quad': i['quad'], 'group': i.get('group') or i['quad'], 'v': i['v'], 'desc': i.get('desc', '')}
+           for i in (d.get('items') or []) if isinstance(i.get('v'), (int, float))]
+    if its: row['items'] = its          # Scorecard v3: scored rows incl. genre craft, each with its own point descriptor
+    if d.get('badges'): row['badges'] = [x for x in d['badges'] if isinstance(x, str)]
+    if d.get('genre2'): row['sgenre2'] = d['genre2']
     rows.append(row)
 out = {'pulled': src.get('source', ''), 'quads': QUADS, 'cats': [{'k': k, 'name': n, 'quad': q, 'bands': BANDS[k]} for k, n, q in CATS], 'titles': rows}
 with open(OUT, 'w', encoding='utf-8') as f: json.dump(out, f, separators=(',', ':'), ensure_ascii=False)
