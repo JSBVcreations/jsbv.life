@@ -117,10 +117,13 @@ export function makeBuckets(a, b, g) {
     out.push({ a: i, b: j, label: bLabel(i, g), tick: bTick(i, g) }); i = j + 1; }
   return out;
 }
+// Days a bucket needs before its average counts (stats fix 5): a week 5 of 7, a month 20; a bucket cut short by the
+// dataset's first or last day needs the same share of the days it covers. A missing day is missing, never zero.
+export const needDays = (cov) => cov >= 28 ? Math.min(20, Math.ceil(cov * 0.65)) : cov >= 7 ? Math.min(5, Math.ceil(cov * 0.7)) : Math.max(1, Math.ceil(cov * 0.7));
 export function bucketize(L, B, mode) {
-  return B.map((k) => { const r = sumRange(L, k.a, k.b);
-    const v = !r.cov ? null : L.agg === 'mean' ? (r.cnt ? r.sum / r.cnt : null) : mode === 'avg' ? r.sum / r.cov : r.sum;
-    return { v, sum: r.sum, cov: r.cov, cnt: r.cnt }; });
+  return B.map((k) => { const r = sumRange(L, k.a, k.b), enough = r.cnt >= needDays(r.cov);
+    const v = !r.cov || !r.cnt ? null : L.agg === 'mean' || mode === 'avg' ? (enough || k.a === k.b ? r.sum / r.cnt : null) : r.sum;
+    return { v, sum: r.sum, cov: r.cov, cnt: r.cnt, thin: !enough }; });
 }
 export function describe(L, cells, B) {
   const pts = cells.map((c, k) => [c.v, k]).filter((p) => p[0] != null);
@@ -130,7 +133,7 @@ export function describe(L, cells, B) {
   const hi = pts.reduce((p, q) => (q[0] > p[0] ? q : p)), lo = pts.reduce((p, q) => (q[0] < p[0] ? q : p));
   const tot = cells.reduce((s, c) => s + c.sum, 0), cov = cells.reduce((s, c) => s + c.cov, 0), cnt = cells.reduce((s, c) => s + c.cnt, 0);
   return { n, mean, sd, median: n % 2 ? xs[(n - 1) / 2] : (xs[n / 2 - 1] + xs[n / 2]) / 2, max: hi[0], maxAt: B[hi[1]].label, min: lo[0], minAt: B[lo[1]].label,
-    total: L.agg === 'mean' ? null : tot, perDay: L.agg === 'mean' ? (cnt ? tot / cnt : null) : (cov ? tot / cov : null), days: cov };
+    total: L.agg === 'mean' ? null : tot, perDay: cnt ? tot / cnt : null, days: cov, daysWithData: cnt };
 }
 export function pearson(x, y) {
   const p = []; for (let i = 0; i < x.length; i++) if (x[i] != null && y[i] != null) p.push([x[i], y[i]]);

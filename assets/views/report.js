@@ -81,7 +81,8 @@ async function drawMonthHero() {
   const links = linkRow([['months/', 'All report cards'], ['body/', 'BODY//MAP']]);
   if (!MON_RC || !MON_RC.months.length) { host.replaceChildren(el('h2', { id: 'hm-h', text: 'This month' }), links); return; }
   const m = MON_RC.months[MON_RC.months.length - 1], L = gpaL(m.gpa), MET = Object.fromEntries(MON_RC.metrics.map((x) => [x.id, x]));
-  const chip = (id) => { const g = m.g[id]; if (!g) return null; return el('span', { className: 'gchip', style: `--c:${GRADE_C[g[0]]}` }, [el('b', { text: g[0] }), MET[id].label]); };
+  const chip = (id) => { const g = m.g[id]; if (!g) return null; const prov = g.length > 2;   // [letter, pct, lo, hi]: graded on under 20 days
+    return el('span', { className: 'gchip' + (prov ? ' prov' : ''), style: `--c:${GRADE_C[g[0]]}`, title: `${MET[id].label}: ${g[1]}th percentile` + (prov ? `, provisional (80% range ${g[2]}–${g[3]})` : '') }, [el('b', { text: g[0] + (prov ? '~' : '') }), MET[id].label]); };
   const row = (cl) => MON_RC.metrics.filter((x) => x.cluster === cl).map((x) => chip(x.id)).filter(Boolean);
   host.replaceChildren(
     el('div', { className: 'top' }, [el('div', {}, [el('h2', { id: 'hm-h', text: m.name.toUpperCase() }), el('div', { className: 'tag', text: m.partial ? `report card · through ${dateLabel(dayIndex(m.through))}` : 'report card' })]),

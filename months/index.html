@@ -19,7 +19,8 @@
 <link rel="stylesheet" href="../assets/theme.css">
 <style>
 /* Report cards. Data: meta-log/data/months.json (scripts/build_report_cards.py). Grades: percentile of the month among every
-   month on record for that number (A 80+, B 60+, C 40+, D 20+, F); resting and walking heart rate are flipped. Media: no grade. */
+   month on record for that number (A 80+, B 60+, C 40+, D 20+, F); resting and walking heart rate are flipped. Media: no grade.
+   Every number is graded as a per-day rate. A grade marked ~ (dashed) rests on under 20 days; its title gives the 80% range. */
 body { line-height: 1.4; padding: 20px max(14px, env(safe-area-inset-right, 0px)) 48px max(14px, env(safe-area-inset-left, 0px)); }
 h1 { margin: 10px 0 0; font-size: clamp(2rem, 6vw, 3.6rem); }
 .strip { display: grid; grid-template-columns: repeat(12, 1fr); gap: 6px; align-items: end; height: 92px; padding: 12px 16px; }
@@ -39,6 +40,7 @@ h1 { margin: 10px 0 0; font-size: clamp(2rem, 6vw, 3.6rem); }
 .g { display: flex; white-space: nowrap; overflow: hidden; align-items: baseline; gap: 5px; border: 1px solid var(--grid); border-radius: 7px; padding: 3px 7px; font: 400 11px var(--f-data); color: var(--dim); }
 .g b { font: 700 12px var(--f-data); color: var(--c, var(--ink)); }
 .g em { font-style: normal; color: var(--ink); }
+.g.prov { border-style: dashed; }
 .foot { font: 400 11px var(--f-data); color: var(--dim); display: flex; flex-wrap: wrap; gap: 4px 14px; border-top: 1px solid var(--grid); padding-top: 7px; }
 .foot b { color: var(--ink); font-weight: 600; }
 .key { display: flex; flex-wrap: wrap; gap: 6px 14px; font: 400 11px var(--f-data); color: var(--dim); }
@@ -181,8 +183,9 @@ import { $, el, loadJSON } from '../assets/core.js';
       [el('i', { style: `height:${m && g != null ? 8 + (g / 4) * 60 : 3}px;${m ? '' : 'opacity:.3'}` }), name.toUpperCase()]);
   }));
   const chip = (m, id) => { const v = m.v[id], g = m.g[id], d = MET[id]; if (v == null) return null;
-    return el('span', { className: 'g', style: g ? `--c:${C[g[0]]}` : '', title: g ? `${d.label}: ${g[1]}th percentile of ${d.months_on_record} months` : d.label },
-      [g ? el('b', { text: g[0] }) : null, d.label + ' ', el('em', { text: fmt(v) }), d.unit ? ' ' + d.unit : '']); };
+    const prov = g && g.length > 2;   // [letter, pct, lo, hi]: graded on under 20 days, so provisional
+    return el('span', { className: 'g' + (prov ? ' prov' : ''), style: g ? `--c:${C[g[0]]}` : '', title: g ? `${d.label}: ${g[1]}th percentile of ${d.months_on_record} months` + (prov ? `, provisional (80% range ${g[2]}–${g[3]})` : '') : d.label },
+      [g ? el('b', { text: g[0] + (prov ? '~' : '') }) : null, d.label + ' ', el('em', { text: fmt(v) }), d.unit ? ' ' + d.unit : '']); };
   const cluster = (m, cl, label) => { const ids = R.metrics.filter((d) => d.cluster === cl).map((d) => d.id), kids = ids.map((id) => chip(m, id)).filter(Boolean);
     return kids.length ? el('div', { className: 'cl' }, [el('span', { text: label }), el('div', { className: 'mx' }, kids)]) : null; };
   $('#cards').append(...[...R.months].reverse().map((m) => {

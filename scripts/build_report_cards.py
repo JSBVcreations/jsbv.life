@@ -6,8 +6,9 @@
 Reads only repo files: meta-log/data/daily.json, pct-training/data/activities.json, step-song/data/meta.json and
 step-song/data/plays-YEAR.json. Writes meta-log/data/months.json (numbers only).
 
-Grades: each graded number is placed against every month on record for that number (all years, months with at least
-20 days of data). Percentile 80+ A, 60+ B, 40+ C, 20+ D, else F; "lower is better" numbers (resting and walking heart
+Grades: each graded number is a per-day rate (total / days with data), placed against every month on record for that
+number (all years, months with at least 20 days of data). A month graded on 10-19 days is provisional: its grade carries
+the 80% range of percentiles from resampling its days ([letter, pct, lo, hi]). Percentile 80+ A, 60+ B, 40+ C, 20+ D, else F; "lower is better" numbers (resting and walking heart
 rate) are flipped. Fitness and Health are graded; Media is reported without a grade. GPA = mean of A4 B3 C2 D1 F0.
 """
 import calendar
@@ -16,6 +17,9 @@ import json
 import os
 import sys
 from collections import Counter, defaultdict
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from lib import stats as ST  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 P = lambda *a: os.path.join(ROOT, *a)
@@ -72,6 +76,15 @@ def main():
         if how == 'day': return sum(vals) / len(vals), len(vals)
         return sum(vals), len(vals)
 
+    def month_days(ds, mid, y, mo):
+        '''The month's values, one per day with data (for rates and the bootstrap range).'''
+        s = series(ds, mid)
+        if not s: return []
+        off, v = s
+        a = (dt.date(y, mo, 1) - start).days
+        b = (dt.date(y, mo, calendar.monthrange(y, mo)[1]) - start).days
+        return [v[i - off] for i in range(a, b + 1) if 0 <= i - off < len(v) and v[i - off] is not None]
+
     # history of every month on record, per metric
     first_year = start.year
     hist = defaultdict(list)
@@ -80,9 +93,9 @@ def main():
             if dt.date(y, mo, 1) > last: break
             for mid, _, _, cl, ds, met, how, better in METRICS:
                 if not better: continue
-                val, n = month_value(ds, met, how, y, mo)
-                full = calendar.monthrange(y, mo)[1]
-                if val is not None and n >= min(MIN_DAYS, full): hist[mid].append(val)
+                # graded on a per-day rate, so a short or unfinished month compares fairly (stats fix 1, Nov 23 2026)
+                vals = month_days(ds, met, y, mo)
+                if len(vals) >= MIN_DAYS: hist[mid].append(sum(vals) / len(vals))
 
     # Strava hikes and music per month for the chosen year
     acts = json.load(open(P('pct-training', 'data', 'activities.json'), encoding='utf-8'))['activities']
@@ -121,11 +134,15 @@ def main():
             row['v'][mid] = round(val, 2 if val < 10 else 1 if val < 100 else 0)
             row['n'][mid] = n
             if better and hist[mid] and n >= min(10, full):
-                raw = val * 60 if mid in TO_HOURS else val
-                below = sum(1 for h in hist[mid] if h < raw) + 0.5 * sum(1 for h in hist[mid] if h == raw)
-                pct = 100 * below / len(hist[mid])
-                if better < 0: pct = 100 - pct
+                days = month_days(ds, met, year, mo)
+                flip = (lambda q: 100 - q) if better < 0 else (lambda q: q)
+                pct = flip(ST.percentile(sum(days) / len(days), hist[mid]))
                 g = letter(pct); row['g'][mid] = [g, round(pct)]
+                # under 20 days the grade is provisional: the 80% range of where the month could land (stats fix 2)
+                if n < MIN_DAYS:
+                    lo, hi = ST.bootstrap_mean_range(days)
+                    rg = sorted([flip(ST.percentile(lo, hist[mid])), flip(ST.percentile(hi, hist[mid]))])
+                    row['g'][mid] += [round(rg[0]), round(rg[1])]
                 pts.append({'A': 4, 'B': 3, 'C': 2, 'D': 1, 'F': 0}[g])
         if k in hikes: row['hikes'] = {'n': hikes[k][0], 'mi': round(hikes[k][1], 1), 'ft': round(hikes[k][2])}
         if k in top_artist: row['artist'] = top_artist[k]

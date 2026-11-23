@@ -1,6 +1,7 @@
 /* Data explorer (#explore): any series over any range, bucketed, with stats, a table and snapshots. */
 import { $, el, dayIndex, iso, dateLabel, num, tick, niceMax, FONT_UI, FONT_DATA, C, POOL } from '../core.js';
-import { DS, LIFE, MAXI, bucketize, clampI, daily, describe, lastYear, makeBuckets, metricOf, pearson, sw, today } from './state.js';
+import { DS, LIFE, MAXI, bucketize, clampI, daily, describe, lastYear, makeBuckets, metricOf, sw, today } from './state.js';
+import { corr, deviation, bh } from '../stats.js';
 // ================================================================ EXPLORER
 let sid = 0;
 const S = { a: 0, b: 0, bucket: 'auto', chart: 'line', mode: 'total', overlay: true, index: false, series: [] };
@@ -161,18 +162,23 @@ function renderStats(M) {
   t.append(el('thead', {}, el('tr', {}, ['Series', 'Total', 'Per day', `Mean / ${per}`, 'Median', 'Std dev', 'Low', 'High'].map((h) => el('th', { text: h, scope: 'col' })))));
   const tb = el('tbody'); t.append(tb);
   for (const L of M.shown) { const s = L.stats, u = L.unit;
-    tb.append(el('tr', {}, [el('td', {}, [sw(L.color), L.name, el('small', { text: `${L.ds} · ${s.days.toLocaleString()} days covered` })]),
+    tb.append(el('tr', {}, [el('td', {}, [sw(L.color), L.name, el('small', { text: `${L.ds} · ${s.daysWithData.toLocaleString()} of ${s.days.toLocaleString()} days with data` })]),
       el('td', { text: num(s.total, u) }), el('td', { text: num(s.perDay, u) }), el('td', { text: num(s.mean, u) }), el('td', { text: num(s.median, u) }), el('td', { text: num(s.sd, u) }),
       el('td', {}, [num(s.min, u), el('small', { text: s.minAt })]), el('td', {}, [num(s.max, u), el('small', { text: s.maxAt })])])); }
   // correlations between series
   const box = $('#x-corr'); box.replaceChildren();
   const ls = M.shown.slice(0, 12), pairs = [];
-  for (let i = 0; i < ls.length; i++) for (let j = i + 1; j < ls.length; j++) { const r = pearson(ls[i].vals, ls[j].vals); if (r) pairs.push({ a: ls[i], b: ls[j], ...r }); }
+  // stats fix 3: correlate each series' gap from its own usual (trailing 8-bucket median), so shared trends and
+  // seasons don't pass for a link; the interval allows for autocorrelation, and q corrects for how many pairs are shown
+  for (let i = 0; i < ls.length; i++) for (let j = i + 1; j < ls.length; j++) {
+    const c = corr(deviation(ls[i].vals, 8, 4), deviation(ls[j].vals, 8, 4), { method: 'spearman', minN: 12 }); if (c) pairs.push({ a: ls[i], b: ls[j], ...c }); }
+  const qs = bh(pairs.map((p) => p.p)); pairs.forEach((p, k) => { p.q = qs[k]; });
   if (pairs.length) { pairs.sort((p, q) => Math.abs(q.r) - Math.abs(p.r));
-    box.append(el('h3', { text: `How the series move together (by ${per})`, style: 'margin:14px 0 6px' }),
-      el('div', { className: 'scroll' }, el('table', {}, [el('thead', {}, el('tr', {}, ['Pair', 'Correlation r', `${per}s compared`].map((h) => el('th', { text: h, scope: 'col' })))),
-        el('tbody', {}, pairs.slice(0, 8).map((p) => el('tr', {}, [el('td', {}, [sw(p.a.color), p.a.name, '  ×  ', sw(p.b.color), p.b.name]), el('td', { text: (p.r >= 0 ? '+' : '') + p.r.toFixed(2) }), el('td', { text: p.n.toLocaleString() })])))])),
-      el('p', { className: 'note', style: 'margin-top:6px', text: 'r runs from −1 (opposite) through 0 (unrelated) to +1 (together). It shows co-movement, not cause.' + (pairs.length > 8 ? ` Strongest 8 of ${pairs.length} pairs shown.` : '') }));
+    const f = (v) => (v >= 0 ? '+' : '−') + Math.abs(v).toFixed(2);
+    box.append(el('h3', { text: `How the series move together (by ${per}, gaps from usual)`, style: 'margin:14px 0 6px' }),
+      el('div', { className: 'scroll' }, el('table', {}, [el('thead', {}, el('tr', {}, ['Pair', 'r', '95% range', 'q', `${per}s`].map((h) => el('th', { text: h, scope: 'col' })))),
+        el('tbody', {}, pairs.slice(0, 8).map((p) => el('tr', { style: p.q != null && p.q < 0.1 ? '' : 'opacity:.55' }, [el('td', {}, [sw(p.a.color), p.a.name, '  ×  ', sw(p.b.color), p.b.name]),
+          el('td', { text: f(p.r) }), el('td', { text: `${f(p.lo)} to ${f(p.hi)}` }), el('td', { text: p.q == null ? '—' : p.q < 0.001 ? '<0.001' : p.q.toFixed(3) }), el('td', { text: p.n.toLocaleString() })])))])));
   }
 }
 function renderTable(M) {

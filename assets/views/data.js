@@ -121,7 +121,7 @@ function renderHealth() {
     el('h3', { text: 'Heart + sleep' }),
     el('div', { className: 'kv' }, [['resting_hr', 'resting', 'bpm'], ['hrv', 'HRV', 'ms'], ['sleep_h', 'sleep', 'h'], ['walking_hr', 'walking', 'bpm']].map(([m, lab, u]) => { const v = last30('body', m); return v == null ? null : el('span', {}, [lab + ' ', el('b', { text: `${num(v)} ${u}` })]); })),
     el('div', { className: 'tag', text: `last 30 days · through ${dateLabel(B.end)}` }),
-    jump([['pct-training/#recovery', 'Recovery', 'heart rate, HRV, sleep vs training'], ['body/', 'BODY//MAP', 'muscle load + stretches'], ['months/', 'REPORT//CARDS'], ['#experiments/corr', 'What moves together', 'correlations']]),
+    jump([['pct-training/#recovery', 'Recovery', 'heart rate, HRV, sleep vs training'], ['body/', 'BODY//MAP', 'muscle load + stretches'], ['months/', 'REPORT//CARDS'], ['#experiments/links', 'Links']]),
     linkRow([[() => openInExplorer([['body', 'resting_hr', null, [], false], ['body', 'hrv', null, [], false]], Math.max(B.offset, yearStart(B.end)), B.end), 'Chart it']]),
   ]));
   if (DS.breath) { const Bt = DS.breath; cards.push(el('div', { className: 'card br' }, [
