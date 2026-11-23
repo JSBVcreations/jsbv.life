@@ -8,6 +8,7 @@ It looks at every file git would commit (tracked, plus new files that .gitignore
   - JSON keys that only raw exports carry (Spotify's ip_addr, Strava's polyline/description, "with", "number"...)
   - a private dataset (meta-log/data/privacy.json) showing up in plain form in daily.json, its shards or summary.json
   - any phone number or call-log name from jsbv data/ATT/phone-people.json, when that file is on this machine
+  - a workbook, CSV, PDF, zip or database file that git would commit
 Rules and the known false positives (with why) live in scripts/config/public-check.json.
 A problem names the file, where in it, and what kind of thing it is. It never prints the matched value itself.
 """
@@ -23,6 +24,7 @@ from .paths import ROOT, DATA, repo
 PHONE = re.compile(r'(?<![\d.])(?:\+?1[\s.\-]?)?\(?\d{3}\)?[\s.\-]\d{3}[\s.\-]\d{4}(?![\d.])')
 EMAIL = re.compile(r'[\w.+-]+@[A-Za-z0-9-]+\.[A-Za-z]{2,}')
 IPV4 = re.compile(r'(?<![\d.])(?:(?:25[0-5]|2[0-4]\d|1?\d?\d)\.){3}(?:25[0-5]|2[0-4]\d|1?\d?\d)(?![\d.])')
+RAW_EXT = ('.sqlite', '.db', '.xlsx', '.xlsm', '.numbers', '.csv', '.pdf', '.zip')   # never committed, whatever .gitignore says
 TEXT_EXT = ('.json', '.html', '.js', '.css', '.md', '.txt', '.py', '.command', '.svg', '.xml', '.webmanifest')
 
 
@@ -31,10 +33,14 @@ def digest(s):
     return hashlib.sha256(s.encode('utf-8')).hexdigest()[:12]
 
 
-def public_files():
+def committable():
     out = subprocess.run(['git', 'ls-files', '-co', '--exclude-standard'], cwd=ROOT, stdout=subprocess.PIPE,
                          stderr=subprocess.DEVNULL, universal_newlines=True).stdout.split('\n')
-    return sorted(f for f in out if f and f.endswith(TEXT_EXT) and os.path.isfile(repo(f)))
+    return [f for f in out if f and os.path.isfile(repo(f))]
+
+
+def public_files():
+    return sorted(f for f in committable() if f.endswith(TEXT_EXT))
 
 
 def local_terms():
@@ -134,6 +140,10 @@ def check_public(files=None):
         rules['private_ids'] = []
     skip = rules.get('skip', [])
     c = Checker(rules, local_terms())
+    if not files:
+        for f in committable():
+            if f.lower().endswith(RAW_EXT):
+                c.out.append({'file': f, 'where': '', 'kind': 'raw export or database file', 'sha': ''})
     for f in files or public_files():
         if not any(fnmatch.fnmatch(f, s) for s in skip):
             c.file(f)

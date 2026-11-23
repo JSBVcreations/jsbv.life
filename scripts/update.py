@@ -14,6 +14,7 @@ A row is skipped when none of its files, its builder or scripts/lib changed sinc
 Exports are looked for in the data folder ($JSBV_DATA, default ~/Documents/00-Database/jsbv data); see lib/finders.py.
 Files dropped in "jsbv data/inbox/" are filed first (lib/inbox.py). Raw exports are only ever READ.
 Builders write numbers-only JSON into the repo, and scripts/check_public.py checks it all at the end (rules: CLAUDE.md).
+Every dataset, sealed ones included, is also copied into "jsbv data/jsbv.sqlite" for querying (build_store.py).
 Stock macOS python3 (3.9) is enough. Full map of sources and steps: docs/UPDATING.md.
 """
 import datetime as dt
@@ -189,6 +190,7 @@ def main():
 
     print('\n3. Copies and checks')
     if not CHECK and not ONLY and not run('Claude-ready tables', [PY, os.path.join(S, 'export_for_claude.py')]): failed.append('claude-export')
+    if not CHECK and not ONLY and not run('jsbv.sqlite (every dataset, sealed ones too; stays in the data folder)', [PY, os.path.join(S, 'build_store.py')]): failed.append('store')
     if not run('manifest.json', [PY, os.path.join(S, 'build_manifest.py')]): failed.append('manifest')
     problems = check_public()
     print('  > privacy check: ' + ('clean' if not problems else f'{len(problems)} PROBLEM{"" if len(problems) == 1 else "S"}: do not commit until fixed'))

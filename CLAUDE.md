@@ -70,7 +70,7 @@ Jack's personal data site: a decade of steps, music, photos and trail logs, plus
 - Data views default to the current year, not all time. Weeks start on Sunday.
 - Metrics are nested under umbrellas (Listening and Plays sit under Music, etc.).
 - Clusters (Nov 20): physiological metrics (heart rate, HRV, sleep, breathwork, water, private body) live under **Health**; activity (steps, miles, flights, exercise, lifting, hikes, AT) under **Fitness**; music, watching, photos, calls, games under **Media**.
-- Flat copies for analysis: `scripts/export_for_claude.py` writes CSVs + `jsbv.sqlite` + README to `jsbv data/claude-ready/` (run by Update).
+- Flat copies for analysis: `scripts/export_for_claude.py` writes CSVs + `jsbv.sqlite` + README to `jsbv data/claude-ready/` (public data only, fine to upload to a chat; run by Update). `scripts/build_store.py` writes `jsbv data/jsbv.sqlite`, the full local store (sealed and private tables included: never upload or commit it).
 - Heart rate, HRV and sleep are published and interactive.
 - Copy is plain and specific. Numbers come from the data, never estimated in prose.
 - No explanatory filler under charts or datasets (Jack, Nov 19): titles, labels and numbers only.
