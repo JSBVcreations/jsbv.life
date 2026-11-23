@@ -372,14 +372,15 @@
    "name": "AT 2019 (frozen)",
    "kind": "historic",
    "raw": "trail-log workbook",
-   "builder": "build_at_log.py, build_at_breakdown.py, build_trail_radio.py",
+   "builder": "build_at_log.py, build_at_breakdown.py, build_trail_radio.py, build_at_trip.py",
    "outputs": [
     "step-song/data/at2019-log.json",
     "step-song/data/at2019-breakdown.json",
-    "trail/data/trail-radio.json"
+    "trail/data/trail-radio.json",
+   "trail/data/at-trip.json"
    ],
    "pages": [
-    "step-song/#trail",
+    "trail/#log",
     "trail/"
    ]
   },

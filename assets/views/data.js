@@ -92,9 +92,8 @@ async function renderTrails(which = 'fitness') {
       el('h3', { text: 'Appalachian Trail 2019' }),
       el('div', { className: 'big2' }, [num(miles), el('small', { text: `miles southbound in ${b - a + 1} days, ${longDate(a)} – ${longDate(b)}` })]),
       el('div', { className: 'kv' }, [el('span', {}, ['music ', el('b', { text: `${num(listen / 60)} h` })])]),
-      jump([['step-song/#trail', 'Trail log', 'day by day, charts'], ['step-song/#trail-weeks', 'Weeks', 'week by week'], ['step-song/#trail-states', 'States', 'pace, elevation, by state'],
-        ['step-song/#trail-hours', 'Hiking hours', 'start, stop, stretches'], ['step-song/#trail-calendar', 'Calendar', 'every day in a grid'], ['trail/', 'Trail radio', 'the songs, any stretch'],
-        ['trail/#replay', 'Day replay', 'steps + songs by the hour'], ['trail/#map', 'Soundtrack map', 'top artists by week']]),
+      jump([['trail/#log', 'Trail log'], ['trail/#trail-weeks', 'Weeks'], ['trail/#trail-states', 'States'], ['trail/#trail-hours', 'Hiking hours'],
+        ['trail/#trail-calendar', 'Calendar'], ['trail/#radio', 'Radio'], ['trail/#replay', 'Day replay'], ['trail/#map', 'Soundtrack map']]),
       linkRow([[() => openInExplorer([['trail', 'log_miles', null, [], false], ['move', 'steps', null, [], false]], a, b), 'Chart it in the explorer']]),
     ]));
   }
@@ -148,7 +147,7 @@ function renderProjects() {
     cards.push(el('div', { className: 'card ss' }, [
       el('h3', { text: 'STEP//SONG' }),
       el('div', { className: 'big2' }, [num(steps / 1e6, '') + 'M', el('small', { text: `steps and ${num(hrs)} hours of music on one clock` })]),
-      jump([['step-song/#decade', 'Ten years', 'every day since 2016'], ['step-song/#day', 'Fortnight & day', 'hour by hour, track list'], ['step-song/#cuts', 'Cross-cuts', 'where the two meet'], ['step-song/#trail', 'Appalachian Trail', 'the 2019 log']]),
+      jump([['step-song/#decade', 'Ten years', 'every day since 2016'], ['step-song/#day', 'Fortnight & day', 'hour by hour, track list'], ['step-song/#cuts', 'Cross-cuts', 'where the two meet'],]),
     ]));
   }
   const sn = daily.snapshots || {}, ph = sn.photos && sn.photos[sn.photos.length - 1];

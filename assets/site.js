@@ -25,11 +25,11 @@
     ['PCT//PREP · Low tide', 'pct', 'pct-training/#low-tide', '2019 floor race'], ['PCT//PREP · Days', 'pct', 'pct-training/#days'],
     ['PCT//PREP · Recovery', 'pct', 'pct-training/#recovery', 'heart rate hrv sleep load'], ['PCT//PREP · Pace', 'pct', 'pct-training/#pace', 'calculator'],
     ['PCT//PREP · Trail weeks', 'pct', 'pct-training/#trail-weeks', 'runway projection'],
-    ['AT 2019 · Trail log', 'pct', 'step-song/#trail', 'appalachian trail'], ['AT 2019 · Weeks', 'pct', 'step-song/#trail-weeks', 'appalachian'],
-    ['AT 2019 · States', 'pct', 'step-song/#trail-states', 'appalachian'], ['AT 2019 · Hiking hours', 'pct', 'step-song/#trail-hours', 'appalachian'],
-    ['AT 2019 · Calendar', 'pct', 'step-song/#trail-calendar', 'appalachian'],
-    ['AT 2019 · Radio', 'pct', 'trail/#radio', 'trail radio songs appalachian'], ['AT 2019 · Day replay', 'pct', 'trail/#replay', 'appalachian'],
-    ['AT 2019 · Soundtrack map', 'pct', 'trail/#map', 'appalachian artists'],
+    ['AT//2019 · Trail log', 'pct', 'trail/#log', 'appalachian trail elevation profile climb'], ['AT//2019 · Weeks', 'pct', 'trail/#trail-weeks', 'appalachian'],
+    ['AT//2019 · States', 'pct', 'trail/#trail-states', 'appalachian'], ['AT//2019 · Hiking hours', 'pct', 'trail/#trail-hours', 'appalachian'],
+    ['AT//2019 · Calendar', 'pct', 'trail/#trail-calendar', 'appalachian'],
+    ['AT//2019 · Radio', 'pct', 'trail/#radio', 'trail radio songs appalachian'], ['AT//2019 · Day replay', 'pct', 'trail/#replay', 'appalachian'],
+    ['AT//2019 · Soundtrack map', 'pct', 'trail/#map', 'appalachian artists'],
     ['Fitness', 'fitness', '#fitness', 'hub'],
     ['IRON//LOG · Overview', 'fitness', 'fitness/#overview', 'gym lifting'], ['IRON//LOG · Tally', 'fitness', 'fitness/#tally', 'pounds'],
     ['IRON//LOG · PRs', 'fitness', 'fitness/#prs', 'records'], ['IRON//LOG · Big four', 'fitness', 'fitness/#lifts', 'squat bench deadlift press'],
@@ -79,6 +79,8 @@
   function primary() {
     for (const nav of document.querySelectorAll('nav.site[data-here]')) {
       navEl = nav;
+      // a sticky bar only sticks inside its parent: lift it out of a <header> so it holds for the whole page
+      const hd = nav.parentElement; if (hd && hd.tagName === 'HEADER') hd.before(nav);
       nav.setAttribute('aria-label', 'Site'); nav.classList.add('primary');
       nav.replaceChildren(...PRIMARY.map(([k, label, h]) => (() => { const a = mk('a', { href: href(h), textContent: label }); a.dataset.nav = k; return a; })()),
         mk('button', { type: 'button', className: 'jump-btn', title: 'Jump to a page (/)', ariaLabel: 'Jump to a page', textContent: '⌕', onclick: openJump }));
