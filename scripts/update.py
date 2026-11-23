@@ -103,6 +103,7 @@ def content_hash(patterns, own=()):
 def code_files(row):
     out = [os.path.join(S, row['builder'])] if row.get('builder', '').endswith('.py') else []
     if row['run'].get('pre'): out.append(os.path.join(S, row['run']['pre']))
+    if row['run'].get('export'): out.append(os.path.join(S, 'export_public.py'))
     return out + sorted(glob.glob(os.path.join(S, 'lib', '*.py')))
 
 
@@ -172,7 +173,8 @@ def main():
         inputs = found[k] + [p for g in opt for p in g] + [p for o in spec.get('also', []) for p in found.get(o, [])]
         outs = [p for o in row.get('outputs', []) for p in glob.glob(os.path.join(ROOT, o.replace('YYYY', '[0-9]' * 4)))]
         fp = '|'.join([fingerprint(inputs + code_files(row)),
-                       content_hash(spec.get('reads', []), set(outs)), ' '.join(args), str(TODAY) if spec.get('daily') else ''])
+                       content_hash(spec.get('reads', []), set(outs)), ' '.join(args), json.dumps(spec, sort_keys=True),
+                       str(TODAY) if spec.get('daily') else ''])
         if not ALL and not ONLY and state.get(k, {}).get('fp') == fp and (outs or not row.get('outputs')):
             skipped.append(k); continue
         detail = f'  {short(found[k][0])}' if found[k] else ''
@@ -180,7 +182,10 @@ def main():
         if spec.get('pre') and not CHECK:
             print(f'  > {spec["pre"]} (first)', flush=True)
             subprocess.run([PY, os.path.join(S, spec['pre'])] + args[:1], cwd=ROOT)
-        if run(label + detail, [PY, os.path.join(S, row['builder'])] + args):
+        ok = run(label + detail, [PY, os.path.join(S, row['builder'])] + args)
+        if ok and spec.get('export'):      # SQL-first: the builder wrote store tables; the exporter writes the JSON
+            ok = run(f'{label}: store → JSON', [PY, os.path.join(S, 'export_public.py'), k])
+        if ok:
             ran.append(k)
             if not CHECK: state[k] = {'fp': fp, 'at': dt.datetime.now().isoformat(timespec='seconds')}
         else:

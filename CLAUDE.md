@@ -90,8 +90,12 @@ Jack's personal data site: a decade of steps, music, photos and trail logs, plus
   - Charts draw only when visible and redraw on the `tabchange` event.
 - **New page:** add the favicon, theme-color and OG block after `<title>`, plus theme.css, site.js and a module script on core.js, tabs if it runs past about 2 screens,
   and a card or jump link in `renderTrails()` or `renderProjects()`.
-- **New dataset:** write a builder in `scripts/` (stdlib only, so it runs on stock macOS python3), output numbers-only JSON,
-  register it in `build_meta_log.py`'s `datasets`, add a row to `scripts/config/registry.json` with a `run` block (update.py reads it; no code change there), teach `lib/inbox.py` to recognise its export, and add it to `docs/UPDATING.md`. Read workbooks with `lib/xlsx.py`, naming only the columns the privacy rules allow.
+- **New dataset (SQL-first, Jack's rule since Nov 23 2026):** the builder in `scripts/` (stdlib only) reads the raw export
+  and writes its own store tables with `lib/store.py` `put_table`, tagging every column `public`, `sealed` or `private`; it
+  never writes site JSON. Add a row to `scripts/config/registry.json` with `run` (how update.py finds and runs it),
+  `run.export` (how `scripts/export_public.py` turns the public columns into its day JSON) and `sql_first: true`; register the
+  JSON in `build_meta_log.py`'s `datasets`, teach `lib/inbox.py` its export, and add it to `docs/UPDATING.md`.
+  Existing builders still write JSON; move one to SQL-first the next time it's changed for another reason, not in a sweep.
 
 ## Working from Claude (cloud session linked to the Mac)
 - Make a scratch copy of the repo, edit and test there, then write to the Mac folder through the device tools.

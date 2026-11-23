@@ -9,7 +9,9 @@ What runs, in what order and from which files, comes from `scripts/config/regist
 
 **The inbox files:** Health export folders → `raw/health/`; AT&T usage workbooks (Talk, Text and Data sheets) → `ATT/raw/ATT-usage-<date>.xlsx`; call-log backups → `raw/calls/`; Wim Hof exports → `raw/breath/`; water CSVs → `raw/water/`; watch list → `raw/watch/`; smoking workbook → `raw/smoking/`; Epic PDF + season calendar → `raw/fortnite/`; Spotify zip → `raw/spotify/`; `Timeline-*.xlsx` → the data folder. Nothing is overwritten (a taken name gets `-2`); every move is logged in `jsbv data/raw/inbox-log.csv`. Recognising a file reads only its sheet names and header row.
 
-**Shared code:** `scripts/lib/` holds what builders share: `paths.py` (where things live, `write_json`), `finders.py` (finding exports), `xlsx.py` (the one workbook reader: it decodes only the sheets and columns a builder names), `inbox.py`, `privacy.py`, `moon.py`.
+**Shared code:** `scripts/lib/` holds what builders share: `paths.py` (where things live, `write_json`), `finders.py` (finding exports), `xlsx.py` (the one workbook reader: it decodes only the sheets and columns a builder names), `inbox.py`, `privacy.py`, `moon.py`, `store.py` (SQL-first datasets write their tables into `jsbv data/jsbv.sqlite` with it; `scripts/export_public.py` makes their JSON from the registry row's `run.export`, public columns only, and refuses a private column).
+
+**SQL-first rule (Nov 23, 2026):** every new dataset is SQL-first. Older builders still write JSON and move over one at a time, whenever one is next changed. `sql_first: true` in the registry marks the ones that have moved.
 
 ## Sources
 
