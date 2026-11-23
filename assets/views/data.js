@@ -192,7 +192,7 @@ function renderProjects() {
     jump([['#movies', 'Every title', 'posters + report cards'], ['#movies/map', 'Guilty pleasures', 'the map'], ['#movies/propaganda', 'Propaganda', 'the board']])])); }
   gamesCard().then((c) => { if (!c) return; const host = $('#p-cards'); host.querySelector('.card.games')?.remove(); c.classList.add('games'); host.append(c); });
   if (DS.calls) { const C = DS.calls; cards.push(el('div', { className: 'card' }, [el('h3', { text: 'Phone calls' }),
-    el('div', { className: 'big2' }, [num(totalIn('calls', 'minutes', yearStart(C.end), C.end), 'min'), el('small', { text: `on the phone in ${YR[C.end]}` })]),
+    el('div', { className: 'big2' }, [num(totalIn('calls', 'minutes', yearStart(C.end), C.end), C.metrics.find((m) => m.id === 'minutes').unit), el('small', { text: `on the phone in ${YR[C.end]}` })]),
     linkRow([[() => openInExplorer([['calls', 'minutes', null, [], false]], yearStart(C.end), C.end), 'Chart it']])])); }
   $('#p-cards').replaceChildren(...cards);
 }
