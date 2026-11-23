@@ -107,7 +107,7 @@ section[data-tab="links"] .tall { max-height: 360px; }
     <div class="top"><h2>Sessions</h2><div class="ctl"><select id="lg-proj" aria-label="Project"></select></div></div>
     <div class="scroll tall"><table id="lg-table"></table></div>
   </section>
-  <footer>Writing log workbook</footer>
+  <footer>Writing log workbook · Obsidian daily notes, 2025</footer>
 </div>
 <script src="../assets/site.js"></script>
 <script type="module">
@@ -115,7 +115,7 @@ import { $, el, svg, MON, DOW, fmtInt, fmt1, loadJSON, dayIndex, iso, dateLabel,
 import { loadDaily } from '../assets/daily.js';
 import { corr, bh, quantile, mean, median } from '../assets/stats.js';
 
-const GOLD = '#ffd84a';
+const GOLD = '#ffd84a', GOAL = 10000;   // words per week, the 2025 Obsidian dashboard's goal
 const txt = (x, y, s, at) => svg('text', Object.assign({ x, y }, at || {}), s);
 const hm = (m) => m == null ? '—' : m >= 120 ? fmt1(m / 60) + ' h' : fmtInt(m) + ' min';
 const now = new Date(), today = dayIndex(`${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`);
@@ -133,6 +133,7 @@ for (let k = 0; k < S.n; k++) {
   const r = Object.fromEntries(S.cols.map((c) => [c, S.v[c][k]]));
   r.d = dayIndex(r.date); r.p = projOf(r.project_id);
   r.h = r.start ? +r.start.slice(0, 2) + +r.start.slice(3, 5) / 60 : null;
+  r.ses = r.src !== 'obsidian';   // Obsidian rows (2025) are day totals, not sessions
   r.wph = r.minutes > 0 && r.words != null ? r.words / (r.minutes / 60) : null;
   SS.push(r);
 }
@@ -150,7 +151,11 @@ const inR = () => SS.filter((s) => s.d >= A() && s.d <= B());
 // day totals over the whole span (days with no session are 0 words)
 const NDAY = last - first + 1, dW = new Array(NDAY).fill(0), dM = new Array(NDAY).fill(0), dN = new Array(NDAY).fill(0);
 for (const s of SS) { const i = s.d - first; dW[i] += s.words || 0; dM[i] += s.minutes || 0; dN[i]++; }
-const wordsOn = (g) => (g < first || g > last ? null : dW[g - first]);
+// a day counts as tracked when a logged row is within 21 days of it; longer gaps (between the 2025 notes and the log) are missing, not zero
+const TRK = new Array(NDAY).fill(false); { let prev = -1e9; const next = new Array(NDAY).fill(1e9);
+  for (let i = NDAY - 1, nx = 1e9; i >= 0; i--) { if (dN[i]) nx = i; next[i] = nx; }
+  for (let i = 0; i < NDAY; i++) { if (dN[i]) prev = i; TRK[i] = i - prev <= 21 || next[i] - i <= 21; } }
+const wordsOn = (g) => (g < first || g > last || !TRK[g - first] ? null : dW[g - first]);
 
 function streaks(a, b) {
   let best = 0, run = 0, bestEnd = null;
@@ -162,11 +167,11 @@ function streaks(a, b) {
 
 // ---------------------------------------------------------------- readout
 function renderReadout() {
-  const R = inR(), a = A(), b = Math.min(B(), last), days = b - a + 1, wrote = new Set(R.map((s) => s.d)).size;
+  const R = inR(), a = A(), b = Math.min(B(), last), days = Array.from({ length: Math.max(0, b - a + 1) }, (_, k) => a + k).filter((g) => wordsOn(g) != null && g <= today).length, wrote = new Set(R.map((s) => s.d)).size;
   const words = R.reduce((t, s) => t + (s.words || 0), 0), mins = R.reduce((t, s) => t + (s.minutes > 0 && s.words != null ? s.minutes : 0), 0);
   const wTimed = R.reduce((t, s) => t + (s.minutes > 0 && s.words != null ? s.words : 0), 0), st = streaks(a, b);
   const cell = (label, v, color) => el('div', {}, [el('span', { text: label }), el('strong', { text: v, style: color ? `color:${color}` : '' })]);
-  $('#readout').replaceChildren(cell('Words', fmtInt(words), GOLD), cell('Sessions', fmtInt(R.length)), cell('Days written', `${wrote} / ${days}`),
+  $('#readout').replaceChildren(cell('Words', fmtInt(words), GOLD), cell('Sessions', fmtInt(R.filter((s) => s.ses).length)), cell('Days written', `${wrote} / ${days}`),
     cell('Per writing day', fmtInt(wrote ? words / wrote : null)), cell('Words / hour', fmtInt(mins ? wTimed / (mins / 60) : null), C.sound),
     cell('Time', hm(R.reduce((t, s) => t + (s.minutes || 0), 0))), cell('Streak', `${st.cur} d`, C.trail), cell('Best streak', `${st.best} d`));
 }
@@ -194,7 +199,7 @@ function renderHabit() {
     for (let g = ga; g <= gb; g++) {
       const x = L + Math.floor((g - g0) / 7) * cs, yy = top + (g - weekStart(g)) * cs;
       const w = wordsOn(g), out = g > today;
-      const r = svg('rect', { x, y: yy, width: cs - 1.5, height: cs - 1.5, rx: 2, fill: out ? 'transparent' : colourFor(w, q), stroke: g === today ? '#fff' : 'none', class: 'hit' });
+      const r = svg('rect', { x, y: yy, width: cs - 1.5, height: cs - 1.5, rx: 2, fill: out || w == null ? 'transparent' : colourFor(w, q), stroke: g === today ? '#fff' : 'none', class: 'hit' });
       if (!out && w != null) {
         const ses = R.filter((s) => s.d === g);
         r.addEventListener('mousemove', (ev) => tipAt(ev, `<b>${dateLabel(g)}</b><br>${fmtInt(w)} words${ses.length ? ' · ' + ses.length + ' session' + (ses.length > 1 ? 's' : '') + '<br>' + [...new Set(ses.map((s) => esc(s.p.name)))].join(', ') : ''}`));
@@ -217,10 +222,11 @@ function renderWeeks() {
   const T = Array.from({ length: nW }, () => ({})); let mx = 0;
   for (const s of R) { const k = Math.floor((s.d - a) / 7), kk = keyOf(s) || 'none'; T[k][kk] = (T[k][kk] || 0) + (s.words || 0); }
   T.forEach((t) => { mx = Math.max(mx, Object.values(t).reduce((x, y) => x + y, 0)); });
-  mx = niceMax(mx || 1);
+  mx = niceMax(Math.max(mx, GOAL * 1.05));
   const H = 190, pl = 44, pb = 22, bw = (W - pl - 4) / nW, Y = (v) => 8 + (1 - v / mx) * (H - pb - 8);
   const root = svg('svg', { viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': 'Words by week' });
   for (let k = 0; k <= 4; k++) { const v = mx * k / 4; root.append(svg('line', { x1: pl, x2: W, y1: Y(v), y2: Y(v), stroke: C.grid }), txt(pl - 6, Y(v) + 4, tick(v), { 'text-anchor': 'end' })); }
+  root.append(svg('line', { x1: pl, x2: W, y1: Y(GOAL), y2: Y(GOAL), stroke: '#fff', 'stroke-dasharray': '5 4', 'stroke-opacity': 0.7 }), txt(W - 2, Y(GOAL) - 4, `goal ${tick(GOAL)} / week`, { 'text-anchor': 'end', class: 'lab' }));
   T.forEach((t, k) => {
     let acc = 0; const x = pl + k * bw;
     for (const c of [...keys, { id: 'none', color: C.dim, name: 'No time' }]) { const v = t[c.id]; if (!v) continue;
@@ -230,14 +236,16 @@ function renderWeeks() {
     hit.addEventListener('mouseleave', tipOff); root.append(hit);
     const d = iso(a + k * 7); if (+d.slice(8) <= 7) root.append(txt(x, H - pb + 14, MON[+d.slice(5, 7) - 1]));
   });
-  host.replaceChildren(root, el('div', { className: 'legend' }, keys.map((c) => el('span', {}, [el('i', { style: `background:${c.color}` }), c.name]))));
+  const tot = T.map((t, k) => (wordsOn(a + k * 7) == null && wordsOn(a + k * 7 + 6) == null ? null : Object.values(t).reduce((x, y) => x + y, 0))).filter((v) => v != null);
+  host.replaceChildren(root, el('div', { className: 'legend' }, [...keys.map((c) => el('span', {}, [el('i', { style: `background:${c.color}` }), c.name])),
+    el('span', { style: 'color:var(--dim)', text: `${tot.filter((v) => v >= GOAL).length} of ${tot.length} weeks at ${fmtInt(GOAL)}+` })]));
 }
 
 // ---------------------------------------------------------------- projects
 function projectRows(R) {
   const by = {};
   for (const s of R) { const p = by[s.p.id] || (by[s.p.id] = { p: s.p, words: 0, n: 0, days: new Set(), mins: 0, tw: 0, first: s.d, last: s.d, nb: new Set() });
-    p.words += s.words || 0; p.n++; p.days.add(s.d); p.mins += s.minutes || 0; if (s.minutes > 0 && s.words != null) p.tw += s.words;
+    p.words += s.words || 0; p.n += s.ses ? 1 : 0; p.days.add(s.d); p.mins += s.minutes || 0; if (s.minutes > 0 && s.words != null) p.tw += s.words;
     p.first = Math.min(p.first, s.d); p.last = Math.max(p.last, s.d); if (s.notebook) p.nb.add(s.notebook); }
   return Object.values(by).sort((x, y) => y.words - x.words);
 }
@@ -265,9 +273,9 @@ function renderProjects() {
     el('tbody', {}, rows.map((r) => el('tr', {}, [
       el('td', {}, [el('span', { className: 'sw', style: `background:${r.p.color}` }), r.p.name]),
       el('td', {}, [el('span', { className: 'b', style: `width:${Math.round(60 * r.words / mx)}px;background:${r.p.color}` }), fmtInt(r.words)]),
-      el('td', { text: r.n }), el('td', { text: r.days.size }), el('td', { text: hm(r.mins) }),
+      el('td', { text: r.n || '—' }), el('td', { text: r.days.size }), el('td', { text: r.mins ? hm(r.mins) : '—' }),
       el('td', { text: fmtInt(r.mins ? r.tw / (R.filter((s) => s.p.id === r.p.id && s.minutes > 0 && s.words != null).reduce((t, s) => t + s.minutes, 0) / 60) : null) }),
-      el('td', { text: fmtInt(r.words / r.n) }), el('td', { text: dateLabel(r.first) }), el('td', { text: dateLabel(r.last) }), el('td', { className: 'l', text: [...r.nb].join(', ') || '—' })]))));
+      el('td', { text: r.n ? fmtInt(r.words / r.n) : '—' }), el('td', { text: dateLabel(r.first) }), el('td', { text: dateLabel(r.last) }), el('td', { className: 'l', text: [...r.nb].join(', ') || '—' })]))));
 }
 
 // ---------------------------------------------------------------- pace
@@ -310,7 +318,7 @@ function renderPace() {
   $('#pc-len').replaceChildren(el('thead', {}, el('tr', {}, ['Length', 'Sessions', 'Words', 'Words / h'].map((h) => el('th', { text: h })))),
     el('tbody', {}, LEN.map(([lo, hi]) => { const xs = T.filter((s) => s.minutes >= lo && s.minutes < hi); if (!xs.length) return null; const w = xs.reduce((t, s) => t + s.words, 0);
       return el('tr', {}, [el('td', { text: hi > 1e8 ? `${lo}+ min` : `${lo}–${hi} min` }), el('td', { text: xs.length }), el('td', { text: fmtInt(w) }), el('td', { text: fmtInt(w / (xs.reduce((t, s) => t + s.minutes, 0) / 60)) })]); }).filter(Boolean)));
-  const mu = {}; for (const s of R) { const k = s.music || '(none)'; const m = mu[k] || (mu[k] = { n: 0, w: 0, tw: 0, tm: 0 }); m.n++; m.w += s.words || 0; if (s.wph != null) { m.tw += s.words; m.tm += s.minutes; } }
+  const mu = {}; for (const s of R.filter((x) => x.ses)) { const k = s.music || '(none)'; const m = mu[k] || (mu[k] = { n: 0, w: 0, tw: 0, tm: 0 }); m.n++; m.w += s.words || 0; if (s.wph != null) { m.tw += s.words; m.tm += s.minutes; } }
   $('#pc-music').replaceChildren(el('thead', {}, el('tr', {}, ['Music', 'Sessions', 'Words', 'Words / h'].map((h) => el('th', { text: h })))),
     el('tbody', {}, Object.entries(mu).sort((x, y) => y[1].n - x[1].n).slice(0, 12).map(([k, m]) => el('tr', {}, [el('td', { text: k }), el('td', { text: m.n }), el('td', { text: fmtInt(m.w) }), el('td', { text: fmtInt(m.tm ? m.tw / (m.tm / 60) : null) })]))));
 }
@@ -321,10 +329,10 @@ if (daily) for (const ds of daily.datasets) {
   if (ds.id === 'writing' || ds.id === 'fortnite' || ds.grain !== 'day') continue;   // Fortnite days are season totals spread evenly
   for (const m of ds.metrics) OTHER.push({ key: ds.id + '.' + m.id, ds, m, name: m.name, group: ds.name, unit: m.unit, color: m.color || C.step, at: (g) => { const i = g - ds.offset; return i >= 0 && i < ds.n ? m.v[i] : null; } });
 }
-const YS = { words: ['WORDS', (g) => wordsOn(g)], wph: ['WORDS / HOUR', (g) => (g < first || g > last || !dM[g - first] ? null : dW[g - first] / (dM[g - first] / 60))], wrote: ['WROTE AT ALL', (g) => (g < first || g > last ? null : dN[g - first] > 0 ? 1 : 0)] };
+const YS = { words: ['WORDS', (g) => wordsOn(g)], wph: ['WORDS / HOUR', (g) => (g < first || g > last || !dM[g - first] ? null : dW[g - first] / (dM[g - first] / 60))], wrote: ['WROTE AT ALL', (g) => (wordsOn(g) == null ? null : dN[g - first] > 0 ? 1 : 0)] };
 const LAGS = { 0: 'SAME DAY', [-1]: 'DAY BEFORE', 1: 'NEXT DAY' };
 function linkStats() {
-  const a = A(), b = Math.min(B(), last, today), f = YS[V.y][1], days = []; for (let g = a; g <= b; g++) days.push(g);
+  const a = A(), b = Math.min(B(), last, today), f = YS[V.y][1], days = []; for (let g = a; g <= b; g++) if (wordsOn(g) != null) days.push(g);
   const wd = days.filter((g) => dN[g - first] > 0).map((g) => dW[g - first]), good = quantile(wd, 0.75);
   const x = days.map(f), rows = [];
   for (const o of OTHER) {

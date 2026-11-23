@@ -73,6 +73,8 @@ def recognise(path):
     if os.path.isdir(path):
         if any(f.startswith('HealthView_') and f.endswith('.csv') for f in os.listdir(path)):
             return 'health', os.path.join(RAW, 'health'), f'health export {y}-{m}-{d}'
+        if 'daily notes' in low or any(re.match(r'\d{4}-\d{2}-\d{2}.*\.md$', f) for f in os.listdir(path)):
+            return 'writing', DATA, 'Obsidian Daily Notes'          # 2025 Obsidian notes; build_writing_log reads Word Count only
         return None
     ext = low.rsplit('.', 1)[-1] if '.' in low else ''
     if ext in ('xlsx', 'xlsm'):
