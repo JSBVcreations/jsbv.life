@@ -1,7 +1,7 @@
 /* Home (#report): this month and PCT//PREP heroes and the Fitness · Health · Media tiles. Runs on summary.json.
    The year by season moved to REPORT//CARDS (assets/seasons.js) and Low tide to PCT//PREP's tab on Nov 23 2026. */
 import { $, el, svg, dayIndex, iso, MON, dateLabel, num, loadJSON } from '../core.js';
-import { median, percentile } from '../stats.js';
+import { median, percentile, blockDiff, bh } from '../stats.js';
 import { DS, asLine, daily, eTipAt, eTipOff, linkRow, metricOf, openInExplorer, sumRange, sw, today, yearStart } from './state.js';
 // ================================================================ REPORT CARD
 // Home dashboard. GROUPS = the umbrellas: [id, title, colour, [[dataset, metric], ...]]. A metric only shows under its
@@ -51,6 +51,20 @@ function buildTiles() {
     el('div', { className: 'tile-foot' }, [el('span'), el('div', { className: 'tile-dots' }, g.ms.map((mm, i) => el('button', { type: 'button', 'aria-label': `${g.name}: ${metricOf(mm[0], mm[1]).name}`, title: metricOf(mm[0], mm[1]).name, onclick: () => showSlide(g, i, true) })))])])));
   for (const g of GROUPS) showSlide(g, RC.at[g.id] || 0, false);
   // Tiles change only when asked (Jack's rule, Nov 14, 2026): the arrows, or the dots under each tile. No timer.
+}
+// Observations: each tile metric's last 30 days against the 30 before (whole weeks shuffled for p, BH q across them all).
+// Up to three that pass q < 0.1, biggest change first. Nothing passes, nothing shows.
+function observations() {
+  const rows = [];
+  for (const g of GROUPS) for (const [d, m] of g.ms) { const ds = DS[d], L = asLine(d, m), e = ds.end, vals = [], flags = [], block = [];
+    for (let i = e - 59; i <= e; i++) { const v = i >= L.off && i < L.off + L.n ? L.v[i - L.off] : null; vals.push(v); flags.push(i > e - 30); block.push(Math.floor((i + 3) / 7)); }
+    const t = blockDiff(vals, flags, block, { iters: 1000, seed: 3 }); if (!t) continue;
+    const before = (() => { const xs = vals.slice(0, 30).filter((v) => v != null); return xs.reduce((s, x) => s + x, 0) / (xs.length || 1); })();
+    rows.push({ g, d, m, t, before, name: metricOf(d, m).name, unit: metricOf(d, m).unit, mean: L.agg === 'mean' }); }
+  const q = bh(rows.map((r) => r.t.p)); rows.forEach((r, k) => { r.q = q[k]; r.rel = r.before ? r.t.diff / Math.abs(r.before) : 0; });
+  const pass = rows.filter((r) => r.q < 0.1).sort((p, s) => Math.abs(s.rel) - Math.abs(p.rel)).slice(0, 3);
+  $('#rc-obs').replaceChildren(...pass.map((r) => el('span', { title: `last 30 days vs the 30 before · q ${r.q.toFixed(3)}`, style: `border-color:${r.g.color}55` }, [el('b', { text: r.name, style: `color:${r.g.color}` }),
+    ` ${r.rel >= 0 ? 'up' : 'down'} ${Math.abs(Math.round(r.rel * 100))}% the last 30 days (${num(r.before)} → ${num(r.before + r.t.diff)} ${r.unit}${r.mean ? '' : ' a day'})`])));
 }
 let TRN; // pct-training/data/training.json, fetched once for the hero
 async function drawPctHero() {
@@ -118,7 +132,7 @@ function drawPhotoHero() {
 }
 function renderReport() {
   drawMonthHero(); drawPctHero();
-  if (!RC.built) { RC.built = true; buildTiles(); } else for (const g of GROUPS) showSlide(g, RC.at[g.id] || 0, false);
+  if (!RC.built) { RC.built = true; buildTiles(); observations(); } else for (const g of GROUPS) showSlide(g, RC.at[g.id] || 0, false);
 }
 
 

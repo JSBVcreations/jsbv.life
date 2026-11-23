@@ -246,6 +246,10 @@ button.title:focus-visible { outline: none; }
 .tile-body .dl.up { color: var(--trail); }
 .tile-body .dl.dn { color: var(--sound); }
 .tile-body .dl.usual { color: var(--dim); }
+.obs { display: flex; flex-wrap: wrap; gap: 8px 12px; margin: 0 0 14px; }
+.obs:empty { display: none; }
+.obs span { font: 400 var(--s-0) var(--f-data); color: var(--ink); padding: 6px 12px; border: 1px solid var(--grid); border-radius: 999px; background: var(--well); }
+.obs span b { font-weight: 600; }
 .tile-body svg { display: block; width: 100%; height: 40px; }
 .tile-foot { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 0 6px 4px 12px; font: 400 10px var(--f-data); color: var(--dim); }
 .tile-foot .stale { color: var(--climb); }
@@ -405,6 +409,7 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
       <section class="hero pct" id="hero-pct" aria-labelledby="hp-h"><h2 id="hp-h">PCT//PREP</h2><p class="note">Loading the training tracker…</p></section>
       <section class="hero month" id="hero-month" aria-labelledby="hm-h"><h2 id="hm-h">This month</h2></section>
     </div>
+    <div class="obs" id="rc-obs"></div>
     <div class="tiles" id="rc-tiles"></div>
   </div>
 
