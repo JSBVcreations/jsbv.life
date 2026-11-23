@@ -193,8 +193,8 @@ footer { font-family: var(--f-ui); }
       <h2 id="h-cal">Training calendar <small>one row per week · the dashed outline is the plan, the bar is what got walked</small></h2>
       <div class="ctl">
         <div class="seg" role="group" aria-label="What the bars count" id="cal-fill">
-          <button type="button" data-k="hike" aria-pressed="true">Logged hikes</button>
-          <button type="button" data-k="phone" aria-pressed="false">All walking</button>
+          <button type="button" data-k="phone" aria-pressed="true">Total</button>
+          <button type="button" data-k="hike" aria-pressed="false">Logged hikes</button>
         </div>
         <div class="seg"><button type="button" id="cal-pre" class="pre-on" aria-pressed="true">2019: before the AT</button></div>
       </div>
@@ -565,7 +565,7 @@ import { $, $$, el, svg, C, MON, DOW, fixed1 as n1, isoDate as iso, msOf, DAY, t
   }
 
   /* training calendar: week rows, plan as a dashed silhouette, actual as the fill, 2019's pre-AT days lined up by countdown */
-  const PA = T.pre_at; let calFill = 'hike', calPre = !!PA;
+  const PA = T.pre_at; let calFill = 'phone', calPre = !!PA;
   const kfmt = (v) => v >= 1000 ? (v / 1000).toFixed(v < 10000 ? 1 : 0).replace(/\.0$/, '') + 'k' : String(Math.round(v));
   function renderCal() {
     const hike = {}, mins = {}; for (const a of A) { hike[a.date] = (hike[a.date] || 0) + a.miles; mins[a.date] = (mins[a.date] || 0) + a.moving_min; }
@@ -582,8 +582,9 @@ import { $, $$, el, svg, C, MON, DOW, fixed1 as n1, isoDate as iso, msOf, DAY, t
       let sMi = 0, sSteps = 0, sMin = 0, sPre = 0, hasPre = false, nData = 0;
       for (let c = 0; c < 7; c++) {
         const d = addDays(ws, c), k = iso(d), isStart = k === P.start, after = d > startDay, pre = preOf(d);
-        const hm_ = hike[k] || 0, ph = hv('miles', d), st = hv('steps', d), val = calFill === 'hike' ? hm_ : ph;
-        const future = calFill === 'hike' ? k > hikeThrough : ph == null;
+        // total: the phone already counts the hikes, so take whichever is larger rather than adding them (covers a hike the phone missed)
+        const hm_ = hike[k] || 0, ph = hv('miles', d), st = hv('steps', d), val = calFill === 'hike' ? hm_ : Math.max(ph || 0, hm_);
+        const future = calFill === 'hike' ? k > hikeThrough : ph == null && !hm_;
         if (!future && !after) { sMi += val || 0; nData++; } if (st != null) sSteps += st; sMin += mins[k] || 0;
         if (pre) { sPre += pre.miles; hasPre = true; }
         const bars = el('div', { className: 'bars' });
@@ -614,9 +615,9 @@ import { $, $$, el, svg, C, MON, DOW, fixed1 as n1, isoDate as iso, msOf, DAY, t
       kids.push(sum);
     }
     $('#cal-grid').replaceChildren(...kids);
-    $('#cal-legend').innerHTML = `<span><i style="background:${calFill === 'phone' ? C.step : C.trail}"></i>${calFill === 'phone' ? 'every mile the phone counted' : 'miles on logged hikes'}</span><span><i style="border:1px dashed ${C.dim}"></i>the plan, spread evenly over the week</span>` + (calPre && PA ? `<span style="color:${C.sound}"><i style="height:0;border-top:2px solid currentColor"></i>the same countdown day before the AT, 2019 (phone miles)</span>` : '');
+    $('#cal-legend').innerHTML = `<span><i style="background:${calFill === 'phone' ? C.step : C.trail}"></i>${calFill === 'phone' ? 'total miles: phone and watch, or the logged hike if it was longer' : 'miles on logged hikes'}</span><span><i style="border:1px dashed ${C.dim}"></i>the plan, spread evenly over the week</span>` + (calPre && PA ? `<span style="color:${C.sound}"><i style="height:0;border-top:2px solid currentColor"></i>the same countdown day before the AT, 2019 (phone miles)</span>` : '');
     $('#cal-note').textContent = 'The plan sets a weekly total; the dashed outline in each day is that total divided by seven, so a rest day and a long day can still add up to a full week. Steps come from the phone, hours from the hikes logged on Strava. '
-      + (PA ? `The pink line lines 2019 up by days left: ${md(day(PA.start))} to ${md(day(PA.end))}, 2019 were the ${PA.n} days before the Appalachian Trail, set against the ${PA.n} days before ${md(startDay)}. 2019 has phone data only, so switch the bars to “All walking” for a like-for-like comparison.` : '');
+      + (PA ? `The pink line lines 2019 up by days left: ${md(day(PA.start))} to ${md(day(PA.end))}, 2019 were the ${PA.n} days before the Appalachian Trail, set against the ${PA.n} days before ${md(startDay)}. 2019 has phone data only, so “Total” is the like-for-like comparison.` : '');
     renderPre();
   }
   function renderPre() {
