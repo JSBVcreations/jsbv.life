@@ -50,6 +50,12 @@
    "kind": "phone number",
    "sha": "f6fa87935647",
    "why": "an artist whose name is a phone number"
+  },
+  {
+   "file": "step-song/data/*.json",
+   "kind": "call-log name",
+   "sha": "f59081b5c855",
+   "why": "an artist in the Spotify history whose name is also a call-log contact; it comes from Spotify, not the call log"
   }
  ],
  "skip": [

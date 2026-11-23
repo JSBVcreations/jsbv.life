@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 """Write "jsbv data/jsbv.sqlite": every dataset on the site in one local SQLite file, sealed ones included.
 
+Rule (Jack, Nov 23 2026): new datasets are SQL-first. Their builder writes src_ tables with lib/store.py and
+export_public.py makes their JSON from the registry row's `export`. Older builders move over one at a time, when touched.
+
     python3 scripts/build_store.py [OUT_FILE]       (default: $JSBV_DATA/jsbv.sqlite; run by update.py)
 
-The site's JSON stays the source: this is a full copy of it for querying, rebuilt on every update. It lives in the
+For the older JSON-first datasets the site's JSON stays the source and this is a full copy, rebuilt on every update. It lives in the
 data folder, never in the repo, because it holds the sealed datasets (privacy.json) and the private fitness tables
 in plain form. "claude-ready/jsbv.sqlite" (export_for_claude.py) is the same minus those, safe to upload to a chat.
 Tables:
@@ -14,6 +17,8 @@ Tables:
   fitness_*    the private IRON//LOG tables (meta-log/data/private/fitness.sqlite), as they are
   public_*     the claude-ready tables (sets, top_sets, runs, hikes, months), when that copy exists
   columns      table, column, privacy                  which columns may leave the Mac
+  src_*        tables SQL-first builders write themselves (lib/store.py), carried over untouched;
+               src_columns holds their privacy ('public' | 'sealed' | 'private')
 Built in a temp folder and copied in one go, with no journal file left beside it (iCloud-synced folders can corrupt
 a live SQLite file). Stdlib only.
 """
@@ -28,8 +33,9 @@ import tempfile
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from lib.paths import DATA, repo  # noqa: E402
 from lib.moon import moon_dataset  # noqa: E402
+from lib.store import STORE, carry_over  # noqa: E402
 
-OUT = sys.argv[1] if len(sys.argv) > 1 else os.path.join(DATA, 'jsbv.sqlite')
+OUT = sys.argv[1] if len(sys.argv) > 1 else STORE
 
 
 def load(p):
@@ -106,6 +112,7 @@ def main():
         con.commit()
         con.execute('DETACH DATABASE src')
     con.commit(); con.close()
+    tables += carry_over(db)          # SQL-first builders' own tables (src_*): kept as they are
     os.makedirs(os.path.dirname(OUT) or '.', exist_ok=True)
     shutil.copyfile(db, OUT + '.tmp'); os.replace(OUT + '.tmp', OUT)
     shutil.rmtree(tmp, ignore_errors=True)

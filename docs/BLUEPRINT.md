@@ -56,8 +56,8 @@ meta-log/data/             daily.json (every dataset by day; Python builders rea
                            (what pages load, version-hashed), summary.json (last 60 days, for Home), seasons.json,
                            manifest.json, source JSON, life.json, manual.json, privacy.json, private.enc.json (sealed)
 step-song/data/            meta.json, tracks.json (loaded with the Day tab), plays-YYYY.json, hourly.json, ...
-scripts/                   builders (stock python3 3.9+), update.py, check_public.py, build_store.py
-scripts/lib/               shared builder code: paths, finders, xlsx (the one workbook reader), inbox, privacy, moon
+scripts/                   builders (stock python3 3.9+), update.py, check_public.py, build_store.py, export_public.py
+scripts/lib/               shared builder code: paths, finders, xlsx (the one workbook reader), inbox, privacy, moon, store
 scripts/config/            registry.json (every source + how update.py runs it), public-check.json, genres.json, ...
 scripts/launchd/           install.sh: the daily / inbox agent
 vercel.json                cache headers (days/*.json?v= kept a year)
@@ -73,8 +73,10 @@ cards, BODY//MAP → claude-ready copy + `jsbv data/jsbv.sqlite` → manifest �
   files, builder and `scripts/lib/` are unchanged since its last good run; date-based rows also run once a day.
 - `check_public.py` fails the run on anything git would commit that looks like a phone number, email, IP, raw-export key,
   call-log name, a private dataset in plain form, or a raw/database file.
-- Every source, where its export lives and how to refresh it: `docs/UPDATING.md`. Add a source: builder → registry row
-  with `run` → `build_meta_log.py` datasets → `lib/inbox.py` recogniser → UPDATING.md.
+- SQL-first (the rule for every new dataset since Nov 23, 2026): the builder writes `src_` tables into `jsbv data/jsbv.sqlite`
+  (`lib/store.py`, each column tagged public / sealed / private) and `export_public.py` writes its JSON from the row's
+  `run.export`. Older builders write JSON directly and move over one at a time when next touched (`sql_first: true` marks them).
+- Every source, where its export lives and how to refresh it: `docs/UPDATING.md`. Add a source: see CLAUDE.md → New dataset.
 
 ## 5. Key data shapes
 - **daily.json**: `{generated, start:"2015-01-01", datasets:[{id, name, source, grain:"day"|"month", offset, n, metrics:[{id,

@@ -77,8 +77,8 @@ def wrong_workbook(key, p):
     return None
 
 
-def find(spec):
-    """One finder from a registry row: a list of paths (newest only, unless `all`)."""
+def find(spec, guard=None):
+    """One finder from a registry row: a list of paths (newest only, unless `all`; with a guard, the newest that passes)."""
     if spec.get('health'):
         h = newest_health()
         return [h] if h else []
@@ -87,6 +87,9 @@ def find(spec):
     else:
         hits = files_matching(spec['glob'])
     if spec.get('all'): return hits
+    if guard:
+        good = [p for p in hits if offloaded(p) or not wrong_workbook(guard, p)]
+        hits = good or hits          # nothing passes: keep the newest so the run says why it was skipped
     return [max(hits, key=os.path.getmtime)] if hits else []
 
 
@@ -103,6 +106,7 @@ def content_hash(patterns, own=()):
 def code_files(row):
     out = [os.path.join(S, row['builder'])] if row.get('builder', '').endswith('.py') else []
     if row['run'].get('pre'): out.append(os.path.join(S, row['run']['pre']))
+    if row['run'].get('export'): out.append(os.path.join(S, 'export_public.py'))
     return out + sorted(glob.glob(os.path.join(S, 'lib', '*.py')))
 
 
@@ -151,7 +155,7 @@ def main():
             continue
         if any(a in failed for a in spec.get('after', [])):
             print(f'  - {label}: skipped, {", ".join(spec["after"])} failed'); continue
-        need = [find(f) for f in spec.get('find', [])]
+        need = [find(f, spec.get('guard')) for f in spec.get('find', [])]
         opt = [find(f) for f in spec.get('opt', [])]
         found[k] = [p for g in need for p in g]
         if any(not g for g in need):
@@ -172,7 +176,8 @@ def main():
         inputs = found[k] + [p for g in opt for p in g] + [p for o in spec.get('also', []) for p in found.get(o, [])]
         outs = [p for o in row.get('outputs', []) for p in glob.glob(os.path.join(ROOT, o.replace('YYYY', '[0-9]' * 4)))]
         fp = '|'.join([fingerprint(inputs + code_files(row)),
-                       content_hash(spec.get('reads', []), set(outs)), ' '.join(args), str(TODAY) if spec.get('daily') else ''])
+                       content_hash(spec.get('reads', []), set(outs)), ' '.join(args), json.dumps(spec, sort_keys=True),
+                       str(TODAY) if spec.get('daily') else ''])
         if not ALL and not ONLY and state.get(k, {}).get('fp') == fp and (outs or not row.get('outputs')):
             skipped.append(k); continue
         detail = f'  {short(found[k][0])}' if found[k] else ''
@@ -180,7 +185,10 @@ def main():
         if spec.get('pre') and not CHECK:
             print(f'  > {spec["pre"]} (first)', flush=True)
             subprocess.run([PY, os.path.join(S, spec['pre'])] + args[:1], cwd=ROOT)
-        if run(label + detail, [PY, os.path.join(S, row['builder'])] + args):
+        ok = run(label + detail, [PY, os.path.join(S, row['builder'])] + args)
+        if ok and spec.get('export'):      # SQL-first: the builder wrote store tables; the exporter writes the JSON
+            ok = run(f'{label}: store → JSON', [PY, os.path.join(S, 'export_public.py'), k])
+        if ok:
             ran.append(k)
             if not CHECK: state[k] = {'fp': fp, 'at': dt.datetime.now().isoformat(timespec='seconds')}
         else:

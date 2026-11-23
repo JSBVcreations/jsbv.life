@@ -5,7 +5,7 @@
     python3 scripts/build_meta_log.py          # then fold it into META//LOG
 
 The workbook stays OUTSIDE this repo (*.xlsx is git-ignored): it names who each call was with.
-This script reads only four columns of the first sheet and never opens 'Who' / 'Who Two':
+This script reads only four columns of the first sheet that has them (the master workbook's Call-Input) and never opens 'Who' / 'Who Two':
     HHMM   start time on a 24 h clock (1153 = 11:53)
     HrMin  length as h:mm digits (6 = 6 min, 119 = 1 h 19 min)
     Month, Day   (the year comes from the file name, or the optional second argument)
@@ -28,7 +28,8 @@ year = int(sys.argv[2]) if len(sys.argv) == 3 else int(ym.group(1)) if ym else s
 
 book = Book(path, bools='text')
 calls = []   # (date, start minute of day, length in minutes)
-for r in book.table(book.names[0], WANT):              # header row: only these four columns are ever decoded
+sheet = next((n for n in book.names if set(WANT) <= set(book.header(n).values())), book.names[0])   # e.g. 'Call-Input'
+for r in book.table(sheet, WANT):                      # header row: only these four columns are ever decoded
     d = {k: int(v) for k, v in r.items() if isinstance(v, float)}
     if len(d) < 4: continue
     try: date = dt.date(year, d['Month'], d['Day'])
