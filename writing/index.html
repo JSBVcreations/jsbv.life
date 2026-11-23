@@ -1,0 +1,397 @@
+<!doctype html>
+<html lang="en" data-page="writing">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>WORD//COUNT · JSBV.LIFE</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<meta name="theme-color" content="#07060f">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="JSBV.LIFE">
+<meta property="og:title" content="WORD//COUNT · JSBV.LIFE">
+<meta property="og:description" content="Every writing session: words, projects, pace, and what good writing days have in common.">
+<meta property="og:url" content="https://jsbv.life/writing/">
+<meta property="og:image" content="https://jsbv.life/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="description" content="Every writing session: words, projects, pace, and what good writing days have in common.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Monoton&family=Chakra+Petch:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../assets/theme.css">
+<link rel="modulepreload" href="../assets/core.js">
+<style>
+/* WORD//COUNT. Data: writing/data/sessions.json (one row per session) + the `writing` day dataset in meta-log/data/days/
+   (project names, and every other dataset for Links). Both come from "jsbv data/Writing-Log.xlsx" via
+   scripts/build_writing_log.py (store table src_writing) and scripts/export_public.py. Location never leaves the Mac.
+   Tabs: habit (calendar, weeks) · projects · pace (words per hour, hour, weekday, length, music) · links · log. */
+h1 { text-shadow: 0 0 6px #ffd84a, 0 0 18px #ffd84a, 0 0 42px rgba(255,216,74,0.45); }
+h1 span { text-shadow: 0 0 6px var(--sound), 0 0 18px var(--sound), 0 0 42px rgba(255,63,180,0.6); }
+h3 { margin: 0; font: 600 var(--s-0)/1.2 var(--f-ui); letter-spacing: 0.14em; text-transform: uppercase; color: var(--dim); }
+.top { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; justify-content: space-between; }
+.ctl { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.ctl button { font: 600 var(--s-0) var(--f-data); letter-spacing: 0.06em; color: var(--dim); background: none; border: 1px solid var(--grid); padding: 6px 10px; cursor: pointer; min-height: 32px; }
+.ctl button[aria-pressed="true"] { color: var(--void); background: #ffd84a; border-color: #ffd84a; }
+.ctl select { font: 500 var(--s-0) var(--f-data); color: var(--ink); background: var(--well); border: 1px solid var(--grid); padding: 6px 8px; min-height: 32px; max-width: 100%; }
+.chart { position: relative; }
+.chart .lab { fill: var(--ink); }
+.chart .hit { cursor: pointer; }
+.read b { color: var(--hot); }
+.grid2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }
+@media (max-width: 820px) { .grid2 { grid-template-columns: minmax(0, 1fr); } }
+th:first-child, td:first-child, td.l, th.l { text-align: left; }
+td .sw { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+td .b { display: inline-block; height: 8px; vertical-align: middle; margin-right: 6px; }
+tr.pick { cursor: pointer; }
+tr.pick:hover td { background: var(--well); }
+tr.pick.on td { background: rgba(255,216,74,0.12); }
+td.pos { color: #3ff0ff; } td.neg { color: #ff3fb4; }
+.tall { max-height: 520px; overflow-y: auto; }
+section[data-tab="links"] .tall { max-height: 360px; }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font: 400 var(--s-0) var(--f-data); color: var(--ink); padding-left: 44px; }
+.legend i { display: inline-block; width: 10px; height: 10px; margin-right: 6px; vertical-align: -1px; }
+#empty { font-family: var(--f-data); font-size: var(--s-1); }
+</style>
+<body>
+<div class="wrap">
+  <header>
+    <nav class="site" data-here="media" data-crumb="WORD//COUNT"></nav>
+    <h1 style="margin-top:14px">WORD<span>//COUNT</span></h1>
+  </header>
+  <p class="note" id="err" hidden>Data failed to load.</p>
+  <p class="note" id="empty" hidden>No sessions logged yet.</p>
+  <div class="top"><div class="ctl" id="range" aria-label="Range"></div></div>
+  <div class="readout" id="readout"></div>
+  <nav class="ptabs" data-default="habit" aria-label="Sections of Writing">
+    <a href="#habit" data-tab="habit" data-alias="calendar">Habit</a>
+    <a href="#projects" data-tab="projects">Projects</a>
+    <a href="#pace" data-tab="pace" data-alias="rates">Pace</a>
+    <a href="#links" data-tab="links" data-alias="correlations">Links</a>
+    <a href="#log" data-tab="log" data-alias="sessions">Log</a>
+  </nav>
+
+  <section data-tab="habit">
+    <h2>Every day</h2>
+    <div class="chart" id="hb-cal"></div>
+    <div class="read" id="hb-read"></div>
+    <div class="top"><h3>Words by week</h3><div class="ctl" id="hb-by"></div></div>
+    <div class="chart" id="hb-weeks"></div>
+  </section>
+
+  <section data-tab="projects">
+    <h2>Projects</h2>
+    <div class="chart" id="pj-lines"></div>
+    <div class="scroll"><table id="pj-table"></table></div>
+  </section>
+
+  <section data-tab="pace">
+    <h2>Words per hour</h2>
+    <div class="chart" id="pc-scatter"></div>
+    <div class="grid2">
+      <div><h3>By start hour</h3><div class="chart" id="pc-hour"></div></div>
+      <div><h3>By weekday (words per day)</h3><div class="chart" id="pc-dow"></div></div>
+    </div>
+    <div class="grid2">
+      <div><h3>By session length</h3><div class="scroll"><table id="pc-len"></table></div></div>
+      <div><h3>By music</h3><div class="scroll"><table id="pc-music"></table></div></div>
+    </div>
+  </section>
+
+  <section data-tab="links">
+    <div class="top"><h2>What goes with good writing days</h2>
+      <div class="ctl"><span id="lk-y"></span><span id="lk-lag"></span></div></div>
+    <div class="read" id="lk-read"></div>
+    <div class="scroll tall"><table id="lk-table"></table></div>
+    <div class="grid2"><div class="chart" id="lk-scatter"></div><div class="chart" id="lk-split"></div></div>
+  </section>
+
+  <section data-tab="log">
+    <div class="top"><h2>Sessions</h2><div class="ctl"><select id="lg-proj" aria-label="Project"></select></div></div>
+    <div class="scroll tall"><table id="lg-table"></table></div>
+  </section>
+  <footer>Writing log workbook</footer>
+</div>
+<script src="../assets/site.js"></script>
+<script type="module">
+import { $, el, svg, MON, DOW, fmtInt, fmt1, loadJSON, dayIndex, iso, dateLabel, weekStart, POOL, C, tipAt, tipOff, niceMax, seg, esc, tick } from '../assets/core.js';
+import { loadDaily } from '../assets/daily.js';
+import { corr, bh, quantile, mean, median } from '../assets/stats.js';
+
+const GOLD = '#ffd84a';
+const txt = (x, y, s, at) => svg('text', Object.assign({ x, y }, at || {}), s);
+const hm = (m) => m == null ? '—' : m >= 120 ? fmt1(m / 60) + ' h' : fmtInt(m) + ' min';
+const now = new Date(), today = dayIndex(`${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`);
+
+const [S, daily] = await Promise.all([loadJSON('data/sessions.json', { optional: true }), loadDaily('../', { optional: true })]);
+if (!S) { $('#err').hidden = false; SiteTabs.start(); throw new Error('writing/data/sessions.json did not load'); }
+const WD = daily && daily.datasets.find((d) => d.id === 'writing');
+const pdim = WD && WD.dims.find((d) => d.id === 'project');
+const PROJ = Object.fromEntries((pdim ? pdim.cats : []).map((c) => [c.id, c]));
+const projOf = (id) => PROJ[id] || (PROJ[id] = { id, name: id, color: POOL[Object.keys(PROJ).length % POOL.length] });
+
+// ---------------------------------------------------------------- sessions
+const SS = [];
+for (let k = 0; k < S.n; k++) {
+  const r = Object.fromEntries(S.cols.map((c) => [c, S.v[c][k]]));
+  r.d = dayIndex(r.date); r.p = projOf(r.project_id);
+  r.h = r.start ? +r.start.slice(0, 2) + +r.start.slice(3, 5) / 60 : null;
+  r.wph = r.minutes > 0 && r.words != null ? r.words / (r.minutes / 60) : null;
+  SS.push(r);
+}
+if (!SS.length) { $('#empty').hidden = false; for (const s of document.querySelectorAll('section[data-tab]')) s.dataset.off = '1'; $('#range').hidden = true; SiteTabs.start(); await new Promise(() => {}); }   // nothing logged yet: stop here without an error
+
+const first = SS[0].d, last = Math.max(today, SS[SS.length - 1].d);
+const years = [...new Set(SS.map((s) => +s.date.slice(0, 4)))];
+const yStart = (y) => dayIndex(`${y}-01-01`);
+const RANGES = [...years.slice().reverse().map((y) => [String(y), Math.max(first, yStart(y)), Math.min(last, yStart(y + 1) - 1)]), ['ALL', first, last]]
+  .filter((r, i, a) => !(r[0] === 'ALL' && a.length === 2));
+const V = { r: 0, by: 'project', y: 'words', lag: 0, pick: null, proj: '' };
+const A = () => RANGES[V.r][1], B = () => RANGES[V.r][2];
+const inR = () => SS.filter((s) => s.d >= A() && s.d <= B());
+
+// day totals over the whole span (days with no session are 0 words)
+const NDAY = last - first + 1, dW = new Array(NDAY).fill(0), dM = new Array(NDAY).fill(0), dN = new Array(NDAY).fill(0);
+for (const s of SS) { const i = s.d - first; dW[i] += s.words || 0; dM[i] += s.minutes || 0; dN[i]++; }
+const wordsOn = (g) => (g < first || g > last ? null : dW[g - first]);
+
+function streaks(a, b) {
+  let best = 0, run = 0, bestEnd = null;
+  for (let g = a; g <= b; g++) { if (dN[g - first] > 0) { run++; if (run > best) { best = run; bestEnd = g; } } else run = 0; }
+  let cur = 0; for (let g = Math.min(b, today); g >= first && dN[g - first] > 0; g--) cur++;
+  if (!cur && Math.min(b, today) === today) for (let g = today - 1; g >= first && dN[g - first] > 0; g--) cur++;   // today not logged yet
+  return { best, bestEnd, cur };
+}
+
+// ---------------------------------------------------------------- readout
+function renderReadout() {
+  const R = inR(), a = A(), b = Math.min(B(), last), days = b - a + 1, wrote = new Set(R.map((s) => s.d)).size;
+  const words = R.reduce((t, s) => t + (s.words || 0), 0), mins = R.reduce((t, s) => t + (s.minutes > 0 && s.words != null ? s.minutes : 0), 0);
+  const wTimed = R.reduce((t, s) => t + (s.minutes > 0 && s.words != null ? s.words : 0), 0), st = streaks(a, b);
+  const cell = (label, v, color) => el('div', {}, [el('span', { text: label }), el('strong', { text: v, style: color ? `color:${color}` : '' })]);
+  $('#readout').replaceChildren(cell('Words', fmtInt(words), GOLD), cell('Sessions', fmtInt(R.length)), cell('Days written', `${wrote} / ${days}`),
+    cell('Per writing day', fmtInt(wrote ? words / wrote : null)), cell('Words / hour', fmtInt(mins ? wTimed / (mins / 60) : null), C.sound),
+    cell('Time', hm(R.reduce((t, s) => t + (s.minutes || 0), 0))), cell('Streak', `${st.cur} d`, C.trail), cell('Best streak', `${st.best} d`));
+}
+
+// ---------------------------------------------------------------- habit: calendar + weeks
+function colourFor(w, q) {
+  if (!w) return C.grid;
+  const k = w >= q[2] ? 1 : w >= q[1] ? 0.75 : w >= q[0] ? 0.5 : 0.3;
+  return `rgba(255,216,74,${k})`;
+}
+function renderHabit() {
+  const host = $('#hb-cal'), W = host.clientWidth; if (W < 60) return;
+  const a = A(), b = B(), ya = +iso(a).slice(0, 4), yb = +iso(b).slice(0, 4);
+  const wrote = [], R = inR(); for (let g = a; g <= Math.min(b, last); g++) if (dW[g - first] > 0) wrote.push(dW[g - first]);
+  const q = [0.25, 0.5, 0.75].map((p) => quantile(wrote, p) || 1);
+  const blocks = []; for (let y = ya; y <= yb; y++) { const ga = Math.max(a, yStart(y)), gb = Math.min(b, yStart(y + 1) - 1); blocks.push([y, ga, gb, weekStart(ga)]); }
+  const nWk = Math.max(...blocks.map(([, ga, gb, g0]) => Math.floor((gb - g0) / 7) + 1));
+  const L = 30, cs = Math.max(5, Math.min(20, Math.floor((W - L) / nWk))), blockH = cs * 7 + 22;
+  const root = svg('svg', { viewBox: `0 0 ${W} ${blocks.length * blockH + 18}`, role: 'img', 'aria-label': 'Writing calendar' });
+  blocks.forEach(([y, ga, gb, g0], bi) => {
+    const top = bi * blockH + 14;
+    if (blocks.length > 1) root.append(txt(0, top - 2, String(y), { class: 'lab' }));
+    [1, 3, 5].forEach((d) => root.append(txt(L - 4, top + d * cs + cs * 0.8, DOW[d][0], { 'text-anchor': 'end' })));
+    for (let g = ga; g <= gb; g++) { const d = iso(g); if (d.slice(8) === '01' && (gb - g) > 10) root.append(txt(L + Math.floor((g - g0) / 7) * cs, top + 7 * cs + 12, MON[+d.slice(5, 7) - 1])); }
+    for (let g = ga; g <= gb; g++) {
+      const x = L + Math.floor((g - g0) / 7) * cs, yy = top + (g - weekStart(g)) * cs;
+      const w = wordsOn(g), out = g > today;
+      const r = svg('rect', { x, y: yy, width: cs - 1.5, height: cs - 1.5, rx: 2, fill: out ? 'transparent' : colourFor(w, q), stroke: g === today ? '#fff' : 'none', class: 'hit' });
+      if (!out && w != null) {
+        const ses = R.filter((s) => s.d === g);
+        r.addEventListener('mousemove', (ev) => tipAt(ev, `<b>${dateLabel(g)}</b><br>${fmtInt(w)} words${ses.length ? ' · ' + ses.length + ' session' + (ses.length > 1 ? 's' : '') + '<br>' + [...new Set(ses.map((s) => esc(s.p.name)))].join(', ') : ''}`));
+        r.addEventListener('mouseleave', tipOff);
+      }
+      root.append(r);
+    }
+  });
+  host.replaceChildren(root);
+  const st = streaks(a, Math.min(b, last));
+  const big = R.reduce((m, s) => (dW[s.d - first] > (m ? dW[m - first] : -1) ? s.d : m), null);
+  $('#hb-read').innerHTML = `Shades: ${q.map((v) => fmtInt(v)).join(' · ')} words (quarters of writing days)` + (big != null ? ` · biggest day <b>${fmtInt(dW[big - first])}</b> on ${dateLabel(big)}` : '') + (st.best ? ` · best streak <b>${st.best} days</b>, to ${dateLabel(st.bestEnd)}` : '');
+  renderWeeks();
+}
+function renderWeeks() {
+  const host = $('#hb-weeks'), W = host.clientWidth; if (W < 60) return;
+  const a = weekStart(A()), b = Math.min(B(), last), R = inR(), nW = Math.floor((b - a) / 7) + 1;
+  const keys = V.by === 'project' ? [...new Set(R.map((s) => s.p.id))].map(projOf) : [['morning', 'Morning', '#ffb347'], ['afternoon', 'Afternoon', '#3ff0ff'], ['evening', 'Evening', '#ff3fb4'], ['night', 'Night', '#9b7bff']].map(([id, name, color]) => ({ id, name, color }));
+  const keyOf = (s) => V.by === 'project' ? s.p.id : s.h == null ? null : s.h < 6 ? 'night' : s.h < 12 ? 'morning' : s.h < 18 ? 'afternoon' : 'evening';
+  const T = Array.from({ length: nW }, () => ({})); let mx = 0;
+  for (const s of R) { const k = Math.floor((s.d - a) / 7), kk = keyOf(s) || 'none'; T[k][kk] = (T[k][kk] || 0) + (s.words || 0); }
+  T.forEach((t) => { mx = Math.max(mx, Object.values(t).reduce((x, y) => x + y, 0)); });
+  mx = niceMax(mx || 1);
+  const H = 190, pl = 44, pb = 22, bw = (W - pl - 4) / nW, Y = (v) => 8 + (1 - v / mx) * (H - pb - 8);
+  const root = svg('svg', { viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': 'Words by week' });
+  for (let k = 0; k <= 4; k++) { const v = mx * k / 4; root.append(svg('line', { x1: pl, x2: W, y1: Y(v), y2: Y(v), stroke: C.grid }), txt(pl - 6, Y(v) + 4, tick(v), { 'text-anchor': 'end' })); }
+  T.forEach((t, k) => {
+    let acc = 0; const x = pl + k * bw;
+    for (const c of [...keys, { id: 'none', color: C.dim, name: 'No time' }]) { const v = t[c.id]; if (!v) continue;
+      root.append(svg('rect', { x: x + 0.5, y: Y(acc + v), width: Math.max(1, bw - 1.5), height: Y(acc) - Y(acc + v), fill: c.color })); acc += v; }
+    const hit = svg('rect', { x, y: 0, width: bw, height: H - pb, fill: 'transparent', class: 'hit' });
+    hit.addEventListener('mousemove', (ev) => tipAt(ev, `<b>Week of ${dateLabel(a + k * 7)}</b><br>${fmtInt(acc)} words` + keys.filter((c) => t[c.id]).map((c) => `<br>${esc(c.name)}: ${fmtInt(t[c.id])}`).join('')));
+    hit.addEventListener('mouseleave', tipOff); root.append(hit);
+    const d = iso(a + k * 7); if (+d.slice(8) <= 7) root.append(txt(x, H - pb + 14, MON[+d.slice(5, 7) - 1]));
+  });
+  host.replaceChildren(root, el('div', { className: 'legend' }, keys.map((c) => el('span', {}, [el('i', { style: `background:${c.color}` }), c.name]))));
+}
+
+// ---------------------------------------------------------------- projects
+function projectRows(R) {
+  const by = {};
+  for (const s of R) { const p = by[s.p.id] || (by[s.p.id] = { p: s.p, words: 0, n: 0, days: new Set(), mins: 0, tw: 0, first: s.d, last: s.d, nb: new Set() });
+    p.words += s.words || 0; p.n++; p.days.add(s.d); p.mins += s.minutes || 0; if (s.minutes > 0 && s.words != null) p.tw += s.words;
+    p.first = Math.min(p.first, s.d); p.last = Math.max(p.last, s.d); if (s.notebook) p.nb.add(s.notebook); }
+  return Object.values(by).sort((x, y) => y.words - x.words);
+}
+function renderProjects() {
+  const R = inR(), rows = projectRows(R), a = A(), b = Math.min(B(), last), host = $('#pj-lines'), W = host.clientWidth;
+  if (W >= 60) {
+    const H = 240, pl = 52, pr = 8, pb = 22, X = (g) => pl + (g - a) / Math.max(1, b - a) * (W - pl - pr);
+    const mx = niceMax(Math.max(1, ...rows.map((r) => r.words))), Y = (v) => 8 + (1 - v / mx) * (H - pb - 8);
+    const root = svg('svg', { viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': 'Words per project, running total' });
+    for (let k = 0; k <= 4; k++) { const v = mx * k / 4; root.append(svg('line', { x1: pl, x2: W - pr, y1: Y(v), y2: Y(v), stroke: C.grid }), txt(pl - 6, Y(v) + 4, tick(v), { 'text-anchor': 'end' })); }
+    for (let g = a; g <= b; g++) { const d = iso(g); if (d.slice(8) === '01') root.append(txt(X(g), H - 6, MON[+d.slice(5, 7) - 1] + (d.slice(5, 7) === '01' ? ' ' + d.slice(2, 4) : ''))); }
+    for (const r of rows) {
+      let acc = 0, d = `M${X(a).toFixed(1)} ${Y(0).toFixed(1)}`;
+      for (const s of R.filter((x) => x.p.id === r.p.id)) { d += `H${X(s.d).toFixed(1)}`; acc += s.words || 0; d += `V${Y(acc).toFixed(1)}`; }
+      d += `H${X(b).toFixed(1)}`;
+      const path = svg('path', { d, fill: 'none', stroke: r.p.color, 'stroke-width': 2, class: 'hit' });
+      path.addEventListener('mousemove', (ev) => tipAt(ev, `<b>${esc(r.p.name)}</b><br>${fmtInt(r.words)} words · ${r.n} sessions`)); path.addEventListener('mouseleave', tipOff);
+      root.append(path);
+    }
+    host.replaceChildren(root);
+  }
+  const mx = Math.max(1, ...rows.map((r) => r.words));
+  $('#pj-table').replaceChildren(
+    el('thead', {}, el('tr', {}, ['Project', 'Words', 'Sessions', 'Days', 'Time', 'Words / h', 'Per session', 'First', 'Last', 'Notebooks'].map((h, i) => el('th', { className: i === 0 || i === 9 ? 'l' : '', text: h })))),
+    el('tbody', {}, rows.map((r) => el('tr', {}, [
+      el('td', {}, [el('span', { className: 'sw', style: `background:${r.p.color}` }), r.p.name]),
+      el('td', {}, [el('span', { className: 'b', style: `width:${Math.round(60 * r.words / mx)}px;background:${r.p.color}` }), fmtInt(r.words)]),
+      el('td', { text: r.n }), el('td', { text: r.days.size }), el('td', { text: hm(r.mins) }),
+      el('td', { text: fmtInt(r.mins ? r.tw / (R.filter((s) => s.p.id === r.p.id && s.minutes > 0 && s.words != null).reduce((t, s) => t + s.minutes, 0) / 60) : null) }),
+      el('td', { text: fmtInt(r.words / r.n) }), el('td', { text: dateLabel(r.first) }), el('td', { text: dateLabel(r.last) }), el('td', { className: 'l', text: [...r.nb].join(', ') || '—' })]))));
+}
+
+// ---------------------------------------------------------------- pace
+function bars(host, items, { H = 180, fmt = tick, color = GOLD, dots = null, label = 'Bars' } = {}) {
+  const W = host.clientWidth; if (W < 60) return;
+  const pl = 40, pb = 20, mx = niceMax(Math.max(1e-9, ...items.map((x) => x.v || 0))), bw = (W - pl) / items.length, Y = (v) => 8 + (1 - v / mx) * (H - pb - 8);
+  const dm = dots ? niceMax(Math.max(1e-9, ...items.map((x) => x.dot || 0))) : 0, YD = (v) => 8 + (1 - v / dm) * (H - pb - 8);
+  const root = svg('svg', { viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': label });
+  for (let k = 0; k <= 4; k++) { const v = mx * k / 4; root.append(svg('line', { x1: pl, x2: W, y1: Y(v), y2: Y(v), stroke: C.grid }), txt(pl - 6, Y(v) + 4, fmt(v), { 'text-anchor': 'end' })); }
+  items.forEach((it, k) => { const x = pl + k * bw;
+    if (it.v) root.append(svg('rect', { x: x + 1, y: Y(it.v), width: Math.max(1, bw - 2), height: Y(0) - Y(it.v), fill: color, 'fill-opacity': 0.85 }));
+    if (dots && it.dot) root.append(svg('circle', { cx: x + bw / 2, cy: YD(it.dot), r: 3.5, fill: dots }));
+    if (it.lab) root.append(txt(x + bw / 2, H - 6, it.lab, { 'text-anchor': 'middle' }));
+    const hit = svg('rect', { x, y: 0, width: bw, height: H, fill: 'transparent', class: 'hit' });
+    hit.addEventListener('mousemove', (ev) => tipAt(ev, it.tip)); hit.addEventListener('mouseleave', tipOff); root.append(hit); });
+  host.replaceChildren(root);
+}
+function renderPace() {
+  const R = inR(), T = R.filter((s) => s.wph != null), host = $('#pc-scatter'), W = host.clientWidth, a = A(), b = Math.min(B(), last);
+  if (W >= 60) {
+    const H = 240, pl = 44, pr = 8, pb = 22, X = (g) => pl + (g - a) / Math.max(1, b - a) * (W - pl - pr);
+    const mx = niceMax(Math.max(1, quantile(T.map((s) => s.wph), 0.98) || 1)), Y = (v) => 8 + (1 - Math.min(v, mx) / mx) * (H - pb - 8);
+    const root = svg('svg', { viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': 'Words per hour, each session' });
+    for (let k = 0; k <= 4; k++) { const v = mx * k / 4; root.append(svg('line', { x1: pl, x2: W - pr, y1: Y(v), y2: Y(v), stroke: C.grid }), txt(pl - 6, Y(v) + 4, tick(v), { 'text-anchor': 'end' })); }
+    for (let g = a; g <= b; g++) { const d = iso(g); if (d.slice(8) === '01') root.append(txt(X(g), H - 6, MON[+d.slice(5, 7) - 1])); }
+    for (const s of T) { const c = svg('circle', { cx: X(s.d), cy: Y(s.wph), r: Math.max(2.5, Math.min(7, Math.sqrt(s.minutes) / 1.6)), fill: s.p.color, 'fill-opacity': 0.7, class: 'hit' });
+      c.addEventListener('mousemove', (ev) => tipAt(ev, `<b>${dateLabel(s.d)}</b> · ${esc(s.p.name)}<br>${fmtInt(s.words)} words in ${hm(s.minutes)} · ${fmtInt(s.wph)} / h<br>${s.start}–${s.finish}`)); c.addEventListener('mouseleave', tipOff); root.append(c); }
+    let d = ''; T.forEach((s, k) => { if (k < 4) return; const m = median(T.slice(Math.max(0, k - 9), k + 1).map((x) => x.wph)); d += (d ? 'L' : 'M') + X(s.d).toFixed(1) + ' ' + Y(m).toFixed(1); });
+    if (d) root.append(svg('path', { d, fill: 'none', stroke: '#fff', 'stroke-width': 1.5, 'stroke-dasharray': '4 3' }));
+    host.replaceChildren(root);
+  }
+  const hr = Array.from({ length: 24 }, (_, h) => { const xs = R.filter((s) => s.h != null && Math.floor(s.h) === h), ts = xs.filter((s) => s.wph != null);
+    const w = xs.reduce((t, s) => t + (s.words || 0), 0), wph = ts.length ? ts.reduce((t, s) => t + s.words, 0) / (ts.reduce((t, s) => t + s.minutes, 0) / 60) : null;
+    return { v: w, dot: wph, lab: h % 6 === 0 ? String(h).padStart(2, '0') : '', tip: `<b>${String(h).padStart(2, '0')}:00</b><br>${xs.length} sessions · ${fmtInt(w)} words${wph ? '<br>' + fmtInt(wph) + ' words / h' : ''}` }; });
+  bars($('#pc-hour'), hr, { dots: C.sound, label: 'Words by start hour' });
+  const dw = DOW.map((nm, k) => { let w = 0, n = 0; for (let g = a; g <= b; g++) if (g - weekStart(g) === k && g <= today) { w += wordsOn(g) || 0; n++; }
+    return { v: n ? w / n : 0, lab: nm, tip: `<b>${nm}</b><br>${fmtInt(n ? w / n : 0)} words per ${nm} (${n} days)` }; });
+  bars($('#pc-dow'), dw, { label: 'Words per day by weekday' });
+  const LEN = [[0, 15], [15, 30], [30, 45], [45, 60], [60, 90], [90, 120], [120, 1e9]];
+  $('#pc-len').replaceChildren(el('thead', {}, el('tr', {}, ['Length', 'Sessions', 'Words', 'Words / h'].map((h) => el('th', { text: h })))),
+    el('tbody', {}, LEN.map(([lo, hi]) => { const xs = T.filter((s) => s.minutes >= lo && s.minutes < hi); if (!xs.length) return null; const w = xs.reduce((t, s) => t + s.words, 0);
+      return el('tr', {}, [el('td', { text: hi > 1e8 ? `${lo}+ min` : `${lo}–${hi} min` }), el('td', { text: xs.length }), el('td', { text: fmtInt(w) }), el('td', { text: fmtInt(w / (xs.reduce((t, s) => t + s.minutes, 0) / 60)) })]); }).filter(Boolean)));
+  const mu = {}; for (const s of R) { const k = s.music || '(none)'; const m = mu[k] || (mu[k] = { n: 0, w: 0, tw: 0, tm: 0 }); m.n++; m.w += s.words || 0; if (s.wph != null) { m.tw += s.words; m.tm += s.minutes; } }
+  $('#pc-music').replaceChildren(el('thead', {}, el('tr', {}, ['Music', 'Sessions', 'Words', 'Words / h'].map((h) => el('th', { text: h })))),
+    el('tbody', {}, Object.entries(mu).sort((x, y) => y[1].n - x[1].n).slice(0, 12).map(([k, m]) => el('tr', {}, [el('td', { text: k }), el('td', { text: m.n }), el('td', { text: fmtInt(m.w) }), el('td', { text: fmtInt(m.tm ? m.tw / (m.tm / 60) : null) })]))));
+}
+
+// ---------------------------------------------------------------- links: every other day metric vs writing
+const OTHER = [];
+if (daily) for (const ds of daily.datasets) {
+  if (ds.id === 'writing' || ds.id === 'fortnite' || ds.grain !== 'day') continue;   // Fortnite days are season totals spread evenly
+  for (const m of ds.metrics) OTHER.push({ key: ds.id + '.' + m.id, ds, m, name: m.name, group: ds.name, unit: m.unit, color: m.color || C.step, at: (g) => { const i = g - ds.offset; return i >= 0 && i < ds.n ? m.v[i] : null; } });
+}
+const YS = { words: ['WORDS', (g) => wordsOn(g)], wph: ['WORDS / HOUR', (g) => (g < first || g > last || !dM[g - first] ? null : dW[g - first] / (dM[g - first] / 60))], wrote: ['WROTE AT ALL', (g) => (g < first || g > last ? null : dN[g - first] > 0 ? 1 : 0)] };
+const LAGS = { 0: 'SAME DAY', [-1]: 'DAY BEFORE', 1: 'NEXT DAY' };
+function linkStats() {
+  const a = A(), b = Math.min(B(), last, today), f = YS[V.y][1], days = []; for (let g = a; g <= b; g++) days.push(g);
+  const wd = days.filter((g) => dN[g - first] > 0).map((g) => dW[g - first]), good = quantile(wd, 0.75);
+  const x = days.map(f), rows = [];
+  for (const o of OTHER) {
+    const y = days.map((g) => o.at(g + +V.lag)); const c = corr(x, y);
+    if (!c) continue;
+    const grp = (keep) => mean(days.map((g, k) => (keep(g) ? y[k] : null)));
+    rows.push({ o, c, good: grp((g) => dN[g - first] > 0 && dW[g - first] >= good), other: grp((g) => dN[g - first] > 0 && dW[g - first] < good), none: grp((g) => !dN[g - first]), x, y, days });
+  }
+  const q = bh(rows.map((r) => r.c.p)); rows.forEach((r, k) => { r.q = q[k]; });
+  rows.sort((p, s) => Math.abs(s.c.r) - Math.abs(p.c.r));
+  return { rows, good, nDays: days.length, nWrote: wd.length };
+}
+const f2 = (r) => (r >= 0 ? '+' : '−') + Math.abs(r).toFixed(2).replace(/^0/, '');
+const val = (v, u) => v == null ? '—' : (Math.abs(v) >= 100 ? fmtInt(v) : fmt1(v)) + (u ? ' ' + u : '');
+function renderLinks() {
+  seg($('#lk-y'), Object.entries(YS).map(([k, [lab]]) => [k, lab]), V.y, (k) => { V.y = k; V.pick = null; renderLinks(); });
+  seg($('#lk-lag'), Object.entries(LAGS).map(([k, lab]) => [k, lab]), String(V.lag), (k) => { V.lag = +k; V.pick = null; renderLinks(); });
+  const L = linkStats();
+  if (!L.rows.length) { $('#lk-read').textContent = `${L.nDays} days in range; links need 20 days that overlap another dataset.`; $('#lk-table').replaceChildren(); $('#lk-scatter').replaceChildren(); $('#lk-split').replaceChildren(); return; }
+  if (!V.pick || !L.rows.find((r) => r.o.key === V.pick)) V.pick = L.rows[0].o.key;
+  const lagName = V.lag === 0 ? 'same day' : V.lag < 0 ? 'day before' : 'next day';
+  $('#lk-table').replaceChildren(
+    el('thead', {}, el('tr', {}, [el('th', { className: 'l', text: `Metric (${lagName})` }), el('th', { text: 'r' }), el('th', { text: '95%' }), el('th', { text: 'q' }), el('th', { text: 'Good days' }), el('th', { text: 'Other writing' }), el('th', { text: 'No writing' }), el('th', { text: 'n' })])),
+    el('tbody', {}, L.rows.map((r) => { const tr = el('tr', { className: 'pick' + (r.o.key === V.pick ? ' on' : '') }, [
+      el('td', {}, [el('span', { className: 'sw', style: `background:${r.o.color}` }), r.o.name, el('small', { text: ' ' + r.o.group, style: 'color:var(--dim)' })]),
+      el('td', { className: r.q != null && r.q < 0.1 ? (r.c.r > 0 ? 'pos' : 'neg') : '', text: f2(r.c.r) }), el('td', { text: `${f2(r.c.lo)} ${f2(r.c.hi)}` }), el('td', { text: r.q == null ? '—' : r.q < 0.001 ? '<.001' : r.q.toFixed(3).replace(/^0/, '') }),
+      el('td', { text: val(r.good) }), el('td', { text: val(r.other) }), el('td', { text: val(r.none) }), el('td', { text: r.c.n })]);
+      tr.onclick = () => { V.pick = r.o.key; renderLinks(); }; return tr; })));
+  const P = L.rows.find((r) => r.o.key === V.pick);
+  $('#lk-read').innerHTML = `Good day: <b>${fmtInt(L.good)}+ words</b> (top quarter of ${L.nWrote} writing days) · ${L.rows.length} metrics · Spearman r, q after Benjamini–Hochberg<br>` +
+    `<b>${YS[V.y][0].toLowerCase()} × ${esc(P.o.name)}</b> (${lagName}) · r ${f2(P.c.r)} (${f2(P.c.lo)} to ${f2(P.c.hi)}) · ${P.c.n} days · good days ${val(P.good, P.o.unit)} · other writing days ${val(P.other, P.o.unit)} · no writing ${val(P.none, P.o.unit)}`;
+  // scatter
+  const host = $('#lk-scatter'), W = host.clientWidth;
+  if (W >= 60) {
+    const pts = P.days.map((g, k) => [P.y[k], P.x[k], g]).filter(([u, v]) => u != null && v != null);
+    const H = 240, pl = 44, pr = 8, pt = 8, pb = 30, xs = pts.map((p) => p[0]), ys = pts.map((p) => p[1]);
+    const x0 = Math.min(...xs), x1 = Math.max(...xs), y1 = niceMax(Math.max(1e-9, ...ys));
+    const X = (v) => pl + (v - x0) / ((x1 - x0) || 1) * (W - pl - pr), Y = (v) => pt + (1 - v / y1) * (H - pt - pb);
+    const root = svg('svg', { viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': 'Scatter' });
+    for (let k = 0; k <= 4; k++) { const v = y1 * k / 4; root.append(svg('line', { x1: pl, x2: W - pr, y1: Y(v), y2: Y(v), stroke: C.grid }), txt(pl - 6, Y(v) + 4, V.y === 'wrote' ? (k === 4 ? 'yes' : k === 0 ? 'no' : '') : fmtInt(v), { 'text-anchor': 'end' })); }
+    for (let k = 0; k <= 4; k++) { const v = x0 + (x1 - x0) * k / 4; root.append(txt(X(v), H - 16, val(v), { 'text-anchor': k === 4 ? 'end' : k ? 'middle' : 'start' })); }
+    root.append(txt(W - pr, H - 2, `${P.o.name} (${lagName})`, { 'text-anchor': 'end', class: 'lab' }));
+    for (const [u, v, g] of pts) { const c = svg('circle', { cx: X(u), cy: Y(v) + (V.y === 'wrote' ? (((g * 7919) % 101) / 101 - 0.5) * 16 : 0), r: 3, fill: P.o.color, 'fill-opacity': 0.6, class: 'hit' });
+      c.addEventListener('mousemove', (ev) => tipAt(ev, `<b>${dateLabel(g)}</b><br>${val(u, P.o.unit)} · ${fmtInt(wordsOn(g))} words`)); c.addEventListener('mouseleave', tipOff); root.append(c); }
+    host.replaceChildren(root);
+  }
+  bars($('#lk-split'), [['Good days', P.good], ['Other writing', P.other], ['No writing', P.none]].map(([lab, v]) => ({ v, lab, tip: `<b>${lab}</b><br>${val(v, P.o.unit)}` })), { H: 150, fmt: (v) => val(v), color: P.o.color, label: 'Average by kind of day' });
+}
+
+// ---------------------------------------------------------------- log
+function renderLog() {
+  const R = inR(), ps = projectRows(R);
+  $('#lg-proj').replaceChildren(el('option', { value: '', text: 'All projects' }), ...ps.map((r) => el('option', { value: r.p.id, text: r.p.name, selected: r.p.id === V.proj })));
+  const xs = R.filter((s) => !V.proj || s.p.id === V.proj).slice().reverse();
+  $('#lg-table').replaceChildren(el('thead', {}, el('tr', {}, ['Date', 'Project', 'Notebook', 'Words', 'Start', 'Finish', 'Time', 'Words / h', 'Music'].map((h, i) => el('th', { className: [0, 1, 2, 8].includes(i) ? 'l' : '', text: h })))),
+    el('tbody', {}, xs.map((s) => el('tr', {}, [el('td', { text: dateLabel(s.d) }), el('td', {}, [el('span', { className: 'sw', style: `background:${s.p.color}` }), s.p.name]), el('td', { className: 'l', text: s.notebook || '—' }),
+      el('td', { text: fmtInt(s.words) }), el('td', { text: s.start || '—' }), el('td', { text: s.finish || '—' }), el('td', { text: hm(s.minutes) }), el('td', { text: fmtInt(s.wph) }), el('td', { className: 'l', text: s.music || '—' })]))));
+}
+$('#lg-proj').onchange = (ev) => { V.proj = ev.target.value; renderLog(); };
+
+// ---------------------------------------------------------------- wiring
+const R_ = { habit: renderHabit, projects: renderProjects, pace: renderPace, links: renderLinks, log: renderLog };
+const draw = () => { const k = SiteTabs.current; if (R_[k]) R_[k](); };
+seg($('#range'), RANGES.map((r, i) => [i, r[0]]), V.r, (k) => { V.r = k; V.pick = null; renderReadout(); draw(); });
+seg($('#hb-by'), [['project', 'PROJECT'], ['tod', 'TIME OF DAY']], V.by, (k) => { V.by = k; renderWeeks(); });
+renderReadout();
+addEventListener('tabchange', draw);
+let rz; addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(draw, 120); });
+SiteTabs.start();
+</script>

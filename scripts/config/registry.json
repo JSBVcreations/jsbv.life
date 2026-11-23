@@ -213,6 +213,134 @@
    }
   },
   {
+   "id": "writing",
+   "name": "Writing log",
+   "kind": "manual log",
+   "raw": "jsbv data/Writing-Log.xlsx (Writing Sessions sheet)",
+   "builder": "build_writing_log.py",
+   "sql_first": true,
+   "outputs": [
+    "meta-log/data/writing.json",
+    "writing/data/sessions.json"
+   ],
+   "pages": [
+    "writing/",
+    "/#explore"
+   ],
+   "stale_days": null,
+   "run": {
+    "order": 62,
+    "label": "Writing",
+    "find": [
+     {
+      "glob": [
+       "*[Ww]riting*[Ll]og*.xlsx"
+      ]
+     }
+    ],
+    "args": [
+     "{0}"
+    ],
+    "export": {
+     "table": "writing",
+     "date": "date",
+     "out": "meta-log/data/writing.json",
+     "start": "first",
+     "empty_ok": true,
+     "dataset": {
+      "id": "writing",
+      "name": "Writing",
+      "source": "Writing log workbook (writing/)"
+     },
+     "metrics": [
+      {
+       "id": "words",
+       "name": "Words written",
+       "unit": "words",
+       "agg": "sum",
+       "col": "words",
+       "color": "#ffd84a",
+       "round": 0
+      },
+      {
+       "id": "sessions",
+       "name": "Writing sessions",
+       "unit": "sessions",
+       "agg": "count",
+       "color": "#ff6fd8"
+      },
+      {
+       "id": "minutes",
+       "name": "Writing time",
+       "unit": "min",
+       "agg": "sum",
+       "col": "minutes",
+       "color": "#9b7bff",
+       "round": 0
+      }
+     ],
+     "dims": [
+      {
+       "id": "project",
+       "name": "Project",
+       "col": "project_id",
+       "name_col": "project",
+       "rank": "words",
+       "metrics": [
+        "words",
+        "minutes"
+       ],
+       "cats": "auto"
+      },
+      {
+       "id": "tod",
+       "name": "Time of day",
+       "col": "tod",
+       "metrics": [
+        "words"
+       ],
+       "cats": [
+        {
+         "id": "night",
+         "name": "Night 0–6",
+         "color": "#9b7bff"
+        },
+        {
+         "id": "morning",
+         "name": "Morning 6–12",
+         "color": "#ffb347"
+        },
+        {
+         "id": "afternoon",
+         "name": "Afternoon 12–18",
+         "color": "#3ff0ff"
+        },
+        {
+         "id": "evening",
+         "name": "Evening 18–24",
+         "color": "#ff3fb4"
+        }
+       ]
+      }
+     ],
+     "rows": {
+      "out": "writing/data/sessions.json",
+      "cols": [
+       "date",
+       "project_id",
+       "notebook",
+       "words",
+       "start",
+       "finish",
+       "minutes",
+       "music"
+      ],
+      "order": "date, start"
+     }
+    }
+   }
+  },
+  {
    "id": "smoking",
    "name": "Smoking (private)",
    "kind": "manual log",
@@ -377,7 +505,7 @@
     "step-song/data/at2019-log.json",
     "step-song/data/at2019-breakdown.json",
     "trail/data/trail-radio.json",
-   "trail/data/at-trip.json"
+    "trail/data/at-trip.json"
    ],
    "pages": [
     "trail/#log",
@@ -494,6 +622,7 @@
      "meta-log/data/phone.json",
      "meta-log/data/breath.json",
      "meta-log/data/water.json",
+     "meta-log/data/writing.json",
      "meta-log/data/lifting.json",
      "meta-log/data/astro.json",
      "meta-log/data/privacy.json",

@@ -50,6 +50,7 @@ HOW = {
     'breath': 'Wim Hof app > export results > drop it in "jsbv data/inbox".',
     'water': 'Save the water log (columns date, time, fill_ml) as a CSV and drop it in "jsbv data/inbox".',
     'smoking': 'Add rows to the smoking workbook (Log tab: Year, Month, Day, Time hhmm, Type) in "jsbv data" and save.',
+    'writing': 'Log sessions in "jsbv data/Writing-Log.xlsx" (Writing Sessions sheet) and save.',
     'fortnite': 'epicgames.com > Account > Privacy > request your data; drop the PDF (and Fortnite-Library-Manager.numbers) '
                 'in "jsbv data/inbox". Needs: pip3 install pypdf numbers-parser',
     'phone': 'att.com > usage details > download the Talk/Text/Data workbook and drop it in "jsbv data/inbox".',
@@ -261,7 +262,7 @@ def report():
         ('Movement (Apple Health)', 'move', 'health', 7), ('Heart + sleep', 'body', 'health', 7),
         ('Strava hikes', 'strava', 'strava', 7), ('Watching', 'watch', 'watch', 14), ('Phone calls', 'calls', 'calls', 31),
         ('Breathwork', 'breath', 'breath', 31), ('Smoking', 'smoking', 'smoking', 7), ('Fortnite seasons', 'fortnite', 'fortnite', 120),
-        ('Photos', 'photos', 'photos', 14), ('Music (Spotify)', 'music', 'spotify', 120),
+        ('Photos', 'photos', 'photos', 14), ('Music (Spotify)', 'music', 'spotify', 120), ('Writing', 'writing', 'writing', 7),
         ('AT 2019 trail log', 'trail', None, None), ('Water (Sep 2025 log)', 'water', None, None),
     ]
     todo = []

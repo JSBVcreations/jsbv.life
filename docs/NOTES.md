@@ -398,3 +398,9 @@ Keep the MX / TXT / DKIM / autodiscover records — they run the jsbv.life busin
 - Coverage: a day counts when any log has an entry within 7 days; covered days with nothing logged are 0 (rest), longer gaps
   are null so missing records never read as rest. Weekly top-set logs are left out.
 - `group_of` falls back to keywords for exercise names no table covers (legs before pull, so "stiff leg deadlift" is legs).
+
+## WORD//COUNT (writing/, Nov 23, 2026)
+- Source: `jsbv data/Writing-Log.xlsx`, sheet Writing Sessions, one row per session. The inbox recognises the workbook (sheet name + `word_count` header) and files it as `Writing-Log.xlsx` in the data folder.
+- First SQL-first dataset. `build_writing_log.py` writes `src_writing` (date, project, project_id, notebook, words, start, finish, minutes, tod, music public; location private). Finish before start = past midnight. Rows without a date are skipped.
+- `export_public.py writing` writes the day dataset (words, sessions, minutes; dims project (auto cats, ranked by words) and time of day) and the session rows column-wise. An empty sheet writes an empty sessions file and no day dataset; the page then says "No sessions logged yet."
+- Page: range buttons per year (current first) + ALL. Streak counts back from today (or yesterday if today has no session yet). Links reads every day-grain dataset in `meta-log/data/days/` except Fortnite (season totals spread evenly).

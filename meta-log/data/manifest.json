@@ -149,6 +149,26 @@
    ]
   },
   {
+   "id": "writing",
+   "name": "Writing log",
+   "kind": "manual log",
+   "builder": "build_writing_log.py",
+   "pages": [
+    "writing/",
+    "/#explore"
+   ],
+   "through": null,
+   "age_days": null,
+   "stale": false,
+   "files": [
+    {
+     "path": "writing/data/sessions.json",
+     "kb": 0,
+     "through": null
+    }
+   ]
+  },
+  {
    "id": "smoking",
    "name": "Smoking (private)",
    "kind": "manual log",

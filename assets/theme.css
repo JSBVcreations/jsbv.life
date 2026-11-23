@@ -44,6 +44,7 @@
 [data-page="step-song"]     { --tab-accent: #3ff0ff; }
 [data-page="timelines"]     { --tab-accent: #ff6fd8; --s1c: #ff6fd8; --s2c: #5fb8ff; }
 [data-page="trail"]         { --tab-accent: #ff3fb4; }
+[data-page="writing"]       { --tab-accent: #ffd84a; }
 
 /* ---------------------------------------------------------------- base */
 * { box-sizing: border-box; }

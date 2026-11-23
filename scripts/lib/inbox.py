@@ -85,6 +85,8 @@ def recognise(path):
             return 'calls', os.path.join(RAW, 'calls'), f'{y}-{m}-Call-Log-Backup.xlsx'
         if 'Log' in names and 'Type' in first_row(path, 'Log'):
             return 'smoking', os.path.join(RAW, 'smoking'), b if 'smoking' in low else f'{y}-smoking.xlsx'
+        if 'Writing Sessions' in names and 'word_count' in first_row(path, 'Writing Sessions'):
+            return 'writing', DATA, 'Writing-Log.xlsx'
         if low.startswith('timeline-'):
             return 'timelines', DATA, b
         return None

@@ -190,6 +190,9 @@ function renderProjects() {
   if (DS.watch) { const W = DS.watch; cards.push(el('div', { className: 'card mv' }, [el('h3', { text: 'Movies & TV' }),
     el('div', { className: 'big2' }, [num(totalIn('watch', 'movies', yearStart(W.end), W.end)), el('small', { text: `movies + ${num(totalIn('watch', 'episodes', yearStart(W.end), W.end))} episodes in ${YR[W.end]}` })]),
     jump([['#movies', 'Every title', 'posters + report cards'], ['#movies/map', 'Guilty pleasures', 'the map'], ['#movies/propaganda', 'Propaganda', 'the board']])])); }
+  if (DS.writing) { const Wr = DS.writing, a = Math.max(Wr.offset, yearStart(Wr.end)); cards.push(el('div', { className: 'card wr' }, [el('h3', { text: 'WORD//COUNT' }),
+    el('div', { className: 'big2' }, [num(totalIn('writing', 'words', a, Wr.end)), el('small', { text: `words in ${num(totalIn('writing', 'sessions', a, Wr.end))} sessions, ${YR[Wr.end]}` })]),
+    jump([['writing/#habit', 'Habit'], ['writing/#projects', 'Projects'], ['writing/#pace', 'Pace'], ['writing/#links', 'Links'], ['writing/#log', 'Log']])])); }
   gamesCard().then((c) => { if (!c) return; const host = $('#p-cards'); host.querySelector('.card.games')?.remove(); c.classList.add('games'); host.append(c); });
   if (DS.calls) { const C = DS.calls; cards.push(el('div', { className: 'card' }, [el('h3', { text: 'Phone calls' }),
     el('div', { className: 'big2' }, [num(totalIn('calls', 'minutes', yearStart(C.end), C.end), C.metrics.find((m) => m.id === 'minutes').unit), el('small', { text: `on the phone in ${YR[C.end]}` })]),
