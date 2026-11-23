@@ -19,7 +19,7 @@
 <link rel="stylesheet" href="../assets/theme.css">
 <style>
 /* STAR//LOG (under Data). Data: meta-log/data/astro.json (scripts/build_astro.py, from the git-ignored JSBV meta/ natal text),
-   daily.json (every dataset) and life.json (chapters). Live positions for the chart's outer ring are computed in the page.
+   meta-log/data/days/ (every dataset, via assets/daily.js) and life.json (chapters). Live positions for the chart's outer ring are computed in the page.
    Tabs: chart (natal + transits bi-wheel) · now (in effect, coming up) · timeline (transits, moments, retrogrades, life) ·
    periods (every transit, house period and moment, with the record during it) · lens (one metric by lunar phase and retrograde) ·
    sky (every metric against the sky). Effects use each day's value minus its centred 91-day mean ("vs usual"); p-values come
@@ -191,6 +191,7 @@ function lonOf(id, ms) {
 </script>
 <script type="module">
 import { $, el, svg, DAY, T0, dayIndex, iso, dateLabel, tipAt, tipOff, seg, loadJSON } from '../assets/core.js';
+import { loadDaily } from '../assets/daily.js';
 (async () => {
   const fmtM = (s) => new Date(Date.UTC(+s.slice(0, 4), +s.slice(5, 7) - 1, 1)).toLocaleDateString('en-US', { month: 'short', year: 'numeric', timeZone: 'UTC' });
   const now = new Date(), TODAY = dayIndex(`${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`);
@@ -209,7 +210,7 @@ import { $, el, svg, DAY, T0, dayIndex, iso, dateLabel, tipAt, tipOff, seg, load
 
   let A, DJ, LIFE;
   try {
-    const [a, d, l] = await Promise.all(['../meta-log/data/astro.json', '../meta-log/data/daily.json', '../meta-log/data/life.json'].map((u) => loadJSON(u, { optional: true })));
+    const [a, d, l] = await Promise.all([loadJSON('../meta-log/data/astro.json', { optional: true }), loadDaily('../', { optional: true }), loadJSON('../meta-log/data/life.json', { optional: true })]);
     if (!a || !d) throw 0; A = a; DJ = d; LIFE = l || [];
   } catch (e) { $('#err').hidden = false; SiteTabs.start(); return; }
 

@@ -44,6 +44,11 @@ def main():
     os.makedirs(OUT, exist_ok=True)
     tables, doc = [], []
     D = load('meta-log', 'data', 'daily.json'); start = dt.date.fromisoformat(D['start'])
+    # the moon dataset is computed in the page, not shipped in daily.json; rebuild it here from astro.json
+    if not any(d['id'] == 'moon' for d in D['datasets']) and os.path.exists(os.path.join(ROOT, 'meta-log', 'data', 'astro.json')):
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from lib.moon import moon_dataset
+        D['datasets'].append(moon_dataset(load('meta-log', 'data', 'astro.json'), start))
     cols, n = [], 0
     for d in D['datasets']:
         if d.get('grain') != 'day': continue

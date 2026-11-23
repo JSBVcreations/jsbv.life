@@ -41,7 +41,7 @@ def main():
     if len(sys.argv) < 2:
         sys.exit(__doc__)
     raw_dir = os.path.expanduser(sys.argv[1])
-    meta = load(SS, 'meta.json'); T, A = meta['tracks'], meta['artists']
+    meta = load(SS, 'meta.json'); T, A = meta['tracks'] if 'tracks' in meta else load(SS, 'tracks.json'), meta['artists']
     log = load(SS, 'at2019-log.json')['days']
     bd = load(SS, 'at2019-breakdown.json')
     hourly = load(SS, 'hourly.json')['steps']

@@ -334,7 +334,7 @@ meta = {
     'sleep': {'hours': round(sum(sleep_total.values()) / 3600), 'nights': len(sleep_days),
               'artists': [[a, round(v / 3600, 1)] for a, v in sleep_total.most_common(10)]},
     'years': sorted(by_year.keys()),
-    'artists': artists, 'tracks': tracks,
+    'artists': artists,
     'daily': daily,
     'totals': {
         'steps': sum(daily['steps']), 'miles': round(sum(daily['miles'])), 'flights': sum(daily['flights']), 'elevFt': sum(daily['elev']),
@@ -349,7 +349,12 @@ meta = {
 }
 def dump(name, obj):
     with open(os.path.join(OUT, name), 'w') as f: json.dump(obj, f, separators=(',', ':'), ensure_ascii=False)
+# The track table (32k rows, ~2 MB) lives in tracks.json; the page loads it with the first year of plays. meta.json keeps only
+# the tracks its own lists name (earworms, the AT hour-by-hour profile) in trackRefs.
+refs = {w[1] for w in meta['earworms']} | {t for tr in trips if tr.get('hours') for t in tr['hours']['track'] if t >= 0}
+meta['trackRefs'] = {str(t): tracks[t] for t in sorted(refs)}
 dump('meta.json', meta)
+dump('tracks.json', tracks)
 dump('hourly.json', {
     'steps': [int(round(v)) for row in steps for v in row],
     'flights': [round(v, 1) for row in flights for v in row],

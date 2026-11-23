@@ -1,5 +1,5 @@
 {
- "generated": "2026-11-22",
+ "generated": "2026-11-23",
  "sources": [
   {
    "id": "health",
@@ -12,7 +12,7 @@
     "pct-training/#recovery"
    ],
    "through": "2026-11-13",
-   "age_days": 9,
+   "age_days": 10,
    "stale": false,
    "files": [
     {
@@ -31,7 +31,7 @@
     "/#watched"
    ],
    "through": "2026-11-15",
-   "age_days": 7,
+   "age_days": 8,
    "stale": false,
    "files": [
     {
@@ -60,7 +60,7 @@
     "/#explore"
    ],
    "through": "2026-11-07",
-   "age_days": 15,
+   "age_days": 16,
    "stale": false,
    "files": [
     {
@@ -79,19 +79,19 @@
     "/phone/",
     "/#explore"
    ],
-   "through": null,
-   "age_days": null,
+   "through": "2026-11-16",
+   "age_days": 7,
    "stale": false,
    "files": [
     {
      "path": "phone/data/phone.json",
      "kb": 83,
-     "through": null
+     "through": "2026-11-16"
     },
     {
      "path": "meta-log/data/phone.json",
      "kb": 10,
-     "through": null
+     "through": "2026-11-16"
     }
    ]
   },
@@ -104,7 +104,7 @@
     "/#explore"
    ],
    "through": "2026-11-16",
-   "age_days": 6,
+   "age_days": 7,
    "stale": false,
    "files": [
     {
@@ -124,7 +124,7 @@
     "/#explore"
    ],
    "through": "2025-10-01",
-   "age_days": 417,
+   "age_days": 418,
    "stale": false,
    "files": [
     {
@@ -162,7 +162,7 @@
     "games/"
    ],
    "through": "2026-11-15",
-   "age_days": 7,
+   "age_days": 8,
    "stale": false,
    "files": [
     {
@@ -181,8 +181,8 @@
     "pct-training/"
    ],
    "through": "2026-11-19",
-   "age_days": 3,
-   "stale": false,
+   "age_days": 4,
+   "stale": true,
    "files": [
     {
      "path": "pct-training/data/activities.json",
@@ -205,7 +205,7 @@
     "pct-training/#plan"
    ],
    "through": "2026-11-19",
-   "age_days": 3,
+   "age_days": 4,
    "stale": false,
    "files": [
     {
@@ -224,7 +224,7 @@
     "photo-library/"
    ],
    "through": "2026-11-19",
-   "age_days": 3,
+   "age_days": 4,
    "stale": false,
    "files": [
     {
@@ -249,17 +249,22 @@
     "/#experiments/eras"
    ],
    "through": "2026-10-15",
-   "age_days": 38,
+   "age_days": 39,
    "stale": false,
    "files": [
     {
      "path": "step-song/data/meta.json",
-     "kb": 2203,
+     "kb": 477,
      "through": "2026-10-15"
     },
     {
      "path": "step-song/data/hourly.json",
      "kb": 1290,
+     "through": null
+    },
+    {
+     "path": "step-song/data/tracks.json",
+     "kb": 1760,
      "through": null
     },
     {
@@ -389,7 +394,7 @@
     "/#explore (overlay)"
    ],
    "through": "2026-11-22",
-   "age_days": 0,
+   "age_days": 1,
    "stale": false,
    "files": [
     {
@@ -409,14 +414,14 @@
     "/#experiments/corr",
     "/#explore"
    ],
-   "through": null,
-   "age_days": null,
+   "through": "2026-11-21",
+   "age_days": 2,
    "stale": false,
    "files": [
     {
      "path": "meta-log/data/astro.json",
      "kb": 272,
-     "through": null
+     "through": "2026-11-21"
     }
    ]
   },
@@ -429,12 +434,97 @@
     "/ (all views)"
    ],
    "through": "2026-11-21",
-   "age_days": 1,
+   "age_days": 2,
    "stale": false,
    "files": [
     {
      "path": "meta-log/data/daily.json",
-     "kb": 1285,
+     "kb": 1051,
+     "through": "2026-11-21"
+    },
+    {
+     "path": "meta-log/data/days/astro.json",
+     "kb": 47,
+     "through": null
+    },
+    {
+     "path": "meta-log/data/days/body.json",
+     "kb": 29,
+     "through": null
+    },
+    {
+     "path": "meta-log/data/days/breath.json",
+     "kb": 104,
+     "through": null
+    },
+    {
+     "path": "meta-log/data/days/calls.json",
+     "kb": 14,
+     "through": null
+    },
+    {
+     "path": "meta-log/data/days/exercise.json",
+     "kb": 4,
+     "through": null
+    },
+    {
+     "path": "meta-log/data/days/fortnite.json",
+     "kb": 65,
+     "through": null
+    },
+    {
+     "path": "meta-log/data/days/index.json",
+     "kb": 2,
+     "through": "2026-11-21"
+    },
+    {
+     "path": "meta-log/data/days/lifting.json",
+     "kb": 60,
+     "through": null
+    },
+    {
+     "path": "meta-log/data/days/lightroom.json",
+     "kb": 48,
+     "through": null
+    },
+    {
+     "path": "meta-log/data/days/move.json",
+     "kb": 185,
+     "through": null
+    },
+    {
+     "path": "meta-log/data/days/music.json",
+     "kb": 332,
+     "through": null
+    },
+    {
+     "path": "meta-log/data/days/phone.json",
+     "kb": 10,
+     "through": null
+    },
+    {
+     "path": "meta-log/data/days/photos.json",
+     "kb": 117,
+     "through": null
+    },
+    {
+     "path": "meta-log/data/days/trail.json",
+     "kb": 1,
+     "through": null
+    },
+    {
+     "path": "meta-log/data/days/watch.json",
+     "kb": 33,
+     "through": null
+    },
+    {
+     "path": "meta-log/data/days/water.json",
+     "kb": 1,
+     "through": null
+    },
+    {
+     "path": "meta-log/data/summary.json",
+     "kb": 17,
      "through": "2026-11-21"
     }
    ]
@@ -448,7 +538,7 @@
     "/#report"
    ],
    "through": "2026-11-19",
-   "age_days": 3,
+   "age_days": 4,
    "stale": false,
    "files": [
     {
@@ -469,7 +559,7 @@
     "fitness/"
    ],
    "through": "2025-10-22",
-   "age_days": 396,
+   "age_days": 397,
    "stale": false,
    "files": [
     {
@@ -493,14 +583,14 @@
     "months/",
     "/#report"
    ],
-   "through": null,
-   "age_days": null,
+   "through": "2026-11-19",
+   "age_days": 4,
    "stale": false,
    "files": [
     {
      "path": "meta-log/data/months.json",
      "kb": 9,
-     "through": null
+     "through": "2026-11-19"
     }
    ]
   },
@@ -512,14 +602,14 @@
    "pages": [
     "body/"
    ],
-   "through": null,
-   "age_days": null,
+   "through": "2026-11-19",
+   "age_days": 4,
    "stale": false,
    "files": [
     {
      "path": "body/data/body.json",
      "kb": 10,
-     "through": null
+     "through": "2026-11-19"
     }
    ]
   }

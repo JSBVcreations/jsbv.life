@@ -30,7 +30,7 @@ The script rebuilds every source it finds, then rebuilds PCT//PREP, `daily.json`
 | Natal chart + sky (STAR//LOG) | automatic | `JSBV meta/text.txt` (Astro-Seek copy text; git-ignored, stays local) | Nothing: Update recomputes transits, eclipses, retrogrades and lunar phases (2015-2027) every run. New natal text: replace the file | `build_astro.py` → `meta-log/data/astro.json` (+ the `astro` and `moon` day datasets in daily.json) |
 | AT 2019 log, AT breakdown, trail radio | historic | trail-log workbook, Spotify 2019 | Never; rebuild only if a builder changes | `build_at_log.py`, `build_at_breakdown.py`, `build_trail_radio.py` |
 
-Every page reads `meta-log/data/daily.json`, which `build_meta_log.py` builds from the repo files above. It never reads raw exports.
+`build_meta_log.py` builds `meta-log/data/daily.json` from the repo files above (never from raw exports), then cuts the copies the pages read: one file per dataset in `meta-log/data/days/` (with a version hash in `days/index.json`) and `summary.json` for Home (`build_daily_web.py`). The Python builders read `daily.json` itself.
 
 The workbooks can still sit in the repo folder (they're git-ignored), but `jsbv data` keeps them all in one place. Files with "copy" in the name are ignored.
 

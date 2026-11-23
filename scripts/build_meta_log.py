@@ -42,6 +42,7 @@ datasets = []
 
 # ---------------------------------------------------------------- STEP//SONG: movement + music
 meta = load(os.path.join(SS, 'meta.json'))
+if 'tracks' not in meta: meta['tracks'] = load(os.path.join(SS, 'tracks.json'))   # split out of meta.json (Nov 2026)
 hourly = load(os.path.join(SS, 'hourly.json'))
 D = meta['daily']; N = meta['nDays']; ss_off = day(meta['start'])
 
@@ -255,7 +256,7 @@ if os.path.exists(fp):
         })
 
 # ---------------------------------------------------------------- sky (built by scripts/build_astro.py), through today
-# Retrograde days and transit load (astro) plus new/full moons and illumination (moon), for the Explorer and the Lab. Page: astro/ (STAR//LOG).
+# Retrograde days and transit load (astro), for the Explorer and the Lab; the moon dataset is computed in the page. Page: astro/ (STAR//LOG).
 ap = os.path.join(OUT, 'astro.json')
 if os.path.exists(ap):
     A = load(ap); a0 = day(A['daily']['start']); n = min(A['daily']['n'], (dt.date.today() - START).days - a0 + 1)
@@ -275,27 +276,8 @@ if os.path.exists(ap):
             {'id': 'load', 'name': 'Transit load', 'unit': 'pts', 'agg': 'mean', 'color': '#9b7bff', 'v': A['daily']['load'][:n]},
         ],
     })
-    # Moon: new and full moons on the Connecticut day they fall, by the sign they fall in, and how lit the Moon is
-    SGN = ['aries', 'taurus', 'gemini', 'cancer', 'leo', 'virgo', 'libra', 'scorpio', 'sagittarius', 'capricorn', 'aquarius', 'pisces']
-    SCOL = ['#ff8a65', '#a5d66f', '#8fd3ff', '#8e9bff'] * 3
-    new_m, full_m = [0] * n, [0] * n
-    by = {'new': {s: [0] * n for s in SGN}, 'full': {s: [0] * n for s in SGN}}
-    for tm, k, lon, local in A['lunations']:
-        i = day(local) - a0
-        if k not in (0, 2) or not 0 <= i < n: continue
-        key = 'new' if k == 0 else 'full'
-        (new_m if k == 0 else full_m)[i] = 1; by[key][SGN[int(lon // 30)]][i] = 1
-    datasets.append({
-        'id': 'moon', 'name': 'Moon', 'source': 'Computed lunations (astro/)', 'grain': 'day', 'offset': a0, 'n': n,
-        'site': {'blurb': 'New and full moons by sign, and how lit the Moon is each day.'},
-        'metrics': [
-            {'id': 'full', 'name': 'Full moons', 'unit': 'full moons', 'agg': 'sum', 'color': '#e3e8f4', 'v': full_m},
-            {'id': 'new', 'name': 'New moons', 'unit': 'new moons', 'agg': 'sum', 'color': '#8a84b8', 'v': new_m},
-            {'id': 'lit', 'name': 'Moon lit', 'unit': '%', 'agg': 'mean', 'color': '#dcd8ff', 'v': [round((1 - math.cos(math.radians(x))) * 50) for x in el]},
-        ],
-        'dims': [{'id': 'sign', 'name': 'Sign', 'cats': [{'id': s, 'name': s.title(), 'color': SCOL[j]} for j, s in enumerate(SGN)],
-                  'v': {'full': by['full'], 'new': by['new']}}],
-    })
+    # The Moon dataset (new and full moons by sign, Moon lit) is computed in the browser (assets/moon.js) from the same
+    # ephemeris, so it is not shipped here. scripts/lib/moon.py builds the same thing for export_for_claude.py.
 
 # ---------------------------------------------------------------- library snapshots for the report card
 snap = {'photos': P.get('snapshots', []), 'lightroom': load(lrp).get('snapshots', []) if os.path.exists(lrp) else []}
@@ -321,8 +303,8 @@ os.makedirs(OUT, exist_ok=True)
 out = {'generated': dt.date.today().isoformat(), 'start': START.isoformat(), 'datasets': datasets, 'snapshots': snap}
 with open(os.path.join(OUT, 'daily.json'), 'w') as f:
     json.dump(out, f, separators=(',', ':'), ensure_ascii=False)
-from build_summary import write_summary  # noqa: E402  (the home page's first load: the last 60 days of each dataset)
-write_summary(out, OUT)
+from build_daily_web import write_daily_web  # noqa: E402  (days/*.json + summary.json: the copies the pages load)
+write_daily_web(out, OUT)
 for d in datasets + private:
     first = START + dt.timedelta(days=d['offset']); last = first + dt.timedelta(days=d['n'] - 1)
     print(f"{d['id']:10s} {first} → {last}  " + ', '.join(f"{m['id']}={round(sum(x for x in m['v'] if x is not None)):,}" for m in d['metrics']))

@@ -116,6 +116,7 @@ def music_windows(end):
     ss = os.path.join(ROOT, 'step-song', 'data')
     try:
         meta = json.load(open(os.path.join(ss, 'meta.json')))
+        if 'tracks' not in meta: meta['tracks'] = json.load(open(os.path.join(ss, 'tracks.json')))
     except OSError:
         return None
     d0 = dt.date.fromisoformat(meta['start'])

@@ -1,9 +1,11 @@
 /* Home page data and shared helpers. Every view module imports from here.
    loadData() fills the exports at one of two levels:
      'summary' meta-log/data/summary.json: every dataset's last 60 days, no breakdowns (Home only)
-     'full'    meta-log/data/daily.json + life chapters, hand-logged metrics and timelines (every other view)
+     'full'    every dataset (meta-log/data/days/, assets/daily.js) + life chapters, hand-logged metrics and timelines (every other view)
    The exports are live bindings: a view that imports DS sees the full data once loadData('full') has run. */
 import { el, DAY, T0, MON, dayIndex, dateLabel, POOL, loadJSON } from '../core.js';
+import { moonDataset } from '../moon.js';
+import { loadDaily } from '../daily.js';
 
 export let daily, DS = {}, LIFE = [], TLS = null, today, DATA_A, DATA_B, lastYear, MAXI;
 export let YR, MO, WK, DOW;   // calendar keys for every day index
@@ -50,7 +52,7 @@ export function loadData(full = false) {
 async function build(want) {
   const local = /^(localhost|127\.|\[::1\])/.test(location.host);
   const [d, lifeRaw, lifePriv, manual, tls, priv] = await Promise.all([
-    loadJSON(want === 'full' ? 'meta-log/data/daily.json' : 'meta-log/data/summary.json'),
+    want === 'full' ? loadDaily() : loadJSON('meta-log/data/summary.json'),
     want === 'full' ? loadJSON('meta-log/data/life.json') : [],
     want === 'full' && local ? loadJSON('meta-log/data/life.private.json', { optional: true }) : null,
     want === 'full' ? loadJSON('meta-log/data/manual.json', { optional: true }) : null,
@@ -59,6 +61,9 @@ async function build(want) {
   if (level === 'full') return;   // the full load finished first
   // loadJSON hands every caller the same object, so work on a copy: the conversions below change it
   const dd = { ...d, datasets: d.datasets.map((x) => ({ ...x, metrics: x.metrics.map((m) => ({ ...m })), dims: (x.dims || []).map((g) => ({ ...g, v: { ...g.v } })) })) };
+  const now = new Date();
+  today = Math.round((Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()) - T0) / DAY);
+  if (want === 'full') dd.datasets.push(moonDataset(today + 1));   // computed here, not shipped in daily.json
   PRIV.ids = [];
   for (const x of priv) { dd.datasets.push(structuredClone(x)); PRIV.ids.push(x.id); }
   // Minutes read better as hours once they are summed over months.
@@ -84,8 +89,6 @@ async function build(want) {
       return { ...x, point: !x.end, a: dayIndex(x.start || x.date), b: dayIndex(x.end || x.date),
         segs: t ? t.segments.map((g) => ({ a: dayIndex(g.a), b: dayIndex(g.b), color: t.statuses[g.s].color, first: g.s === Object.keys(t.statuses)[0] })) : null }; })
     .sort((p, q) => p.a - q.a);
-  const now = new Date();
-  today = Math.round((Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()) - T0) / DAY);
   DATA_A = Math.min(...dd.datasets.map((x) => x.from)); DATA_B = Math.max(...dd.datasets.map((x) => x.end));
   lastYear = new Date(T0 + Math.max(DATA_B, today, ...life.map((l) => l.b)) * DAY).getUTCFullYear();
   MAXI = dayIndex(`${lastYear}-12-31`);

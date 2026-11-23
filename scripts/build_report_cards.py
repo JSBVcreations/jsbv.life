@@ -92,6 +92,7 @@ def main():
     top_artist = {}
     try:
         meta = json.load(open(P('step-song', 'data', 'meta.json'), encoding='utf-8'))
+        if 'tracks' not in meta: meta['tracks'] = json.load(open(P('step-song', 'data', 'tracks.json'), encoding='utf-8'))
         plays = json.load(open(P('step-song', 'data', f'plays-{year}.json'), encoding='utf-8'))
         m0 = dt.date.fromisoformat(meta['start']); arts = meta['artists']; tr = meta['tracks']
         secs = defaultdict(Counter)

@@ -19,6 +19,7 @@ N_ARTISTS = 16
 PER_YEAR = 2
 
 meta = json.load(open(os.path.join(SS, 'meta.json')))
+if 'tracks' not in meta: meta['tracks'] = json.load(open(os.path.join(SS, 'tracks.json')))   # split out of meta.json (Nov 2026)
 start = dt.date.fromisoformat(meta['start'])
 artists, tracks = meta['artists'], meta['tracks']
 

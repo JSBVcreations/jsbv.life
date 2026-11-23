@@ -175,7 +175,7 @@
    "builder": "build_step_song.py, then build_eras.py",
    "outputs": [
     "step-song/data/meta.json",
-    "step-song/data/hourly.json",
+    "step-song/data/hourly.json", "step-song/data/tracks.json",
     "step-song/data/plays-YYYY.json",
     "step-song/data/eras.json"
    ],
@@ -255,7 +255,7 @@
    "raw": "every repo JSON above",
    "builder": "build_meta_log.py",
    "outputs": [
-    "meta-log/data/daily.json"
+    "meta-log/data/daily.json", "meta-log/data/days/*.json", "meta-log/data/summary.json"
    ],
    "pages": [
     "/ (all views)"

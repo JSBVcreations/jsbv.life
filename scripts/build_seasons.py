@@ -68,6 +68,7 @@ def main():
     through = max(last.values())
 
     meta = load('step-song', 'data', 'meta.json')
+    if 'tracks' not in meta: meta['tracks'] = load('step-song', 'data', 'tracks.json')   # split out of meta.json (Nov 2026)
     artists, tracks, genres = meta['artists'], meta['tracks'], meta['genres']
     a_genre = meta['artistGenre']
     plays_path = os.path.join(ROOT, 'step-song', 'data', f'plays-{year}.json')

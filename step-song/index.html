@@ -532,10 +532,14 @@ function signalHit(e) {
 }
 
 // ---------- plays loading
+// The track table (tracks.json, ~2 MB) loads with the first year of plays; until then M.trackRefs names the tracks
+// meta.json's own lists use (earworms, the AT profile).
+let TRACKS = null;
+const TR = t => TRACKS ? TRACKS[t] : M.trackRefs[t];
 async function loadYear(y) {
   if (playsByYear[y] !== undefined) return playsByYear[y];
   if (!M.years.includes(y)) { playsByYear[y] = null; return null; }
-  playsByYear[y] = loadJSON(`data/plays-${y}.json`).then(a => {
+  playsByYear[y] = Promise.all([loadJSON(`data/plays-${y}.json`), loadJSON('data/tracks.json').then(t => (TRACKS = t))]).then(([a]) => {
     const touched = new Set();
     for (let i = 0; i < a.length; i += 5) { (dayIndex[a[i]] ||= []).push([a[i+1], a[i+2], a[i+3], a[i+4]]); touched.add(a[i]); }
     touched.forEach(d => dayIndex[d].sort((p, q) => p[0] - q[0]));
@@ -590,7 +594,7 @@ function drawDay(hover) {
   }
   const P = dayIndex[sel] || [];
   P.forEach((p, i) => {
-    const [s, d, t, c] = p, a = M.tracks[t][1], x0 = X(s), x1 = X(Math.min(HRS * 3600, s + d)), col = c === 3 ? '#4a4478' : genreColor(genreOf(a));
+    const [s, d, t, c] = p, a = TR(t)[1], x0 = X(s), x1 = X(Math.min(HRS * 3600, s + d)), col = c === 3 ? '#4a4478' : genreColor(genreOf(a));
     const isH = hover === i;
     g.fillStyle = c === 3 ? col : genreColor(genreOf(a), c === 2 ? 0.4 : 0.9); g.shadowColor = col; g.shadowBlur = isH ? 14 : (c === 3 ? 0 : 4);
     const hh = DL.laneH * [1, 0.7, 0.4, 0.25][c];
@@ -613,7 +617,7 @@ function renderTracklist() {
   $('tl-count').textContent = P.length ? `${P.length} plays` : '';
   if (!P.length) { el.innerHTML = '<div class="empty">No plays recorded on this day.</div>'; return; }
   el.innerHTML = '<table><tbody>' + P.map((p, i) => {
-    const [s, d, t, c] = p, [name, a, , full] = M.tracks[t];
+    const [s, d, t, c] = p, [name, a, , full] = TR(t);
     const pct = full ? ` / ${mmss(full)}` : '';
     return `<tr data-i="${i}" class="${c === 2 ? 'skip' : c === 3 ? 'sleep' : ''}"><td>${hms(s)}</td><td><span class="dot" style="background:${c === 3 ? '#4a4478' : genreColor(genreOf(a))}"></span><span class="t">${esc(name)}</span>${c ? `<span class="cls ${CLS[c]}">${CLS_LABEL[c]}</span>` : ''}<br><span class="a">${esc(M.artists[a])} · ${mmss(d)}${pct}</span></td></tr>`;
   }).join('') + '</tbody></table>';
@@ -663,10 +667,11 @@ let lastTL = -1;
 async function select(di, scroll) {
   sel = Math.max(0, Math.min(ND - 1, di));
   renderDayStats(); drawHeat(); drawSignal(); drawFort(); drawTrail(); drawProfile(); drawLogAll();
+  if (scroll && window.SiteTabs) SiteTabs.show('day');
+  if (window.SiteTabs && SiteTabs.current !== 'day') return;   // the day's plays load when the Day tab opens
   const y = dateOf(sel).getUTCFullYear(), loads = [loadYear(y)];
   const yp = dateOf(Math.max(0, sel - 7)).getUTCFullYear(); if (yp !== y) loads.push(loadYear(yp));
   drawDay(); if (dayIndex[sel] || !(playsByYear[y] instanceof Promise)) renderTracklist();
-  if (scroll && window.SiteTabs) SiteTabs.show('day');
   const me = sel; await Promise.all(loads); if (me !== sel) return;
   drawDay(); renderTracklist();
 }
@@ -681,7 +686,7 @@ function renderCuts() {
   $('sitters').innerHTML = C.sitters.slice(0, 12).map(([a, s, h]) => `<div class="row"><span class="nm">${esc(A[a])}</span><span class="v">${fmt(s)}/h · ${h}h</span>${bar(h, C.sitters[0][2] > 0 ? Math.max(...C.sitters.slice(0,12).map(x => x[2])) : 1, 'var(--sound)')}</div>`).join('');
   const jump = (date, nm, v) => `<div class="row click" tabindex="0" role="button" data-date="${date}"><span class="nm">${nm}</span><span class="v">${v}</span></div>`;
   $('stepdays').innerHTML = M.topStepDays.slice(0, 12).map(([d, s, mi]) => jump(d, EXTD[diOf(d)] ? `${d} <span class="c-trail">+${EXTD[diOf(d)]}h</span>` : d, `${fmt(s)} · ${mi.toFixed(1)} mi`)).join('');
-  $('worms').innerHTML = M.earworms.slice(0, 12).map(([d, t, n]) => jump(d, `${esc(M.tracks[t][0])} <span class="v">· ${esc(A[M.tracks[t][1]])}</span>`, `${d.slice(2)} ×${n}`)).join('');
+  $('worms').innerHTML = M.earworms.slice(0, 12).map(([d, t, n]) => jump(d, `${esc(TR(t)[0])} <span class="v">· ${esc(A[TR(t)[1]])}</span>`, `${d.slice(2)} ×${n}`)).join('');
   const tmx = M.topArtists[0][1];
   $('topart').innerHTML = M.topArtists.slice(0, 12).map(([a, h]) => `<div class="row"><span class="nm" style="color:${genreColor(genreOf(a))}">${esc(A[a])}</span><span class="v">${fmt(h)} h</span>${bar(h, tmx, genreColor(genreOf(a)))}</div>`).join('');
   const SL = M.sleep, smx = SL.artists.length ? SL.artists[0][1] : 1;
@@ -798,7 +803,7 @@ function profTip(k) {
   const t = M.trips[0], Hh = t.hours, di = t.a + Math.floor(k / 24), hr = k % 24, gi = Hh.genre[k], tr = Hh.track[k];
   return `<b>${iso(dateOf(di))} · ${pad(hr)}:00</b><br><span class="c-trail">mile ${fmt(Hh.pos[k])} · ${fmt(Hh.ele[k])} ft</span><br>` +
     `<span class="c-climb">▲ ${fmt(Hh.up[k])} ft</span> · <span style="color:#a9a3d6">▼ ${fmt(Hh.dn[k])} ft</span> this hour<br>` +
-    (gi >= 0 ? `<span style="color:${genreColor(gi)}">${esc(M.genres[gi].name)}</span> · ${Math.round(Hh.listen[k] / 60)} min<br><span class="k">${esc(M.tracks[tr][0])} — ${esc(M.artists[M.tracks[tr][1]])}</span>` : '<span class="k">no music</span>');
+    (gi >= 0 ? `<span style="color:${genreColor(gi)}">${esc(M.genres[gi].name)}</span> · ${Math.round(Hh.listen[k] / 60)} min<br><span class="k">${esc(TR(tr)[0])} — ${esc(M.artists[TR(tr)[1]])}</span>` : '<span class="k">no music</span>');
 }
 // ---- daily climb / descent bars
 function trailGeom() { const cv = $('trailcv'), t = M.trips[0], n = t.b - t.a + 1, pw = cv.clientWidth - TL.left - TL.right; return { t, n, pw, bw: pw / n }; }
@@ -1168,7 +1173,7 @@ function wire() {
       document.querySelectorAll('#tracklist tr.hl').forEach(r => r.classList.remove('hl'));
       if (hovI != null) { const tr = document.querySelector(`#tracklist tr[data-i="${hovI}"]`); if (tr) { tr.classList.add('hl'); tr.scrollIntoView({ block: 'nearest' }); } } }
     if (!h) return hideTip();
-    if (h.kind === 'play') { const [s, d, t, c] = dayIndex[sel][h.i], [nm, a, al, full] = M.tracks[t], gi = genreOf(a);
+    if (h.kind === 'play') { const [s, d, t, c] = dayIndex[sel][h.i], [nm, a, al, full] = TR(t), gi = genreOf(a);
       const hrSteps = hv(H.steps, sel, Math.min(dayHours(sel) - 1, Math.floor(s / 3600)));
       const how = c === 3 ? 'sleep audio' : full ? `${Math.round(d / full * 100)}% of ${mmss(full)} · ${['full listen', 'ADHD listen', 'skip'][c]}` : ['full listen', 'ADHD listen', 'skip'][c];
       showTip(`<b>${esc(nm)}</b><br><span style="color:${genreColor(gi)}">${esc(M.artists[a])}</span> <span class="k">· ${esc(M.genres[gi].name)}</span><br><span class="k">${esc(al)}</span><br>${hms(s)} · played ${mmss(d)}<br><span class="c-climb">${how}</span><br><span class="c-step">${fmt(hrSteps)} steps that hour</span>`, e); }
@@ -1229,6 +1234,7 @@ Promise.all([loadJSON('data/meta.json'), loadJSON('data/hourly.json'), loadJSON(
   const j = $('jump'); j.min = M.start; j.max = iso(dateOf(ND - 1));
   computeRoll(); renderTotals(); renderTrail(); if (LG) renderLog(); renderCuts(); wire(); drawCirc();
   select(diOf(M.topStepDays[0][0]));
+  addEventListener('tabchange', e => { if (e.detail.tab === 'day') select(sel); });
   if (window.SiteTabs) SiteTabs.start();
 }).catch(err => { $('boot').textContent = 'Could not load data files: ' + err.message; });
 })();

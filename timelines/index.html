@@ -19,7 +19,7 @@
 <link rel="stylesheet" href="../assets/theme.css">
 <style>
 /* TIME//LINES. Data: meta-log/data/timelines.json (scripts/build_timelines.py, config in scripts/config/timelines.json),
-   meta-log/data/daily.json for the numbers, assets/maps/na.json for the base map. Every comparison is computed here from
+   meta-log/data/days/ for the numbers (assets/daily.js), assets/maps/na.json for the base map. Every comparison is computed here from
    daily.json, so a new timeline workbook needs no code. Tabs: overview · together (statuses compared) · after (the end event)
    · map. */
 h1 { margin: 14px 0 0; text-shadow: 0 0 6px var(--s1c), 0 0 18px var(--s1c), 0 0 42px rgba(255,111,216,0.5); }
@@ -136,6 +136,7 @@ td.dim { color: var(--dim); }
 <script src="../assets/site.js"></script>
 <script type="module">
 import { $, el, svg, DAY, T0, dayIndex as d2i, iso, MON, dateLabel as mdy, tipAt as showTip, tipOff as hideTip, loadJSON } from '../assets/core.js';
+import { loadDaily } from '../assets/daily.js';
 (async function () {
   const md = (i) => { const d = new Date(T0 + i * DAY); return `${MON[d.getUTCMonth()]} ${d.getUTCDate()}`; };
   const num = (v) => v == null || !isFinite(v) ? '—' : Math.abs(v) >= 100 ? Math.round(v).toLocaleString('en-US') : Math.abs(v) >= 10 ? v.toFixed(1) : v.toFixed(2).replace(/0$/, '');
@@ -144,7 +145,7 @@ import { $, el, svg, DAY, T0, dayIndex as d2i, iso, MON, dateLabel as mdy, tipAt
 
   let daily, TL, MAP;
   try {
-    [daily, TL, MAP] = await Promise.all(['../meta-log/data/daily.json', '../meta-log/data/timelines.json', '../assets/maps/na.json'].map((u) => loadJSON(u)));
+    [daily, TL, MAP] = await Promise.all([loadDaily('../'), loadJSON('../meta-log/data/timelines.json'), loadJSON('../assets/maps/na.json')]);
   } catch (e) { $('#err').hidden = false; $('#boot').remove(); if (window.SiteTabs) SiteTabs.start(); return; }
   if (!TL.timelines.length) { $('#err').hidden = false; $('#err').textContent = 'No timelines yet.'; return; }
 
