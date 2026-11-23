@@ -8,6 +8,7 @@ import { clockMean } from '../stats.js';
 import { moonDataset } from '../moon.js';
 import { loadDaily } from '../daily.js';
 
+export const HIDE_M = new Set(['body:night_h']);
 export let daily, DS = {}, LIFE = [], TLS = null, today, DATA_A, DATA_B, lastYear, MAXI;
 export let YR, MO, WK, DOW;   // calendar keys for every day index
 export const PRIV = { box: null, ids: [], key: null };
@@ -83,7 +84,11 @@ async function build(want) {
           return { id: m.id, name: m.name, unit: m.unit || '', agg: m.agg === 'mean' ? 'mean' : 'sum', color: m.color || POOL[(k + 5) % POOL.length], v }; }) });
     }
   }
-  const ds2 = {}; for (const ds of dd.datasets) { ds.end = ds.offset + ds.n - 1; if (ds.from == null) ds.from = ds.offset; ds2[ds.id] = ds; }
+  // ds.end is the dataset's own last day with any value (a file padded with empty days must not read as zeros)
+  const ds2 = {}; for (const ds of dd.datasets) { let e = ds.n - 1; while (e > 0 && ds.metrics.every((m) => m.v[e] == null)) e--; ds.end = ds.offset + e; if (ds.from == null) ds.from = ds.offset;
+    // one sleep number on the site: sleep_h. night_h (Sleep, whole night) moves to ds.hidden.
+    const hid = ds.metrics.filter((m) => HIDE_M.has(ds.id + ':' + m.id)); if (hid.length) { ds.hidden = hid; ds.metrics = ds.metrics.filter((m) => !hid.includes(m)); }
+    ds2[ds.id] = ds; }
   // A chapter backed by a timeline (timelines.json, life_id) carries its stretches: the overlay paints them by status.
   const TL_BY_LIFE = {}; for (const t of (tls && tls.timelines) || []) if (t.life_id) TL_BY_LIFE[t.life_id] = t;
   const life = [...lifeRaw, ...(Array.isArray(lifePriv) ? lifePriv : [])].map((x) => { const t = TL_BY_LIFE[x.id];

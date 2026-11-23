@@ -73,6 +73,18 @@ th { font: 600 var(--s-0) var(--f-ui); letter-spacing: 0.1em; }
 th:first-child, td:first-child { text-align: left; }
 td:first-child { white-space: normal; min-width: 160px; }
 td .sw { margin-right: 8px; }
+.dtab th.l, .dtab td.l { text-align: left; }
+.dtab td.dim { color: var(--dim); }
+.dtab td small { display: block; color: var(--dim); font-size: 11px; }
+.dtab td small a { color: var(--dim); }
+.dtab td small a:hover { color: var(--ink); }
+.dtab td a { color: var(--ink); }
+.dtab button.chip { cursor: pointer; font: inherit; }
+.fdot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; vertical-align: 1px; }
+.fdot.fresh { background: var(--trail); box-shadow: 0 0 6px var(--trail); }
+.fdot.aging { background: var(--climb, #ffb347); }
+.fdot.stale { background: var(--sound); }
+@media (max-width: 640px) { #d-table th:nth-child(2), #d-table td:nth-child(2), #d-table th:nth-child(6), #d-table td:nth-child(6) { display: none; } }
 td small { color: var(--dim); display: block; }
 .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 14px; }
 .card { padding: 14px; display: grid; gap: 6px; align-content: start; min-width: 0; }
@@ -471,9 +483,14 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
         <h2>Data</h2>
         <div class="field"><span>Totals for</span><div class="seg" id="d-span"></div></div>
       </div>
+      <div class="scroll"><table class="dtab" id="d-table"></table></div>
     </section>
-    <div class="cards wide" id="d-cards"></div>
+    <section class="box">
+      <h2>Records</h2>
+      <div class="scroll"><table class="dtab" id="d-records"></table></div>
+    </section>
     <h2 class="sec">Tools</h2>
+    <div class="cards wide" id="d-games"></div>
     <div class="cards wide" id="d-tools"></div>
   </div>
 

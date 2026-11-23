@@ -1,6 +1,6 @@
 /* Data directory (#data) and the hubs: Fitness (#fitness), Health (#health), Media (#media). */
 import { $, el, dayIndex, iso, MON, dateLabel, num, loadJSON } from '../core.js';
-import { DS, DS_C, PRIV, TLS, YR, asLine, daily, lastYear, linkRow, openInExplorer, sumRange, today, yearStart } from './state.js';
+import { DOW, DS, DS_C, MO, PRIV, TLS, WK, YR, asLine, daily, lastYear, linkRow, openInExplorer, sumRange, today, yearStart } from './state.js';
 // ================================================================ DATA DIRECTORY + HIGHLIGHTS
 // Where each dataset's own page lives, and a line about it. A dataset missing here still gets a card with "Chart it".
 const DIR = {
@@ -21,7 +21,7 @@ const HIDE_IN_DATA = new Set(['trail', 'fortnite', 'astro']);   // trail lives u
 const totalIn = (dsId, mId, a, b) => { const L = asLine(dsId, mId); if (!L) return null; let t = 0;
   for (let i = Math.max(a, L.off); i <= Math.min(b, L.off + L.n - 1); i++) t += L.v[i - L.off] || 0; return t; };
 const longDate = (i) => { const s = iso(i); return `${MON[+s.slice(5, 7) - 1]} ${+s.slice(8, 10)}, ${s.slice(0, 4)}`; };
-const DV = { span: 'year' };   // Data cards total this year by default; 'all' = everything on record
+const DV = { span: 'year' };   // the Data table totals this year by default; 'all' = everything on record
 // Video games: season-grain data with its own page (games/), so it gets a card here rather than a daily.json dataset.
 let GAMES;
 async function gamesCard() {
@@ -39,33 +39,58 @@ async function gamesCard() {
     linkRow([['games/', 'Open GAME//LOG'], ...(DS.fortnite ? [[() => openInExplorer([['fortnite', 'wins', null, [], false], ['fortnite', 'level', null, [], false]], DS.fortnite.offset, DS.fortnite.end), 'Chart it']] : [])]),
   ]);
 }
+// One table: every dataset, its own last day and how fresh that is, the span's days with data and its main number.
+// Records under it: the best day, week (Sun–Sat, 5+ days) and month (20+ days) each metric has, with the dates.
+const FRESH = (age) => (age <= 7 ? ['fresh', 'up to date'] : age <= 30 ? ['aging', age + ' days old'] : ['stale', age + ' days old']);
+const LOW_BEST = new Set(['body:resting_hr', 'body:walking_hr', 'body:hr_low']);
+const REC = [['move', 'steps'], ['move', 'miles'], ['move', 'flights'], ['exercise', 'minutes'], ['lifting', 'volume'], ['body', 'resting_hr'], ['body', 'hrv'], ['body', 'sleep_h'],
+  ['breath', 'sessions'], ['music', 'minutes'], ['watch', 'minutes'], ['calls', 'minutes'], ['photos', 'items']];
+function dsRow(ds, clusterLabel) {
+  const info = DIR[ds.id] || { links: [] }, a = DV.span === 'year' ? Math.max(ds.offset, dayIndex(`${lastYear}-01-01`)) : ds.offset, inSpan = a <= ds.end, m = ds.metrics[0];
+  const k = inSpan ? m.v.slice(a - ds.offset, ds.end - ds.offset + 1) : [], nn = k.filter((x) => x != null), unitDays = ds.grain === 'month' ? 'months' : 'days';
+  const main = !inSpan ? '—' : m.agg === 'mean' ? num(nn.length ? nn.reduce((t, x) => t + x, 0) / nn.length : null, m.unit) + ' avg' : num(nn.reduce((t, x) => t + x, 0), m.unit);
+  const age = Math.max(0, today - ds.end), [fc, ft] = ds.id === 'moon' ? ['fresh', 'computed'] : FRESH(age), page = info.links[0];
+  return el('tr', {}, [
+    el('td', { className: 'l' }, [el('i', { className: 'sw', style: `background:${DS_C[ds.id] || m.color || '#9b7bff'}` }), page ? el('a', { href: page[0], text: ds.name }) : ds.name]),
+    el('td', { className: 'l dim', text: clusterLabel }),
+    el('td', { className: 'l', text: m.name }), el('td', { text: main }),
+    el('td', { text: inSpan ? `${nn.length.toLocaleString()} ${unitDays}` : '—' }),
+    el('td', { text: longDate(ds.from) }), el('td', { text: longDate(ds.end) }),
+    el('td', { className: 'l' }, [el('i', { className: 'fdot ' + fc, title: ft }), ft]),
+    el('td', {}, [el('button', { type: 'button', className: 'chip', text: 'Chart', onclick: () => openInExplorer([[ds.id, m.id, null, [], false]], inSpan ? a : ds.offset, ds.end) })]),
+  ]);
+}
+function bestOf(L, keyFn, need, low) {
+  const acc = new Map(); for (let j = 0; j < L.n; j++) { const v = L.v[j]; if (v == null) continue; const i = L.off + j, key = keyFn(i); let o = acc.get(key); if (!o) acc.set(key, (o = { s: 0, c: 0, a: i })); o.s += v; o.c++; }
+  let best = null; for (const o of acc.values()) { if (o.c < need) continue; const v = L.agg === 'mean' ? o.s / o.c : o.s; if (!best || (low ? v < best.v : v > best.v)) best = { v, a: o.a }; }
+  return best;
+}
+function recordsTable() {
+  const rows = [];
+  for (const [dsId, mId] of REC) { const ds = DS[dsId], m = ds && ds.metrics.find((x) => x.id === mId); if (!m) continue;
+    { const L = asLine(ds.id, m.id); if (!L) continue; const low = LOW_BEST.has(ds.id + ':' + m.id);
+      const d = bestOf(L, (i) => i, 1, low), w = bestOf(L, (i) => WK[i], 5, low), mo = bestOf(L, (i) => MO[i], 20, low); if (!d) continue;
+      const cell = (b, label, a2, b2) => el('td', {}, b ? [num(b.v, m.unit), el('small', {}, [el('a', { href: '#explore', text: label(b.a), onclick: (ev) => { ev.preventDefault(); openInExplorer([[ds.id, m.id, null, [], false]], a2(b.a), b2(b.a)); } })])] : ['—']);
+      const wkA = (i) => i - DOW[i], moA = (i) => { const s = iso(i); return dayIndex(s.slice(0, 8) + '01'); }, moB = (i) => { const s = iso(i), y = +s.slice(0, 4), mm = +s.slice(5, 7); return dayIndex(mm === 12 ? `${y + 1}-01-01` : `${y}-${String(mm + 1).padStart(2, '0')}-01`) - 1; };
+      rows.push(el('tr', {}, [el('td', { className: 'l' }, [el('i', { className: 'sw', style: `background:${m.color || DS_C[ds.id]}` }), m.name, el('small', { text: ds.name + (low ? ' · lowest' : L.agg === 'mean' ? ' · average' : '') })]),
+        cell(d, (i) => longDate(i), (i) => i - 15, (i) => i + 15), cell(w, (i) => 'week of ' + longDate(wkA(i)), (i) => wkA(i) - 28, (i) => wkA(i) + 34), cell(mo, (i) => MON[+iso(i).slice(5, 7) - 1] + ' ' + iso(i).slice(0, 4), (i) => moA(i) - 92, (i) => moB(i) + 92)])); } }
+  return [el('thead', {}, el('tr', {}, ['Metric', 'Best day', 'Best week', 'Best month'].map((h, i) => el('th', { scope: 'col', className: i ? '' : 'l', text: h })))), el('tbody', {}, rows)];
+}
 function renderData() {
-  gamesCard().then((c) => { const host = $('#d-cards'); host.querySelector('.card.games')?.remove(); if (c) { c.classList.add('games'); const sky = host.querySelector('h2.dgrp.sky'); if (sky) host.insertBefore(c, sky); else host.append(c); } });   // lands at the end of Media
   $('#d-span').replaceChildren(...[['year', String(lastYear)], ['all', 'ALL TIME']].map(([v, label]) => el('button', { type: 'button', text: label, 'aria-pressed': String(DV.span === v), onclick: () => { DV.span = v; renderData(); } })));
   const CLUSTER = { move: 'fitness', exercise: 'fitness', lifting: 'fitness', trail: 'fitness', body: 'health', breath: 'health', water: 'health', moon: 'sky' };
   const clusterOf = (d) => CLUSTER[d.id] || (d.site && d.site.group ? 'health' : 'media');
   const groups = [['fitness', 'Fitness'], ['health', 'Health'], ['media', 'Media'], ['sky', 'Sky']];
-  const cardFor = (ds) => {
-    const info = DIR[ds.id] || { blurb: '', links: [] }, a = DV.span === 'year' ? Math.max(ds.offset, dayIndex(`${lastYear}-01-01`)) : ds.offset, inSpan = a <= ds.end;
-    return el('div', { className: 'card', style: `--acc:${DS_C[ds.id] || (ds.metrics[0] && ds.metrics[0].color) || '#9b7bff'}` }, [
-      el('h3', { text: ds.name }),
-      el('dl', {}, (inSpan ? ds.metrics.flatMap((m) => { const k = m.v.slice(a - ds.offset, ds.end - ds.offset + 1), nn = k.filter((x) => x != null);
-          return [el('dt', { text: m.name }), el('dd', { text: m.agg === 'mean' ? num(nn.length ? nn.reduce((t, x) => t + x, 0) / nn.length : null, m.unit) + ' avg' : num(k.reduce((t, x) => t + (x || 0), 0), m.unit) })]; })
-          : [el('dt', { text: String(lastYear) }), el('dd', { text: 'nothing recorded' })])
-        .concat([el('dt', { text: DV.span === 'year' ? 'Showing' : 'Covers' }), el('dd', { text: inSpan ? `${longDate(a)} – ${longDate(ds.end)}` : `ends ${longDate(ds.end)}` }),
-          ...(DV.span === 'year' ? [el('dt', { text: 'Since' }), el('dd', { text: longDate(ds.offset) })] : [])])),
-      linkRow([...info.links, [() => openInExplorer([[ds.id, ds.metrics[0].id, null, [], false]], inSpan ? a : ds.offset, ds.end), 'Chart it']]),
-    ]);
-  };
-  $('#d-cards').replaceChildren(...groups.flatMap(([k, label]) => { const ds = daily.datasets.filter((d) => !HIDE_IN_DATA.has(d.id) && clusterOf(d) === k);
-    return ds.length ? [el('h2', { className: 'sec dgrp' + (k === 'sky' ? ' sky' : ''), text: label }), ...ds.map(cardFor)] : []; }));
+  const body = el('tbody', {}, groups.flatMap(([k, label]) => daily.datasets.filter((d) => !HIDE_IN_DATA.has(d.id) && clusterOf(d) === k).map((d) => dsRow(d, label))));
+  $('#d-table').replaceChildren(el('thead', {}, el('tr', {}, ['Dataset', 'Group', 'Main number', DV.span === 'year' ? String(lastYear) : 'All time', 'With data', 'Since', 'Through', 'Fresh', ''].map((h, i) => el('th', { scope: 'col', className: [0, 1, 2, 7].includes(i) ? 'l' : '', text: h })))), body);
+  gamesCard().then((c) => { $('#d-games').replaceChildren(...(c ? [c] : [])); });
+  $('#d-records').replaceChildren(...recordsTable());
   $('#d-tools').replaceChildren(
     el('div', { className: 'card' }, [el('h3', { text: 'Explorer' }), linkRow([['#explore', 'Open the explorer']])]),
     el('div', { className: 'card', style: '--acc:#ff6fd8' }, [el('h3', { text: 'TIME//LINES' }), ...(TLS && TLS.timelines.length ? [el('dl', {}, TLS.timelines.flatMap((t) => [el('dt', { text: t.name }), el('dd', { text: `${t.start} → ${t.end}` })]))] : []), linkRow([['timelines/', 'Open TIME//LINES']])]),
     el('div', { className: 'card' }, [el('h3', { text: 'Calendar' }), linkRow([['#calendar', 'Open the calendar']])]),
     el('div', { className: 'card', style: '--acc:#9b7bff' }, [el('h3', { text: 'REPORT//CARDS' }), linkRow([['months/', 'Open the report cards']])]),
-    el('div', { className: 'card', style: '--acc:#ffb347' }, [el('h3', { text: 'Sky Wheel' }), linkRow([['sky/', 'Open the sky wheel']])]),
-    el('div', { className: 'card', style: '--acc:#c7a6ff' }, [el('h3', { text: 'STAR//LOG' }), linkRow([['astro/#now', 'Transits now'], ['astro/#lens', 'Data by Moon + retrograde'], ['astro/#sky', 'Sky table']])]));
+    el('div', { className: 'card', style: '--acc:#c7a6ff' }, [el('h3', { text: 'SKY//LOG' }), linkRow([['sky/', 'Wheel'], ['astro/#now', 'Transits now'], ['astro/#lens', 'Data by Moon + retrograde']])]));
 }
 // ================================================================ TRAILS + PROJECTS
 // Section indexes. Each card's links open the target page on the right tab (see assets/site.js on those pages).
