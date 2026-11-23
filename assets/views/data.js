@@ -137,7 +137,7 @@ function renderHealth() {
   ])); }
   for (const d of daily.datasets.filter((x) => x.site && x.site.group)) cards.push(el('div', { className: 'card' }, [el('h3', { text: d.name }),
     linkRow([[() => openInExplorer([[d.id, d.metrics[0].id, null, [], false]], d.offset, d.end), 'Chart it']])]));
-  if (PRIV.box && !daily.datasets.some((x) => x.site && x.site.group)) cards.push(el('div', { className: 'card' }, [el('h3', { text: 'Private' }), linkRow([['#report', 'Unlock on Home']])]));
+  if (PRIV.box && !daily.datasets.some((x) => x.site && x.site.group)) cards.push(el('div', { className: 'card' }, [el('h3', { text: 'Private' }), linkRow([['#data', 'Unlock on Data']])]));
   $('#h-cards').replaceChildren(...cards);
 }
 function renderProjects() {

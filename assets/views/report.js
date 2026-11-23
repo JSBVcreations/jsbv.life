@@ -1,4 +1,5 @@
-/* Home (#report): this month and PCT//PREP heroes, the year by season, low tide, and the Fitness · Health · Media tiles. Runs on summary.json. */
+/* Home (#report): this month and PCT//PREP heroes and the Fitness · Health · Media tiles. Runs on summary.json.
+   The year by season moved to REPORT//CARDS (assets/seasons.js) and Low tide to PCT//PREP's tab on Nov 23 2026. */
 import { $, el, svg, dayIndex, iso, MON, dateLabel, num, loadJSON } from '../core.js';
 import { DS, asLine, daily, eTipAt, eTipOff, linkRow, metricOf, openInExplorer, sumRange, sw, today, yearStart } from './state.js';
 // ================================================================ REPORT CARD
@@ -110,44 +111,9 @@ function drawPhotoHero() {
   kids.push(links); host.replaceChildren(...kids);
 }
 function renderReport() {
-  drawMonthHero(); drawPctHero(); drawRace();
+  drawMonthHero(); drawPctHero();
   if (!RC.built) { RC.built = true; buildTiles(); } else for (const g of GROUPS) showSlide(g, RC.at[g.id] || 0, false);
 }
 
 
-// ---------------------------------------------------------------- LOW TIDE: 2019 pre-AT walking vs the PCT countdown (training.json)
-let RACE;
-async function drawRace() {
-  if (RACE === undefined) { RACE = await loadJSON('pct-training/data/training.json', { optional: true }); }
-  const T = RACE, sec = $('#r-race'); sec.hidden = !T || !T.pre_at || !T.health; if (sec.hidden) return;
-  // "now" = phone miles while the Apple Health export covers the day (or the Strava hike, if longer); after the export ends,
-  // the Strava hikes alone (a floor), so the line moves every time new hikes are added and firms up with the next export.
-  const P = T.pre_at, N = P.n, c0 = dayIndex(T.plan.start) - N, h0 = dayIndex(T.health.start), hEnd = h0 + T.health.miles.length - 1, hikes = {};
-  for (const h of T.activities || []) hikes[h.date] = (hikes[h.date] || 0) + h.miles;
-  const lastI = Math.min(today, Math.max(hEnd, ...(T.activities || []).map((h) => dayIndex(h.date)))), nowN = Math.max(0, Math.min(N, lastI - c0 + 1));
-  const daily = [], est = [];
-  for (let k = 0; k < nowN; k++) { const i = c0 + k, ph = i >= h0 && i <= hEnd ? T.health.miles[i - h0] : null, hk = hikes[iso(i)] || 0; daily.push(ph == null ? hk : Math.max(ph, hk)); est.push(ph == null); }
-  const firstEst = est.indexOf(true), cum = (arr) => { let t = 0; return arr.map((v) => (t += v)); }, then = cum(P.miles), now = cum(daily);
-  const Wd = Math.max(320, $('#r-race-chart').clientWidth || 900), Hd = Wd < 560 ? 240 : 300, m = { l: 44, r: Wd < 560 ? 96 : 110, t: 14, b: 30 }, top = Math.max(then[N - 1], now[nowN - 1] || 0) * 1.08, x = (k) => m.l + (k / (N - 1)) * (Wd - m.l - m.r), y = (v) => Hd - m.b - (v / top) * (Hd - m.t - m.b);
-  const s = svg('svg', { viewBox: `0 0 ${Wd} ${Hd}`, role: 'img', 'aria-label': 'Miles walked, added up over the 111 days before each trail: 2019 before the AT against now before the PCT' });
-  for (let v = 0; v <= top; v += top > 600 ? 200 : 100) { s.append(svg('line', { x1: m.l, x2: Wd - m.r, y1: y(v), y2: y(v), stroke: '#1f1a3d' })); s.append(svg('text', { x: m.l - 6, y: y(v) + 4, 'text-anchor': 'end' }, String(v))); }
-  for (const k of (Wd < 560 ? [0, 55, N - 1] : [0, 20, 41, 62, 83, N - 1])) s.append(svg('text', { x: x(k), y: Hd - 10, 'text-anchor': 'middle' }, k === N - 1 ? 'last day' : `${N - k} to go`));
-  const path = (arr) => arr.map((v, k) => `${k ? 'L' : 'M'}${x(k).toFixed(1)} ${y(v).toFixed(1)}`).join('');
-  s.append(svg('path', { d: path(then), fill: 'none', stroke: '#ff3fb4', 'stroke-width': 2 })); s.append(svg('text', { x: x(N - 1) + 8, y: y(then[N - 1]) + 4, style: 'fill:#ff3fb4' }, `2019 · ${num(then[N - 1], 'mi')}`));
-  const pathFrom = (arr, k0, k1) => arr.slice(k0, k1).map((v, j) => `${j ? 'L' : 'M'}${x(k0 + j).toFixed(1)} ${y(v).toFixed(1)}`).join('');
-  if (nowN) { const cut = firstEst < 0 ? nowN : firstEst;
-    if (cut > 0) s.append(svg('path', { d: pathFrom(now, 0, cut), fill: 'none', stroke: '#3ff0ff', 'stroke-width': 3 }));
-    if (firstEst >= 0) s.append(svg('path', { d: pathFrom(now, Math.max(0, cut - 1), nowN), fill: 'none', stroke: '#3ff0ff', 'stroke-width': 3, 'stroke-dasharray': '5 4' }));
-    s.append(svg('circle', { cx: x(nowN - 1), cy: y(now[nowN - 1]), r: 5, fill: '#3ff0ff' }));
-    s.append(svg('text', { x: x(nowN - 1) + 10, y: y(now[nowN - 1]) - 8, style: 'fill:#3ff0ff' }, `now · ${num(now[nowN - 1], 'mi')}`)); }
-  const hit = svg('rect', { x: m.l, y: m.t, width: Wd - m.l - m.r, height: Hd - m.t - m.b, fill: 'transparent' });
-  hit.addEventListener('mousemove', (ev) => { const b = s.getBoundingClientRect(), k = Math.max(0, Math.min(N - 1, Math.round((((ev.clientX - b.left) / b.width) * Wd - m.l) / ((Wd - m.l - m.r) / (N - 1)))));
-    eTipAt(ev, `<b>${N - k} days to go</b><br><span style="color:#ff3fb4">2019:</span> ${num(then[k], 'mi')} so far` + (k < nowN ? `<br><span style="color:#3ff0ff">now:</span> ${num(now[k], 'mi')} so far${est[k] ? ' (Strava hikes only)' : ''}` : '')); }); hit.addEventListener('mouseleave', eTipOff); s.append(hit);
-  $('#r-race-chart').replaceChildren(s);
-  const ahead = nowN ? now[nowN - 1] - then[nowN - 1] : 0;
-  if (0) $('#r-race-note').textContent = nowN ? `${nowN} day${nowN === 1 ? '' : 's'} into the countdown: ${num(now[nowN - 1], 'mi')} against ${num(then[nowN - 1], 'mi')} at the same point before the AT, ${num(Math.abs(ahead), 'mi')} ${ahead >= 0 ? 'above' : 'below'} the low-tide mark. 2019 run-in total ${num(then[N - 1], 'mi')}.`
-    + (firstEst >= 0 ? ` Dashed: Strava only.` : '') : `The 2019 run-in came to ${num(then[N - 1], 'mi')}. This year's line starts ${N} days before the start.`;
-}
-
-let rz; addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { if (!$('#v-report').hidden) drawRace(); }, 120); });
 export const render = renderReport;

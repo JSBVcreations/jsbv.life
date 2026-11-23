@@ -104,6 +104,7 @@ nav.site.primary { font: 600 var(--s-0) var(--f-ui); letter-spacing: 0.16em; tex
 nav.site.primary .jump-btn { all: unset; cursor: pointer; color: var(--dim); font: 400 1.15rem/1 var(--sym); width: 36px; height: 36px; display: inline-grid; place-items: center; border-radius: 999px; }
 nav.site.primary .jump-btn:hover, nav.site.primary .jump-btn:focus-visible { color: var(--hot); background: rgba(220,216,255,0.06); }
 html.has-nav nav.ptabs { top: 66px; }
+nav.site.primary a.priv-on { color: #ff7a59; padding: 9px 10px; text-shadow: 0 0 8px #ff7a59; }
 /* jump box (assets/site.js): "/" opens it */
 dialog.jump { width: min(560px, calc(100vw - 24px)); max-height: min(70dvh, 560px); margin: 12vh auto auto; padding: 0; border: 1px solid var(--edge-hi); border-radius: var(--r);
   background: var(--panel); color: var(--ink); box-shadow: 0 24px 60px rgba(0,0,0,0.7); display: none; }
