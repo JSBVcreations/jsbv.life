@@ -47,9 +47,9 @@ index.html                 root app (Home, Fitness, Health, Media, Data, Explore
 assets/site.js             shared nav, breadcrumbs, page tabs
 assets/theme.css           shared look, colour tokens, per-page accents
 assets/core.js             shared helpers (ES module)
-assets/theme.css           shared look, loaded LAST on every page (panels, nav, controls, tables)
+assets/views/              the root page's views as modules (main.js router, state.js data, one file per view)
 <page>/index.html          one page = one file, inline CSS + JS; reads <page>/data/*.json
-meta-log/data/             daily.json (everything by day), seasons.json, manifest.json, health/watch/calls/breath JSON,
+meta-log/data/             daily.json (everything by day), summary.json (its last 60 days, for Home), seasons.json, manifest.json, health/watch/calls/breath JSON,
                            life.json, manual.json, privacy.json, private.enc.json (sealed private datasets)
 scripts/                   builders (stdlib python3 3.9+), update.py (one-click refresh)
 scripts/config/            registry.json (every source), genres.json (artist→genre), at_profile.json (AT elevation)

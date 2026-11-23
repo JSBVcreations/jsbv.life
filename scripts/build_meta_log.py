@@ -321,6 +321,8 @@ os.makedirs(OUT, exist_ok=True)
 out = {'generated': dt.date.today().isoformat(), 'start': START.isoformat(), 'datasets': datasets, 'snapshots': snap}
 with open(os.path.join(OUT, 'daily.json'), 'w') as f:
     json.dump(out, f, separators=(',', ':'), ensure_ascii=False)
+from build_summary import write_summary  # noqa: E402  (the home page's first load: the last 60 days of each dataset)
+write_summary(out, OUT)
 for d in datasets + private:
     first = START + dt.timedelta(days=d['offset']); last = first + dt.timedelta(days=d['n'] - 1)
     print(f"{d['id']:10s} {first} → {last}  " + ', '.join(f"{m['id']}={round(sum(x for x in m['v'] if x is not None)):,}" for m in d['metrics']))

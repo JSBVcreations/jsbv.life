@@ -118,7 +118,8 @@ Rule: a page should be about a screen or two tall per tab. Long pages get tabs, 
   render each view at 1280 and 390 wide and read `scrollHeight`.
 
 ## META//LOG data + views (app is the root index.html; data in meta-log/data/)
-- Root `index.html` (markup + CSS + JS in one file, no libraries). Views besides the nav ones above: `#report` (the home dashboard,
+- Root `index.html` is markup + CSS; its JS is one module per view in `assets/views/` (`main.js` routes and imports a view's module the
+  first time its hash opens; `state.js` loads the data: `summary.json` for Home, `daily.json` for everything else). Views besides the nav ones above: `#report` (the home dashboard,
   rebuilt Nov 14, 2026: two hero panels, PCT//PREP from `pct-training/data/training.json` and PHOTO//SORT from
   `daily.snapshots`, over a grid of tiles. One tile per umbrella in `GROUPS` (Activity, Health, Music, Watching, Calls,
   Breathwork, Photos); a metric appears only under its umbrella (Listening and Plays under Music). Tiles change only when clicked: the
