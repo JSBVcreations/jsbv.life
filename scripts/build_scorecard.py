@@ -130,7 +130,8 @@ BANDS = {
 if not os.path.exists(SRC): sys.exit(f'no scorecard export at {SRC}')
 src = json.load(open(SRC, encoding='utf-8'))
 fields = src['fields'].split(',')
-rows = []
+rows, ROWS, DESCS = [], {}, {}
+ix = lambda table, key: table.setdefault(key, len(table))
 for r in src['rows']:
     d = dict(zip(fields, r))
     s = {k: v for k, v in (d.get('scores') or {}).items() if k in KEYS and isinstance(v, (int, float))}
@@ -148,12 +149,14 @@ for r in src['rows']:
     if cs: row['custom'] = cs
     gs = [{'name': g['name'].strip(), 'note': (g.get('note') or '').strip()} for g in (d.get('guys') or []) if (g.get('name') or '').strip()]
     if gs: row['guys'] = gs
-    its = [{'k': i['k'], 'name': i['name'], 'quad': i['quad'], 'group': i.get('group') or i['quad'], 'v': i['v'], 'desc': i.get('desc', '')}
+    # Scorecard v3: scored rows incl. genre craft, each with its own point descriptor. Packed as [row, v, desc] indexes into
+    # the top-level `rows` ([k, name, quad, group]) and `descs` lists, so the repeated names and descriptors are written once.
+    its = [[ix(ROWS, (i['k'], i['name'], i['quad'], i.get('group') or i['quad'])), i['v'], ix(DESCS, i.get('desc', ''))]
            for i in (d.get('items') or []) if isinstance(i.get('v'), (int, float))]
-    if its: row['items'] = its          # Scorecard v3: scored rows incl. genre craft, each with its own point descriptor
+    if its: row['items'] = its
     if d.get('badges'): row['badges'] = [x for x in d['badges'] if isinstance(x, str)]
     if d.get('genre2'): row['sgenre2'] = d['genre2']
     rows.append(row)
-out = {'pulled': src.get('source', ''), 'quads': QUADS, 'cats': [{'k': k, 'name': n, 'quad': q, 'bands': BANDS[k]} for k, n, q in CATS], 'titles': rows}
+out = {'pulled': src.get('source', ''), 'quads': QUADS, 'cats': [{'k': k, 'name': n, 'quad': q, 'bands': BANDS[k]} for k, n, q in CATS], 'rows': [list(k) for k in ROWS], 'descs': list(DESCS), 'titles': rows}
 with open(OUT, 'w', encoding='utf-8') as f: json.dump(out, f, separators=(',', ':'), ensure_ascii=False)
 print(f"scorecard  {len(rows)} titles scored, {sum(1 for r in rows if r['final'] is not None)} with a Final  → {os.path.relpath(OUT, ROOT)}")

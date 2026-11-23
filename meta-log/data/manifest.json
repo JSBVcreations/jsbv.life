@@ -11,14 +11,14 @@
     "/#explore",
     "pct-training/#recovery"
    ],
-   "through": "2026-11-13",
-   "age_days": 10,
+   "through": "2026-11-22",
+   "age_days": 1,
    "stale": false,
    "files": [
     {
      "path": "meta-log/data/health.json",
-     "kb": 56,
-     "through": "2026-11-13"
+     "kb": 57,
+     "through": "2026-11-22"
     }
    ]
   },
@@ -60,7 +60,7 @@
    "files": [
     {
      "path": "meta-log/data/watch-scores.json",
-     "kb": 39,
+     "kb": 77,
      "through": null
     }
    ]
@@ -205,7 +205,7 @@
     },
     {
      "path": "pct-training/data/training.json",
-     "kb": 22,
+     "kb": 23,
      "through": "2026-11-19"
     }
    ]
@@ -224,7 +224,7 @@
    "files": [
     {
      "path": "pct-training/data/training.json",
-     "kb": 22,
+     "kb": 23,
      "through": "2026-11-19"
     }
    ]
@@ -347,9 +347,9 @@
    "id": "at2019",
    "name": "AT 2019 (frozen)",
    "kind": "historic",
-   "builder": "build_at_log.py, build_at_breakdown.py, build_trail_radio.py",
+   "builder": "build_at_log.py, build_at_breakdown.py, build_trail_radio.py, build_at_trip.py",
    "pages": [
-    "step-song/#trail",
+    "trail/#log",
     "trail/"
    ],
    "through": null,
@@ -369,6 +369,11 @@
     {
      "path": "trail/data/trail-radio.json",
      "kb": 376,
+     "through": null
+    },
+    {
+     "path": "trail/data/at-trip.json",
+     "kb": 152,
      "through": null
     }
    ]
@@ -453,7 +458,7 @@
    "files": [
     {
      "path": "meta-log/data/daily.json",
-     "kb": 1053,
+     "kb": 1054,
      "through": "2026-11-23"
     },
     {
@@ -503,7 +508,7 @@
     },
     {
      "path": "meta-log/data/days/move.json",
-     "kb": 185,
+     "kb": 186,
      "through": null
     },
     {
@@ -562,7 +567,7 @@
    "files": [
     {
      "path": "meta-log/data/seasons.json",
-     "kb": 30,
+     "kb": 29,
      "through": "2026-11-22"
     }
    ]

@@ -6,6 +6,7 @@ const [WT, WS] = (await Promise.all([loadJSON('meta-log/data/watch-titles.json',
 const WV = { type: 'all', genre: '', sort: WS ? 'sc:final' : 'recent', find: '', page: 0, scored: 'all' };
 const QC = { story: '#3ff0ff', movie: '#ff3fb4', critical: '#ffb347', personal: '#b6ff5c' };
 if (WT) for (const t of WT.titles) if (t.poster) t.poster = t.poster.replace('/t/p/original/', '/t/p/w342/');   // a grid tile never needs the full-size TMDB file
+if (WS && WS.rows) for (const r of WS.titles) if (r.items) r.items = r.items.map(([i, v, d]) => { const [k, name, quad, group] = WS.rows[i]; return { k, name, quad, group, v, desc: WS.descs[d] }; });   // unpack Scorecard v3 rows
 if (WT && WS) {   // attach Scorecard scores by IMDb id, then by title
   const byId = new Map(WS.titles.filter((r) => r.id).map((r) => [r.id, r])), byT = new Map(WS.titles.map((r) => [r.t.toLowerCase(), r]));
   for (const t of WT.titles) { const r = (t.id && byId.get(t.id)) || byT.get(t.t.toLowerCase()); if (r) t.sc = r; }
