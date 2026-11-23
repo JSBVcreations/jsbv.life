@@ -1,6 +1,6 @@
 /* The home page shell: picks the view from the hash, loads its data and its module on first use, and runs the private-data panel.
    Each view module exports render(sub) and may export subTitle() (a prefix for the browser tab) and available (false hides it). */
-import { $, el } from '../core.js';
+import { $, el, loadJSON } from '../core.js';
 import { loadData, PRIV, DS, store, openBox, b64d, b64e } from './state.js';
 
 // view → [module, export to call, data it needs: 'summary' (Home), 'full' (daily.json and the rest) or null (none)]
@@ -14,6 +14,14 @@ const TITLES = { pct: 'PCT', watched: 'Movies & TV', fitness: 'Fitness', health:
 const NAV_OF = { report: 'home', pct: 'pct', fitness: 'fitness', health: 'health', media: 'media', data: 'data', experiments: 'data', explore: 'data', calendar: 'data', gantt: 'data', watched: 'media' };
 const ALIAS = { highlights: 'fitness', trails: 'fitness', projects: 'media', report: 'report', movies: 'watched' };
 
+// Fetch a view's module (and its imports) while its data loads, without running it before the data is in.
+const preloaded = new Set();
+function preload(path) {
+  if (preloaded.has(path)) return; preloaded.add(path);
+  document.head.append(el('link', { rel: 'modulepreload', href: new URL(path, import.meta.url).href }));
+}
+const REPORT_JSON = ['pct-training/data/training.json', 'meta-log/data/months.json', 'meta-log/data/seasons.json'];
+
 let booted = false, turn = 0;
 async function route() {
   const [base, sub] = location.hash.slice(1).split('/');
@@ -21,6 +29,8 @@ async function route() {
   if (base === 'experiments' && sub === 'race') { location.replace('pct-training/#low-tide'); return; }
   const my = ++turn, [path, fn, need] = VIEWS[v];
   let mod;
+  preload(path);
+  if (v === 'report') for (const u of REPORT_JSON) loadJSON(u, { optional: true });   // the hero and season panels ask for these one after another
   try {
     if (need) await loadData(need === 'full');
     mod = await import(path);
