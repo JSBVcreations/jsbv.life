@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-page="trail">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>TRAIL//RADIO</title>
@@ -15,8 +15,8 @@
 <meta name="description" content="The songs Jack walked the Appalachian Trail to in 2019, by state, week or any stretch of trail, with every day replayed hour by hour.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="../assets/site.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Monoton&family=Chakra+Petch:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../assets/theme.css">
 <style>
 /* TRAIL//RADIO: the AT 2019 soundtrack. Reads data/trail-radio.json (scripts/build_trail_radio.py).
    1 The trail strip (always shown; it is the selector): the whole profile, Katahdin to Springer. Drag across it, or pick a state / week / month.
@@ -27,104 +27,94 @@
    Player = Spotify's embed through its iFrame API (the maxfield.life pattern: track ID -> open.spotify.com/embed/track).
    Without the API (blocked, offline) the list still works and each song links to Spotify. Colors: pink = music, cyan = steps,
    lime = trail, amber = climb. */
-:root {
-  --tab-accent: #ff3fb4;
-  color-scheme: dark;
-  --void: #07060f; --panel: #0d0b1c; --well: #120f26; --grid: #1f1a3d; --ink: #dcd8ff; --dim: #8a84b8;
-  --step: #3ff0ff; --sound: #ff3fb4; --climb: #ffb347; --trail: #b6ff5c; --hot: #ffffff;
-  --f-display: "Monoton", "Chakra Petch", system-ui, sans-serif;
-  --f-ui: "Chakra Petch", "Segoe UI", system-ui, sans-serif;
-  --f-data: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
-  --s-0: 0.75rem; --s-1: 0.875rem; --s-2: 1rem; --s-3: 1.25rem;
-}
-* { box-sizing: border-box; }
-[hidden] { display: none !important; }
-html, body { background: var(--void); color: var(--ink); margin: 0; }
-body { font-family: var(--f-ui); font-size: var(--s-1); line-height: 1.5;
-  padding: 24px max(16px, env(safe-area-inset-right, 0px)) 64px max(16px, env(safe-area-inset-left, 0px));
-  background: radial-gradient(ellipse 80% 40% at 50% 0%, rgba(255,63,180,0.10), transparent 70%), radial-gradient(ellipse 60% 30% at 50% 100%, rgba(182,255,92,0.06), transparent 70%), var(--void);
-  min-height: 100vh; }
-body::after { content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 50; background: repeating-linear-gradient(to bottom, rgba(0,0,0,0) 0 2px, rgba(0,0,0,0.18) 2px 3px); mix-blend-mode: multiply; }
-.wrap { max-width: 1180px; margin: 0 auto; display: grid; gap: 24px; }
+html, body { margin: 0; }
+body { min-height: 100vh; }
+body::after { mix-blend-mode: multiply; }
 header { display: grid; gap: 12px; }
 nav.site { display: flex; flex-wrap: wrap; gap: 6px 18px; font: 600 var(--s-0) var(--f-data); letter-spacing: 0.08em; text-transform: uppercase; }
-nav.site a { color: var(--dim); text-decoration: none; } nav.site a:hover, nav.site a:focus-visible { color: var(--step); }
-h1 { font-family: var(--f-display); font-weight: 400; margin: 0; font-size: clamp(2rem, 7vw, 4.4rem); line-height: 1; letter-spacing: 0.02em; color: var(--hot);
-  text-shadow: 0 0 6px var(--sound), 0 0 18px var(--sound), 0 0 42px rgba(255,63,180,0.55); overflow-wrap: anywhere; }
+nav.site a { color: var(--dim); text-decoration: none; }
+nav.site a:hover, nav.site a:focus-visible { color: var(--step); }
+h1 { font-size: clamp(2rem, 7vw, 4.4rem); text-shadow: 0 0 6px var(--sound), 0 0 18px var(--sound), 0 0 42px rgba(255,63,180,0.55); overflow-wrap: anywhere; }
 h1 .sl { text-shadow: 0 0 6px var(--trail), 0 0 18px var(--trail), 0 0 42px rgba(182,255,92,0.6); }
 @media (prefers-reduced-motion: no-preference) { h1 { animation: flicker 8s infinite; } @keyframes flicker { 0%,93%,100% { opacity: 1 } 94% { opacity: .55 } 95% { opacity: 1 } 96.5% { opacity: .7 } 97% { opacity: 1 } } }
-.lede { margin: 0; color: var(--dim); max-width: 72ch; font-size: var(--s-2); } .lede b { color: var(--sound); font-weight: 600; }
-section { background: linear-gradient(180deg, var(--panel), rgba(13,11,28,0.6)); border: 1px solid var(--grid); padding: 18px; display: grid; gap: 12px; min-width: 0; }
-section > * { min-width: 0; }
+.lede { margin: 0; max-width: 72ch; }
+.lede b { color: var(--sound); font-weight: 600; }
 .sec-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 16px; }
-h2 { margin: 0; font-size: var(--s-2); font-weight: 700; letter-spacing: 0.22em; text-transform: uppercase; }
+h2 { font-size: var(--s-2); font-weight: 700; line-height: 1.5; }
 h2 em { font-style: normal; color: var(--sound); font-family: var(--f-data); margin-right: 10px; letter-spacing: 0.08em; }
 h2 small { font-weight: 400; color: var(--dim); letter-spacing: 0.08em; text-transform: none; margin-left: 10px; font-size: var(--s-1); }
 h3 { margin: 0; font: 700 var(--s-0) var(--f-ui); letter-spacing: 0.2em; text-transform: uppercase; }
-.note { color: var(--dim); font-size: var(--s-0); margin: 0; max-width: 88ch; }
-.seg { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--grid); }
-.seg button { font: 600 var(--s-0)/1 var(--f-ui); letter-spacing: 0.14em; text-transform: uppercase; background: transparent; color: var(--dim); border: 0; padding: 9px 12px; cursor: pointer; min-height: 32px; }
-.seg button + button { border-left: 1px solid var(--grid); } .seg button:hover { color: var(--hot); } .seg button[aria-pressed="true"] { color: var(--void); background: var(--sound); }
+.note { font-size: var(--s-0); max-width: 88ch; }
+.seg { display: inline-flex; flex-wrap: wrap; }
+.seg button { font: 600 var(--s-0)/1 var(--f-ui); letter-spacing: 0.14em; text-transform: uppercase; background: transparent; color: var(--dim); cursor: pointer; min-height: 32px; }
+.seg button:hover { color: var(--hot); }
+.seg button[aria-pressed="true"] { color: var(--void); background: var(--sound); }
 .chips { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
 .chips .lab { font: 600 10px var(--f-ui); letter-spacing: 0.16em; text-transform: uppercase; color: var(--dim); margin-right: 4px; min-width: 52px; }
 .chips button { font: 600 var(--s-0)/1 var(--f-data); background: transparent; color: var(--ink); border: 1px solid var(--grid); padding: 7px 9px; cursor: pointer; min-height: 30px; }
-.chips button:hover { border-color: var(--dim); color: var(--hot); } .chips button[aria-pressed="true"] { border-color: var(--sound); color: var(--sound); }
+.chips button:hover { border-color: var(--dim); color: var(--hot); }
+.chips button[aria-pressed="true"] { border-color: var(--sound); color: var(--sound); }
 button:focus-visible, select:focus-visible, a:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--step); outline-offset: 2px; }
 .btn { font: 600 var(--s-0)/1 var(--f-ui); letter-spacing: 0.14em; text-transform: uppercase; background: transparent; color: var(--ink); border: 1px solid var(--grid); padding: 9px 12px; cursor: pointer; min-height: 32px; }
-.btn:hover { border-color: var(--sound); color: var(--hot); } .btn.go { background: var(--sound); border-color: var(--sound); color: var(--void); }
+.btn:hover { border-color: var(--sound); color: var(--hot); }
+.btn.go { background: var(--sound); border-color: var(--sound); color: var(--void); }
 .legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-family: var(--f-data); font-size: var(--s-0); color: var(--dim); align-items: center; }
 .legend i { display: inline-block; width: 16px; height: 8px; margin-right: 6px; vertical-align: middle; }
 #boot { font-family: var(--f-data); color: var(--sound); }
-
-/* 1 strip */
 #strip { position: relative; touch-action: none; cursor: crosshair; user-select: none; }
 #strip svg { display: block; width: 100%; height: auto; }
 #strip text { font-family: var(--f-data); font-size: 10px; fill: var(--dim); }
 .selbar { display: flex; flex-wrap: wrap; gap: 6px 24px; font-family: var(--f-data); font-size: var(--s-0); color: var(--dim); align-items: baseline; padding: 10px 0 0; border-top: 1px solid var(--grid); }
-.selbar b { color: var(--hot); font-weight: 600; } .selbar .what { font: 700 var(--s-2) var(--f-ui); color: var(--sound); letter-spacing: 0.06em; }
-
-/* 2 radio */
+.selbar b { color: var(--hot); font-weight: 600; }
+.selbar .what { font: 700 var(--s-2) var(--f-ui); color: var(--sound); letter-spacing: 0.06em; }
 .radio { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 360px); gap: 16px; align-items: start; }
 @media (max-width: 900px) { .radio { grid-template-columns: minmax(0, 1fr); } }
 .list { border: 1px solid var(--grid); max-height: 520px; overflow: auto; }
 .list ol { list-style: none; margin: 0; padding: 0; }
 .list li { display: grid; grid-template-columns: 28px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 7px 10px; border-bottom: 1px solid rgba(31,26,61,0.8); cursor: pointer; }
-.list li:hover { background: rgba(255,63,180,0.05); } .list li.on { background: rgba(255,63,180,0.12); box-shadow: inset 3px 0 0 var(--sound); }
-.list .n { font: 600 var(--s-0) var(--f-data); color: var(--dim); text-align: right; } .list li.on .n { color: var(--sound); }
-.list .t { min-width: 0; } .list .t b { display: block; color: var(--hot); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.list li:hover { background: rgba(255,63,180,0.05); }
+.list li.on { background: rgba(255,63,180,0.12); box-shadow: inset 3px 0 0 var(--sound); }
+.list .n { font: 600 var(--s-0) var(--f-data); color: var(--dim); text-align: right; }
+.list li.on .n { color: var(--sound); }
+.list .t { min-width: 0; }
+.list .t b { display: block; color: var(--hot); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .list .t span { display: block; color: var(--dim); font-size: var(--s-0); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.list .m { font: 400 var(--s-0) var(--f-data); color: var(--dim); text-align: right; white-space: nowrap; } .list .m b { color: var(--sound); font-weight: 600; }
+.list .m { font: 400 var(--s-0) var(--f-data); color: var(--dim); text-align: right; white-space: nowrap; }
+.list .m b { color: var(--sound); font-weight: 600; }
 .sig { display: inline-block; font: 600 9px var(--f-ui); letter-spacing: 0.12em; text-transform: uppercase; color: var(--void); background: var(--trail); padding: 1px 5px; margin-left: 6px; vertical-align: 1px; }
 .deck { border: 1px solid var(--grid); padding: 14px; display: grid; gap: 10px; background: rgba(7,6,15,0.55); align-content: start; }
 .deck .now { font: 600 10px var(--f-ui); letter-spacing: 0.16em; text-transform: uppercase; color: var(--sound); }
-.deck .song { font: 700 var(--s-3)/1.2 var(--f-ui); color: var(--hot); overflow-wrap: anywhere; } .deck .who { color: var(--dim); }
-.deck .ctx { font: 400 var(--s-0) var(--f-data); color: var(--dim); } .deck .ctx b { color: var(--ink); font-weight: 600; }
+.deck .song { font: 700 var(--s-3)/1.2 var(--f-ui); color: var(--hot); overflow-wrap: anywhere; }
+.deck .who { color: var(--dim); }
+.deck .ctx { font: 400 var(--s-0) var(--f-data); color: var(--dim); }
+.deck .ctx b { color: var(--ink); font-weight: 600; }
 .deck .ctl { display: flex; gap: 6px; flex-wrap: wrap; }
 #embed { min-height: 152px; border-radius: 12px; overflow: hidden; background: var(--well); display: grid; place-items: center; color: var(--dim); font-size: var(--s-0); text-align: center; padding: 0; }
 #embed iframe { display: block; width: 100%; border: 0; }
 .filt { display: inline-flex; gap: 6px; align-items: center; font: 600 var(--s-0) var(--f-data); color: var(--sound); border: 1px solid var(--sound); padding: 4px 4px 4px 8px; }
 .filt button { all: unset; cursor: pointer; padding: 2px 6px; color: var(--hot); }
-
-/* 3 day replay */
-#replay svg { display: block; width: 100%; height: auto; } #replay text { font-family: var(--f-data); font-size: 10px; fill: var(--dim); }
-#replay .song { cursor: pointer; } #replay .song:hover { stroke: var(--hot); stroke-width: 1.5; }
-#d-pick { font: 600 var(--s-0) var(--f-data); background: var(--void); color: var(--ink); border: 1px solid var(--grid); padding: 7px 8px; min-height: 32px; max-width: min(100%, 420px); min-width: 0; flex: 1 1 200px; }
+#replay svg { display: block; width: 100%; height: auto; }
+#replay text { font-family: var(--f-data); font-size: 10px; fill: var(--dim); }
+#replay .song { cursor: pointer; }
+#replay .song:hover { stroke: var(--hot); stroke-width: 1.5; }
+#d-pick { font: 600 var(--s-0) var(--f-data); color: var(--ink); padding: 7px 8px; min-height: 32px; max-width: min(100%, 420px); min-width: 0; flex: 1 1 200px; }
 .dayhead { display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center; }
-.dayhead .d { font: 700 var(--s-2) var(--f-ui); color: var(--hot); } .dayhead .k { font: 400 var(--s-0) var(--f-data); color: var(--dim); } .dayhead .k b { color: var(--ink); font-weight: 600; }
-
-/* 4 artist map */
-#river svg { display: block; width: 100%; height: auto; } #river text { font-family: var(--f-data); font-size: 10px; fill: var(--dim); }
-#river path { cursor: pointer; } #river path:hover { opacity: 1 !important; }
+.dayhead .d { font: 700 var(--s-2) var(--f-ui); color: var(--hot); }
+.dayhead .k { font: 400 var(--s-0) var(--f-data); color: var(--dim); }
+.dayhead .k b { color: var(--ink); font-weight: 600; }
+#river svg { display: block; width: 100%; height: auto; }
+#river text { font-family: var(--f-data); font-size: 10px; fill: var(--dim); }
+#river path { cursor: pointer; }
+#river path:hover { opacity: 1; }
 .alegend { display: flex; flex-wrap: wrap; gap: 6px; }
 .alegend button { font: 600 var(--s-0)/1 var(--f-data); background: transparent; color: var(--ink); border: 1px solid var(--grid); padding: 6px 9px; cursor: pointer; display: inline-flex; gap: 6px; align-items: center; min-height: 30px; }
-.alegend button i { width: 10px; height: 10px; display: inline-block; } .alegend button:hover, .alegend button[aria-pressed="true"] { border-color: var(--sound); color: var(--hot); }
-
-#tip { position: fixed; z-index: 60; pointer-events: none; max-width: 300px; background: rgba(7,6,15,0.95); border: 1px solid var(--sound); box-shadow: 0 0 18px rgba(255,63,180,0.3);
-  font-family: var(--f-data); font-size: var(--s-0); padding: 8px 10px; line-height: 1.45; color: var(--ink); }
-#tip .k { color: var(--dim); } #tip b { color: var(--hot); }
-footer { color: var(--dim); font-size: var(--s-0); }
+.alegend button i { width: 10px; height: 10px; display: inline-block; }
+.alegend button:hover, .alegend button[aria-pressed="true"] { border-color: var(--sound); color: var(--hot); }
+#tip { position: fixed; z-index: 60; pointer-events: none; max-width: 300px; background: rgba(7,6,15,0.95); border: 1px solid var(--sound); box-shadow: 0 0 18px rgba(255,63,180,0.3); font-family: var(--f-data); font-size: var(--s-0); padding: 8px 10px; line-height: 1.45; color: var(--ink); }
+#tip .k { color: var(--dim); }
+#tip b { color: var(--hot); }
+footer { font-family: var(--f-ui); }
 </style>
-<link rel="stylesheet" href="../assets/theme.css">
 
 <div class="wrap">
   <header>
@@ -199,22 +189,16 @@ footer { color: var(--dim); font-size: var(--s-0); }
 <div id="tip" hidden></div>
 
 <script src="../assets/site.js"></script>
-<script>
+<script type="module">
+import { $, el, svg, MON, DOW, C as C0, fmtInt as n0, fixed1 as n1, esc, tipAt as showTip, tipOff as hideTip, loadJSON } from '../assets/core.js';
 (async function () {
-  const $ = (s) => document.querySelector(s);
-  const NS = 'http://www.w3.org/2000/svg';
-  const svg = (tag, attrs, text) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (text != null) e.textContent = text; return e; };
-  const el = (tag, props, kids) => { const e = Object.assign(document.createElement(tag), props || {}); if (kids) e.append(...kids.filter((k) => k != null)); return e; };
-  const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'], DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   const day = (s) => new Date(s + 'T00:00:00Z'), md = (s) => { const d = day(s); return `${MON[d.getUTCMonth()]} ${d.getUTCDate()}`; };
-  const n0 = (v) => Math.round(v).toLocaleString('en-US'), n1 = (v) => (Math.round(v * 10) / 10).toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
-  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const clock = (sec) => { const h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), hh = h % 24; return `${hh % 12 || 12}:${String(m).padStart(2, '0')} ${hh < 12 ? 'am' : 'pm'}${h >= 24 ? ' (+1 day)' : ''}`; };
   const mins = (sec) => sec >= 3600 ? `${n1(sec / 3600)} h` : `${Math.round(sec / 60)} min`;
-  const C = { sound: '#ff3fb4', step: '#3ff0ff', trail: '#b6ff5c', climb: '#ffb347', dim: '#8a84b8', grid: '#1f1a3d', hot: '#ffffff', ink: '#dcd8ff', skip: '#4a4566' };
+  const C = { ...C0, skip: '#4a4566' };
 
   let R;
-  try { const r = await fetch('data/trail-radio.json', { cache: 'no-cache' }); if (!r.ok) throw new Error(r.status); R = await r.json(); }
+  try { R = await loadJSON('data/trail-radio.json'); }
   catch (e) { $('#boot').textContent = 'Could not load data/trail-radio.json (run scripts/build_trail_radio.py; preview over http, not file://).'; return; }
 
   const TR = R.tracks, D = R.days, AT_MI = (R.profile.ft.length - 1) * R.profile.step_mi;
@@ -227,9 +211,6 @@ footer { color: var(--dim); font-size: var(--s-0); }
   const weeks = []; for (const d of D) { const w = sunday(d.date); if (!weeks.length || weeks[weeks.length - 1].start !== w) weeks.push({ start: w, days: [] }); weeks[weeks.length - 1].days.push(d); }
   D.forEach((d, i) => { d.i = i; d.week = weeks.findIndex((w) => w.days.includes(d)); });
 
-  const tip = $('#tip');
-  const showTip = (ev, html) => { tip.innerHTML = html; tip.hidden = false; const r = tip.getBoundingClientRect(); const x = Math.min(ev.clientX + 14, innerWidth - r.width - 8), y = ev.clientY + 16 + r.height > innerHeight ? ev.clientY - r.height - 10 : ev.clientY + 16; tip.style.left = Math.max(8, x) + 'px'; tip.style.top = Math.max(8, y) + 'px'; };
-  const hideTip = () => { tip.hidden = true; };
 
   /* ================================================================ selection */
   // S = { label, days: Set(day index), range: [mile a, mile b] | null, key }
@@ -435,8 +416,10 @@ footer { color: var(--dim); font-size: var(--s-0); }
   const h = decodeURIComponent(location.hash.slice(1)), st = R.states.find((x) => x.abbr.toLowerCase().replace('/', '-') === h.toLowerCase());
   curDay = 0; renderReplay();
   if (st) select(st.name, D.filter((d) => d.state === st.abbr).map((d) => d.i), [st.sobo_a, st.sobo_b], 'st:' + st.abbr); else select('The whole trail', D.map((d) => d.i), null, 'all');
-  if (window.SiteTabs) SiteTabs.start(); else for (const id of ['#s-radio', '#s-replay', '#s-river']) $(id).hidden = false;
+  // redraw at the panel's real width once a tab is shown (it may have been drawn while hidden)
+  addEventListener('tabchange', () => { drawStrip(); renderReplay(); renderRiver(); });
   let rz; addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { drawStrip(); renderReplay(); renderRiver(); }, 140); });
+  if (window.SiteTabs) SiteTabs.start(); else for (const id of ['#s-radio', '#s-replay', '#s-river']) $(id).hidden = false;
   const plays = D.reduce((t, d) => t + d.plays.length / 4, 0);
   $('#foot').textContent = `${R.trip} · ${n0(plays)} plays of ${n0(TR.length)} songs on ${D.length} days · music from Spotify, steps from the phone, miles from the trail log · data built ${R.generated}`;
 })();

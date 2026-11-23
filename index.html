@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-page="home">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>JSBV.LIFE</title>
@@ -15,40 +15,17 @@
 <meta name="description" content="Jack's personal data: a dashboard of the numbers being tracked, every dataset to dig into, and highlights like the 2019 Appalachian Trail.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="assets/site.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Monoton&family=Chakra+Petch:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="assets/theme.css">
 <style>
 /* Layout: one CRT console with views behind tabs. Home (#report) is the dashboard: two hero panels and the carousel tiles. Same tokens as STEP//SONG
    and PHOTO//SORT. All three views read data/daily.json (scripts/build_meta_log.py) and data/life.json. */
-:root {
-  color-scheme: dark;
-  --void: #07060f; --panel: #0d0b1c; --well: #120f26; --grid: #1f1a3d; --ink: #dcd8ff; --dim: #8a84b8;
-  --step: #3ff0ff; --sound: #ff3fb4; --climb: #ffb347; --trail: #b6ff5c; --violet: #9b7bff; --hot: #fff;
-  --f-display: "Monoton", "Chakra Petch", system-ui, sans-serif;
-  --f-ui: "Chakra Petch", "Segoe UI", system-ui, sans-serif;
-  --f-data: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
-  --s-0: 0.75rem; --s-1: 0.875rem; --s-2: 1rem; --s-3: 1.25rem;
-}
-* { box-sizing: border-box; }
-[hidden] { display: none !important; }
-html, body { background: var(--void); color: var(--ink); }
-body { margin: 0; font-family: var(--f-ui); font-size: var(--s-1); line-height: 1.5;
-  padding: 24px max(16px, env(safe-area-inset-right, 0px)) 64px max(16px, env(safe-area-inset-left, 0px));
-  background: radial-gradient(ellipse 80% 40% at 50% 0%, rgba(155,123,255,0.10), transparent 70%), var(--void); }
-body::after { content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 50;
-  background: repeating-linear-gradient(to bottom, rgba(0,0,0,0) 0 2px, rgba(0,0,0,0.18) 2px 3px); }
-.wrap { max-width: 1180px; margin: 0 auto; display: grid; gap: 24px; }
 a.back { font-family: var(--f-data); font-size: var(--s-0); color: var(--dim); text-decoration: none; }
 a.back:hover { color: var(--step); }
-h1 { font-family: var(--f-display); font-weight: 400; margin: 0; font-size: clamp(2.2rem, 7vw, 4.6rem); line-height: 1;
-  color: var(--hot); text-shadow: 0 0 6px var(--violet), 0 0 18px var(--violet), 0 0 42px rgba(155,123,255,0.5); }
-h1 span { text-shadow: 0 0 6px var(--step), 0 0 18px var(--step), 0 0 42px rgba(63,240,255,0.6); }
-.lede { margin: 12px 0 0; color: var(--dim); max-width: 68ch; font-size: var(--s-2); }
-nav.tabs { display: flex; flex-wrap: wrap; gap: 8px; border-bottom: 1px solid var(--grid); padding-bottom: 12px; }
-nav.tabs a { font: 600 var(--s-1) var(--f-ui); letter-spacing: 0.16em; text-transform: uppercase; text-decoration: none;
-  color: var(--dim); border: 1px solid var(--grid); padding: 8px 16px; }
-nav.tabs a[aria-current="page"] { color: var(--void); background: var(--step); border-color: var(--step); }
-nav.tabs a:hover:not([aria-current]) { color: var(--ink); border-color: var(--dim); }
+nav.tabs a { font: 600 var(--s-1) var(--f-ui); letter-spacing: 0.16em; text-transform: uppercase; text-decoration: none; color: var(--dim); }
+nav.tabs a[aria-current="page"] { border-color: var(--step); }
+@media (max-width: 640px) { nav.tabs a { letter-spacing: 0.04em; font-size: 0.64rem; line-height: 1.15; } }
+nav.tabs a:hover:not([aria-current]) { border-color: var(--dim); }
 nav.sub { display: flex; flex-wrap: wrap; gap: 6px 18px; font: 600 var(--s-0) var(--f-data); letter-spacing: 0.08em; text-transform: uppercase; }
 nav.sub a { color: var(--dim); text-decoration: none; padding: 2px 0; border-bottom: 1px solid transparent; }
 nav.sub a:hover { color: var(--ink); }
@@ -56,34 +33,32 @@ nav.sub a[aria-current="page"] { color: var(--step); border-bottom-color: var(--
 .card h3 { margin: 0; font: 700 var(--s-2)/1.2 var(--f-ui); letter-spacing: 0.14em; text-transform: uppercase; color: var(--hot); }
 .card p { margin: 0; color: var(--dim); }
 .card dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 2px 12px; font: 400 var(--s-0) var(--f-data); }
-.card dt { color: var(--dim); } .card dd { margin: 0; text-align: right; color: var(--ink); font-variant-numeric: tabular-nums; }
+.card dt { color: var(--dim); }
+.card dd { margin: 0; text-align: right; color: var(--ink); font-variant-numeric: tabular-nums; }
 .card .links { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 4px; font: 600 var(--s-0) var(--f-data); }
 .card .links a, .card .links button { all: unset; cursor: pointer; color: var(--sound); }
 .card .links a:hover, .card .links button:hover, .card .links a:focus-visible, .card .links button:focus-visible { text-decoration: underline; }
 .cards.wide { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
-section.box { border: 1px solid var(--grid); background: var(--panel); padding: 18px; display: grid; gap: 12px; min-width: 0; }
-section.box > * { min-width: 0; }   /* wide tables scroll inside their box instead of widening the page */
+section.box { padding: 18px; display: grid; gap: 12px; min-width: 0; }
+section.box > * { min-width: 0; }
 .view { display: grid; gap: 20px; min-width: 0; }
-h2 { margin: 0; font: 700 var(--s-2)/1.2 var(--f-ui); letter-spacing: 0.18em; text-transform: uppercase; color: var(--hot); }
 h3 { margin: 0; font: 600 var(--s-0)/1.2 var(--f-ui); letter-spacing: 0.14em; text-transform: uppercase; color: var(--dim); }
-.note { margin: 0; color: var(--dim); max-width: 86ch; }
+.note { max-width: 86ch; }
 .row { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: end; }
 .field { display: grid; gap: 4px; }
 .field > span, .lab { font: 600 var(--s-0) var(--f-ui); letter-spacing: 0.12em; text-transform: uppercase; color: var(--dim); }
-select, input[type="date"], input[type="text"] { font: 400 var(--s-0) var(--f-data); color: var(--ink); background: var(--well);
-  border: 1px solid var(--grid); padding: 7px 8px; min-height: 32px; border-radius: 0; }
+select, input[type="date"], input[type="text"] { font: 400 var(--s-0) var(--f-data); color: var(--ink); padding: 7px 8px; min-height: 32px; }
 input[type="text"] { min-width: 240px; }
 select:focus-visible, input:focus-visible, button:focus-visible, a:focus-visible { outline: 2px solid var(--step); outline-offset: 2px; }
 .seg { display: flex; }
-.seg button, button.btn { font: 600 var(--s-0) var(--f-data); letter-spacing: 0.08em; color: var(--dim); background: none;
-  border: 1px solid var(--grid); padding: 7px 10px; min-height: 32px; cursor: pointer; }
-.seg button + button { border-left: 0; }
+.seg button, button.btn { font: 600 var(--s-0) var(--f-data); letter-spacing: 0.08em; color: var(--dim); background: none; min-height: 32px; cursor: pointer; }
+button.btn { border: 1px solid var(--grid); }
 .seg button[aria-pressed="true"], button.btn[aria-pressed="true"] { color: var(--void); background: var(--step); border-color: var(--step); }
 button.btn:hover { color: var(--ink); border-color: var(--dim); }
 button.btn.go { color: var(--void); background: var(--sound); border-color: var(--sound); }
 button.btn.go:hover { color: var(--void); box-shadow: 0 0 16px rgba(255,63,180,0.45); }
 .chips { display: flex; flex-wrap: wrap; gap: 6px 8px; font-family: var(--f-data); font-size: var(--s-0); }
-.chip { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--grid); padding: 4px 8px; color: var(--ink); background: var(--well); }
+.chip { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--grid); color: var(--ink); background: var(--well); }
 .chip i, .sw { width: 10px; height: 10px; display: inline-block; flex: none; }
 .chip button { all: unset; cursor: pointer; color: var(--dim); padding: 0 2px; }
 .chip button:hover { color: var(--sound); }
@@ -94,21 +69,17 @@ label.chip input { accent-color: var(--step); margin: 0; }
 .chartwrap { position: relative; min-width: 0; }
 .chartwrap canvas { display: block; width: 100%; }
 .chartwrap canvas.hover { position: absolute; inset: 0 auto auto 0; pointer-events: none; }
-.tip { position: absolute; pointer-events: none; z-index: 5; background: rgba(7,6,15,0.96); border: 1px solid var(--dim); padding: 8px 10px;
-  font: 400 var(--s-0)/1.5 var(--f-data); min-width: 180px; max-width: 320px; box-shadow: 0 0 18px rgba(0,0,0,0.6); }
+.tip { position: absolute; pointer-events: none; z-index: 5; background: rgba(7,6,15,0.96); border: 1px solid var(--edge-hi); padding: 8px 10px; font: 400 var(--s-0)/1.5 var(--f-data); min-width: 180px; max-width: 320px; box-shadow: 0 0 18px rgba(0,0,0,0.6); }
 .tip b { display: block; color: var(--hot); margin-bottom: 4px; }
 .tip div { display: flex; gap: 8px; align-items: center; }
 .tip div span:last-child { margin-left: auto; padding-left: 12px; font-variant-numeric: tabular-nums; white-space: nowrap; }
-.scroll { overflow-x: auto; }
-table { border-collapse: collapse; width: 100%; font-family: var(--f-data); font-size: var(--s-0); font-variant-numeric: tabular-nums; }
-th, td { padding: 6px 10px; border-bottom: 1px solid var(--grid); text-align: right; white-space: nowrap; }
-th { font: 600 var(--s-0) var(--f-ui); letter-spacing: 0.1em; text-transform: uppercase; color: var(--dim); }
+th { font: 600 var(--s-0) var(--f-ui); letter-spacing: 0.1em; }
 th:first-child, td:first-child { text-align: left; }
 td:first-child { white-space: normal; min-width: 160px; }
 td .sw { margin-right: 8px; }
 td small { color: var(--dim); display: block; }
 .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 14px; }
-.card { border: 1px solid var(--grid); background: var(--panel); padding: 14px; display: grid; gap: 6px; align-content: start; min-width: 0; }
+.card { padding: 14px; display: grid; gap: 6px; align-content: start; min-width: 0; }
 .card .big { font: 600 1.7rem/1.1 var(--f-data); color: var(--hot); font-variant-numeric: tabular-nums; }
 .card .big small { font-size: var(--s-0); color: var(--dim); font-weight: 400; margin-left: 6px; }
 .card .sub { font: 400 var(--s-0) var(--f-data); color: var(--ink); }
@@ -118,9 +89,9 @@ td small { color: var(--dim); display: block; }
 .card .foot button { all: unset; cursor: pointer; color: var(--sound); font: 600 var(--s-0) var(--f-data); }
 .card .foot button:hover { text-decoration: underline; }
 .stale { color: var(--climb); }
-.bar { display: flex; gap: 2px; height: 14px; background: var(--well); }
+.bar { display: flex; gap: 2px; height: 14px; }
 .bar i { display: block; height: 100%; }
-.read { font-family: var(--f-data); font-size: var(--s-0); color: var(--ink); min-height: 3em; border: 1px solid var(--grid); background: var(--well); padding: 10px 12px; }
+.read { border: 1px solid var(--grid); padding: 10px 12px; }
 .read b { color: var(--hot); }
 .cal { display: grid; gap: 6px; min-width: 760px; }
 .cal svg { display: block; width: 100%; height: auto; }
@@ -132,10 +103,12 @@ td small { color: var(--dim); display: block; }
 .ramp { display: inline-flex; align-items: center; gap: 4px; font: 400 var(--s-0) var(--f-data); color: var(--dim); }
 .ramp i { width: 11px; height: 11px; display: inline-block; }
 details summary { cursor: pointer; font: 600 var(--s-0) var(--f-ui); letter-spacing: 0.12em; text-transform: uppercase; color: var(--dim); }
-footer { font-family: var(--f-data); font-size: var(--s-0); color: var(--dim); }
-.priv { margin-top: 28px; } .priv form { align-items: end; } .priv .chk { display: inline-flex; gap: 8px; align-items: center; color: var(--dim); font-size: var(--s-1); min-height: 44px; }
-.priv input[type=password] { font: 400 var(--s-1) var(--f-data); background: var(--well, #120f26); color: var(--ink); border: 1px solid var(--grid); padding: 9px 10px; min-width: 16ch; }
-.priv.on { border-color: #ff7a59; } #priv-msg:empty { display: none; }
+.priv { margin-top: 28px; }
+.priv form { align-items: end; }
+.priv .chk { display: inline-flex; gap: 8px; align-items: center; color: var(--dim); font-size: var(--s-1); min-height: 44px; }
+.priv input[type=password] { font: 400 var(--s-1) var(--f-data); color: var(--ink); padding: 9px 10px; min-width: 16ch; }
+.priv.on { border-color: #ff7a59; }
+#priv-msg:empty { display: none; }
 .err { border: 1px solid var(--sound); padding: 14px; font-family: var(--f-data); }
 .wall { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 16px 14px; }
 .title { display: grid; gap: 6px; align-content: start; color: inherit; text-decoration: none; min-width: 0; }
@@ -169,135 +142,170 @@ button.title:focus-visible { outline: none; }
 .rc-big { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 16px; margin-top: 12px; }
 .rc-big b { font: 600 3rem/1 var(--f-data); color: var(--sc, var(--ink)); text-shadow: 0 0 14px var(--scg, transparent); }
 .rc-big .stars { color: var(--climb); font-size: 1.2rem; letter-spacing: 2px; }
-.rc-badges { display: flex; flex-wrap: wrap; gap: 6px; } .rc-badges span { font: 600 var(--s-0) var(--f-data); letter-spacing: 0.06em; color: var(--climb); border: 1px dashed var(--climb); padding: 3px 8px; }
+.rc-badges { display: flex; flex-wrap: wrap; gap: 6px; }
+.rc-badges span { font: 600 var(--s-0) var(--f-data); letter-spacing: 0.06em; color: var(--climb); border: 1px dashed var(--climb); padding: 3px 8px; }
 .rc-big .vd { font: 600 var(--s-0) var(--f-data); letter-spacing: 0.08em; text-transform: uppercase; border: 1px solid var(--dim); padding: 3px 8px; }
 .rc-q { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
 .rc-q div { display: grid; gap: 4px; font: 400 var(--s-0) var(--f-data); color: var(--dim); }
 .rc-q div b { font: 600 var(--s-2) var(--f-data); color: var(--ink); }
-.rc-q i { height: 6px; background: var(--grid); position: relative; } .rc-q i::after { content: ''; position: absolute; inset: 0 auto 0 0; width: var(--w); background: var(--qc); }
+.rc-q i { height: 6px; background: var(--grid); position: relative; }
+.rc-q i::after { content: ''; position: absolute; inset: 0 auto 0 0; width: var(--w); background: var(--qc); }
 .rc-sec h4 { margin: 0 0 8px; font: 700 var(--s-0) var(--f-ui); letter-spacing: 0.18em; text-transform: uppercase; color: var(--qc, var(--dim)); }
 .rc-row { display: grid; grid-template-columns: 150px minmax(0, 1fr) 34px; gap: 4px 12px; align-items: center; padding: 9px 0; border-top: 1px solid var(--grid); }
 .rc-row .nm { font: 600 var(--s-1) var(--f-ui); }
-.rc-row .bar { height: 8px; background: var(--well); border: 1px solid var(--grid); position: relative; } .rc-row .bar::after { content: ''; position: absolute; inset: 0 auto 0 0; width: var(--w); background: var(--qc); box-shadow: 0 0 8px var(--qc); }
+.rc-row .bar { height: 8px; background: var(--well); border: 1px solid var(--grid); position: relative; }
+.rc-row .bar::after { content: ''; position: absolute; inset: 0 auto 0 0; width: var(--w); background: var(--qc); box-shadow: 0 0 8px var(--qc); }
 .rc-row .v { font: 600 var(--s-2) var(--f-data); text-align: right; font-variant-numeric: tabular-nums; }
 .rc-row .band { grid-column: 2 / -1; font: 400 var(--s-0)/1.45 var(--f-data); color: var(--dim); }
 .rc-row .cmt { grid-column: 2 / -1; font: 400 var(--s-1)/1.5 var(--f-ui); color: var(--ink); border-left: 2px solid var(--qc); padding-left: 10px; white-space: pre-wrap; }
 .rc-extra p { margin: 0; font: 400 var(--s-1)/1.5 var(--f-ui); white-space: pre-wrap; }
 .rc-acts { display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between; border-top: 1px solid var(--grid); padding-top: 16px; }
 .rc-acts a, .rc-acts button { font: 600 var(--s-0) var(--f-data); letter-spacing: 0.1em; text-transform: uppercase; min-height: 44px; padding: 0 16px; display: inline-flex; align-items: center; border: 1px solid var(--grid); background: var(--well); color: var(--ink); cursor: pointer; text-decoration: none; }
-.rc-acts a.imdb { border-color: #f5c518; color: #f5c518; } .rc-acts a.imdb:hover, .rc-acts a.imdb:focus-visible { background: #f5c518; color: #07060f; }
+.rc-acts a.imdb { border-color: #f5c518; color: #f5c518; }
+.rc-acts a.imdb:hover, .rc-acts a.imdb:focus-visible { background: #f5c518; color: #07060f; }
 .rc-acts button:hover, .rc-acts button:focus-visible { border-color: var(--dim); }
 @media (max-width: 560px) { .rc-top { grid-template-columns: 84px minmax(0, 1fr); } .rc-big b { font-size: 2.3rem; } .rc-q { grid-template-columns: repeat(2, minmax(0, 1fr)); } .rc-row { grid-template-columns: minmax(0, 1fr) 34px; } .rc-row .bar { grid-column: 1 / -1; grid-row: 2; } .rc-row .band, .rc-row .cmt { grid-column: 1 / -1; } }
 .g-chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .g-chips button { font: 600 var(--s-0) var(--f-data); letter-spacing: 0.06em; min-height: 36px; padding: 0 12px; background: var(--well); color: var(--dim); border: 1px solid var(--grid); cursor: pointer; display: inline-flex; align-items: center; gap: 7px; }
 .g-chips button i { width: 10px; height: 10px; background: var(--c); opacity: 0.3; }
-.g-chips button[aria-pressed="true"] { color: var(--ink); border-color: var(--c); } .g-chips button[aria-pressed="true"] i { opacity: 1; box-shadow: 0 0 8px var(--c); }
+.g-chips button[aria-pressed="true"] { color: var(--ink); border-color: var(--c); }
+.g-chips button[aria-pressed="true"] i { opacity: 1; box-shadow: 0 0 8px var(--c); }
 .g-chips button.all { color: var(--ink); }
-.g-fig { margin-top: 14px; min-height: 0; } .g-fig svg { display: block; width: 100%; height: auto; overflow: visible; }
-.g-fig text { font: 400 11px var(--f-data); fill: var(--dim); } .g-fig text.lab { font: 600 12px var(--f-ui); fill: var(--ink); letter-spacing: 0.04em; } .g-fig text.sum { fill: var(--dim); }
+.g-fig { margin-top: 14px; min-height: 0; }
+.g-fig svg { display: block; width: 100%; height: auto; overflow: visible; }
+.g-fig text { font: 400 11px var(--f-data); fill: var(--dim); }
+.g-fig text.lab { font: 600 12px var(--f-ui); fill: var(--ink); letter-spacing: 0.04em; }
+.g-fig text.sum { fill: var(--dim); }
 .sc-prog { display: flex; align-items: center; gap: 10px; font: 400 var(--s-0) var(--f-data); color: var(--dim); }
-.sc-prog .bar { flex: 0 1 220px; height: 8px; background: var(--well); border: 1px solid var(--grid); position: relative; }
+.sc-prog .bar { flex: 0 1 220px; height: 8px; position: relative; }
 .sc-prog .bar i { position: absolute; inset: 0 auto 0 0; background: var(--sound); box-shadow: 0 0 8px rgba(255,63,180,0.5); }
 .title small { font: 400 var(--s-0)/1.4 var(--f-data); color: var(--dim); }
 .title small em { font-style: normal; color: var(--ink); }
 @media (max-width: 640px) { input[type="text"] { min-width: 0; width: 100%; } }
-/* home dashboard: two hero panels (PCT//PREP, PHOTO//SORT) over a grid of tiles. A tile is one umbrella (Activity,
-   Health, Music...) holding several metrics, changed only by its arrows or dots; each slide shows the last 7 days and the last 30 side by side. */
 .heroes { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 16px; }
-.hero { border: 1px solid var(--grid); background: linear-gradient(180deg, var(--panel), rgba(13,11,28,0.6)); padding: 18px; display: grid; gap: 12px; align-content: start; min-width: 0; position: relative; }
-.hero.pct { border-top: 2px solid var(--trail); } .hero.photo { border-top: 2px solid var(--climb); }
+.hero { padding: 18px; display: grid; gap: 12px; align-content: start; min-width: 0; position: relative; }
 .hero h2 { font: 400 clamp(1.5rem, 3.4vw, 2.1rem)/1 var(--f-display); letter-spacing: 0.02em; text-transform: none; }
-.hero.pct h2 { text-shadow: 0 0 6px var(--trail), 0 0 20px rgba(182,255,92,0.6); } .hero.photo h2 { text-shadow: 0 0 6px var(--climb), 0 0 20px rgba(255,179,71,0.6); }
+.hero.pct h2 { text-shadow: 0 0 6px var(--trail), 0 0 20px rgba(182,255,92,0.6); }
+.hero.photo h2 { text-shadow: 0 0 6px var(--climb), 0 0 20px rgba(255,179,71,0.6); }
 .hero .tag { font: 600 var(--s-0) var(--f-data); letter-spacing: 0.08em; color: var(--dim); text-transform: uppercase; margin-top: 6px; }
 .hero .top { display: flex; flex-wrap: wrap; gap: 8px 24px; align-items: end; justify-content: space-between; }
-.hero .huge { font: 600 2.6rem/1 var(--f-data); color: var(--hot); font-variant-numeric: tabular-nums; } .hero .huge small { font-size: var(--s-1); color: var(--dim); font-weight: 400; margin-left: 8px; }
-.hero .kv { display: flex; flex-wrap: wrap; gap: 6px 22px; font-family: var(--f-data); font-size: var(--s-0); color: var(--dim); } .hero .kv b { color: var(--ink); font-weight: 600; }
-.hero .meter { position: relative; height: 12px; background: var(--well); border: 1px solid var(--grid); } .hero .meter i { position: absolute; inset: 0 auto 0 0; background: var(--trail); box-shadow: 0 0 10px rgba(182,255,92,0.5); }
-.hero .lab2 { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 8px; font: 400 var(--s-0) var(--f-data); color: var(--ink); } .hero .lab2 span:last-child { color: var(--dim); }
+.hero .huge { font: 600 2.6rem/1 var(--f-data); color: var(--hot); font-variant-numeric: tabular-nums; }
+.hero .huge small { font-size: var(--s-1); color: var(--dim); font-weight: 400; margin-left: 8px; }
+.hero .kv { display: flex; flex-wrap: wrap; gap: 6px 22px; font-family: var(--f-data); font-size: var(--s-0); color: var(--dim); }
+.hero .kv b { color: var(--ink); font-weight: 600; }
+.hero .meter { position: relative; height: 12px; }
+.hero .meter i { position: absolute; inset: 0 auto 0 0; background: var(--trail); box-shadow: 0 0 10px rgba(182,255,92,0.5); }
+.hero .lab2 { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 8px; font: 400 var(--s-0) var(--f-data); color: var(--ink); }
+.hero .lab2 span:last-child { color: var(--dim); }
 .hero svg { display: block; width: 100%; height: auto; }
 .hero .links { display: flex; flex-wrap: wrap; gap: 8px 10px; font: 600 var(--s-0) var(--f-data); }
 .hero .links a { all: unset; cursor: pointer; color: var(--ink); border: 1px solid var(--grid); padding: 7px 10px; letter-spacing: 0.06em; }
-.hero.pct .links a:hover, .hero.pct .links a:focus-visible { border-color: var(--trail); color: var(--trail); } .hero.photo .links a:hover, .hero.photo .links a:focus-visible { border-color: var(--climb); color: var(--climb); }
+.hero.pct .links a:hover, .hero.pct .links a:focus-visible { border-color: var(--trail); color: var(--trail); }
+.hero.photo .links a:hover, .hero.photo .links a:focus-visible { border-color: var(--climb); color: var(--climb); }
 .tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 14px; }
-.tile { border: 1px solid var(--grid); background: var(--panel); display: grid; grid-template-rows: auto 1fr auto; min-width: 0; }
+.tile { display: grid; grid-template-rows: auto 1fr auto; min-width: 0; }
 .tile-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 12px 0; }
 .tile-head h3 { margin: 0; font: 700 var(--s-2)/1.2 var(--f-ui); letter-spacing: 0.16em; text-transform: uppercase; color: var(--hot); display: flex; align-items: center; gap: 8px; }
-.tile-nav { display: flex; gap: 4px; } .tile-nav button { font: 600 var(--s-1)/1 var(--f-data); color: var(--dim); background: none; border: 1px solid var(--grid); width: 26px; height: 26px; cursor: pointer; }
+.tile-nav { display: flex; gap: 4px; }
+.tile-nav button { font: 600 var(--s-1)/1 var(--f-data); color: var(--dim); background: none; border: 1px solid var(--grid); width: 26px; height: 26px; cursor: pointer; }
 .tile-nav button:hover { color: var(--hot); border-color: var(--dim); }
 .tile-body { all: unset; box-sizing: border-box; display: grid; gap: 6px; padding: 8px 12px 10px; cursor: pointer; min-width: 0; transition: opacity 0.16s ease; }
-.tile-body:hover { background: rgba(220,216,255,0.03); } .tile-body:focus-visible { outline: 2px solid var(--step); outline-offset: -2px; }
+.tile-body:focus-visible { outline: 2px solid var(--step); outline-offset: -2px; }
 .tile-body.out { opacity: 0; }
 .tile-body .mname { font: 600 var(--s-0) var(--f-ui); letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink); }
 .tile-body .two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.tile-body .two > div { display: grid; gap: 2px; min-width: 0; } .tile-body .two > div + div { border-left: 1px solid var(--grid); padding-left: 10px; }
+.tile-body .two > div { display: grid; gap: 2px; min-width: 0; }
+.tile-body .two > div + div { border-left: 1px solid var(--grid); padding-left: 10px; }
 .tile-body .cap { font: 600 10px var(--f-ui); letter-spacing: 0.14em; text-transform: uppercase; color: var(--dim); }
-.tile-body .val { font: 600 1.35rem/1.1 var(--f-data); color: var(--hot); font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.tile-body .unit { font: 400 10px var(--f-data); color: var(--dim); } .tile-body .dl { font: 400 var(--s-0) var(--f-data); color: var(--dim); } .tile-body .dl.up { color: var(--trail); } .tile-body .dl.dn { color: var(--sound); }
+.tile-body .val { font: 600 1.5rem/1.1 var(--f-data); color: var(--hot); font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tile-body .unit { font: 400 10px var(--f-data); color: var(--dim); }
+.tile-body .dl { font: 400 var(--s-0) var(--f-data); color: var(--dim); }
+.tile-body .dl.up { color: var(--trail); }
+.tile-body .dl.dn { color: var(--sound); }
 .tile-body svg { display: block; width: 100%; height: 40px; }
 .tile-foot { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 0 6px 4px 12px; font: 400 10px var(--f-data); color: var(--dim); }
-.tile-foot .stale { color: var(--climb); } .tile-dots { display: flex; } .tile-dots button { all: unset; cursor: pointer; width: 24px; height: 24px; display: grid; place-items: center; } .tile-dots button::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--grid); }
-.tile-dots button:hover::before { background: var(--dim); } .tile-dots button.on::before { background: var(--ink); } .tile-dots button:focus-visible { outline: 2px solid var(--step); }
+.tile-foot .stale { color: var(--climb); }
+.tile-dots { display: flex; }
+.tile-dots button { all: unset; cursor: pointer; width: 24px; height: 24px; display: grid; place-items: center; }
+.tile-dots button::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--grid); }
+.tile-dots button:hover::before { background: var(--dim); }
+.tile-dots button.on::before { background: var(--ink); }
+.tile-dots button:focus-visible { outline: 2px solid var(--step); }
 @media (prefers-reduced-motion: reduce) { .tile-body { transition: none; } }
-/* sections index (Trails, Projects): big cards whose links jump straight to a page's tab */
 .idx { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 16px; }
-.idx .card { padding: 18px; gap: 10px; } .idx .card.at { border-top: 2px solid var(--trail); } .idx .card.pct { border-top: 2px solid var(--trail); }
-.idx .card.ss { border-top: 2px solid var(--step); } .idx .card.ph { border-top: 2px solid var(--climb); }
+.idx .card { padding: 18px; gap: 10px; }
 .idx .card h3 { font: 400 clamp(1.3rem, 3vw, 1.8rem)/1 var(--f-display); letter-spacing: 0.02em; text-transform: none; }
 .idx .jump { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; }
 .idx .jump a { color: var(--ink); text-decoration: none; border: 1px solid var(--grid); padding: 9px 10px; font: 600 var(--s-0) var(--f-data); letter-spacing: 0.04em; display: grid; gap: 2px; min-height: 44px; }
 .idx .jump a small { font: 400 10px var(--f-data); color: var(--dim); letter-spacing: 0; }
 .idx .jump a:hover, .idx .jump a:focus-visible { border-color: var(--step); color: var(--hot); }
-.idx .big2 { font: 600 2rem/1 var(--f-data); color: var(--hot); font-variant-numeric: tabular-nums; } .idx .big2 small { font-size: var(--s-1); color: var(--dim); font-weight: 400; margin-left: 6px; }
+.idx .big2 { font: 600 2rem/1 var(--f-data); color: var(--hot); font-variant-numeric: tabular-nums; }
+.idx .big2 small { font-size: var(--s-1); color: var(--dim); font-weight: 400; margin-left: 6px; }
 nav.ptabs.inview { margin-top: -4px; }
 .pager { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; font: 600 var(--s-0) var(--f-data); }
 .pager button { font: inherit; background: transparent; color: var(--dim); border: 1px solid var(--grid); min-width: 36px; min-height: 34px; padding: 6px 10px; cursor: pointer; }
-.pager button:hover:not(:disabled) { color: var(--hot); border-color: var(--dim); } .pager button[aria-current] { color: var(--void); background: var(--ink); border-color: var(--ink); }
-.pager button:disabled { opacity: 0.35; cursor: default; } .pager .lab { color: var(--dim); margin-right: 8px; font-weight: 400; }
-/* experiments */
+.pager button:hover:not(:disabled) { color: var(--hot); border-color: var(--dim); }
+.pager button[aria-current] { color: var(--void); background: var(--ink); border-color: var(--ink); }
+.pager button:disabled { opacity: 0.35; cursor: default; }
+.pager .lab { color: var(--dim); margin-right: 8px; font-weight: 400; }
 #v-experiments .head, #r-race .head { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; justify-content: space-between; }
-.e-ring-wrap { display: grid; justify-items: center; } #e-ring-cv { display: block; max-width: 100%; touch-action: manipulation; }
+.e-ring-wrap { display: grid; justify-items: center; }
+#e-ring-cv { display: block; max-width: 100%; touch-action: manipulation; }
 .e-split { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 18px; align-items: start; }
 @media (max-width: 900px) { .e-split { grid-template-columns: minmax(0, 1fr); } }
-.e-scroll { overflow-x: auto; } .e-side { display: grid; gap: 12px; min-width: 0; }
+.e-scroll { overflow-x: auto; }
+.e-side { display: grid; gap: 12px; min-width: 0; }
 #e-matrix svg, #e-scatter svg, #r-race-chart svg, .e-wk svg { display: block; width: 100%; height: auto; }
 a.more { font: 600 var(--s-0) var(--f-data); letter-spacing: 0.08em; color: var(--dim); text-decoration: none; }
 a.more:hover, a.more:focus-visible { color: var(--trail); }
-#e-matrix svg { min-width: 520px; } #e-matrix text, #e-scatter text, #r-race-chart text, .e-wk text { font-family: var(--f-data); font-size: 11px; fill: var(--dim); }
-#e-matrix rect.c { cursor: pointer; } #e-matrix rect.c:hover { stroke: var(--hot); }
+#e-matrix svg { min-width: 520px; }
+#e-matrix text, #e-scatter text, #r-race-chart text, .e-wk text { font-family: var(--f-data); font-size: 11px; fill: var(--dim); }
+#e-matrix rect.c { cursor: pointer; }
+#e-matrix rect.c:hover { stroke: var(--hot); }
 #e-top { display: grid; gap: 4px; font-family: var(--f-data); font-size: var(--s-0); }
 #e-top button { display: grid; grid-template-columns: 52px minmax(0, 1fr); gap: 8px; text-align: left; font: inherit; color: var(--ink); background: none; border: 1px solid var(--grid); padding: 6px 8px; cursor: pointer; }
-#e-top button:hover, #e-top button[aria-pressed="true"] { border-color: var(--step); } #e-top b { font-variant-numeric: tabular-nums; }
+#e-top button:hover, #e-top button[aria-pressed="true"] { border-color: var(--step); }
+#e-top b { font-variant-numeric: tabular-nums; }
 .e-weeks { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 12px; }
-.e-wk { border: 1px solid var(--grid); padding: 10px; display: grid; gap: 4px; min-width: 0; }
+.e-wk { padding: 10px; display: grid; gap: 4px; min-width: 0; }
 .e-wk h3 { margin: 0; font: 600 var(--s-0) var(--f-ui); letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink); }
 .e-wk p { margin: 0; font-family: var(--f-data); font-size: var(--s-0); color: var(--dim); }
-#e-tide-chart svg, #e-pair-chart svg { display: block; width: 100%; height: auto; } #e-tide-chart text, #e-pair-chart text { font-family: var(--f-data); font-size: 11px; fill: var(--dim); }
-.e-chips { display: flex; flex-wrap: wrap; gap: 6px; } .e-chips button { font: 600 var(--s-0)/1 var(--f-data); background: none; color: var(--ink); border: 1px solid var(--grid); padding: 7px 10px; cursor: pointer; }
+#e-tide-chart svg, #e-pair-chart svg { display: block; width: 100%; height: auto; }
+#e-tide-chart text, #e-pair-chart text { font-family: var(--f-data); font-size: 11px; fill: var(--dim); }
+.e-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.e-chips button { font: 600 var(--s-0)/1 var(--f-data); background: none; color: var(--ink); border: 1px solid var(--grid); padding: 7px 10px; cursor: pointer; }
 .e-chips button:hover, .e-chips button[aria-pressed="true"] { border-color: var(--climb, #ffb347); color: var(--climb, #ffb347); }
-.e-pick { display: grid; gap: 4px; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--dim); min-width: 0; flex: 1 1 220px; max-width: 360px; } .e-pick select { width: 100%; min-width: 0; }
-#e-pair-card { border: 1px solid var(--grid); padding: 14px; font-family: var(--f-data); font-size: var(--s-0); align-content: start; }
-#e-pair-card .rho { font-size: 2.2rem; font-weight: 600; line-height: 1; font-variant-numeric: tabular-nums; } #e-pair-card p { margin: 0; }
-#e-pair-card dl { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; margin: 0; } #e-pair-card dt { color: var(--dim); } #e-pair-card dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; }
-#e-tip { position: fixed; z-index: 70; pointer-events: none; max-width: 260px; background: rgba(7,6,15,0.95); border: 1px solid var(--step); font-family: var(--f-data); font-size: var(--s-0); padding: 6px 9px; line-height: 1.4; color: var(--ink); }
-
-/* seasons */
+.e-pick { display: grid; gap: 4px; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--dim); min-width: 0; flex: 1 1 220px; max-width: 360px; }
+.e-pick select { width: 100%; min-width: 0; }
+#e-pair-card { padding: 14px; font-family: var(--f-data); font-size: var(--s-0); align-content: start; }
+#e-pair-card .rho { font-size: 2.2rem; font-weight: 600; line-height: 1; font-variant-numeric: tabular-nums; }
+#e-pair-card p { margin: 0; }
+#e-pair-card dl { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; margin: 0; }
+#e-pair-card dt { color: var(--dim); }
+#e-pair-card dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; }
+#e-tip { position: fixed; z-index: 70; pointer-events: none; max-width: 260px; background: rgba(7,6,15,0.95); border: 1px solid var(--edge-hi); font-family: var(--f-data); font-size: var(--s-0); padding: 6px 9px; line-height: 1.4; color: var(--ink); }
 .seasons .head { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; justify-content: space-between; }
 .s-compare { display: grid; gap: 7px; }
 .s-leg { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 4px; }
-.s-leg button { all: unset; cursor: pointer; display: inline-flex; align-items: center; gap: 7px; font: 600 var(--s-0) var(--f-ui); letter-spacing: 0.12em; text-transform: uppercase;
-  color: var(--ink); padding: 6px 12px; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--sc) 45%, transparent); background: color-mix(in srgb, var(--sc) 10%, transparent); }
+.s-leg button { all: unset; cursor: pointer; display: inline-flex; align-items: center; gap: 7px; font: 600 var(--s-0) var(--f-ui); letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink); padding: 6px 12px; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--sc) 45%, transparent); background: color-mix(in srgb, var(--sc) 10%, transparent); }
 .s-leg button i { width: 10px; height: 10px; border-radius: 3px; background: var(--sc); box-shadow: 0 0 8px var(--sc); }
-.s-leg button.on { color: #07060f; background: var(--sc); border-color: var(--sc); box-shadow: 0 0 16px color-mix(in srgb, var(--sc) 55%, transparent); } .s-leg button.on i { background: #07060f; box-shadow: none; }
+.s-leg button.on { color: #07060f; background: var(--sc); border-color: var(--sc); box-shadow: 0 0 16px color-mix(in srgb, var(--sc) 55%, transparent); }
+.s-leg button.on i { background: #07060f; box-shadow: none; }
 .s-leg button:focus-visible { outline: 2px solid var(--sc); outline-offset: 2px; }
 .s-leg .s-view { margin-left: auto; }
+.s-leg .seg button { border: 0; border-radius: 0; padding: 7px 14px; }
 .s-stacked { display: grid; gap: 7px; }
 .s-grouped { overflow-x: auto; padding-bottom: 4px; scrollbar-width: thin; }
 .s-grouped svg { display: block; width: 100%; min-width: 820px; height: auto; }
 .s-grouped .ax { font: 400 10px var(--f-data); fill: #8a84b8; }
 .s-grouped .gl { font: 700 10.5px var(--f-ui); letter-spacing: 0.1em; }
-.s-grouped .gv { font: 600 9.5px var(--f-data); fill: #8a84b8; } .s-grouped .gv.on { fill: #fff; font-weight: 700; }
-.s-grouped .gd { font: 700 10px var(--f-data); } .s-grouped .gd.up { fill: #5dff8a; } .s-grouped .gd.dn { fill: #ff4d6d; }
-.s-grouped rect.gb { cursor: pointer; transition: opacity .15s; } .s-grouped rect.gb:hover { opacity: 1; }
+.s-grouped .gv { font: 600 9.5px var(--f-data); fill: #8a84b8; }
+.s-grouped .gv.on { fill: #fff; font-weight: 700; }
+.s-grouped .gd { font: 700 10px var(--f-data); }
+.s-grouped .gd.up { fill: #5dff8a; }
+.s-grouped .gd.dn { fill: #ff4d6d; }
+.s-grouped rect.gb { cursor: pointer; transition: opacity .15s; }
+.s-grouped rect.gb:hover { opacity: 1; }
 .s-grouped rect.gb.on { stroke: #fff; stroke-width: 1.5; filter: drop-shadow(0 0 6px rgba(255,255,255,0.35)); }
 .s-dnote { font-family: var(--f-data); font-size: var(--s-0); }
 .s-srow { display: grid; grid-template-columns: 178px minmax(0, 1fr) 58px; gap: 10px; align-items: center; }
@@ -305,80 +313,94 @@ a.more:hover, a.more:focus-visible { color: var(--trail); }
 .s-lab i { width: 8px; height: 8px; border-radius: 50%; background: var(--cc); box-shadow: 0 0 8px var(--cc); flex: none; align-self: center; }
 .s-lab small { font: 400 10px var(--f-data); letter-spacing: 0; text-transform: none; color: var(--dim); white-space: nowrap; }
 .s-stack { display: flex; height: 30px; border-radius: 8px; overflow: hidden; gap: 2px; background: rgba(7,6,15,0.6); }
-.s-seg { all: unset; cursor: pointer; flex: 1 1 0; min-width: 0; display: flex; align-items: center; justify-content: center; background: var(--sc); opacity: 0.62; filter: saturate(0.85);
-  transition: opacity .15s, filter .15s; position: relative; }
+.s-seg { all: unset; cursor: pointer; flex: 1 1 0; min-width: 0; display: flex; align-items: center; justify-content: center; background: var(--sc); opacity: 0.62; filter: saturate(0.85); transition: opacity .15s, filter .15s; position: relative; }
 .s-seg b { font: 700 var(--s-0) var(--f-data); color: #07060f; white-space: nowrap; overflow: hidden; text-overflow: clip; padding: 0 4px; font-variant-numeric: tabular-nums; }
 .s-seg.on { opacity: 1; box-shadow: inset 0 0 0 2px rgba(255,255,255,0.9), 0 0 14px var(--sc); filter: saturate(1.25); z-index: 1; }
-.s-seg:hover { opacity: 0.85; } .s-seg:focus-visible { outline: 2px solid #fff; outline-offset: -2px; opacity: 1; }
-.s-d { font: 700 var(--s-0) var(--f-data); text-align: right; font-variant-numeric: tabular-nums; } .s-d.up { color: #5dff8a; } .s-d.dn { color: #ff4d6d; }
-.seasons h2 { color: var(--sea, #fff); } .seasons .head h2::before { background: var(--sea) !important; box-shadow: 0 0 12px var(--sea) !important; }
-.s-tabs button[aria-selected="true"] { border-bottom-color: var(--sea) !important; } .s-when b { color: var(--sea) !important; }
-.s-kpi { border-left: 3px solid var(--cc) !important; background: linear-gradient(135deg, color-mix(in srgb, var(--cc) 16%, transparent), rgba(220,216,255,0.015) 70%) !important; }
-.s-kpi b { color: var(--cc) !important; text-shadow: 0 0 14px color-mix(in srgb, var(--cc) 45%, transparent); } .s-kpi span { color: color-mix(in srgb, var(--cc) 70%, #dcd8ff) !important; }
-.s-table tr td:first-child { color: var(--cc); font-weight: 600; } .s-table tr td:nth-child(2) { color: var(--cc); }
+.s-seg:hover { opacity: 0.85; }
+.s-seg:focus-visible { outline: 2px solid #fff; outline-offset: -2px; opacity: 1; }
+.s-d { font: 700 var(--s-0) var(--f-data); text-align: right; font-variant-numeric: tabular-nums; }
+.s-d.up { color: #5dff8a; }
+.s-d.dn { color: #ff4d6d; }
+.seasons h2 { color: var(--sea, #fff); }
+.seasons .head h2::before { background: var(--sea); box-shadow: 0 0 12px var(--sea); }
+.s-table tr td:first-child { color: var(--cc); font-weight: 600; }
+.s-table tr td:nth-child(2) { color: var(--cc); }
 .cdot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--cc); margin-right: 8px; box-shadow: 0 0 6px var(--cc); }
-/* tiles + data cards carry their accent everywhere */
-.tile { border-top: 3px solid var(--acc) !important; background: linear-gradient(180deg, color-mix(in srgb, var(--acc) 13%, rgba(12,10,28,0.9)), rgba(12,10,28,0.82) 55%) !important; }
-.tile-head h3 { color: var(--acc) !important; text-shadow: 0 0 12px color-mix(in srgb, var(--acc) 50%, transparent); }
-.tile-body .val { color: var(--acc) !important; } .tile-body .mname { color: color-mix(in srgb, var(--acc) 55%, #fff) !important; }
-.tile-dots button.on::before { background: var(--acc) !important; box-shadow: 0 0 6px var(--acc); }
-.tile:hover { border-color: color-mix(in srgb, var(--acc) 60%, transparent) !important; box-shadow: 0 0 24px -6px color-mix(in srgb, var(--acc) 55%, transparent) !important; }
-#d-cards .card { border-top: 3px solid var(--acc) !important; background: linear-gradient(180deg, color-mix(in srgb, var(--acc) 12%, rgba(12,10,28,0.9)), rgba(12,10,28,0.82) 50%) !important; }
-#d-cards .card h3 { color: var(--acc) !important; } #d-cards .card dd { color: color-mix(in srgb, var(--acc) 35%, #fff); } #d-cards .card .links a, #d-cards .card .links button { color: var(--acc); }
-#d-cards .card:hover { border-color: color-mix(in srgb, var(--acc) 60%, transparent) !important; box-shadow: 0 0 24px -6px color-mix(in srgb, var(--acc) 55%, transparent) !important; }
-@media (max-width: 640px) { .s-srow { grid-template-columns: 1fr 44px; gap: 4px 8px; } .s-srow .s-lab { grid-column: 1 / -1; } .s-stack { grid-column: 1; height: 26px; }
-  .s-seg b { font-size: 9px; padding: 0 2px; } .s-leg button { padding: 5px 9px; font-size: 10px; } }
+.tile-head h3 { color: var(--acc); text-shadow: 0 0 12px color-mix(in srgb, var(--acc) 50%, transparent); }
+.tile-body .val { color: var(--acc); }
+.tile-body .mname { color: color-mix(in srgb, var(--acc) 55%, #fff); }
+.tile-dots button.on::before { background: var(--acc); box-shadow: 0 0 6px var(--acc); }
+.tile:hover { box-shadow: 0 0 24px -6px color-mix(in srgb, var(--acc) 55%, transparent); }
+#d-cards .card { border-top: 3px solid var(--acc); background: linear-gradient(180deg, color-mix(in srgb, var(--acc) 12%, rgba(12,10,28,0.9)), rgba(12,10,28,0.82) 50%); }
+#d-cards .card h3 { color: var(--acc); }
+#d-cards .card dd { color: color-mix(in srgb, var(--acc) 35%, #fff); }
+#d-cards .card .links a, #d-cards .card .links button { color: var(--acc); }
+#d-cards .card:hover { border-color: color-mix(in srgb, var(--acc) 60%, transparent); box-shadow: 0 0 24px -6px color-mix(in srgb, var(--acc) 55%, transparent); }
+@media (max-width: 640px) { .s-srow { grid-template-columns: 1fr 44px; gap: 4px 8px; } .s-srow .s-lab { grid-column: 1 / -1; } .s-stack { grid-column: 1; height: 26px; } .s-seg b { font-size: 9px; padding: 0 2px; } .s-leg button { padding: 5px 9px; font-size: 10px; } }
 .s-tabs { display: flex; gap: 4px; flex-wrap: wrap; border-bottom: 1px solid var(--grid); }
 .s-tabs button { all: unset; cursor: pointer; font: 600 var(--s-0) var(--f-ui); letter-spacing: 0.14em; text-transform: uppercase; color: var(--dim); padding: 9px 12px; border-bottom: 2px solid transparent; }
-.s-tabs button[aria-selected="true"] { color: var(--hot); border-bottom-color: var(--step); } .s-tabs button:hover { color: var(--ink); }
+.s-tabs button[aria-selected="true"] { color: var(--hot); border-bottom-color: var(--sea, var(--step)); }
+.s-tabs button:hover { color: var(--ink); }
 .s-tabs button:focus-visible { outline: 2px solid var(--step); outline-offset: -2px; }
-.s-when { font: 400 var(--s-0) var(--f-data); color: var(--dim); margin-bottom: 12px; } .s-when b { color: var(--hot); font: 700 var(--s-1) var(--f-ui); letter-spacing: 0.14em; text-transform: uppercase; }
+.s-when { font: 400 var(--s-0) var(--f-data); color: var(--dim); margin-bottom: 12px; }
+.s-when b { color: var(--sea, var(--hot)); font: 700 var(--s-1) var(--f-ui); letter-spacing: 0.14em; text-transform: uppercase; }
 .s-kpis { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px; }
 .s-kpi { display: grid; gap: 2px; align-content: start; padding: 12px 14px; border-radius: 10px; background: linear-gradient(180deg, rgba(220,216,255,0.05), rgba(220,216,255,0.015)); border: 1px solid rgba(220,216,255,0.07); }
 .s-kpi span { font: 600 10px var(--f-ui); letter-spacing: 0.14em; text-transform: uppercase; color: var(--dim); }
-.s-kpi b { font: 600 1.5rem/1.1 var(--f-data); color: var(--hot); font-variant-numeric: tabular-nums; } .s-kpi small { font: 400 10px var(--f-data); color: var(--dim); }
+.s-kpi b { font: 600 1.5rem/1.1 var(--f-data); color: var(--hot); font-variant-numeric: tabular-nums; }
+.s-kpi small { font: 400 10px var(--f-data); color: var(--dim); }
 .s-kpi em { font: normal 400 var(--s-0)/1.35 var(--f-data); color: var(--ink); opacity: 0.8; overflow-wrap: anywhere; }
-.s-split { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 16px 24px; } .s-split h3 { margin-bottom: 8px; } .s-wide { grid-column: 1 / -1; display: grid; gap: 8px; }
+/* season colour per KPI (--cc) */
+.s-kpi { border-left: 3px solid var(--cc); background: linear-gradient(135deg, color-mix(in srgb, var(--cc) 16%, transparent), rgba(220,216,255,0.015) 70%); }
+.s-kpi b { color: var(--cc); text-shadow: 0 0 14px color-mix(in srgb, var(--cc) 45%, transparent); }
+.s-kpi span { color: color-mix(in srgb, var(--cc) 70%, #dcd8ff); }
+.s-split { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 16px 24px; }
+.s-split h3 { margin-bottom: 8px; }
+.s-wide { grid-column: 1 / -1; display: grid; gap: 8px; }
 .s-bars, .s-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; font: 400 var(--s-0) var(--f-data); }
 .s-bars li { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) auto; gap: 10px; align-items: center; }
-.s-bars span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink); } .s-bars i { height: 8px; border-radius: 4px; background: linear-gradient(90deg, #ff3fb4, #9b7bff); box-shadow: 0 0 10px rgba(255,63,180,0.35); }
+.s-bars span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink); }
+.s-bars i { height: 8px; border-radius: 4px; background: linear-gradient(90deg, #ff3fb4, #9b7bff); box-shadow: 0 0 10px rgba(255,63,180,0.35); }
 .s-bars b, .s-list b { color: var(--hot); font-variant-numeric: tabular-nums; }
-.s-list li { display: flex; justify-content: space-between; gap: 12px; padding: 6px 0; border-bottom: 1px solid rgba(31,26,61,0.8); } .s-list span { min-width: 0; color: var(--ink); } .s-list small { display: block; color: var(--dim); }
+.s-list li { display: flex; justify-content: space-between; gap: 12px; padding: 6px 0; border-bottom: 1px solid rgba(31,26,61,0.8); }
+.s-list span { min-width: 0; color: var(--ink); }
+.s-list small { display: block; color: var(--dim); }
 .s-watch { display: grid; gap: 10px; }
 .s-posts { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(96px, 112px); gap: 10px; overflow-x: auto; padding-bottom: 6px; scrollbar-width: thin; }
 .s-post { position: relative; aspect-ratio: 2 / 3; border-radius: 8px; overflow: hidden; background: var(--well); border: 1px solid var(--grid); display: grid; place-items: center; color: var(--dim); text-decoration: none; font: 600 10px/1.3 var(--f-ui); text-align: center; padding: 0; transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease; }
-.s-post img { width: 100%; height: 100%; object-fit: cover; display: block; } .s-post span { padding: 8px; }
-.s-post em { position: absolute; right: 4px; bottom: 4px; font: normal 600 10px var(--f-data); color: var(--hot); background: rgba(7,6,15,0.85); border-radius: 4px; padding: 1px 5px; } .s-post em:empty { display: none; }
+.s-post img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.s-post span { padding: 8px; }
+.s-post em { position: absolute; right: 4px; bottom: 4px; font: normal 600 10px var(--f-data); color: var(--hot); background: rgba(7,6,15,0.85); border-radius: 4px; padding: 1px 5px; }
+.s-post em:empty { display: none; }
 a.s-post:hover, a.s-post:focus-visible { transform: translateY(-3px); border-color: var(--sound); box-shadow: 0 8px 22px rgba(255,63,180,0.25); outline: none; }
 .s-table td small { display: inline; margin-left: 8px; }
 @media (max-width: 640px) { .s-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } .s-kpi { padding: 10px; } .s-kpi b { font-size: 1.25rem; } }
 .s-bars i { justify-self: start; }
 h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(--dim); margin: 8px 0 -8px; }
-/* Lab: ridgeline of steps, decade clock (Nov 19) */
 #e-ridge-fig svg { display: block; width: 100%; height: auto; overflow: visible; }
 #e-ridge-fig .rl path.ln { transition: stroke-width .12s; }
-.e-clock-wrap { display: grid; justify-items: center; } #e-clock-cv { display: block; max-width: 100%; touch-action: manipulation; }
-/* Movies & TV: guilty-pleasure map, propaganda board (Nov 19) */
+.e-clock-wrap { display: grid; justify-items: center; }
+#e-clock-cv { display: block; max-width: 100%; touch-action: manipulation; }
 #v-watched .head { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; justify-content: space-between; }
 .w-map { position: relative; width: 100%; }
 .w-map svg { display: block; width: 100%; height: auto; }
-.w-dot { --d: 34px; position: absolute; width: var(--d); height: var(--d); margin: calc(var(--d) / -2) 0 0 calc(var(--d) / -2); padding: 0; border-radius: 50%;
-  border: 2px solid var(--vc); background: var(--well); overflow: hidden; cursor: pointer; color: var(--ink); font: 600 8px/1.1 var(--f-ui); display: grid; place-items: center; text-align: center;
-  box-shadow: 0 0 8px var(--vg); transition: transform .15s ease, box-shadow .15s ease; z-index: 1; }
+.w-dot { --d: 34px; position: absolute; width: var(--d); height: var(--d); margin: calc(var(--d) / -2) 0 0 calc(var(--d) / -2); padding: 0; border-radius: 50%; border: 2px solid var(--vc); background: var(--well); overflow: hidden; cursor: pointer; color: var(--ink); font: 600 8px/1.1 var(--f-ui); display: grid; place-items: center; text-align: center; box-shadow: 0 0 8px var(--vg); transition: transform .15s ease, box-shadow .15s ease; z-index: 1; }
 .w-dot img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .w-dot:hover, .w-dot:focus-visible { z-index: 5; transform: scale(1.7); box-shadow: 0 0 16px var(--vc); outline: none; }
 @media (max-width: 640px) { .w-dot { --d: 24px; } }
-.pb-group { margin-top: 16px; } .pb-group:first-child { margin-top: 4px; }
-.pb-group h3 { margin: 0; display: flex; gap: 10px; align-items: baseline; font: 700 var(--s-0)/1.2 var(--f-ui); letter-spacing: 0.16em; text-transform: uppercase; color: var(--climb);
-  border-bottom: 1px solid var(--grid); padding-bottom: 6px; } .pb-group h3 small { color: var(--dim); font-family: var(--f-data); letter-spacing: 0.04em; }
-.pb-row { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; gap: 12px; align-items: center; width: 100%; text-align: left; background: none; border: 0;
-  border-bottom: 1px solid rgba(31,26,61,0.8); padding: 8px 4px; color: var(--ink); cursor: pointer; font: inherit; }
+.pb-group { margin-top: 16px; }
+.pb-group:first-child { margin-top: 4px; }
+.pb-group h3 { margin: 0; display: flex; gap: 10px; align-items: baseline; font: 700 var(--s-0)/1.2 var(--f-ui); letter-spacing: 0.16em; text-transform: uppercase; color: var(--climb); border-bottom: 1px solid var(--grid); padding-bottom: 6px; }
+.pb-group h3 small { color: var(--dim); font-family: var(--f-data); letter-spacing: 0.04em; }
+.pb-row { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; gap: 12px; align-items: center; width: 100%; text-align: left; background: none; border: 0; border-bottom: 1px solid rgba(31,26,61,0.8); padding: 8px 4px; color: var(--ink); cursor: pointer; font: inherit; }
 .pb-row:hover, .pb-row:focus-visible { background: rgba(255,179,71,0.06); outline: none; }
 .pb-row .pc { width: 40px; aspect-ratio: 2 / 3; border-radius: 4px; overflow: hidden; background: var(--well); border: 1px solid var(--grid); }
 .pb-row .pc img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.pb-row b { font: 600 var(--s-1)/1.3 var(--f-ui); color: var(--hot); } .pb-row b small { color: var(--dim); font: 400 var(--s-0) var(--f-data); margin-left: 6px; }
+.pb-row b { font: 600 var(--s-1)/1.3 var(--f-ui); color: var(--hot); }
+.pb-row b small { color: var(--dim); font: 400 var(--s-0) var(--f-data); margin-left: 6px; }
 .pb-row p { margin: 2px 0 0; color: var(--dim); font: 400 var(--s-0)/1.35 var(--f-data); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.pb-m { display: flex; gap: 3px; align-items: center; } .pb-m i { width: 8px; height: 14px; border-radius: 2px; background: var(--grid); }
+.pb-m { display: flex; gap: 3px; align-items: center; }
+.pb-m i { width: 8px; height: 14px; border-radius: 2px; background: var(--grid); }
 .pb-m i.on { background: var(--climb); box-shadow: 0 0 6px rgba(255,179,71,0.6); }
 .pb-m em { margin-left: 8px; color: var(--climb); font: normal 600 var(--s-1) var(--f-data); min-width: 2.5ch; text-align: right; font-variant-numeric: tabular-nums; }
 @media (max-width: 640px) { .pb-m i { width: 4px; height: 12px; } .pb-m { gap: 2px; } }
@@ -391,12 +413,13 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
 .wh-card { display: grid; gap: 4px; width: 100%; text-align: left; background: none; border: 0; border-top: 1px solid var(--grid); padding: 10px 4px; color: var(--ink); cursor: pointer; font: inherit; }
 .wh-card b { font: 700 var(--s-0)/1.2 var(--f-ui); letter-spacing: 0.14em; text-transform: uppercase; color: var(--qc); }
 .wh-card[aria-pressed="true"] { background: rgba(220,216,255,0.04); box-shadow: inset 2px 0 0 var(--qc); }
-.wh-card:hover { background: rgba(220,216,255,0.05); } .wh-card svg { max-width: 100%; }
+.wh-card:hover { background: rgba(220,216,255,0.05); }
+.wh-card svg { max-width: 100%; }
 .wh-row { display: grid; grid-template-columns: minmax(0, 1fr) auto 5ch; gap: 10px; font: 400 var(--s-0) var(--f-data); color: var(--dim); }
-.wh-row em { font-style: normal; color: var(--hot); font-variant-numeric: tabular-nums; } .wh-row small { text-align: right; }
+.wh-row em { font-style: normal; color: var(--hot); font-variant-numeric: tabular-nums; }
+.wh-row small { text-align: right; }
 .wh-diff { font: 600 var(--s-0) var(--f-data); color: var(--ink); }
 #e-eras-chips .sw { margin-right: 2px; }
-/* clusters, month hero, tighter phones (Nov 20) */
 .cards .sec.dgrp { grid-column: 1 / -1; margin: 10px 0 -4px; }
 .hero.month { box-shadow: var(--lift, none), inset 0 2px 0 #9b7bff; }
 .hero .grow { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
@@ -406,17 +429,12 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
 .mstrip { display: grid; grid-template-columns: repeat(12, 1fr); gap: 4px; align-items: end; height: 56px; }
 .mstrip a { display: grid; grid-template-rows: 1fr auto; height: 100%; text-align: center; color: var(--dim); text-decoration: none; font: 600 9px var(--f-ui); }
 .mstrip i { align-self: end; display: block; background: var(--c); border-radius: 3px 3px 0 0; box-shadow: 0 0 8px var(--c); }
-.idx .kv { display: flex; flex-wrap: wrap; gap: 4px 16px; font: 400 var(--s-0) var(--f-data); color: var(--dim); } .idx .kv b { color: var(--hot); }
-.idx .card.body, .idx .card.hr { box-shadow: var(--lift, none), inset 0 2px 0 #ff4d6d; } .idx .card.mv { box-shadow: var(--lift, none), inset 0 2px 0 #4ea8ff; }
-@media (max-width: 560px) {
-  nav.tabs { width: 100%; justify-content: space-between; gap: 0; padding: 4px; }
-  nav.tabs a { padding: 9px 10px !important; letter-spacing: .08em; font-size: 11px; }
-  .hero { padding: 14px !important; }
-  .hero .huge { font-size: 2.6rem !important; }
-  .tiles { grid-template-columns: 1fr !important; }
-}
+.idx .kv { display: flex; flex-wrap: wrap; gap: 4px 16px; font: 400 var(--s-0) var(--f-data); color: var(--dim); }
+.idx .kv b { color: var(--hot); }
+.idx .card.body, .idx .card.hr { box-shadow: var(--lift, none), inset 0 2px 0 #ff4d6d; }
+.idx .card.mv { box-shadow: var(--lift, none), inset 0 2px 0 #4ea8ff; }
+@media (max-width: 560px) { nav.tabs a { padding: 9px 10px; } .hero { padding: 14px; } .hero .huge { font-size: 2.6rem; } .tiles { grid-template-columns: 1fr; } }
 </style>
-<link rel="stylesheet" href="assets/theme.css">
 
 <div class="wrap">
   <header>
@@ -712,57 +730,18 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
   </section>
 </div>
 
-<script>
+<script type="module">
+import { $, el, svg, DAY, T0, dayIndex, iso, MON, dateLabel, num, tick, niceMax, loadJSON, FONT_UI, FONT_DATA, C, POOL } from './assets/core.js';
 (async function () {
-  'use strict';
-  // ---------------------------------------------------------------- helpers
-  const $ = (s, r = document) => r.querySelector(s);
-  const el = (tag, props = {}, kids = []) => {
-    const e = document.createElement(tag);
-    for (const k in props) {
-      if (k === 'style') e.style.cssText = props[k];
-      else if (k.startsWith('on')) e.addEventListener(k.slice(2), props[k]);
-      else if (k === 'text') e.textContent = props[k];
-      else if (k in e) e[k] = props[k];
-      else e.setAttribute(k, props[k]);
-    }
-    for (const c of [].concat(kids)) if (c != null) e.append(c);
-    return e;
-  };
-  const svg = (tag, attrs = {}, text) => {
-    const e = document.createElementNS('http://www.w3.org/2000/svg', tag);
-    for (const k in attrs) e.setAttribute(k, attrs[k]);
-    if (text != null) e.textContent = text;
-    return e;
-  };
+  // ---------------------------------------------------------------- helpers (shared ones come from assets/core.js)
   const sw = (c) => el('i', { className: 'sw', style: `background:${c};box-shadow:0 0 8px ${c}` });
-  const DAY = 864e5, T0 = Date.UTC(2015, 0, 1);
-  const d2i = (s) => Math.round((Date.UTC(+s.slice(0, 4), +s.slice(5, 7) - 1, +s.slice(8, 10)) - T0) / DAY);
-  const iso = (i) => new Date(T0 + i * DAY).toISOString().slice(0, 10);
-  const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   const WD = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-  const dstr = (i) => { const d = new Date(T0 + i * DAY); return `${MON[d.getUTCMonth()]} ${d.getUTCDate()}, ${d.getUTCFullYear()}`; };
-  const num = (v, unit) => {
-    if (v == null || !isFinite(v)) return '—';
-    const a = Math.abs(v);
-    const s = a >= 100 || Number.isInteger(v) ? Math.round(v).toLocaleString('en-US') : a >= 10 ? v.toFixed(1) : a === 0 ? '0' : v.toFixed(2);
-    return unit ? `${s} ${unit}` : s;
-  };
-  const tick = (v) => { const a = Math.abs(v);
-    return a >= 1e6 ? +(v / 1e6).toFixed(2) + 'M' : a >= 1e4 ? +(v / 1e3).toFixed(0) + 'k' : a >= 1e3 ? +(v / 1e3).toFixed(1) + 'k' : a >= 10 ? String(+v.toFixed(0)) : String(+v.toFixed(2)); };
-  const get = async (url, optional) => {
-    try { const r = await fetch(url); if (!r.ok) throw new Error(url + ' ' + r.status); return await r.json(); }
-    catch (e) { if (optional) return null; throw e; }
-  };
-  const FU = '"Chakra Petch", system-ui, sans-serif', FD = '"JetBrains Mono", ui-monospace, Menlo, monospace';
-  const C = { void: '#07060f', panel: '#0d0b1c', well: '#120f26', grid: '#1f1a3d', ink: '#dcd8ff', dim: '#8a84b8', hot: '#ffffff' };
-  const POOL = ['#3ff0ff', '#ff3fb4', '#ffb347', '#b6ff5c', '#9b7bff', '#4ea8ff', '#ff6fd8', '#ffd84a'];
 
   // ---------------------------------------------------------------- load
   let daily, lifeRaw, lifePriv, manual, TLS;
   try {
     [daily, lifeRaw, lifePriv, manual, TLS] = await Promise.all([
-      get('meta-log/data/daily.json'), get('meta-log/data/life.json'), (/^(localhost|127\.|\[::1\])/.test(location.host) ? get('meta-log/data/life.private.json', true) : Promise.resolve(null)), get('meta-log/data/manual.json', true), get('meta-log/data/timelines.json', true)]);
+      loadJSON('meta-log/data/daily.json'), loadJSON('meta-log/data/life.json'), (/^(localhost|127\.|\[::1\])/.test(location.host) ? loadJSON('meta-log/data/life.private.json', { optional: true }) : Promise.resolve(null)), loadJSON('meta-log/data/manual.json', { optional: true }), loadJSON('meta-log/data/timelines.json', { optional: true })]);
   } catch (e) {
     $('#boot').replaceWith(el('div', { className: 'err', text: 'Could not load the data files (' + e.message + '). Run `python3 scripts/build_meta_log.py`, and preview over http://localhost, not file://.' }));
     return;
@@ -771,7 +750,7 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
   // meta-log/data/private.enc.json is sealed by scripts/private_box.py (AES-GCM, PBKDF2-SHA256). The repo is public, so private
   // datasets are only ever published encrypted. Unlocking derives the key here; "remember" keeps the key (not the passphrase)
   // in this browser's storage. Nothing is sent anywhere.
-  const PRIV = { box: await get('meta-log/data/private.enc.json', true), ids: [] };
+  const PRIV = { box: await loadJSON('meta-log/data/private.enc.json', { optional: true }), ids: [] };
   const b64d = (s) => Uint8Array.from(atob(s), (c) => c.charCodeAt(0)), b64e = (u) => btoa(String.fromCharCode(...new Uint8Array(u)));
   const openBox = async (key) => JSON.parse(new TextDecoder().decode(await crypto.subtle.decrypt({ name: 'AES-GCM', iv: b64d(PRIV.box.iv) }, key, b64d(PRIV.box.ct))));
   const store = { get() { for (const s of [() => localStorage, () => sessionStorage]) { try { const v = JSON.parse(s().getItem('jsbv-key') || 'null'); if (v) return v; } catch (e) {} } return null; },
@@ -792,12 +771,12 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
   }
   // Hand-logged metrics become one more dataset; days without an entry are null, not zero.
   if (manual && Array.isArray(manual.metrics) && manual.metrics.length) {
-    const all = manual.metrics.flatMap((m) => (m.entries || []).map((e) => d2i(e[0])));
+    const all = manual.metrics.flatMap((m) => (m.entries || []).map((e) => dayIndex(e[0])));
     if (all.length) {
       const a = Math.max(0, Math.min(...all)), b = Math.max(...all), n = b - a + 1;
       daily.datasets.push({ id: 'manual', name: 'Logged by hand', source: 'meta-log/data/manual.json', grain: 'day', offset: a, n, dims: [],
         metrics: manual.metrics.map((m, k) => { const v = new Array(n).fill(null);
-          for (const [d, x] of m.entries || []) { const i = d2i(d) - a; if (i >= 0 && i < n) v[i] = (v[i] || 0) + x; }
+          for (const [d, x] of m.entries || []) { const i = dayIndex(d) - a; if (i >= 0 && i < n) v[i] = (v[i] || 0) + x; }
           return { id: m.id, name: m.name, unit: m.unit || '', agg: m.agg === 'mean' ? 'mean' : 'sum', color: m.color || POOL[(k + 5) % POOL.length], v }; }) });
     }
   }
@@ -805,13 +784,13 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
   // A chapter backed by a timeline (timelines.json, life_id) carries its stretches: the overlay paints them by status.
   const TL_BY_LIFE = {}; for (const t of (TLS && TLS.timelines) || []) if (t.life_id) TL_BY_LIFE[t.life_id] = t;
   const LIFE = [...lifeRaw, ...(Array.isArray(lifePriv) ? lifePriv : [])].map((x) => { const t = TL_BY_LIFE[x.id];
-      return { ...x, point: !x.end, a: d2i(x.start || x.date), b: d2i(x.end || x.date),
-        segs: t ? t.segments.map((g) => ({ a: d2i(g.a), b: d2i(g.b), color: t.statuses[g.s].color, first: g.s === Object.keys(t.statuses)[0] })) : null }; })
+      return { ...x, point: !x.end, a: dayIndex(x.start || x.date), b: dayIndex(x.end || x.date),
+        segs: t ? t.segments.map((g) => ({ a: dayIndex(g.a), b: dayIndex(g.b), color: t.statuses[g.s].color, first: g.s === Object.keys(t.statuses)[0] })) : null }; })
     .sort((p, q) => p.a - q.a);
   const today = Math.round((Date.UTC(new Date().getFullYear(), new Date().getMonth(), new Date().getDate()) - T0) / DAY);
   const DATA_A = Math.min(...daily.datasets.map((d) => d.offset)), DATA_B = Math.max(...daily.datasets.map((d) => d.end));
   const lastYear = new Date(T0 + Math.max(DATA_B, today, ...LIFE.map((l) => l.b)) * DAY).getUTCFullYear();
-  const MAXI = d2i(`${lastYear}-12-31`);
+  const MAXI = dayIndex(`${lastYear}-12-31`);
   // calendar keys for every day index
   const YR = new Int16Array(MAXI + 2), MO = new Int32Array(MAXI + 2), WK = new Int32Array(MAXI + 2), DOW = new Int8Array(MAXI + 2);
   for (let i = 0; i <= MAXI + 1; i++) { const d = new Date(T0 + i * DAY);
@@ -825,7 +804,7 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
 
   // ---------------------------------------------------------------- buckets + stats
   const keyOf = (i, g) => g === 'day' ? i : g === 'week' ? WK[i] : g === 'month' ? MO[i] : YR[i];
-  const bLabel = (i, g) => g === 'year' ? String(YR[i]) : g === 'month' ? `${MON[MO[i] % 12]} ${YR[i]}` : g === 'week' ? 'Week of ' + dstr(i - DOW[i]) : dstr(i);
+  const bLabel = (i, g) => g === 'year' ? String(YR[i]) : g === 'month' ? `${MON[MO[i] % 12]} ${YR[i]}` : g === 'week' ? 'Week of ' + dateLabel(i - DOW[i]) : dateLabel(i);
   const bTick = (i, g) => g === 'year' ? String(YR[i]) : g === 'month' ? `${MON[MO[i] % 12]} ’${String(YR[i]).slice(2)}` : `${MON[MO[i] % 12]} ${new Date(T0 + i * DAY).getUTCDate()} ’${String(YR[i]).slice(2)}`;
   function makeBuckets(a, b, g) {
     const out = []; let i = a;
@@ -917,7 +896,7 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
   }
   const ML = 58, MR = 14, MB = 26, GAP = 22, LANE = 17;
   function layoutOverlay(ctx, M, pw) {
-    ctx.font = `600 10px ${FD}`;
+    ctx.font = `600 10px ${FONT_DATA}`;
     const lanes = [];
     const items = M.ovl.map((l) => {
       const x1 = dayX(M, l.a, pw), x2 = l.point ? x1 : Math.max(x1 + 2, dayX(M, l.b + 1, pw)), tw = ctx.measureText(l.label).width;
@@ -932,13 +911,12 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
     return { items, h: lanes.length ? lanes.length * LANE + 8 : 0 };
   }
   const chartHeight = (ov, M, panelH) => ov.h + Math.max(1, M.panels.length) * panelH + (Math.max(1, M.panels.length) - 1) * GAP + MB;
-  const nice = (m) => { if (!(m > 0)) return 1; const p = 10 ** Math.floor(Math.log10(m)), f = m / p; return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * p; };
 
   function drawChart(ctx, X, Y, W, panelH, M, ov, chart) {
     const px = X + ML, pw = W - ML - MR, n = M.B.length, bw = pw / n, top = Y + ov.h;
     const totalH = M.panels.length * panelH + (M.panels.length - 1) * GAP, geo = { px, pw, bw, top, bottom: top + totalH, panels: [] };
     ctx.textBaseline = 'middle';
-    if (!M.panels.length) { ctx.fillStyle = C.dim; ctx.font = `400 13px ${FD}`; ctx.textAlign = 'center';
+    if (!M.panels.length) { ctx.fillStyle = C.dim; ctx.font = `400 13px ${FONT_DATA}`; ctx.textAlign = 'center';
       ctx.fillText(M.lines.length ? 'No data in this range.' : 'Add a series to start.', px + pw / 2, top + panelH / 2); ctx.textAlign = 'left'; return geo; }
     // life bands behind everything
     for (const it of ov.items) if (!it.l.point) {
@@ -950,10 +928,10 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
       let max = 0;
       if (chart === 'bar') { for (let k = 0; k < n; k++) for (const g of groups) { let s = 0; for (const L of P.lines) if (L.group === g && L.plot[k] != null) s += L.plot[k]; if (s > max) max = s; } }
       else for (const L of P.lines) for (const v of L.plot) if (v != null && v > max) max = v;
-      max = nice(max);
+      max = niceMax(max);
       const yOf = (v) => yb - (v / max) * h;
-      ctx.font = `600 10px ${FU}`; ctx.fillStyle = C.dim; ctx.textAlign = 'left'; ctx.fillText(P.unit.toUpperCase(), px, y0 + 6);
-      ctx.font = `400 10px ${FD}`; ctx.textAlign = 'right';
+      ctx.font = `600 10px ${FONT_UI}`; ctx.fillStyle = C.dim; ctx.textAlign = 'left'; ctx.fillText(P.unit.toUpperCase(), px, y0 + 6);
+      ctx.font = `400 10px ${FONT_DATA}`; ctx.textAlign = 'right';
       for (let t = 0; t <= 4; t++) { const v = (max * t) / 4, y = Math.round(yOf(v)) + 0.5;
         ctx.strokeStyle = t ? C.grid : C.dim; ctx.globalAlpha = t ? 1 : 0.6; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(px, y); ctx.lineTo(px + pw, y); ctx.stroke(); ctx.globalAlpha = 1;
         ctx.fillStyle = C.dim; ctx.fillText(tick(v), px - 8, y); }
@@ -974,7 +952,7 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
       geo.panels.push({ y0, yb, h, max, P });
     });
     // x labels: about one per 110px
-    ctx.font = `400 10px ${FD}`; ctx.fillStyle = C.dim; ctx.textAlign = 'center';
+    ctx.font = `400 10px ${FONT_DATA}`; ctx.fillStyle = C.dim; ctx.textAlign = 'center';
     const stepK = Math.max(1, Math.ceil(n / Math.max(2, Math.floor(pw / 110))));
     for (let k = 0; k < n; k += stepK) { const x = px + (k + 0.5) * bw; if (x < px + 24 || x > px + pw - 24) { if (n > 3) continue; } ctx.fillText(M.B[k].tick, x, geo.bottom + 14); }
     // life lanes on top
@@ -984,7 +962,7 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
       else if (l.segs) { for (const g of l.segs) { if (g.b < M.a || g.a > M.b) continue; const x1 = dayX(M, g.a, pw), x2 = Math.max(x1 + 1, dayX(M, g.b + 1, pw)); ctx.fillStyle = g.color; ctx.globalAlpha = 0.6; ctx.fillRect(px + x1, y, x2 - x1, 12); }
         ctx.globalAlpha = 1; ctx.strokeStyle = l.color; ctx.lineWidth = 1; ctx.strokeRect(px + it.x1 + 0.5, y + 0.5, Math.max(1, it.x2 - it.x1 - 1), 11); }
       else { ctx.fillStyle = l.color; ctx.globalAlpha = 0.3; ctx.fillRect(px + it.x1, y, it.x2 - it.x1, 12); ctx.globalAlpha = 1; ctx.strokeStyle = l.color; ctx.lineWidth = 1; ctx.strokeRect(px + it.x1 + 0.5, y + 0.5, Math.max(1, it.x2 - it.x1 - 1), 11); }
-      ctx.font = `600 10px ${FD}`; ctx.fillStyle = C.ink; ctx.textAlign = 'left'; ctx.fillText(l.label, px + it.tx, y + 6.5); }
+      ctx.font = `600 10px ${FONT_DATA}`; ctx.fillStyle = C.ink; ctx.textAlign = 'left'; ctx.fillText(l.label, px + it.tx, y + 6.5); }
     return geo;
   }
 
@@ -998,7 +976,7 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
     geo = drawChart(ctx, 0, 0, W, panelH, M, ov, S.chart); tip.hidden = true;
     // controls reflect state
     $('#x-from').value = iso(S.a); $('#x-to').value = iso(S.b);
-    $('#x-msg').textContent = [`${dstr(S.a)} to ${dstr(S.b)}, grouped by ${M.g}${S.bucket === 'auto' ? ' (auto)' : ''}.`, ...M.notes].join(' ');
+    $('#x-msg').textContent = [`${dateLabel(S.a)} to ${dateLabel(S.b)}, grouped by ${M.g}${S.bucket === 'auto' ? ' (auto)' : ''}.`, ...M.notes].join(' ');
     $('#x-title').placeholder = autoTitle();
     $('#x-legend').replaceChildren(...M.shown.map((L) => el('span', {}, [sw(L.color), L.name])));
     $('#x-series').replaceChildren(...(S.series.length ? S.series.map((s) => el('span', { className: 'chip' }, [
@@ -1074,7 +1052,7 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
     const c = document.createElement('canvas'); let ctx = c.getContext('2d');
     const ov = layoutOverlay(ctx, M, cw - ML - MR), ch = chartHeight(ov, M, panelH);
     // legend wraps; stats is a fixed-column table
-    ctx.font = `400 12px ${FD}`;
+    ctx.font = `400 12px ${FONT_DATA}`;
     const leg = []; let lx = 0, ly = 0; for (const L of M.shown) { const w = 18 + ctx.measureText(L.name).width + 22; if (lx + w > cw && lx) { lx = 0; ly += 20; } leg.push({ L, x: lx, y: ly }); lx += w; }
     const legH = M.shown.length ? ly + 20 : 0, rows = M.shown.slice(0, 16), statH = rows.length ? 26 + rows.length * 22 + (M.shown.length > rows.length ? 20 : 0) : 0;
     const H = PAD + 34 + 24 + 20 + ch + 18 + legH + 18 + statH + 34 + PAD - 10;
@@ -1082,25 +1060,25 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
     ctx.fillStyle = C.void; ctx.fillRect(0, 0, W, H);
     ctx.fillStyle = C.panel; ctx.fillRect(16, 16, W - 32, H - 32); ctx.strokeStyle = C.grid; ctx.lineWidth = 1; ctx.strokeRect(16.5, 16.5, W - 33, H - 33);
     let y = PAD + 14; ctx.textBaseline = 'middle'; ctx.textAlign = 'left';
-    ctx.fillStyle = C.hot; ctx.font = `700 24px ${FU}`; ctx.fillText($('#x-title').value.trim() || autoTitle(), PAD, y); y += 30;
-    ctx.fillStyle = C.dim; ctx.font = `400 13px ${FD}`;
-    ctx.fillText(`${dstr(S.a)} – ${dstr(S.b)}  ·  by ${M.g}  ·  ${S.mode === 'avg' ? 'daily average' : 'totals'}${S.index ? '  ·  indexed to each series’ peak' : ''}`, PAD, y); y += 24;
+    ctx.fillStyle = C.hot; ctx.font = `700 24px ${FONT_UI}`; ctx.fillText($('#x-title').value.trim() || autoTitle(), PAD, y); y += 30;
+    ctx.fillStyle = C.dim; ctx.font = `400 13px ${FONT_DATA}`;
+    ctx.fillText(`${dateLabel(S.a)} – ${dateLabel(S.b)}  ·  by ${M.g}  ·  ${S.mode === 'avg' ? 'daily average' : 'totals'}${S.index ? '  ·  indexed to each series’ peak' : ''}`, PAD, y); y += 24;
     drawChart(ctx, PAD, y, cw, panelH, M, ov, S.chart); y += ch + 18;
-    ctx.font = `400 12px ${FD}`; ctx.textAlign = 'left';
+    ctx.font = `400 12px ${FONT_DATA}`; ctx.textAlign = 'left';
     for (const it of leg) { ctx.fillStyle = it.L.color; ctx.fillRect(PAD + it.x, y + it.y + 4, 11, 11); ctx.fillStyle = C.ink; ctx.fillText(it.L.name, PAD + it.x + 18, y + it.y + 10); }
     y += legH + 18;
     if (rows.length) {
       const cols = [['Series', 0, 'left'], ['Total', 0.50, 'right'], ['Per day', 0.62, 'right'], [`Mean / ${M.g}`, 0.75, 'right'], ['Median', 0.87, 'right'], ['High', 1, 'right']];
-      ctx.font = `600 11px ${FU}`; ctx.fillStyle = C.dim;
+      ctx.font = `600 11px ${FONT_UI}`; ctx.fillStyle = C.dim;
       for (const [h, f, al] of cols) { ctx.textAlign = al; ctx.fillText(h.toUpperCase(), PAD + (al === 'left' ? 0 : f * cw), y + 10); }
       ctx.strokeStyle = C.grid; ctx.beginPath(); ctx.moveTo(PAD, y + 22.5); ctx.lineTo(PAD + cw, y + 22.5); ctx.stroke(); y += 26;
-      ctx.font = `400 12px ${FD}`;
+      ctx.font = `400 12px ${FONT_DATA}`;
       for (const L of rows) { const s = L.stats, u = L.unit; ctx.fillStyle = L.color; ctx.fillRect(PAD, y + 5, 11, 11);
         ctx.fillStyle = C.ink; ctx.textAlign = 'left'; let nm = L.name; while (ctx.measureText(nm).width > cw * 0.36 && nm.length > 8) nm = nm.slice(0, -2); ctx.fillText(nm === L.name ? nm : nm + '…', PAD + 18, y + 11);
         ctx.textAlign = 'right'; [s.total, s.perDay, s.mean, s.median, s.max].forEach((v, i) => ctx.fillText(num(v, u), PAD + cols[i + 1][1] * cw, y + 11)); y += 22; }
       if (M.shown.length > rows.length) { ctx.fillStyle = C.dim; ctx.textAlign = 'left'; ctx.fillText(`+ ${M.shown.length - rows.length} more series`, PAD, y + 10); y += 20; }
     }
-    y += 22; ctx.fillStyle = C.dim; ctx.font = `400 11px ${FD}`; ctx.textAlign = 'left'; ctx.fillText('jsbv.life', PAD, y);
+    y += 22; ctx.fillStyle = C.dim; ctx.font = `400 11px ${FONT_DATA}`; ctx.textAlign = 'left'; ctx.fillText('jsbv.life', PAD, y);
     ctx.textAlign = 'right'; ctx.fillText(`snapshot ${iso(today)} · data built ${daily.generated}`, PAD + cw, y);
     c.toBlob((b) => b && download(b, fileBase() + (kind === 'jpg' ? '.jpg' : '.png')), kind === 'jpg' ? 'image/jpeg' : 'image/png', 0.93);
   }
@@ -1126,16 +1104,16 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
   const setRange = (a, b) => { S.a = clampI(Math.min(a, b)); S.b = clampI(Math.max(a, b)); };
   const seriesSpan = () => { const ds = S.series.length ? [...new Set(S.series.map((s) => DS[s.ds]))] : daily.datasets; return [Math.min(...ds.map((d) => d.offset)), Math.max(...ds.map((d) => d.end))]; };
   $('#x-from').min = $('#x-to').min = $('#c-date').min = iso(0); $('#x-from').max = $('#x-to').max = $('#c-date').max = iso(MAXI);
-  $('#x-from').onchange = (e) => { if (e.target.value) { setRange(d2i(e.target.value), S.b); $('#x-preset').value = ''; renderExplorer(); } };
-  $('#x-to').onchange = (e) => { if (e.target.value) { setRange(S.a, d2i(e.target.value)); $('#x-preset').value = ''; renderExplorer(); } };
+  $('#x-from').onchange = (e) => { if (e.target.value) { setRange(dayIndex(e.target.value), S.b); $('#x-preset').value = ''; renderExplorer(); } };
+  $('#x-to').onchange = (e) => { if (e.target.value) { setRange(S.a, dayIndex(e.target.value)); $('#x-preset').value = ''; renderExplorer(); } };
   const preset = $('#x-preset');
   preset.append(el('option', { value: '', text: 'Custom range' }), el('option', { value: 'ty', text: `This year (${lastYear})` }), el('option', { value: 'all', text: 'All data for these series' }), el('option', { value: 'y1', text: 'Last 12 months of data' }), el('option', { value: 'd90', text: 'Last 90 days of data' }));
   const og1 = el('optgroup', { label: 'Year' }); for (let y = lastYear; y >= 2015; y--) og1.append(el('option', { value: 'y:' + y, text: String(y) })); preset.append(og1);
   const og2 = el('optgroup', { label: 'Chapter' }); for (const l of LIFE) og2.append(el('option', { value: 'l:' + l.id, text: l.point ? `${l.label} (± 30 days)` : l.label })); preset.append(og2);
   function applyPreset(v) {
     const [a, b] = seriesSpan();
-    if (v === 'ty') setRange(Math.min(b, Math.max(a, d2i(`${lastYear}-01-01`))), b); else if (v === 'all') setRange(a, b); else if (v === 'y1') setRange(b - 364, b); else if (v === 'd90') setRange(b - 89, b);
-    else if (v.startsWith('y:')) setRange(d2i(v.slice(2) + '-01-01'), d2i(v.slice(2) + '-12-31'));
+    if (v === 'ty') setRange(Math.min(b, Math.max(a, dayIndex(`${lastYear}-01-01`))), b); else if (v === 'all') setRange(a, b); else if (v === 'y1') setRange(b - 364, b); else if (v === 'd90') setRange(b - 89, b);
+    else if (v.startsWith('y:')) setRange(dayIndex(v.slice(2) + '-01-01'), dayIndex(v.slice(2) + '-12-31'));
     else if (v.startsWith('l:')) { const l = LIFE.find((x) => x.id === v.slice(2)); setRange(l.a - (l.point ? 30 : 0), l.b + (l.point ? 30 : 0)); }
   }
   preset.onchange = () => { if (preset.value) { applyPreset(preset.value); renderExplorer(); } };
@@ -1178,7 +1156,7 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
   ].map(([id, name, color, ms]) => ({ id, name, color, ms: ms.filter(([d, m]) => DS[d] && DS[d].grain === 'day' && metricOf(d, m)) })).filter((g) => g.ms.length);
   const PER_DAY = new Set(['move:steps', 'move:miles', 'move:elev', 'exercise:minutes', 'music:minutes', 'watch:minutes']
     .concat(daily.datasets.flatMap((d) => ((d.site && d.site.per_day) || []).map((m) => d.id + ':' + m))));
-  const yearStart = (i) => d2i(`${YR[i]}-01-01`);
+  const yearStart = (i) => dayIndex(`${YR[i]}-01-01`);
   const RC = { at: {}, built: false };
   function slideOf(g, k) {
     const [dsId, mId] = g.ms[k], ds = DS[dsId], m = metricOf(dsId, mId), L = asLine(dsId, mId), e = ds.end, perDay = PER_DAY.has(dsId + ':' + mId);
@@ -1194,7 +1172,7 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
     const body = el('button', { type: 'button', className: 'tile-body', 'aria-label': `${g.name}: ${m.name}. Chart it in the explorer.`, onclick: () => openInExplorer([[dsId, mId, null, [], false]], Math.max(ds.offset, yearStart(e)), e) },
       [el('div', { className: 'mname', text: m.name }), el('div', { className: 'two' }, [col(7, 'Last 7 days'), col(30, 'Last 30 days')]), sp]);
     const age = today - e;
-    return { body, foot: el('span', { className: age > 21 ? 'stale' : '', text: `${ds.name} · through ${dstr(e)}${age > 21 ? ` · ${age} days old` : ''}` }) };
+    return { body, foot: el('span', { className: age > 21 ? 'stale' : '', text: `${ds.name} · through ${dateLabel(e)}${age > 21 ? ` · ${age} days old` : ''}` }) };
   }
   function showSlide(g, k, fade) {
     const tile = document.getElementById('tile-' + g.id); if (!tile) return; RC.at[g.id] = (k + g.ms.length) % g.ms.length;
@@ -1215,11 +1193,11 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
   let TRN; // pct-training/data/training.json, fetched once for the hero
   async function drawPctHero() {
     const host = $('#hero-pct');
-    if (TRN === undefined) { try { const r = await fetch('pct-training/data/training.json', { cache: 'no-cache' }); TRN = r.ok ? await r.json() : null; } catch (e) { TRN = null; } }
+    if (TRN === undefined) { TRN = await loadJSON('pct-training/data/training.json', { optional: true }); }
     const links = linkRow([['pct-training/', 'Open the tracker'], ['pct-training/#calendar', 'Calendar'], ['pct-training/#trail-weeks', 'Trail weeks']]);
     if (!TRN) { host.replaceChildren(el('h2', { id: 'hp-h', text: 'PCT//PREP' }), el('p', { className: 'note', text: 'Training for the Pacific Crest Trail.' }), links); return; }
-    const P = TRN.plan, W = TRN.weeks, A = TRN.activities, tISO = iso(today), start = d2i(P.start), left = start - today, cur = W.find((w) => tISO >= w.start && tISO <= w.end) || [...W].reverse().find((w) => w.miles > 0) || W[0];
-    const done = W.reduce((t, w) => t + w.miles, 0), hrs = W.reduce((t, w) => t + w.hours, 0), wk7 = A.filter((x) => d2i(x.date) > d2i(TRN.activities_through) - 7).reduce((t, x) => t + x.miles, 0);
+    const P = TRN.plan, W = TRN.weeks, A = TRN.activities, tISO = iso(today), start = dayIndex(P.start), left = start - today, cur = W.find((w) => tISO >= w.start && tISO <= w.end) || [...W].reverse().find((w) => w.miles > 0) || W[0];
+    const done = W.reduce((t, w) => t + w.miles, 0), hrs = W.reduce((t, w) => t + w.hours, 0), wk7 = A.filter((x) => dayIndex(x.date) > dayIndex(TRN.activities_through) - 7).reduce((t, x) => t + x.miles, 0);
     const byDay = {}; for (const x of A) byDay[x.date] = (byDay[x.date] || 0) + x.miles; const best = Object.entries(byDay).sort((x, y) => y[1] - x[1])[0], packs = A.filter((x) => x.pack_lb).map((x) => x.pack_lb);
     const mx = Math.max(...W.map((w) => Math.max(w.target_miles || 0, w.miles))), bw = 600 / W.length, ch = svg('svg', { viewBox: '0 0 600 90', role: 'img', 'aria-label': 'Planned and hiked miles for each training week' });
     W.forEach((w, i) => { const x = i * bw; if (w.target_miles) { const h = (w.target_miles / mx) * 76; ch.append(svg('rect', { x: x + 3, y: 80 - h, width: bw - 6, height: h, fill: 'rgba(138,132,184,0.10)', stroke: '#8a84b8', 'stroke-dasharray': '3 3' })); }
@@ -1227,7 +1205,7 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
       if (w === cur) ch.append(svg('rect', { x: x + 3, y: 84, width: bw - 6, height: 3, fill: '#fff' })); });
     const pct = cur.target_miles ? Math.min(100, (100 * cur.miles) / cur.target_miles) : 0;
     host.replaceChildren(
-      el('div', { className: 'top' }, [el('div', {}, [el('h2', { id: 'hp-h', text: 'PCT//PREP' }), el('div', { className: 'tag', text: `${P.trail} · starts ${dstr(start)}` })]),
+      el('div', { className: 'top' }, [el('div', {}, [el('h2', { id: 'hp-h', text: 'PCT//PREP' }), el('div', { className: 'tag', text: `${P.trail} · starts ${dateLabel(start)}` })]),
         el('div', { className: 'huge' }, [left >= 0 ? String(left) : String(-left), el('small', { text: left >= 0 ? 'days to go' : 'days on trail' })])]),
       el('div', { className: 'lab2' }, [el('span', { text: `Week ${cur.week} · ${cur.phase}` }), el('span', { text: cur.target_miles ? `${num(cur.miles)} of ${num(cur.target_miles)} mi · ${Math.round((100 * cur.miles) / cur.target_miles)}%` : `${num(cur.miles)} mi` })]),
       cur.target_miles ? el('div', { className: 'meter', role: 'img', 'aria-label': `${Math.round(pct)}% of this week's plan` }, [el('i', { style: `width:${pct}%` })]) : null,
@@ -1242,14 +1220,14 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
   const gpaL = (g) => (g == null ? '—' : g >= 3.5 ? 'A' : g >= 2.5 ? 'B' : g >= 1.5 ? 'C' : g >= 0.5 ? 'D' : 'F');
   async function drawMonthHero() {
     const host = $('#hero-month');
-    if (MON_RC === undefined) { try { const r = await fetch('meta-log/data/months.json', { cache: 'no-cache' }); MON_RC = r.ok ? await r.json() : null; } catch (e) { MON_RC = null; } }
+    if (MON_RC === undefined) { MON_RC = await loadJSON('meta-log/data/months.json', { optional: true }); }
     const links = linkRow([['months/', 'All report cards'], ['body/', 'BODY//MAP']]);
     if (!MON_RC || !MON_RC.months.length) { host.replaceChildren(el('h2', { id: 'hm-h', text: 'This month' }), links); return; }
     const m = MON_RC.months[MON_RC.months.length - 1], L = gpaL(m.gpa), MET = Object.fromEntries(MON_RC.metrics.map((x) => [x.id, x]));
     const chip = (id) => { const g = m.g[id]; if (!g) return null; return el('span', { className: 'gchip', style: `--c:${GRADE_C[g[0]]}` }, [el('b', { text: g[0] }), MET[id].label]); };
     const row = (cl) => MON_RC.metrics.filter((x) => x.cluster === cl).map((x) => chip(x.id)).filter(Boolean);
     host.replaceChildren(
-      el('div', { className: 'top' }, [el('div', {}, [el('h2', { id: 'hm-h', text: m.name.toUpperCase() }), el('div', { className: 'tag', text: m.partial ? `report card · through ${dstr(d2i(m.through))}` : 'report card' })]),
+      el('div', { className: 'top' }, [el('div', {}, [el('h2', { id: 'hm-h', text: m.name.toUpperCase() }), el('div', { className: 'tag', text: m.partial ? `report card · through ${dateLabel(dayIndex(m.through))}` : 'report card' })]),
         el('div', { className: 'huge', style: `color:${GRADE_C[L] || 'inherit'}` }, [L, el('small', { text: m.gpa == null ? '' : `GPA ${m.gpa.toFixed(2)}` })])]),
       el('div', { className: 'grow' }, [el('span', { className: 'glab', text: 'Fitness' }), ...row('fitness')]),
       el('div', { className: 'grow' }, [el('span', { className: 'glab', text: 'Health' }), ...row('health')]),
@@ -1262,13 +1240,13 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
     if (!ph) { host.replaceChildren(el('h2', { id: 'hf-h', text: 'PHOTO//SORT' }), el('p', { className: 'note', text: 'Sorting the photo library.' }), links); return; }
     const parts = [['sorted', 'Sorted', '#b6ff5c'], ['bucket', 'Bucket only', '#ffb347'], ['unfiled', 'No album', '#ff3fb4']], tot = parts.reduce((t, p) => t + (ph[p[0]] || 0), 0) || 1, n = sn.photos.length;
     const kids = [
-      el('div', { className: 'top' }, [el('div', {}, [el('h2', { id: 'hf-h', text: 'PHOTO//SORT' }), el('div', { className: 'tag', text: `Photo library · snapshot ${dstr(d2i(ph.date))}` })]),
+      el('div', { className: 'top' }, [el('div', {}, [el('h2', { id: 'hf-h', text: 'PHOTO//SORT' }), el('div', { className: 'tag', text: `Photo library · snapshot ${dateLabel(dayIndex(ph.date))}` })]),
         el('div', { className: 'huge' }, [`${Math.round((ph.sorted / tot) * 100)}%`, el('small', { text: 'sorted' })])]),
       el('div', { className: 'bar', role: 'img', 'aria-label': parts.map((p) => `${p[1]} ${Math.round((ph[p[0]] / tot) * 100)}%`).join(', ') }, parts.map((p) => el('i', { style: `width:${(ph[p[0]] / tot) * 100}%;background:${p[2]}`, title: `${p[1]}: ${ph[p[0]].toLocaleString()}` }))),
       el('div', { className: 'legend' }, parts.map((p) => el('span', {}, [sw(p[2]), `${p[1]} ${ph[p[0]].toLocaleString()} (${((ph[p[0]] / tot) * 100).toFixed(0)}%)`]))),
       el('div', { className: 'kv' }, [el('span', {}, ['items ', el('b', { text: ph.total.toLocaleString() })]), el('span', {}, ['size ', el('b', { text: `${Math.round(ph.gb).toLocaleString()} GB` })]),
         el('span', {}, ['left to sort ', el('b', { text: (ph.bucket + ph.unfiled).toLocaleString() })]),
-        n > 1 ? el('span', {}, [`since ${dstr(d2i(f.date))} `, el('b', { text: `${(ph.sorted - f.sorted >= 0 ? '+' : '') + (ph.sorted - f.sorted).toLocaleString()} sorted` })]) : el('span', { text: 'first snapshot: change shows after the next one' })])];
+        n > 1 ? el('span', {}, [`since ${dateLabel(dayIndex(f.date))} `, el('b', { text: `${(ph.sorted - f.sorted >= 0 ? '+' : '') + (ph.sorted - f.sorted).toLocaleString()} sorted` })]) : el('span', { text: 'first snapshot: change shows after the next one' })])];
     if (lr) { const rev = lr.total - lr.unrated, lp = [['high', '4–5★', '#b6ff5c'], ['mid', '3★', '#3ff0ff'], ['low', '1–2★', '#ffb347'], ['rejected', 'Rejected', '#ff3fb4'], ['unrated', 'Unrated', '#6b6880']];
       kids.push(el('div', { className: 'lab2' }, [el('span', { text: 'Proper photography (Lightroom)' }), el('span', { text: `${Math.round((rev / lr.total) * 100)}% reviewed · ${lr.total.toLocaleString()} frames` })]),
         el('div', { className: 'bar', role: 'img', 'aria-label': lp.map((p) => `${p[1]} ${Math.round((lr[p[0]] / lr.total) * 100)}%`).join(', ') }, lp.map((p) => el('i', { style: `width:${(lr[p[0]] / lr.total) * 100}%;background:${p[2]}`, title: `${p[1]}: ${lr[p[0]].toLocaleString()}` }))),
@@ -1290,7 +1268,7 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
   const sStat = (se, id) => se.stats.find((x) => x.id === id);
   const sDate = (s) => `${MON[+s.slice(5, 7) - 1]} ${+s.slice(8, 10)}`;
   async function renderSeasons() {
-    if (SEA === undefined) SEA = await get('meta-log/data/seasons.json', true);
+    if (SEA === undefined) SEA = await loadJSON('meta-log/data/seasons.json', { optional: true });
     const box = $('#r-seasons'); if (!SEA || !SEA.seasons.length) { box.hidden = true; return; }
     box.hidden = false; const L = SEA.seasons, tI = iso(today);
     if (!SV.k || !L.some((x) => x.id === SV.k)) SV.k = (L.find((x) => tI >= x.start && tI <= x.end) || L[L.length - 1]).id;
@@ -1406,7 +1384,7 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
     $('#c-ramp').replaceChildren(...(L ? ['less', ...OP.map((o) => el('i', { style: `background:${L.color};opacity:${o}` })), 'more', el('span', { text: ` · ${L.name}, five equal-count bands · hollow = no data`, style: 'margin-left:6px' })] : ['Each day takes the colour of the chapter it falls in.']));
     const frag = document.createDocumentFragment();
     for (let y = eHi; y >= eLo; y--) {
-      const j1 = d2i(`${y}-01-01`), d31 = d2i(`${y}-12-31`), w0 = WK[j1], xw = (i) => LEFT + (WK[i] - w0) * PITCH;
+      const j1 = dayIndex(`${y}-01-01`), d31 = dayIndex(`${y}-12-31`), w0 = WK[j1], xw = (i) => LEFT + (WK[i] - w0) * PITCH;
       // chapter lanes for this year
       const lanes = [], its = LIFE.filter((l) => l.b >= j1 && l.a <= d31).map((l) => {
         const a = Math.max(l.a, j1), b = Math.min(l.b, d31), x1 = xw(a), x2 = l.point ? x1 + CELL : xw(b) + CELL, tw = l.label.length * 6.1;
@@ -1420,7 +1398,7 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
       const gridH = CTOP + 7 * PITCH, H = gridH + 4 + Math.max(1, lanes.length) * 16;
       const s = svg('svg', { viewBox: `0 0 ${LEFT + 54 * PITCH} ${H}`, role: 'img', 'aria-label': `${y}: ${its.length ? its.map((t) => t.l.label).join(', ') : 'no chapters marked'}` });
       s.append(svg('text', { x: 0, y: CTOP + 3.5 * PITCH + 3, class: 'yr' }, String(y)));
-      for (let mth = 0; mth < 12; mth++) { const i = d2i(`${y}-${String(mth + 1).padStart(2, '0')}-01`); s.append(svg('text', { x: xw(i) + (DOW[i] ? PITCH : 0), y: 10 }, MON[mth])); }
+      for (let mth = 0; mth < 12; mth++) { const i = dayIndex(`${y}-${String(mth + 1).padStart(2, '0')}-01`); s.append(svg('text', { x: xw(i) + (DOW[i] ? PITCH : 0), y: 10 }, MON[mth])); }
       for (let i = j1; i <= d31; i++) {
         const r = svg('rect', { x: xw(i), y: CTOP + DOW[i] * PITCH, width: CELL, height: CELL, rx: 2, class: 'd', 'data-i': i });
         let fill = 'none', op = 1, stroke = C.grid;
@@ -1439,7 +1417,7 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
     // chapter chips
     $('#c-legend').replaceChildren(...LIFE.map((l) => el('button', { type: 'button', className: 'chip', style: 'cursor:pointer;font:inherit', 'aria-label': `Highlight ${l.label}`,
       onmouseenter: () => highlight(l), onmouseleave: () => highlight(null), onfocus: () => highlight(l), onblur: () => highlight(null), onclick: () => { showDay(l.a); } },
-      [sw(l.color), `${l.label} · ${l.point ? dstr(l.a) : `${dstr(l.a)} – ${dstr(l.b)}`}`])));
+      [sw(l.color), `${l.label} · ${l.point ? dateLabel(l.a) : `${dateLabel(l.a)} – ${dateLabel(l.b)}`}`])));
     renderChapters(L);
     if (CAL.pin != null) showDay(CAL.pin);
   }
@@ -1449,13 +1427,13 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
     i = clampI(i); if (eraOf(i) !== CAL.era) { CAL.era = eraOf(i); CAL.pin = i; renderCalendar(); return; } const parts = [];
     for (const [d, m] of [...DAYVALS, ...(DS.manual ? DS.manual.metrics.map((x) => ['manual', x.id]) : [])]) { const L = asLine(d, m); if (!L) continue; const k = i - L.off; if (k < 0 || k >= L.n || L.v[k] == null) continue; if (d === 'trail' || L.v[k]) parts.push(`${L.name} ${num(L.v[k], L.unit)}`); }
     const ch = LIFE.filter((l) => i >= l.a && i <= l.b).map((l) => (l.point ? l.label : `${l.label} (day ${(i - l.a + 1).toLocaleString()} of ${(l.b - l.a + 1).toLocaleString()})`));
-    $('#c-read').replaceChildren(el('b', { text: `${WD[DOW[i]]} ${dstr(i)}` }), el('div', { text: parts.length ? parts.join('  ·  ') : (i > today ? 'Not yet.' : 'Nothing logged in any dataset.') }),
+    $('#c-read').replaceChildren(el('b', { text: `${WD[DOW[i]]} ${dateLabel(i)}` }), el('div', { text: parts.length ? parts.join('  ·  ') : (i > today ? 'Not yet.' : 'Nothing logged in any dataset.') }),
       el('div', { className: 'dim', text: ch.length ? ch.join('  ·  ') : 'No chapter marked.' }));
   }
   $('#c-cal').addEventListener('mouseover', (e) => { const i = e.target.dataset && e.target.dataset.i; if (i != null) showDay(+i); });
   $('#c-cal').addEventListener('click', (e) => { const i = e.target.dataset && e.target.dataset.i; if (i != null) { CAL.pin = +i; $('#c-date').value = iso(+i); showDay(+i); } });
   $('#c-cal').addEventListener('mouseleave', () => { if (CAL.pin != null) showDay(CAL.pin); });
-  $('#c-date').onchange = (e) => { if (e.target.value) { CAL.pin = d2i(e.target.value); showDay(CAL.pin); } };
+  $('#c-date').onchange = (e) => { if (e.target.value) { CAL.pin = dayIndex(e.target.value); showDay(CAL.pin); } };
   cm.onchange = () => { CAL.metric = cm.value; renderCalendar(); };
 
   function renderChapters(L) {
@@ -1465,7 +1443,7 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
     t.append(el('thead', {}, el('tr', {}, ['Chapter', 'From', 'To', 'Days', `${M.name} total`, 'Per day', 'vs all-time', ''].map((h) => el('th', { text: h, scope: 'col' })))));
     const tb = el('tbody'); t.append(tb);
     for (const l of LIFE) { const r = sumRange(M, l.a, l.b), per = !r.cov ? null : M.agg === 'mean' ? (r.cnt ? r.sum / r.cnt : null) : r.sum / r.cov;
-      tb.append(el('tr', {}, [el('td', {}, [sw(l.color), l.label, l.note ? el('small', { text: l.note }) : null]), el('td', { text: dstr(l.a) }), el('td', { text: l.point ? '—' : dstr(l.b) }), el('td', { text: (l.b - l.a + 1).toLocaleString() }),
+      tb.append(el('tr', {}, [el('td', {}, [sw(l.color), l.label, l.note ? el('small', { text: l.note }) : null]), el('td', { text: dateLabel(l.a) }), el('td', { text: l.point ? '—' : dateLabel(l.b) }), el('td', { text: (l.b - l.a + 1).toLocaleString() }),
         el('td', {}, [r.cov ? num(M.agg === 'mean' ? null : r.sum, M.unit) : '—', r.cov && r.cov < l.b - l.a + 1 ? el('small', { text: `${r.cov.toLocaleString()} days have data` }) : null]),
         el('td', { text: num(per, M.unit) }), el('td', { text: per != null && base ? `${(per / base).toFixed(2)}×` : '—' }),
         el('td', {}, el('button', { className: 'btn', type: 'button', text: 'EXPLORE ▶', 'aria-label': `Explore ${l.label}`, onclick: () => {
@@ -1474,8 +1452,8 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
 
   // ================================================================ routing + boot
   // ================================================================ WATCHED (poster wall)
-  const WT = (await get('meta-log/data/watch-titles.json', true)) || null;
-  const WS = (await get('meta-log/data/watch-scores.json', true)) || null;
+  const WT = (await loadJSON('meta-log/data/watch-titles.json', { optional: true })) || null;
+  const WS = (await loadJSON('meta-log/data/watch-scores.json', { optional: true })) || null;
   const WV = { type: 'all', genre: '', sort: WS ? 'sc:final' : 'recent', find: '', page: 0, scored: 'all' };
   const QC = { story: '#3ff0ff', movie: '#ff3fb4', critical: '#ffb347', personal: '#b6ff5c' };
   if (WT && WS) {   // attach Scorecard scores by IMDb id, then by title
@@ -1618,18 +1596,18 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
       S.append(svg('rect', { x: sx(x0), y: sy(y1), width: sx(x1) - sx(x0), height: sy(y0) - sy(y1), fill: V_COL[v], 'fill-opacity': 0.045 }));
       const n = rows.filter((t) => { const x = mapX(t.sc), y = t.sc.q.personal; return x != null && y != null && (x >= m) === (x0 >= m) && (y >= m) === (y0 >= m); }).length;
       S.append(svg('text', { x: ta === 'start' ? sx(x0) + 10 : sx(x1) - 10, y: va === 'top' ? P.t - (W < 560 && ta === 'end' ? 28 : 12) : sy(y0) - 10, 'text-anchor': ta, fill: V_COL[v], 'fill-opacity': 0.8,
-        style: `font:700 ${W < 560 ? 10 : 13}px ${FU};letter-spacing:.16em` }, `${v.toUpperCase()} · ${n}`));
+        style: `font:700 ${W < 560 ? 10 : 13}px ${FONT_UI};letter-spacing:.16em` }, `${v.toUpperCase()} · ${n}`));
     }
     for (let v = 0; v <= 100; v += 10) {
       S.append(svg('line', { x1: sx(v), x2: sx(v), y1: sy(0), y2: sy(100), stroke: C.grid, 'stroke-width': v === m ? 0 : 1 }));
       S.append(svg('line', { x1: sx(0), x2: sx(100), y1: sy(v), y2: sy(v), stroke: C.grid, 'stroke-width': v === m ? 0 : 1 }));
-      if (v % 20 === 0) { S.append(svg('text', { x: sx(v), y: H - P.b + 16, 'text-anchor': 'middle', fill: C.dim, style: `font:10px ${FD}` }, String(v)));
-        S.append(svg('text', { x: P.l - 6, y: sy(v) + 3, 'text-anchor': 'end', fill: C.dim, style: `font:10px ${FD}` }, String(v))); }
+      if (v % 20 === 0) { S.append(svg('text', { x: sx(v), y: H - P.b + 16, 'text-anchor': 'middle', fill: C.dim, style: `font:10px ${FONT_DATA}` }, String(v)));
+        S.append(svg('text', { x: P.l - 6, y: sy(v) + 3, 'text-anchor': 'end', fill: C.dim, style: `font:10px ${FONT_DATA}` }, String(v))); }
     }
     S.append(svg('line', { x1: sx(m), x2: sx(m), y1: sy(0), y2: sy(100), stroke: C.dim, 'stroke-dasharray': '4 4' }));
     S.append(svg('line', { x1: sx(0), x2: sx(100), y1: sy(m), y2: sy(m), stroke: C.dim, 'stroke-dasharray': '4 4' }));
-    S.append(svg('text', { x: sx(50), y: H - 4, 'text-anchor': 'middle', fill: C.ink, style: `font:600 11px ${FU};letter-spacing:.12em` }, 'STORY · MOVIE · CRITICAL (MEAN)'));
-    const yl = svg('text', { x: 11, y: sy(50), 'text-anchor': 'middle', fill: C.ink, transform: `rotate(-90 11 ${sy(50)})`, style: `font:600 11px ${FU};letter-spacing:.12em` }, 'PERSONAL'); S.append(yl);
+    S.append(svg('text', { x: sx(50), y: H - 4, 'text-anchor': 'middle', fill: C.ink, style: `font:600 11px ${FONT_UI};letter-spacing:.12em` }, 'STORY · MOVIE · CRITICAL (MEAN)'));
+    const yl = svg('text', { x: 11, y: sy(50), 'text-anchor': 'middle', fill: C.ink, transform: `rotate(-90 11 ${sy(50)})`, style: `font:600 11px ${FONT_UI};letter-spacing:.12em` }, 'PERSONAL'); S.append(yl);
     // dots: start at the true spot, then push apart so stacked scores (eight titles sit at 100/100) stay clickable
     const d = W < 640 ? 24 : 34, pts = rows.map((t) => { const x = mapX(t.sc), y = t.sc.q.personal; return { t, x, y, tx: sx(x), ty: sy(y), px: sx(x), py: sy(y) }; });
     pts.forEach((p, k) => { p.px += Math.cos(k * 2.4) * 0.5; p.py += Math.sin(k * 2.4) * 0.5; });
@@ -1709,7 +1687,7 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
   // Video games: season-grain data with its own page (games/), so it gets a card here rather than a daily.json dataset.
   let GAMES;
   async function gamesCard() {
-    if (GAMES === undefined) { try { const r = await fetch('games/data/fortnite.json', { cache: 'no-cache' }); GAMES = r.ok ? await r.json() : null; } catch (e) { GAMES = null; } }
+    if (GAMES === undefined) { GAMES = await loadJSON('games/data/fortnite.json', { optional: true }); }
     if (!GAMES) return null;
     const S = GAMES.seasons, played = S.filter((s) => s.level), yr = String(lastYear), inYr = played.filter((s) => (s.end || s.start).slice(0, 4) === yr);
     const sum = (a, k) => a.reduce((t, s) => t + (s[k] || 0), 0);
@@ -1730,7 +1708,7 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
     const clusterOf = (d) => CLUSTER[d.id] || (d.site && d.site.group ? 'health' : 'media');
     const groups = [['fitness', 'Fitness'], ['health', 'Health'], ['media', 'Media'], ['sky', 'Sky']];
     const cardFor = (ds) => {
-      const info = DIR[ds.id] || { blurb: '', links: [] }, a = DV.span === 'year' ? Math.max(ds.offset, d2i(`${lastYear}-01-01`)) : ds.offset, inSpan = a <= ds.end;
+      const info = DIR[ds.id] || { blurb: '', links: [] }, a = DV.span === 'year' ? Math.max(ds.offset, dayIndex(`${lastYear}-01-01`)) : ds.offset, inSpan = a <= ds.end;
       return el('div', { className: 'card', style: `--acc:${DS_C[ds.id] || (ds.metrics[0] && ds.metrics[0].color) || '#9b7bff'}` }, [
         el('h3', { text: ds.name }),
         el('dl', {}, (inSpan ? ds.metrics.flatMap((m) => { const k = m.v.slice(a - ds.offset, ds.end - ds.offset + 1), nn = k.filter((x) => x != null);
@@ -1756,12 +1734,12 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
   const jump = (rows) => el('div', { className: 'jump' }, rows.map(([href, label, note]) => el('a', { href }, [label, el('small', { text: note })])));
   async function renderTrails() {
     const cards = [], T = daily.datasets.find((d) => d.id === 'trail');
-    if (TRN === undefined) { try { const r = await fetch('pct-training/data/training.json', { cache: 'no-cache' }); TRN = r.ok ? await r.json() : null; } catch (e) { TRN = null; } }
+    if (TRN === undefined) { TRN = await loadJSON('pct-training/data/training.json', { optional: true }); }
     if (TRN) {
-      const P = TRN.plan, W = TRN.weeks, tISO = iso(today), start = d2i(P.start), left = start - today, cur = W.find((w) => tISO >= w.start && tISO <= w.end);
+      const P = TRN.plan, W = TRN.weeks, tISO = iso(today), start = dayIndex(P.start), left = start - today, cur = W.find((w) => tISO >= w.start && tISO <= w.end);
       cards.push(el('div', { className: 'card pct' }, [
         el('h3', { text: 'Pacific Crest Trail 2027' }),
-        el('div', { className: 'big2' }, [String(Math.abs(left)), el('small', { text: left >= 0 ? `days to the northbound start, ${dstr(start)}` : 'days on trail' })]),
+        el('div', { className: 'big2' }, [String(Math.abs(left)), el('small', { text: left >= 0 ? `days to the northbound start, ${dateLabel(start)}` : 'days on trail' })]),
         cur ? el('div', { className: 'kv' }, [el('span', {}, [`week ${cur.week} · ${cur.phase} `, el('b', { text: `${num(cur.miles)} / ${num(cur.target_miles || 0)} mi` })])]) : null,
         jump([['pct-training/#plan', 'Plan', 'weekly targets + hike log'], ['pct-training/#calendar', 'Calendar', 'week rows, plan vs walked'], ['pct-training/#low-tide', 'Low tide', '2019 pre-AT walking as the floor'], ['pct-training/#days', 'Days', 'last six weeks, 2026'],
           ['pct-training/#recovery', 'Recovery', 'heart rate, HRV, sleep'], ['pct-training/#pace', 'Pace', 'AT weeks + calculator'], ['pct-training/#trail-weeks', 'Trail weeks', 'runway and projection']]),
@@ -1791,7 +1769,7 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
         ['fitness/#exercises', 'Exercises', 'what got trained'], ['fitness/#cardio', 'Cardio', 'the 2016 running log'], ['fitness/#bodyweight', 'Bodyweight', 'pushups and pullups']]),
     ]));
     if (DS.move) { const M = DS.move; cards.push(el('div', { className: 'card' }, [el('h3', { text: 'Movement' }),
-      el('div', { className: 'big2' }, [num(totalIn('move', 'miles', yearStart(M.end), M.end)), el('small', { text: `mi walked in ${YR[M.end]} · through ${dstr(M.end)}` })]),
+      el('div', { className: 'big2' }, [num(totalIn('move', 'miles', yearStart(M.end), M.end)), el('small', { text: `mi walked in ${YR[M.end]} · through ${dateLabel(M.end)}` })]),
       linkRow([[() => openInExplorer([['move', 'steps', null, [], false], ['exercise', 'minutes', null, [], false]], yearStart(M.end), M.end), 'Chart it'], ['step-song/#decade', 'Ten years of steps']])])); }
     $('#t-cards').replaceChildren(...(cards.length ? cards : [el('p', { className: 'note', text: 'Nothing here yet.' })]));
   }
@@ -1800,19 +1778,19 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
     if (B) cards.push(el('div', { className: 'card hr' }, [
       el('h3', { text: 'Heart + sleep' }),
       el('div', { className: 'kv' }, [['resting_hr', 'resting', 'bpm'], ['hrv', 'HRV', 'ms'], ['sleep_h', 'sleep', 'h'], ['walking_hr', 'walking', 'bpm']].map(([m, lab, u]) => { const v = last30('body', m); return v == null ? null : el('span', {}, [lab + ' ', el('b', { text: `${num(v)} ${u}` })]); })),
-      el('div', { className: 'tag', text: `last 30 days · through ${dstr(B.end)}` }),
+      el('div', { className: 'tag', text: `last 30 days · through ${dateLabel(B.end)}` }),
       jump([['pct-training/#recovery', 'Recovery', 'heart rate, HRV, sleep vs training'], ['body/', 'BODY//MAP', 'muscle load + stretches'], ['months/', 'Report cards', 'graded month by month'], ['#experiments/corr', 'What moves together', 'correlations']]),
       linkRow([[() => openInExplorer([['body', 'resting_hr', null, [], false], ['body', 'hrv', null, [], false]], Math.max(B.offset, yearStart(B.end)), B.end), 'Chart it']]),
     ]));
     if (DS.breath) { const Bt = DS.breath; cards.push(el('div', { className: 'card br' }, [
       el('h3', { text: 'Breathwork' }),
-      el('div', { className: 'big2' }, [num(totalIn('breath', 'sessions', Math.max(Bt.offset, yearStart(Bt.end)), Bt.end)), el('small', { text: `sessions in ${YR[Bt.end]} · through ${dstr(Bt.end)}` })]),
+      el('div', { className: 'big2' }, [num(totalIn('breath', 'sessions', Math.max(Bt.offset, yearStart(Bt.end)), Bt.end)), el('small', { text: `sessions in ${YR[Bt.end]} · through ${dateLabel(Bt.end)}` })]),
       jump([['#experiments/wimhof', 'Does Wim Hof work?', 'holds vs heart + sleep']]),
       linkRow([[() => openInExplorer([['breath', 'sessions', null, [], false], ['breath', 'avg_hold', null, [], false]], Math.max(Bt.offset, yearStart(Bt.end)), Bt.end), 'Chart it']]),
     ])); }
     if (DS.water) { const W = DS.water; cards.push(el('div', { className: 'card wa' }, [
       el('h3', { text: 'Water' }),
-      el('div', { className: 'big2' }, [num(totalIn('water', 'liters', W.offset, W.end)), el('small', { text: `L · ${dstr(W.offset)} – ${dstr(W.end)}` })]),
+      el('div', { className: 'big2' }, [num(totalIn('water', 'liters', W.offset, W.end)), el('small', { text: `L · ${dateLabel(W.offset)} – ${dateLabel(W.end)}` })]),
       linkRow([[() => openInExplorer([['water', 'liters', null, [], false]], W.offset, W.end), 'Chart it']]),
     ])); }
     for (const d of daily.datasets.filter((x) => x.site && x.site.group)) cards.push(el('div', { className: 'card' }, [el('h3', { text: d.name }),
@@ -1833,7 +1811,7 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
     const sn = daily.snapshots || {}, ph = sn.photos && sn.photos[sn.photos.length - 1];
     cards.push(el('div', { className: 'card ph' }, [
       el('h3', { text: 'PHOTO//SORT' }),
-      ph ? el('div', { className: 'big2' }, [`${Math.round((ph.sorted / (ph.sorted + ph.bucket + ph.unfiled)) * 100)}%`, el('small', { text: `of ${ph.total.toLocaleString()} items sorted, snapshot ${dstr(d2i(ph.date))}` })]) : null,
+      ph ? el('div', { className: 'big2' }, [`${Math.round((ph.sorted / (ph.sorted + ph.bucket + ph.unfiled)) * 100)}%`, el('small', { text: `of ${ph.total.toLocaleString()} items sorted, snapshot ${dateLabel(dayIndex(ph.date))}` })]) : null,
       jump([['photo-library/#overview', 'Overview', 'where it stands'], ['photo-library/#captured', 'Captured', 'by date taken'], ['photo-library/#worklog', 'Work log', 'one row per snapshot'],
         ['photo-library/#space', 'Types & space', 'what is sorted, what is big'], ['photo-library/#lightroom', 'Lightroom', 'the proper photography']]),
     ]));
@@ -1868,7 +1846,7 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
   const E_SET = [['move', 'steps'], ['move', 'elev'], ['exercise', 'minutes'], ['body', 'resting_hr'], ['body', 'hrv'], ['body', 'sleep_h'], ['music', 'minutes'],
     ['photos', 'items'], ['watch', 'minutes'], ['calls', 'minutes'], ['breath', 'minutes'], ['fortnite', 'wins'], ['fortnite', 'level'],
     ...daily.datasets.flatMap((d) => ((d.site && d.site.corr) || []).map((m) => [d.id, m]))].filter(([d, m]) => metricOf(d, m)).map(([d, m]) => ({ key: d + ':' + m, L: asLine(d, m) }));
-  const eSpan = () => { const b = Math.max(...E_SET.map((s) => s.L.off + s.L.n - 1)); return EXP.win === 'year' ? [d2i(`${YR[b]}-01-01`), b] : [Math.min(...E_SET.map((s) => s.L.off)), b]; };
+  const eSpan = () => { const b = Math.max(...E_SET.map((s) => s.L.off + s.L.n - 1)); return EXP.win === 'year' ? [dayIndex(`${YR[b]}-01-01`), b] : [Math.min(...E_SET.map((s) => s.L.off)), b]; };
   // weekly value per metric: totals become a per-day average (so a short week still compares), levels stay a mean
   function eWeekly(L, B) { return B.map((k) => { const r = sumRange(L, k.a, k.b); return L.agg === 'mean' ? (r.cnt >= 3 ? r.sum / r.cnt : null) : (r.cnt >= 5 ? r.sum / r.cnt : null); }); }
   const rankOf = (x, y) => { const p = []; for (let i = 0; i < x.length; i++) if (x[i] != null && y[i] != null) p.push([x[i], y[i]]);
@@ -1882,7 +1860,7 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
     const g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, size, size);
     const y0 = YR[L.off], y1 = YR[L.off + L.n - 1], nY = y1 - y0 + 1, cx = size / 2, cy = size / 2, R = size / 2 - 20, r0 = size * 0.085, rw = (R - r0) / nY;
     const vals = L.v.filter((v) => v > 0).sort((a, b) => a - b), cap = vals[Math.floor(vals.length * 0.995)] || 1, rgb = L.color.match(/\w\w/g).map((h) => parseInt(h, 16)).join(',');
-    const ang = (i) => { const jan1 = d2i(`${YR[i]}-01-01`), len = d2i(`${YR[i] + 1}-01-01`) - jan1; return [((i - jan1) / len) * Math.PI * 2 - Math.PI / 2, (Math.PI * 2) / len]; };
+    const ang = (i) => { const jan1 = dayIndex(`${YR[i]}-01-01`), len = dayIndex(`${YR[i] + 1}-01-01`) - jan1; return [((i - jan1) / len) * Math.PI * 2 - Math.PI / 2, (Math.PI * 2) / len]; };
     g.strokeStyle = '#1f1a3d'; g.lineWidth = 1;
     for (let k = 0; k <= nY; k++) { g.beginPath(); g.arc(cx, cy, r0 + k * rw, 0, Math.PI * 2); g.stroke(); }
     g.font = '10px "JetBrains Mono", monospace'; g.fillStyle = '#8a84b8'; g.textAlign = 'center'; g.textBaseline = 'middle';
@@ -1894,8 +1872,8 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
     for (let k = 0; k < nY; k++) if (rw >= 11 || k % 2 === 0) g.fillText(String(y0 + k), cx + 3, cy - (r0 + k * rw + rw / 2));
     cv.onmousemove = (ev) => { const b = cv.getBoundingClientRect(), x = ev.clientX - b.left - cx, y = ev.clientY - b.top - cy, rr = Math.hypot(x, y), k = Math.floor((rr - r0) / rw);
       if (k < 0 || k >= nY) { eTipOff(); return; } let a = Math.atan2(y, x) + Math.PI / 2; if (a < 0) a += Math.PI * 2;
-      const yr = y0 + k, jan1 = d2i(`${yr}-01-01`), len = d2i(`${yr + 1}-01-01`) - jan1, i = jan1 + Math.min(len - 1, Math.floor((a / (Math.PI * 2)) * len)), v = i >= L.off && i < L.off + L.n ? L.v[i - L.off] : null;
-      eTipAt(ev, `<b>${dstr(i)}</b><br>${v == null ? 'no data' : num(v, L.unit)}`); };
+      const yr = y0 + k, jan1 = dayIndex(`${yr}-01-01`), len = dayIndex(`${yr + 1}-01-01`) - jan1, i = jan1 + Math.min(len - 1, Math.floor((a / (Math.PI * 2)) * len)), v = i >= L.off && i < L.off + L.n ? L.v[i - L.off] : null;
+      eTipAt(ev, `<b>${dateLabel(i)}</b><br>${v == null ? 'no data' : num(v, L.unit)}`); };
     cv.onmouseleave = eTipOff;
     const byY = {}; for (let j = 0; j < L.n; j++) { const y = YR[L.off + j]; (byY[y] = byY[y] || [0, 0]); byY[y][0] += L.v[j] || 0; byY[y][1]++; }
     const full = Object.entries(byY).filter(([, v]) => v[1] >= 300 || +v[1] === L.n).map(([y, v]) => [y, v[0] / v[1]]).sort((a, b) => b[1] - a[1]);
@@ -1954,13 +1932,13 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
   }
 
   async function drawRace() {
-    if (EXP.race === undefined) { try { const r = await fetch('pct-training/data/training.json', { cache: 'no-cache' }); EXP.race = r.ok ? await r.json() : null; } catch (e) { EXP.race = null; } }
+    if (EXP.race === undefined) { EXP.race = await loadJSON('pct-training/data/training.json', { optional: true }); }
     const T = EXP.race, sec = $('#r-race'); sec.hidden = !T || !T.pre_at || !T.health; if (sec.hidden) return;
     // "now" = phone miles while the Apple Health export covers the day (or the Strava hike, if longer); after the export ends,
     // the Strava hikes alone (a floor), so the line moves every time new hikes are added and firms up with the next export.
-    const P = T.pre_at, N = P.n, c0 = d2i(T.plan.start) - N, h0 = d2i(T.health.start), hEnd = h0 + T.health.miles.length - 1, hikes = {};
+    const P = T.pre_at, N = P.n, c0 = dayIndex(T.plan.start) - N, h0 = dayIndex(T.health.start), hEnd = h0 + T.health.miles.length - 1, hikes = {};
     for (const h of T.activities || []) hikes[h.date] = (hikes[h.date] || 0) + h.miles;
-    const lastI = Math.min(today, Math.max(hEnd, ...(T.activities || []).map((h) => d2i(h.date)))), nowN = Math.max(0, Math.min(N, lastI - c0 + 1));
+    const lastI = Math.min(today, Math.max(hEnd, ...(T.activities || []).map((h) => dayIndex(h.date)))), nowN = Math.max(0, Math.min(N, lastI - c0 + 1));
     const daily = [], est = [];
     for (let k = 0; k < nowN; k++) { const i = c0 + k, ph = i >= h0 && i <= hEnd ? T.health.miles[i - h0] : null, hk = hikes[iso(i)] || 0; daily.push(ph == null ? hk : Math.max(ph, hk)); est.push(ph == null); }
     const firstEst = est.indexOf(true), cum = (arr) => { let t = 0; return arr.map((v) => (t += v)); }, then = cum(P.miles), now = cum(daily);
@@ -2004,7 +1982,7 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
     const cur = svg('line', { y1: m.t, y2: Hd - m.b, stroke: '#fff', opacity: 0, 'pointer-events': 'none' }), hit = svg('rect', { x: m.l, y: m.t, width: Wd - m.l - m.r, height: Hd - m.t - m.b, fill: 'transparent' });
     hit.addEventListener('mousemove', (ev) => { const r = s.getBoundingClientRect(), j = Math.max(0, Math.min(B.length - 1, Math.floor((((ev.clientX - r.left) / r.width) * Wd - m.l) / bw))), k = B[j];
       cur.setAttribute('x1', X(j) + bw / 2); cur.setAttribute('x2', X(j) + bw / 2); cur.setAttribute('opacity', 0.6);
-      eTipAt(ev, `<b>Week of ${dstr(k.a)}</b><br>${S[j] != null ? num(S[j], 'steps a day') : 'no step data'}<br>${M[j] != null ? num(M[j] / 60, 'h of music a day') : 'no listening data'}${eOnAT(k.a + 3) ? '<br>on the Appalachian Trail' : ''}`); });
+      eTipAt(ev, `<b>Week of ${dateLabel(k.a)}</b><br>${S[j] != null ? num(S[j], 'steps a day') : 'no step data'}<br>${M[j] != null ? num(M[j] / 60, 'h of music a day') : 'no listening data'}${eOnAT(k.a + 3) ? '<br>on the Appalachian Trail' : ''}`); });
     hit.addEventListener('mouseleave', () => { eTipOff(); cur.setAttribute('opacity', 0); });
     s.append(cur, hit); host.replaceChildren(s);
     const xs = [], ys = []; B.forEach((_, j) => { if (S[j] != null && M[j] != null) { xs.push(S[j]); ys.push(M[j]); } }); const rho = eRho(xs, ys);
@@ -2020,7 +1998,7 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
   const eYearColor = (y, y0, y1) => `hsl(${Math.round(255 - ((y - y0) / Math.max(1, y1 - y0)) * 175)} 90% ${Math.round(52 + ((y - y0) / Math.max(1, y1 - y0)) * 14)}%)`;
   function drawPairs() {
     const kx = $('#e-pair-x').value, ky = $('#e-pair-y').value, from = +$('#e-pair-from').value || 0, LX = asLine(...kx.split(':')), LY = asLine(...ky.split(':')), pts = [];
-    const a = Math.max(LX.off, LY.off, from ? d2i(`${from}-01-01`) : 0), b = Math.min(LX.off + LX.n, LY.off + LY.n) - 1;
+    const a = Math.max(LX.off, LY.off, from ? dayIndex(`${from}-01-01`) : 0), b = Math.min(LX.off + LX.n, LY.off + LY.n) - 1;
     if (b >= a) { if (EP.grain === 'week') { const B = makeBuckets(a, b, 'week'), wx = eWeekly(LX, B), wy = eWeekly(LY, B); B.forEach((k, j) => { if (wx[j] != null && wy[j] != null) pts.push({ i: k.a, x: wx[j], y: wy[j] }); }); }
       else for (let i = a; i <= b; i++) { const x = LX.v[i - LX.off], y = LY.v[i - LY.off]; if (x != null && y != null) pts.push({ i, x, y }); } }
     for (const q of pts) q.yr = YR[q.i];
@@ -2038,7 +2016,7 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
     s.append(svg('text', { transform: `translate(14,${(m.t + Hd - m.b) / 2}) rotate(-90)`, 'text-anchor': 'middle', style: 'fill:var(--ink)' }, `${LY.name} (${uy}) →`));
     const y0 = Math.min(...pts.map((q) => q.yr)), y1 = Math.max(...pts.map((q) => q.yr)), rad = n > 1500 ? 1.6 : n > 400 ? 2.4 : 3.4, mark = (q) => eOnAT(q.i + (EP.grain === 'week' ? 3 : 0));
     for (const q of pts) { const c = svg('circle', { cx: X(q.x), cy: Y(q.y), r: rad, fill: mark(q) ? '#b6ff5c' : eYearColor(q.yr, y0, y1), opacity: n > 1500 ? 0.5 : 0.8 });
-      c.addEventListener('mousemove', (ev) => eTipAt(ev, `<b>${EP.grain === 'week' ? 'Week of ' : ''}${dstr(q.i)}</b><br>${LX.name}: ${num(q.x, ux)}<br>${LY.name}: ${num(q.y, uy)}`)); c.addEventListener('mouseleave', eTipOff); s.append(c); }
+      c.addEventListener('mousemove', (ev) => eTipAt(ev, `<b>${EP.grain === 'week' ? 'Week of ' : ''}${dateLabel(q.i)}</b><br>${LX.name}: ${num(q.x, ux)}<br>${LY.name}: ${num(q.y, uy)}`)); c.addEventListener('mouseleave', eTipOff); s.append(c); }
     const mx = xs.reduce((t, v) => t + v, 0) / n, my = ys.reduce((t, v) => t + v, 0) / n; let sxy = 0, sxx = 0; for (let k = 0; k < n; k++) { sxy += (xs[k] - mx) * (ys[k] - my); sxx += (xs[k] - mx) ** 2; }
     if (sxx) { const sl = sxy / sxx, ic = my - sl * mx, f = (v) => Math.max(minY, Math.min(capY, ic + sl * v)); s.append(svg('line', { x1: X(minX), y1: Y(f(minX)), x2: X(capX), y2: Y(f(capX)), stroke: '#fff', 'stroke-width': 1.5, 'stroke-dasharray': '6 5', opacity: 0.8 })); }
     host.replaceChildren(s);
@@ -2071,7 +2049,7 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
   function ridgeData(L) {
     const y0 = Math.max(2016, YR[L.off]), y1 = YR[L.off + L.n - 1], years = [];
     for (let y = y0; y <= y1; y++) {
-      const j = d2i(`${y}-01-01`), sh = (DOW[j] + 1) % 7, len = d2i(`${y + 1}-01-01`) - j, wk = [];
+      const j = dayIndex(`${y}-01-01`), sh = (DOW[j] + 1) % 7, len = dayIndex(`${y + 1}-01-01`) - j, wk = [];
       for (let d = 0; d < len; d++) { const i = j + d; if (i < L.off || i >= L.off + L.n) continue; const x = L.v[i - L.off]; if (x == null) continue;
         const w = Math.floor((d + sh) / 7); (wk[w] = wk[w] || { s: 0, c: 0, a: Math.max(j, i - ((DOW[i] + 1) % 7)) }); wk[w].s += x; wk[w].c++; }
       years.push({ y, sh, w: Array.from({ length: 54 }, (_, w) => (wk[w] && wk[w].c >= 3 ? { v: wk[w].s / wk[w].c, a: wk[w].a } : null)) });
@@ -2084,9 +2062,9 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
     const P = { l: mob ? 36 : 46, r: 10, t: mob ? 64 : 88, b: 26 }, rowH = mob ? 26 : 36, H = P.t + rowH * (Y.length - 1) + P.b, amp = rowH * 2.4;
     const vs = Y.flatMap((r) => r.w.filter(Boolean).map((c) => c.v)).sort((p, q) => p - q), max = vs[vs.length - 1] || 1, lo = vs[Math.floor(vs.length * 0.03)] || 0, sx = (w) => P.l + (w / 53) * (W - P.l - P.r);
     const cur = YR[today], col = L.color || '#3ff0ff', S = svg('svg', { viewBox: `0 0 ${W} ${H}`, width: W, height: H, role: 'img', 'aria-label': `${L.name}: one ridge per year, weekly` });
-    MON.forEach((m, k) => { const x = sx((d2i(`2026-${String(k + 1).padStart(2, '0')}-01`) - d2i('2026-01-01')) / 7);
+    MON.forEach((m, k) => { const x = sx((dayIndex(`2026-${String(k + 1).padStart(2, '0')}-01`) - dayIndex('2026-01-01')) / 7);
       S.append(svg('line', { x1: x, x2: x, y1: P.t - amp * 0.4, y2: H - P.b + 4, stroke: C.grid, 'stroke-width': 1 }));
-      S.append(svg('text', { x: x + 3, y: H - 8, fill: C.dim, style: `font:10px ${FD}` }, mob ? m[0] : m.toUpperCase())); });
+      S.append(svg('text', { x: x + 3, y: H - 8, fill: C.dim, style: `font:10px ${FONT_DATA}` }, mob ? m[0] : m.toUpperCase())); });
     Y.forEach((r, k) => {
       const base = P.t + k * rowH, idx = r.w.map((c, w) => (c ? w : -1)).filter((w) => w >= 0); if (!idx.length) return;
       const a = idx[0], b = idx[idx.length - 1], pts = [];
@@ -2098,7 +2076,7 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
       const on = r.y === cur || r.y === ER.hover;
       g.append(svg('path', { class: 'ln', d: line, fill: 'none', stroke: on ? col : C.ink, 'stroke-opacity': on ? 1 : 0.55, 'stroke-width': r.y === ER.hover ? 2.6 : on ? 2 : 1.3, 'stroke-linejoin': 'round',
         style: on ? `filter:drop-shadow(0 0 6px ${col})` : '' }));
-      g.append(svg('text', { x: P.l - 8, y: base + 4, 'text-anchor': 'end', fill: on ? col : C.dim, style: `font:${on ? 600 : 400} 11px ${FD}` }, String(r.y)));
+      g.append(svg('text', { x: P.l - 8, y: base + 4, 'text-anchor': 'end', fill: on ? col : C.dim, style: `font:${on ? 600 : 400} 11px ${FONT_DATA}` }, String(r.y)));
       S.append(g);
     });
     const hit = svg('rect', { x: P.l, y: P.t - amp, width: W - P.l - P.r, height: H - P.t - P.b + amp, fill: 'transparent' }); S.append(hit);
@@ -2106,12 +2084,12 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
     hit.onmousemove = (ev) => { const bb = S.getBoundingClientRect(), x = (ev.clientX - bb.left) * (W / bb.width), y = (ev.clientY - bb.top) * (H / bb.height);
       const k = Math.max(0, Math.min(Y.length - 1, Math.round((y - P.t) / rowH + 0.35))), w = Math.max(0, Math.min(53, Math.round(((x - P.l) / (W - P.l - P.r)) * 53))), r = Y[k], c = r.w[w];
       if (ER.hover !== r.y) { ER.hover = r.y; drawRidge(); }
-      eTipAt(ev, c ? `<b>Week of ${dstr(c.a)}</b><br>${num(c.v, unit)} a day` : `<b>${r.y}</b><br>no data`); };
+      eTipAt(ev, c ? `<b>Week of ${dateLabel(c.a)}</b><br>${num(c.v, unit)} a day` : `<b>${r.y}</b><br>no data`); };
     hit.onmouseleave = () => { eTipOff(); if (ER.hover != null) { ER.hover = null; drawRidge(); } };
     host.replaceChildren(S);
     let best = null; for (const r of Y) for (const c of r.w) if (c && (!best || c.v > best.v)) best = c;
     const tot = Y.map((r) => { const cs = r.w.filter(Boolean); return [r.y, cs.length ? cs.reduce((s, c) => s + c.v, 0) / cs.length : 0, cs.length]; }).filter((r) => r[2] >= 40).sort((p, q) => q[1] - p[1]);
-    $('#e-ridge-note').textContent = best ? `Biggest week: ${dstr(best.a)} at ${num(best.v, unit)} a day` + (tot.length > 1 ? ` · biggest full year ${tot[0][0]} (${num(tot[0][1], unit)} a day), quietest ${tot[tot.length - 1][0]} (${num(tot[tot.length - 1][1], unit)} a day)` : '') : '';
+    $('#e-ridge-note').textContent = best ? `Biggest week: ${dateLabel(best.a)} at ${num(best.v, unit)} a day` + (tot.length > 1 ? ` · biggest full year ${tot[0][0]} (${num(tot[0][1], unit)} a day), quietest ${tot[tot.length - 1][0]} (${num(tot[tot.length - 1][1], unit)} a day)` : '') : '';
   }
 
   // Decade clock: hourly.json (STEP//SONG, 24 values a day from 2016-01-01, local time). One ring per year, one thin band per month, 24 hours around, midnight at the top.
@@ -2119,7 +2097,7 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
   const EC_M = { listen: { label: 'Music', color: '#ff3fb4', unit: 'min', f: (x) => x / 60 }, steps: { label: 'Steps', color: '#3ff0ff', unit: 'steps', f: (x) => x } };
   function clockCells(k) {
     if (EC.cells[k]) return EC.cells[k];
-    const H = EC.H, v = H[k], d0 = d2i('2016-01-01'), nd = v.length / 24, out = [];
+    const H = EC.H, v = H[k], d0 = dayIndex('2016-01-01'), nd = v.length / 24, out = [];
     let first = 0; while (first < nd && !v.slice(first * 24, first * 24 + 24).some(Boolean)) first++;
     for (let d = first; d < nd;) { const i = d0 + d, mo = MO[i], s = new Float64Array(24); let c = 0;
       while (d < nd && MO[d0 + d] === mo) { for (let h = 0; h < 24; h++) s[h] += v[d * 24 + h] || 0; c++; d++; }
@@ -2128,7 +2106,7 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
   }
   async function drawClock() {
     const cv = $('#e-clock-cv'), note = $('#e-clock-note');
-    if (EC.H === undefined) { note.textContent = 'Loading hourly data…'; EC.H = await get('step-song/data/hourly.json', true); note.textContent = ''; }
+    if (EC.H === undefined) { note.textContent = 'Loading hourly data…'; EC.H = await loadJSON('step-song/data/hourly.json', { optional: true }); note.textContent = ''; }
     if (!EC.H) { note.textContent = 'Hourly data not found.'; return; }
     const M = EC_M[EC.k], cells = clockCells(EC.k), y0 = cells[0].y, y1 = cells[cells.length - 1].y, nY = y1 - y0 + 1;
     const size = Math.max(300, Math.min(660, $('.e-clock-wrap').clientWidth || 660)), dpr = window.devicePixelRatio || 1;
@@ -2141,16 +2119,16 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
       g.fillStyle = `rgba(${rgb},${(0.04 + 0.96 * t).toFixed(3)})`; g.beginPath(); g.arc(cx, cy, r + bw + 0.3, A(h), A(h + 1) + 0.004); g.arc(cx, cy, r, A(h + 1) + 0.004, A(h), true); g.closePath(); g.fill(); } }
     g.strokeStyle = 'rgba(7,6,15,0.9)'; g.lineWidth = 1.5;
     for (let k = 0; k <= nY; k++) { g.beginPath(); g.arc(cx, cy, r0 + k * 12 * bw, 0, Math.PI * 2); g.stroke(); }
-    g.strokeStyle = C.grid; g.lineWidth = 1; g.font = `10px ${FD}`; g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.strokeStyle = C.grid; g.lineWidth = 1; g.font = `10px ${FONT_DATA}`; g.textAlign = 'center'; g.textBaseline = 'middle';
     for (let h = 0; h < 24; h += 3) { const a = A(h); g.beginPath(); g.moveTo(cx + Math.cos(a) * r0, cy + Math.sin(a) * r0); g.lineTo(cx + Math.cos(a) * (R + 4), cy + Math.sin(a) * (R + 4)); g.stroke();
       g.fillStyle = h % 6 ? C.dim : C.ink; g.fillText(String(h).padStart(2, '0'), cx + Math.cos(a) * (R + 14), cy + Math.sin(a) * (R + 14)); }
     g.textAlign = 'left'; g.shadowColor = '#07060f'; g.shadowBlur = 4;
     for (let k = 0; k < nY; k++) if (12 * bw >= 11 || k % 2 === 0) { g.fillStyle = C.ink; g.fillText(String(y0 + k), cx + 4, cy - (r0 + (k + 0.5) * 12 * bw)); }
-    g.shadowBlur = 0; g.fillStyle = M.color; g.textAlign = 'center'; g.font = `600 11px ${FU}`; g.fillText(M.label.toUpperCase(), cx, cy - 6); g.fillStyle = C.dim; g.font = `10px ${FD}`; g.fillText(`${M.unit} a day`, cx, cy + 8);
+    g.shadowBlur = 0; g.fillStyle = M.color; g.textAlign = 'center'; g.font = `600 11px ${FONT_UI}`; g.fillText(M.label.toUpperCase(), cx, cy - 6); g.fillStyle = C.dim; g.font = `10px ${FONT_DATA}`; g.fillText(`${M.unit} a day`, cx, cy + 8);
     const byKey = new Map(cells.map((c) => [c.y * 12 + c.m, c]));
     cv.onmousemove = (ev) => { const b = cv.getBoundingClientRect(), x = ev.clientX - b.left - cx, y = ev.clientY - b.top - cy, k = Math.floor((Math.hypot(x, y) - r0) / bw);
       if (k < 0 || k >= nY * 12) { eTipOff(); return; } let a = Math.atan2(y, x) + Math.PI / 2; if (a < 0) a += Math.PI * 2;
-      const yr = y0 + Math.floor(k / 12), m = k % 12, h = Math.min(23, Math.floor((a / (Math.PI * 2)) * 24)), c = byKey.get(yr * 12 + m), i = d2i(`${yr}-${String(m + 1).padStart(2, '0')}-15`);
+      const yr = y0 + Math.floor(k / 12), m = k % 12, h = Math.min(23, Math.floor((a / (Math.PI * 2)) * 24)), c = byKey.get(yr * 12 + m), i = dayIndex(`${yr}-${String(m + 1).padStart(2, '0')}-15`);
       const ch = LIFE.filter((l) => !l.point && l.a <= i && l.b >= i).map((l) => l.label);
       eTipAt(ev, `<b>${MON[m]} ${yr} · ${String(h).padStart(2, '0')}:00–${String(h + 1).padStart(2, '0')}:00</b><br>${c ? num(c.v[h], M.unit) + ' a day' : 'no data'}${ch.length ? '<br>' + ch.join(' · ') : ''}`); };
     cv.onmouseleave = eTipOff;
@@ -2168,15 +2146,15 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
       d += `C${(p1[0] + (p2[0] - p0[0]) / 6).toFixed(1)} ${(p1[1] + (p2[1] - p0[1]) / 6).toFixed(1)} ${(p2[0] - (p3[0] - p1[0]) / 6).toFixed(1)} ${(p2[1] - (p3[1] - p1[1]) / 6).toFixed(1)} ${p2[0].toFixed(1)} ${p2[1].toFixed(1)}`; }
     return d; };
   const hm = (min) => (min >= 90 ? `${(min / 60).toFixed(1)} h` : `${Math.round(min)} min`);
-  const tiny = (x, y, t, a = 'start', c = C.dim) => svg('text', { x, y, 'text-anchor': a, fill: c, style: `font:10px ${FD}` }, t);
+  const tiny = (x, y, t, a = 'start', c = C.dim) => svg('text', { x, y, 'text-anchor': a, fill: c, style: `font:10px ${FONT_DATA}` }, t);
 
   // Screens vs feet: exercise minutes up, watching + calls down, 7-day means, countdown to the PCT start.
-  const PCT_START = d2i('2027-03-01');
+  const PCT_START = dayIndex('2027-03-01');
   function drawScreens() {
     const up = asLine('exercise', 'minutes'), dn = [['watch', 'minutes', 'Watching', '#4ea8ff'], ['calls', 'minutes', 'Calls', '#4fe0c0']].map(([d, m, label, c]) => ({ L: asLine(d, m), label, c })).filter((x) => x.L);
     const host = $('#e-scr-fig');
     const ends = [up, ...dn.map((x) => x.L)].filter(Boolean).map((L) => L.off + L.n - 1); if (!up || !ends.length) { host.replaceChildren(el('p', { className: 'note', text: 'No exercise data.' })); return; }
-    const b = Math.min(Math.max(...ends), today), yr = YR[b], a = d2i(`${yr}-01-01`), N = b - a + 1;
+    const b = Math.min(Math.max(...ends), today), yr = YR[b], a = dayIndex(`${yr}-01-01`), N = b - a + 1;
     const U = [], D = [];   // minutes
     for (let i = a; i <= b; i++) { U.push(dayVal(up, i) == null ? null : dayVal(up, i) * 60); D.push(dn.map((x) => (dayVal(x.L, i) || 0) * 60)); }
     const left = PCT_START - today; $('#e-scr-count').replaceChildren(String(Math.max(0, left)), el('small', { text: left > 0 ? 'days to the PCT' : 'PCT under way' }));
@@ -2185,7 +2163,7 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
     const S = svg('svg', { viewBox: `0 0 ${W} ${H}`, width: W, height: H, role: 'img', 'aria-label': `${yr}: exercise minutes up, watching and calls down, by day` });
     const step = mx > 400 ? 120 : 60;
     for (let v = step; v <= mx; v += step) for (const s of [1, -1]) { const y = mid - s * v * sc; S.append(svg('line', { x1: P.l, x2: W - P.r, y1: y, y2: y, stroke: C.grid })); S.append(tiny(P.l - 6, y + 3, hm(v), 'end')); }
-    for (let m = 0; m < 12; m++) { const i = d2i(`${yr}-${String(m + 1).padStart(2, '0')}-01`); if (i > b) break; const x = X(i - a); S.append(svg('line', { x1: x, x2: x, y1: P.t, y2: H - P.b, stroke: C.grid })); S.append(tiny(x + 3, H - 8, mob ? MON[m][0] : MON[m].toUpperCase())); }
+    for (let m = 0; m < 12; m++) { const i = dayIndex(`${yr}-${String(m + 1).padStart(2, '0')}-01`); if (i > b) break; const x = X(i - a); S.append(svg('line', { x1: x, x2: x, y1: P.t, y2: H - P.b, stroke: C.grid })); S.append(tiny(x + 3, H - 8, mob ? MON[m][0] : MON[m].toUpperCase())); }
     const bars = svg('g');
     U.forEach((v, k) => { if (v) bars.append(svg('rect', { x: X(k) + 0.15 * bw, width: Math.max(0.8, bw * 0.7), y: mid - v * sc, height: v * sc, fill: up.color, 'fill-opacity': 0.7 })); });
     D.forEach((r, k) => { let y = mid; r.forEach((v, j) => { if (!v) return; bars.append(svg('rect', { x: X(k) + 0.15 * bw, width: Math.max(0.8, bw * 0.7), y, height: v * sc, fill: dn[j].c, 'fill-opacity': 0.7 })); y += v * sc; }); });
@@ -2194,15 +2172,15 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
     const rU = roll((j) => U[j]), rD = roll((j) => D[j].reduce((s, x) => s + x, 0));
     for (const [r, sgn, c] of [[rU, 1, up.color], [rD, -1, '#4ea8ff']]) { const pts = r.map((v, k) => (v == null ? null : [X(k) + bw / 2, mid - sgn * v * sc])).filter(Boolean);
       S.append(svg('path', { d: spline(pts), fill: 'none', stroke: c, 'stroke-width': 2.2, style: `filter:drop-shadow(0 0 4px ${c})` })); }
-    S.append(svg('text', { x: P.l + 6, y: P.t + 12, fill: up.color, style: `font:600 11px ${FU};letter-spacing:.14em` }, 'EXERCISE ↑'), svg('text', { x: P.l + 6, y: H - P.b - 6, fill: '#4ea8ff', style: `font:600 11px ${FU};letter-spacing:.14em` }, 'SCREENS ↓'));
+    S.append(svg('text', { x: P.l + 6, y: P.t + 12, fill: up.color, style: `font:600 11px ${FONT_UI};letter-spacing:.14em` }, 'EXERCISE ↑'), svg('text', { x: P.l + 6, y: H - P.b - 6, fill: '#4ea8ff', style: `font:600 11px ${FONT_UI};letter-spacing:.14em` }, 'SCREENS ↓'));
     const hit = svg('rect', { x: P.l, y: P.t, width: W - P.l - P.r, height: H - P.t - P.b, fill: 'transparent' }); S.append(hit);
     hit.onmousemove = (ev) => { const bb = S.getBoundingClientRect(), k = Math.max(0, Math.min(N - 1, Math.floor(((ev.clientX - bb.left) * (W / bb.width) - P.l) / bw)));
-      eTipAt(ev, `<b>${dstr(a + k)}</b><br>Exercise ${U[k] == null ? '—' : hm(U[k])}` + dn.map((x, j) => `<br>${x.label} ${hm(D[k][j])}`).join('') + (rU[k] != null ? `<br>7-day: ${hm(rU[k])} up · ${hm(rD[k] || 0)} down` : '')); };
+      eTipAt(ev, `<b>${dateLabel(a + k)}</b><br>Exercise ${U[k] == null ? '—' : hm(U[k])}` + dn.map((x, j) => `<br>${x.label} ${hm(D[k][j])}`).join('') + (rU[k] != null ? `<br>7-day: ${hm(rU[k])} up · ${hm(rD[k] || 0)} down` : '')); };
     hit.onmouseleave = eTipOff;
     host.replaceChildren(S);
     $('#e-scr-legend').replaceChildren(el('span', {}, [sw(up.color), 'Exercise minutes']), ...dn.map((x) => el('span', {}, [sw(x.c), x.label])), el('span', {}, [el('i', { className: 'sw', style: 'background:none;border-top:2px solid #dcd8ff;height:0' }), '7-day mean']));
     const tu = U.reduce((s, x) => s + (x || 0), 0), td = dn.map((_, j) => D.reduce((s, r) => s + r[j], 0)), more = U.filter((v, k) => v != null && v > D[k].reduce((s, x) => s + x, 0)).length, known = U.filter((v) => v != null).length;
-    $('#e-scr-note').textContent = `${yr} through ${dstr(b)}: exercise ${Math.round(tu / 60)} h · ` + dn.map((x, j) => `${x.label.toLowerCase()} ${Math.round(td[j] / 60)} h`).join(' · ') + ` · more exercise than screens on ${more} of ${known} days`;
+    $('#e-scr-note').textContent = `${yr} through ${dateLabel(b)}: exercise ${Math.round(tu / 60)} h · ` + dn.map((x, j) => `${x.label.toLowerCase()} ${Math.round(td[j] / 60)} h`).join(' · ') + ` · more exercise than screens on ${more} of ${known} days`;
   }
 
   // Does Wim Hof work? 2026 calendar of HRV / resting HR / sleep with breathwork days dotted; next morning after a breath day vs other days.
@@ -2217,15 +2195,15 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
   function drawWimHof() {
     const L = asLine('body', EW.k), B = asLine('breath', 'sessions'), host = $('#e-wh-cal');
     if (!L) { host.replaceChildren(el('p', { className: 'note', text: 'No heart data.' })); return; }
-    const last = L.off + L.n - 1, yr = YR[Math.min(last, today)], a = d2i(`${yr}-01-01`), sh = (DOW[a] + 1) % 7, nW = Math.ceil((d2i(`${yr + 1}-01-01`) - a + sh) / 7);
+    const last = L.off + L.n - 1, yr = YR[Math.min(last, today)], a = dayIndex(`${yr}-01-01`), sh = (DOW[a] + 1) % 7, nW = Math.ceil((dayIndex(`${yr + 1}-01-01`) - a + sh) / 7);
     const W = Math.max(300, host.clientWidth || 700), cs = Math.max(9, Math.min(20, Math.floor((W - 34) / nW))), P = { l: 30, t: 18 }, Wd = P.l + nW * cs + 4, Hd = P.t + 7 * cs + 4;
     const vals = []; for (let i = a; i <= last; i++) { const v = dayVal(L, i); if (v != null) vals.push(v); } vals.sort((p, q) => p - q);
     const lo = vals[Math.floor(vals.length * 0.05)], hi = vals[Math.floor(vals.length * 0.95)], rgb = L.color.match(/\w\w/g).map((h) => parseInt(h, 16)).join(',');
     const S = svg('svg', { viewBox: `0 0 ${Wd} ${Hd}`, width: Wd, height: Hd, role: 'img', 'aria-label': `${L.name} by day in ${yr}, breathwork days dotted` });
     ['S', 'M', 'T', 'W', 'T', 'F', 'S'].forEach((d, r) => { if (r % 2) S.append(tiny(P.l - 6, P.t + r * cs + cs * 0.7, d, 'end')); });
-    for (let m = 0; m < 12; m++) { const i = d2i(`${yr}-${String(m + 1).padStart(2, '0')}-01`); S.append(tiny(P.l + Math.floor((i - a + sh) / 7) * cs, 11, MON[m])); }
+    for (let m = 0; m < 12; m++) { const i = dayIndex(`${yr}-${String(m + 1).padStart(2, '0')}-01`); S.append(tiny(P.l + Math.floor((i - a + sh) / 7) * cs, 11, MON[m])); }
     const cells = svg('g'); let nb = 0;
-    for (let i = a; i < d2i(`${yr + 1}-01-01`); i++) { const k = i - a + sh, x = P.l + Math.floor(k / 7) * cs, y = P.t + (k % 7) * cs, v = dayVal(L, i), br = dayVal(B, i);
+    for (let i = a; i < dayIndex(`${yr + 1}-01-01`); i++) { const k = i - a + sh, x = P.l + Math.floor(k / 7) * cs, y = P.t + (k % 7) * cs, v = dayVal(L, i), br = dayVal(B, i);
       const t = v == null ? null : Math.max(0, Math.min(1, (v - lo) / (hi - lo || 1)));
       cells.append(svg('rect', { x: x + 1, y: y + 1, width: cs - 2, height: cs - 2, rx: 2, fill: t == null ? C.well : `rgba(${rgb},${(0.12 + 0.88 * t).toFixed(2)})` }));
       if (br > 0) { if (i <= last) nb++; cells.append(svg('circle', { cx: x + cs / 2, cy: y + cs / 2, r: Math.max(1.6, cs * 0.16), fill: '#fff', style: 'filter:drop-shadow(0 0 2px #07060f)' })); } }
@@ -2233,7 +2211,7 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
     const hit = svg('rect', { x: P.l, y: P.t, width: nW * cs, height: 7 * cs, fill: 'transparent' }); S.append(hit);
     hit.onmousemove = (ev) => { const bb = S.getBoundingClientRect(), x = (ev.clientX - bb.left) * (Wd / bb.width) - P.l, y = (ev.clientY - bb.top) * (Hd / bb.height) - P.t, i = a + Math.floor(x / cs) * 7 + Math.floor(y / cs) - sh;
       if (YR[i] !== yr) { eTipOff(); return; } const v = dayVal(L, i), br = dayVal(B, i);
-      eTipAt(ev, `<b>${dstr(i)}</b><br>${L.name}: ${v == null ? '—' : num(v, L.unit)}<br>Breathwork: ${br ? br + ' session' + (br === 1 ? '' : 's') : 'none'}`); };
+      eTipAt(ev, `<b>${dateLabel(i)}</b><br>${L.name}: ${v == null ? '—' : num(v, L.unit)}<br>Breathwork: ${br ? br + ' session' + (br === 1 ? '' : 's') : 'none'}`); };
     hit.onmouseleave = eTipOff;
     host.replaceChildren(S);
     $('#e-wh-legend').replaceChildren(el('span', {}, [el('i', { className: 'sw', style: `background:linear-gradient(90deg,rgba(${rgb},.12),rgb(${rgb}))` }), `${num(lo, L.unit)} → ${num(hi, L.unit)}`]), el('span', {}, [el('i', { className: 'sw', style: 'background:#fff;border-radius:50%;width:7px;height:7px' }), `breathwork day (${nb})`]));
@@ -2252,7 +2230,7 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
         strip, el('span', { className: 'wh-diff', text: `Difference ${s.diff > 0 ? '+' : ''}${num(s.diff, u)}${ci}` }));
       return card; }));
     const bAll = (() => { let n = 0; for (let i = a; i <= last; i++) if (dayVal(B, i) > 0) n++; return n; })();
-    $('#e-wh-note').textContent = `${yr} through ${dstr(last)} · ${bAll} breathwork days · next-day comparison uses every 2026 day with heart data and a breathwork record`;
+    $('#e-wh-note').textContent = `${yr} through ${dateLabel(last)} · ${bAll} breathwork days · next-day comparison uses every 2026 day with heart data and a breathwork record`;
   }
 
   // Musical eras: streamgraph of the artists that defined each year (step-song/data/eras.json, build_eras.py), life chapters behind.
@@ -2260,7 +2238,7 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
   const ERA_COL = ['#ff3fb4', '#3ff0ff', '#ffb347', '#b6ff5c', '#9b7bff', '#4ea8ff', '#ff6fd8', '#ffd84a', '#4fe0c0', '#ff3b4e', '#ff8a3d', '#9d6bff', '#e8c39e', '#7cffb2', '#ff9ad5', '#5fb8ff'];
   async function drawEras() {
     const host = $('#e-eras-fig');
-    if (EE.D === undefined) { host.replaceChildren(el('p', { className: 'note', text: 'Loading…' })); EE.D = await get('step-song/data/eras.json', true); }
+    if (EE.D === undefined) { host.replaceChildren(el('p', { className: 'note', text: 'Loading…' })); EE.D = await loadJSON('step-song/data/eras.json', { optional: true }); }
     const D = EE.D; if (!D) { host.replaceChildren(el('p', { className: 'note', text: 'eras.json not built yet (scripts/build_eras.py).' })); return; }
     const M = D.months.length, A = D.artists.map((r, k) => ({ ...r, c: ERA_COL[k % ERA_COL.length] }));
     const val = (r, m) => { const raw = r.min[m]; return EE.mode === 'share' ? (D.total[m] ? (100 * raw) / D.total[m] : 0) : raw; };
@@ -2269,10 +2247,10 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
     const W = Math.max(300, host.clientWidth || 900), mob = W < 560, H = mob ? 340 : 440, P = { l: 8, r: 8, t: 26, b: 24 }, cy = P.t + (H - P.t - P.b) / 2, sc = (H - P.t - P.b) / mx, X = (m) => P.l + (m / (M - 1)) * (W - P.l - P.r);
     const m0 = +D.months[0].slice(0, 4) * 12 + +D.months[0].slice(5, 7) - 1, Xi = (i) => X(MO[i] - m0 + (new Date(T0 + i * DAY).getUTCDate() - 1) / 30);
     const S = svg('svg', { viewBox: `0 0 ${W} ${H}`, width: W, height: H, role: 'img', 'aria-label': 'Minutes per month for the top artists of each year, stacked as a stream' });
-    for (const l of LIFE) { if (l.point || l.b < d2i(D.months[0] + '-01')) continue; const xa = Math.max(P.l, Xi(l.a)), xb = Math.min(W - P.r, Xi(Math.min(l.b, d2i(D.months[M - 1] + '-28')))); if (xb <= xa) continue;
+    for (const l of LIFE) { if (l.point || l.b < dayIndex(D.months[0] + '-01')) continue; const xa = Math.max(P.l, Xi(l.a)), xb = Math.min(W - P.r, Xi(Math.min(l.b, dayIndex(D.months[M - 1] + '-28')))); if (xb <= xa) continue;
       S.append(svg('rect', { x: xa, y: P.t - 8, width: xb - xa, height: H - P.t - P.b + 8, fill: l.color || C.violet || '#9b7bff', 'fill-opacity': 0.07 }));
       S.append(svg('line', { x1: xa, x2: xb, y1: P.t - 8, y2: P.t - 8, stroke: l.color || '#9b7bff', 'stroke-width': 2 }));
-      if (xb - xa > 40) S.append(svg('text', { x: xa + 4, y: P.t - 13, fill: l.color || '#9b7bff', style: `font:600 10px ${FU};letter-spacing:.1em` }, l.label.toUpperCase())); }
+      if (xb - xa > 40) S.append(svg('text', { x: xa + 4, y: P.t - 13, fill: l.color || '#9b7bff', style: `font:600 10px ${FONT_UI};letter-spacing:.1em` }, l.label.toUpperCase())); }
     for (let y = +D.months[0].slice(0, 4) + 1; y <= +D.months[M - 1].slice(0, 4); y++) { const m = (y * 12) - m0, x = X(m); S.append(svg('line', { x1: x, x2: x, y1: P.t, y2: H - P.b, stroke: C.grid })); S.append(tiny(x + 3, H - 8, mob ? "'" + String(y).slice(2) : String(y))); }
     const base = tot.map((t) => cy - (t * sc) / 2), acc = base.slice(), layers = [];
     A.forEach((r, k) => { const top = acc.map((y) => y), bot = acc.map((y, m) => y + sm[k][m] * sc); for (let m = 0; m < M; m++) acc[m] = bot[m];
@@ -2318,7 +2296,7 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
     host.replaceChildren(S);
     $('#e-strata-legend').replaceChildren(...layers.map((x) => el('span', {}, [sw(x.color), x.name])).reverse());
     const all = layers.map((x) => sumRange(x.L, a, b).sum);
-    $('#e-strata-note').textContent = `${dstr(a)} to ${dstr(b)} · ` + layers.map((x, j) => `${x.name} ${num(all[j], x.unit)}`).join(' · ');
+    $('#e-strata-note').textContent = `${dateLabel(a)} to ${dateLabel(b)} · ` + layers.map((x, j) => `${x.name} ${num(all[j], x.unit)}`).join(' · ');
   }
 
   let expWired = false;
@@ -2343,7 +2321,7 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
     const sets = daily.datasets.filter((d) => d.metrics.length && d.id !== 'astro' && d.id !== 'moon');   // the sky has a value every day: not activity
     if (!GV.on) GV.on = new Set(sets.map((d) => d.id));
     const col = (d) => DS_C[d.id] || d.metrics[0].color || '#9b7bff';
-    const end = Math.max(DATA_B, today), R = { all: [DATA_A, end], y3: [Math.max(DATA_A, d2i(`${YR[end] - 2}-01-01`)), end], ty: [d2i(`${YR[end]}-01-01`), end] }[GV.range];
+    const end = Math.max(DATA_B, today), R = { all: [DATA_A, end], y3: [Math.max(DATA_A, dayIndex(`${YR[end] - 2}-01-01`)), end], ty: [dayIndex(`${YR[end]}-01-01`), end] }[GV.range];
     const seg = (host, opts, key) => $(host).replaceChildren(...opts.map(([v, label]) => el('button', { type: 'button', text: label, 'aria-pressed': String(GV[key] === v), onclick: () => { GV[key] = v; renderGantt(); } })));
     seg('#g-range', [['all', 'ALL TIME'], ['y3', 'LAST 3 YEARS'], ['ty', String(YR[end])]], 'range');
     seg('#g-mode', [['heat', 'INTENSITY'], ['bars', 'BARS']], 'mode');
@@ -2355,17 +2333,17 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
     const step = R[1] - R[0] > 500 ? 7 : 1, x0 = lw, x1 = Wd - rw, X = (i) => x0 + ((i - R[0]) / (R[1] - R[0] + 1)) * (x1 - x0);
     const rows = sets.filter((d) => GV.on.has(d.id)), lifeOn = GV.life && LIFE.length, laneH = narrow ? 44 : 30, top = 22 + (lifeOn ? laneH : 0), H = top + rows.length * laneH + 8;
     const S = svg('svg', { viewBox: `0 0 ${Wd} ${H}`, role: 'img', 'aria-label': 'Gantt chart of when each dataset has data' });
-    for (let y = YR[R[0]]; y <= YR[R[1]]; y++) { const i = Math.max(R[0], d2i(`${y}-01-01`)), x = X(i);
+    for (let y = YR[R[0]]; y <= YR[R[1]]; y++) { const i = Math.max(R[0], dayIndex(`${y}-01-01`)), x = X(i);
       S.append(svg('line', { x1: x, x2: x, y1: 14, y2: H, stroke: '#1f1a3d' }));
       if (step === 7 || y === YR[R[0]]) S.append(svg('text', { x: x + 3, y: 11 }, step === 7 && narrow ? `’${String(y).slice(2)}` : String(y))); }
-    if (step === 1) for (let m = MO[R[0]] + 1; m <= MO[R[1]]; m++) { const yy = Math.floor(m / 12), mm = m % 12, i = d2i(`${yy}-${String(mm + 1).padStart(2, '0')}-01`), x = X(i);
+    if (step === 1) for (let m = MO[R[0]] + 1; m <= MO[R[1]]; m++) { const yy = Math.floor(m / 12), mm = m % 12, i = dayIndex(`${yy}-${String(mm + 1).padStart(2, '0')}-01`), x = X(i);
       S.append(svg('line', { x1: x, x2: x, y1: 14, y2: H, stroke: '#1f1a3d', 'stroke-dasharray': '2 3' })); S.append(svg('text', { x: x + 3, y: 11 }, MON[mm])); }
     if (lifeOn) { const y = 22;
       if (!narrow) S.append(svg('text', { x: 0, y: y + 15, class: 'lab' }, 'Life chapters'));
       for (const l of LIFE) { if (l.b < R[0] || l.a > R[1]) continue; const a = X(Math.max(l.a, R[0])), b = X(Math.min(l.b, R[1]) + 1);
         S.append(svg('rect', { x: a, y: top, width: Math.max(1, b - a), height: H - top - 8, fill: l.color || '#dcd8ff', opacity: l.point ? 0.25 : 0.05 }));
         const r = svg('rect', { x: a, y: y + (narrow ? 16 : 4), width: Math.max(l.point ? 2 : 1, b - a), height: 16, fill: l.color || '#dcd8ff', opacity: 0.85, rx: 2 });
-        r.addEventListener('mousemove', (ev) => eTipAt(ev, `<b>${l.label}</b><br>${l.point ? dstr(l.a) : dstr(l.a) + ' – ' + dstr(l.b)}`)); r.addEventListener('mouseleave', eTipOff); S.append(r); }
+        r.addEventListener('mousemove', (ev) => eTipAt(ev, `<b>${l.label}</b><br>${l.point ? dateLabel(l.a) : dateLabel(l.a) + ' – ' + dateLabel(l.b)}`)); r.addEventListener('mouseleave', eTipOff); S.append(r); }
       if (narrow) S.append(svg('text', { x: 0, y: y + 10, class: 'lab' }, 'Life chapters')); }
     let shown = 0;
     rows.forEach((d, k) => {
@@ -2379,18 +2357,18 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
       if (cells.length) shown++;
       if (GV.mode === 'heat') { const vals = cells.map((q) => d.metrics[0].agg === 'mean' ? q.n : q.sum).sort((p, q) => p - q), p90 = vals[Math.floor(vals.length * 0.9)] || 1;
         for (const q of cells) { const v = d.metrics[0].agg === 'mean' ? q.n : q.sum, r = svg('rect', { x: X(q.a), y: by, width: Math.max(1, X(q.b + 1) - X(q.a)), height: bh, fill: c, opacity: (0.15 + 0.85 * Math.min(1, v / p90)).toFixed(2) });
-          r.addEventListener('mousemove', (ev) => eTipAt(ev, `<b>${d.name}</b><br>${step === 7 ? 'Week of ' + dstr(q.a) : dstr(q.a)}<br>${d.metrics[0].name}: ${num(d.metrics[0].agg === 'mean' ? q.sum / q.n : q.sum, d.metrics[0].unit)}${step === 7 ? `<br>${q.n} of 7 days` : ''}`));
+          r.addEventListener('mousemove', (ev) => eTipAt(ev, `<b>${d.name}</b><br>${step === 7 ? 'Week of ' + dateLabel(q.a) : dateLabel(q.a)}<br>${d.metrics[0].name}: ${num(d.metrics[0].agg === 'mean' ? q.sum / q.n : q.sum, d.metrics[0].unit)}${step === 7 ? `<br>${q.n} of 7 days` : ''}`));
           r.addEventListener('mouseleave', eTipOff); S.append(r); } }
       else { const runs = []; for (const q of cells) { const L = runs[runs.length - 1]; if (L && q.a - L.b <= (step === 7 ? 15 : 3)) { L.b = q.b; L.n += q.n; } else runs.push({ ...q }); }
         for (const q of runs) { const r = svg('rect', { x: X(q.a), y: by, width: Math.max(2, X(q.b + 1) - X(q.a)), height: bh, fill: c, rx: 3, opacity: 0.9 });
-          r.addEventListener('mousemove', (ev) => eTipAt(ev, `<b>${d.name}</b><br>${dstr(q.a)} – ${dstr(q.b)}<br>${q.n.toLocaleString('en-US')} active days`)); r.addEventListener('mouseleave', eTipOff); S.append(r); } }
+          r.addEventListener('mousemove', (ev) => eTipAt(ev, `<b>${d.name}</b><br>${dateLabel(q.a)} – ${dateLabel(q.b)}<br>${q.n.toLocaleString('en-US')} active days`)); r.addEventListener('mouseleave', eTipOff); S.append(r); } }
       const sumTxt = first == null ? 'nothing in range' : `${days.toLocaleString('en-US')} active days`;
       if (narrow) { S.append(svg('text', { x: 0, y: y + 12, class: 'lab' }, d.name)); S.append(svg('text', { x: Wd, y: y + 12, class: 'sum', 'text-anchor': 'end' }, sumTxt)); }
       else { S.append(svg('text', { x: 0, y: by + 12, class: 'lab', style: `fill:${c}` }, d.name)); S.append(svg('text', { x: Wd, y: by + 12, class: 'sum', 'text-anchor': 'end' }, sumTxt)); }
     });
     if (!rows.length) S.append(svg('text', { x: Wd / 2, y: top + 20, 'text-anchor': 'middle' }, 'Pick a dataset above.'));
     host.replaceChildren(S);
-    $('#g-note').textContent = `${rows.length} of ${sets.length} datasets · ${dstr(R[0])} – ${dstr(R[1])} · ${step === 7 ? 'one cell per week' : 'one cell per day'}`;
+    $('#g-note').textContent = `${rows.length} of ${sets.length} datasets · ${dateLabel(R[0])} – ${dateLabel(R[1])} · ${step === 7 ? 'one cell per week' : 'one cell per day'}`;
   }
 
   const VIEWS = { report: renderReport, fitness: renderTrails, health: renderHealth, media: renderProjects, data: renderData, experiments: renderExperiments, explore: renderExplorer, calendar: renderCalendar, gantt: renderGantt, ...(WT ? { watched: renderMovies } : {}) };

@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-page="months">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Report cards · JSBV.LIFE</title>
@@ -15,28 +15,13 @@
 <meta name="description" content="One report card per month: fitness and health graded against every month on record.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="../assets/site.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Monoton&family=Chakra+Petch:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../assets/theme.css">
 <style>
 /* Report cards. Data: meta-log/data/months.json (scripts/build_report_cards.py). Grades: percentile of the month among every
    month on record for that number (A 80+, B 60+, C 40+, D 20+, F); resting and walking heart rate are flipped. Media: no grade. */
-:root {
-  color-scheme: dark;
-  --void: #07060f; --panel: #0d0b1c; --grid: #1f1a3d; --ink: #dcd8ff; --dim: #8a84b8;
-  --step: #3ff0ff; --sound: #ff3fb4; --climb: #ffb347; --trail: #b6ff5c; --violet: #9b7bff; --hot: #fff; --heart: #ff4d6d;
-  --tab-accent: #9b7bff;
-  --f-display: "Monoton", "Chakra Petch", system-ui, sans-serif;
-  --f-ui: "Chakra Petch", "Segoe UI", system-ui, sans-serif;
-  --f-data: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
-  --s-0: 0.75rem; --s-1: 0.875rem; --s-2: 1rem;
-  --A: #b6ff5c; --B: #3ff0ff; --C: #ffd84a; --D: #ffb347; --F: #ff4d6d;
-}
-* { box-sizing: border-box; }
-html, body { background: var(--void); color: var(--ink); }
-body { margin: 0; font-family: var(--f-ui); font-size: var(--s-1); line-height: 1.4; padding: 20px max(14px, env(safe-area-inset-right, 0px)) 48px max(14px, env(safe-area-inset-left, 0px)); }
-.wrap { max-width: 1180px; margin: 0 auto; display: grid; gap: 18px; }
-h1 { font-family: var(--f-display); font-weight: 400; margin: 10px 0 0; font-size: clamp(2rem, 6vw, 3.6rem); line-height: 1; color: var(--hot);
-  text-shadow: 0 0 6px var(--violet), 0 0 18px var(--violet), 0 0 42px rgba(155,123,255,0.5); }
+body { line-height: 1.4; padding: 20px max(14px, env(safe-area-inset-right, 0px)) 48px max(14px, env(safe-area-inset-left, 0px)); }
+h1 { margin: 10px 0 0; font-size: clamp(2rem, 6vw, 3.6rem); }
 .strip { display: grid; grid-template-columns: repeat(12, 1fr); gap: 6px; align-items: end; height: 92px; padding: 12px 16px; }
 .strip a { display: grid; grid-template-rows: 1fr auto; height: 100%; text-decoration: none; color: var(--dim); font: 600 10px var(--f-ui); letter-spacing: .1em; text-align: center; }
 .strip i { align-self: end; display: block; border-radius: 4px 4px 0 0; background: var(--c); box-shadow: 0 0 10px var(--c); min-height: 3px; }
@@ -59,8 +44,8 @@ h1 { font-family: var(--f-display); font-weight: 400; margin: 10px 0 0; font-siz
 .key { display: flex; flex-wrap: wrap; gap: 6px 14px; font: 400 11px var(--f-data); color: var(--dim); }
 .key b { color: var(--c); }
 @media (max-width: 560px) { .cl { grid-template-columns: 1fr; gap: 2px; } .cl > span { padding: 0; } .strip { gap: 3px; padding: 10px; } .strip a { font-size: 8px; letter-spacing: 0; } }
+body::after { content: none; }
 </style>
-<link rel="stylesheet" href="../assets/theme.css">
 <body>
 <div class="wrap">
   <header>
@@ -72,12 +57,10 @@ h1 { font-family: var(--f-display); font-weight: 400; margin: 10px 0 0; font-siz
   <div class="cards" id="cards"></div>
 </div>
 <script src="../assets/site.js"></script>
-<script>
+<script type="module">
+import { $, el, loadJSON } from '../assets/core.js';
 (async function () {
-  'use strict';
-  const $ = (s) => document.querySelector(s);
-  const el = (t, p = {}, k = []) => { const e = document.createElement(t); for (const x in p) { if (x === 'text') e.textContent = p[x]; else if (x === 'className') e.className = p[x]; else e.setAttribute(x, p[x]); } for (const c of [].concat(k)) if (c != null && c !== false) e.append(c); return e; };
-  let R; try { R = await (await fetch('../meta-log/data/months.json', { cache: 'no-cache' })).json(); } catch (e) { $('#cards').append(el('p', { text: 'No data.' })); return; }
+  let R; try { R = await loadJSON('../meta-log/data/months.json'); } catch (e) { $('#cards').append(el('p', { text: 'No data.' })); return; }
   const C = { A: 'var(--A)', B: 'var(--B)', C: 'var(--C)', D: 'var(--D)', F: 'var(--F)' };
   const gpaL = (g) => (g == null ? '—' : g >= 3.5 ? 'A' : g >= 2.5 ? 'B' : g >= 1.5 ? 'C' : g >= 0.5 ? 'D' : 'F');
   const fmt = (v) => (v == null ? '—' : Number.isInteger(+v) ? (+v).toLocaleString() : v >= 1000 ? Math.round(v).toLocaleString() : v >= 100 ? Math.round(v) : v >= 10 ? (+v).toFixed(1) : (+v).toFixed(2).replace(/0$/, ''));

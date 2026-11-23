@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-page="body">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>BODY//MAP · JSBV.LIFE</title>
@@ -15,33 +15,20 @@
 <meta name="description" content="Training load by muscle group: what was hit, when, and what is still recovering.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="../assets/site.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Monoton&family=Chakra+Petch:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../assets/theme.css">
 <style>
 /* BODY//MAP. Data: body/data/body.json (scripts/build_body_map.py from fitness.json + Strava activities.json).
    Each event's load decays with its muscle group's half-life; the page recomputes against the current time.
    Modes: recovery (load still in the tissue) · 10 days (load added in the last 10 days, with the 7-day vs 28-day ratio) · last hit. */
-:root {
-  color-scheme: dark;
-  --void: #07060f; --panel: #0d0b1c; --grid: #1f1a3d; --ink: #dcd8ff; --dim: #8a84b8;
-  --step: #3ff0ff; --sound: #ff3fb4; --climb: #ffb347; --trail: #b6ff5c; --violet: #9b7bff; --hot: #fff; --heart: #ff4d6d;
-  --tab-accent: #ff4d6d;
-  --f-display: "Monoton", "Chakra Petch", system-ui, sans-serif;
-  --f-ui: "Chakra Petch", "Segoe UI", system-ui, sans-serif;
-  --f-data: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
-  --s-0: 0.75rem; --s-1: 0.875rem; --s-2: 1rem;
-}
-* { box-sizing: border-box; }
-html, body { background: var(--void); color: var(--ink); }
-body { margin: 0; font-family: var(--f-ui); font-size: var(--s-1); line-height: 1.45; padding: 20px max(14px, env(safe-area-inset-right, 0px)) 48px max(14px, env(safe-area-inset-left, 0px)); }
-.wrap { max-width: 1180px; margin: 0 auto; display: grid; gap: 18px; }
-h1 { font-family: var(--f-display); font-weight: 400; margin: 10px 0 0; font-size: clamp(2rem, 6vw, 3.6rem); line-height: 1; color: var(--hot);
-  text-shadow: 0 0 6px var(--heart), 0 0 18px var(--heart), 0 0 42px rgba(255,77,109,0.5); }
+body { line-height: 1.45; padding: 20px max(14px, env(safe-area-inset-right, 0px)) 48px max(14px, env(safe-area-inset-left, 0px)); }
+h1 { margin: 10px 0 0; font-size: clamp(2rem, 6vw, 3.6rem); text-shadow: 0 0 6px var(--heart), 0 0 18px var(--heart), 0 0 42px rgba(255,77,109,0.5); }
 h1 span { text-shadow: 0 0 6px var(--step), 0 0 18px var(--step); }
-h2 { font: 600 var(--s-0) var(--f-ui); letter-spacing: 0.2em; text-transform: uppercase; margin: 0 0 10px; color: var(--hot); }
-section { padding: 16px; }
+h2 { font: 600 var(--s-0) var(--f-ui); margin: 0 0 10px; }
+section { padding: 16px; display: block; }
+body::after { content: none; }
 .seg { display: inline-flex; }
-.seg button { all: unset; cursor: pointer; font: 600 var(--s-0) var(--f-ui); letter-spacing: .12em; text-transform: uppercase; color: var(--dim); padding: 7px 14px; }
+.seg button { all: unset; cursor: pointer; font: 600 var(--s-0) var(--f-ui); letter-spacing: .12em; text-transform: uppercase; color: var(--dim); padding: 7px 14px; transition: color .15s, background .15s; }
 .seg button[aria-pressed="true"] { color: var(--void); background: var(--ink); }
 .layout { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 18px; align-items: start; }
 @media (max-width: 820px) { .layout { grid-template-columns: 1fr; } }
@@ -63,11 +50,11 @@ section { padding: 16px; }
 .panel li span { color: var(--dim); }
 .todo { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
 .todo div { border: 1px solid var(--grid); border-radius: 10px; padding: 10px 12px; border-left: 3px solid var(--c); }
-.todo b { font: 700 var(--s-1) var(--f-ui); color: var(--hot); } .todo small { font: 400 11px var(--f-data); color: var(--dim); margin-left: 6px; }
+.todo b { font: 700 var(--s-1) var(--f-ui); color: var(--hot); }
+.todo small { font: 400 11px var(--f-data); color: var(--dim); margin-left: 6px; }
 .todo ul { margin: 6px 0 0; padding-left: 16px; font: 400 var(--s-0) var(--f-data); }
-.note { font: 400 var(--s-0) var(--f-data); color: var(--dim); margin: 0; }
+.note { font: 400 var(--s-0) var(--f-data); }
 </style>
-<link rel="stylesheet" href="../assets/theme.css">
 <body>
 <div class="wrap">
   <header>
@@ -88,13 +75,10 @@ section { padding: 16px; }
   </section>
 </div>
 <script src="../assets/site.js"></script>
-<script>
+<script type="module">
+import { $, el, svg, loadJSON } from '../assets/core.js';
 (async function () {
-  'use strict';
-  const $ = (s) => document.querySelector(s);
-  const el = (t, p = {}, k = []) => { const e = document.createElement(t); for (const x in p) { if (x === 'text') e.textContent = p[x]; else if (x === 'className') e.className = p[x]; else if (x.startsWith('on')) e.addEventListener(x.slice(2), p[x]); else e.setAttribute(x, p[x]); } for (const c of [].concat(k)) if (c != null) e.append(c); return e; };
-  const NS = 'http://www.w3.org/2000/svg', sv = (t, a = {}) => { const e = document.createElementNS(NS, t); for (const k in a) e.setAttribute(k, a[k]); return e; };
-  let B; try { B = await (await fetch('data/body.json', { cache: 'no-cache' })).json(); } catch (e) { $('#panel').append(el('p', { className: 'note', text: 'No data.' })); return; }
+  let B; try { B = await loadJSON('data/body.json'); } catch (e) { $('#panel').append(el('p', { className: 'note', text: 'No data.' })); return; }
 
   const STRETCH = {
     neck: ['Chin tucks 10×', 'Ear-to-shoulder hold 30 s a side', 'Levator stretch (nose to armpit) 30 s'],
@@ -133,19 +117,19 @@ section { padding: 16px; }
     ['feet', 1, 'polygon', [[76, 394], [89, 394], [90, 410], [74, 410]]],
   ];
   const SIL = 'M100 12 a18 18 0 1 1 -0.1 0 Z M88 48 L112 48 L114 62 L132 70 L148 88 L152 140 L162 196 L150 198 L140 146 L132 108 L126 160 L124 196 L118 290 L114 300 L112 392 L116 414 L104 414 L102 300 L100 210 L98 300 L96 414 L84 414 L88 392 L86 300 L82 290 L76 196 L74 160 L68 108 L60 146 L50 198 L38 196 L48 140 L52 88 L68 70 L86 62 Z';
-  const fig = sv('svg', { viewBox: '0 0 420 430', role: 'img', 'aria-label': 'Front and back of the body, each muscle group coloured' });
+  const fig = svg('svg', { viewBox: '0 0 420 430', role: 'img', 'aria-label': 'Front and back of the body, each muscle group coloured' });
   const shapes = {};
   for (const v of [0, 1]) {
-    const g = sv('g', { transform: v ? 'translate(220,0)' : '' }); g.append(sv('path', { d: SIL, class: 'sil' }));
-    const t = sv('text', { x: 100, y: 428, 'text-anchor': 'middle' }); t.textContent = v ? 'BACK' : 'FRONT'; g.append(t); fig.append(g);
+    const g = svg('g', { transform: v ? 'translate(220,0)' : '' }); g.append(svg('path', { d: SIL, class: 'sil' }));
+    const t = svg('text', { x: 100, y: 428, 'text-anchor': 'middle' }); t.textContent = v ? 'BACK' : 'FRONT'; g.append(t); fig.append(g);
     for (const [id, view, tag, geo] of PAIRS) {
       if (view !== v) continue;
       for (const side of [0, 1]) {
         let e;
-        if (tag === 'ellipse') e = sv('ellipse', { ...geo, cx: side ? 200 - geo.cx : geo.cx });
-        else e = sv('polygon', { points: L(side ? M(geo) : geo) });
+        if (tag === 'ellipse') e = svg('ellipse', { ...geo, cx: side ? 200 - geo.cx : geo.cx });
+        else e = svg('polygon', { points: L(side ? M(geo) : geo) });
         e.setAttribute('class', 'm'); e.dataset.g = id; e.setAttribute('tabindex', '0');
-        e.append(Object.assign(sv('title'), { textContent: B.groups.find((x) => x.id === id).name }));
+        e.append(Object.assign(svg('title'), { textContent: B.groups.find((x) => x.id === id).name }));
         g.append(e); (shapes[id] = shapes[id] || []).push(e);
       }
     }

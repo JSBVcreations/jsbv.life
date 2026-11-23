@@ -44,7 +44,9 @@ Root `index.html` routes by hash (`VIEWS`, `NAV_OF`, `route()`); sub-pages use `
 ## 3. Repo layout
 ```
 index.html                 root app (Home, Fitness, Health, Media, Data, Explorer, Calendar, Watched, Lab)
-assets/site.js|site.css    shared nav, breadcrumbs, page tabs
+assets/site.js             shared nav, breadcrumbs, page tabs
+assets/theme.css           shared look, colour tokens, per-page accents
+assets/core.js             shared helpers (ES module)
 assets/theme.css           shared look, loaded LAST on every page (panels, nav, controls, tables)
 <page>/index.html          one page = one file, inline CSS + JS; reads <page>/data/*.json
 meta-log/data/             daily.json (everything by day), seasons.json, manifest.json, health/watch/calls/breath JSON,
@@ -106,8 +108,8 @@ fresh each output is. Add a source: builder → registry row → `build_meta_log
   Restyle shared pieces there, not per page.
 - Tabs: `<nav class="ptabs" data-default="k"><a href="#k" data-tab="k" data-alias="old">`; panels carry `data-tab`;
   `data-off="1"` hides a tab with no data. `SiteTabs.start() / show(k) / refresh()`; draw on `tabchange`.
-- Sub-pages: `<nav class="site" data-here="trails|projects|data" data-crumb="Section|Page">`, load `../assets/site.css`,
-  `../assets/site.js`, and `../assets/theme.css` after the page's own `<style>`.
+- Sub-pages: `<nav class="site" data-here="trails|projects|data" data-crumb="Section|Page">`, load `../assets/theme.css` before
+  the page's own `<style>`, `../assets/site.js`, and a `<script type="module">` importing `../assets/core.js`.
 - Jack's rules: tabs over scrolling (1–2 screens per tab); dashboard tiles change only on click and show last 7 + last 30
   days; data views default to the current year; weeks start Sunday; metrics nested under umbrellas; **no explanatory filler
   text under charts/datasets**: labels and numbers only; numbers come from data, never estimated in prose.

@@ -89,7 +89,7 @@ Rule: a page should be about a screen or two tall per tab. Long pages get tabs, 
   - Movies & TV (`#movies`, alias `#watched`; its own top-level tab since Nov 19): every title in one grid, no paging. A tile is a
     button that opens the report card (`<dialog id="rc">`): Final, stars, verdict, quadrant bars, then only the categories Jack scored
     (band text + his note in full), propaganda, custom scales, surprise actors, and the only IMDb link (a button).
-- Sub-pages load the shared `assets/site.css` and `assets/site.js` (before their own script). They declare
+- Sub-pages load the shared `assets/theme.css` (before their own `<style>`) and `assets/site.js` (before their own script); page scripts are ES modules importing `assets/core.js`. They declare
   `<nav class="site" data-here="trails|projects|data|experiments" data-crumb="Section part|Page"></nav>`; site.js fills
   in the five links (with the current one marked) and a breadcrumb.
 - Page tabs (site.js): `<nav class="ptabs" data-default="key"><a href="#key" data-tab="key" data-alias="old-hash ...">`.
@@ -108,7 +108,7 @@ Rule: a page should be about a screen or two tall per tab. Long pages get tabs, 
   | pct-training | plan · calendar · low-tide · days · recovery · pace · trail-weeks |
 
   `--tab-accent` sets each page's tab colour.
-- New page checklist: include site.css + site.js, `nav.site` with data-here/data-crumb, tabs if it runs past ~2 screens,
+- New page checklist: include theme.css + site.js, a module script on core.js, `data-page` on `<html>`, `nav.site` with data-here/data-crumb, tabs if it runs past ~2 screens,
   and a card or jump link under Trails or Projects in the root page.
 - Data cards come from daily.json; `DIR` gives each one its blurb and own-page link. `HIDE_IN_DATA` keeps the trail log out
   of Data (it lives under Trails).

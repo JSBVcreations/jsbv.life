@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-page="astro">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Star Log · JSBV.LIFE</title>
@@ -15,8 +15,8 @@
 <meta name="description" content="A natal chart against ten years of the sky and ten years of data: transits, eclipses, retrogrades and lunar phases.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="../assets/site.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Monoton&family=Chakra+Petch:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&family=Noto+Sans+Symbols:wght@400;500&family=Noto+Sans+Symbols+2&display=swap">
+<link rel="stylesheet" href="../assets/theme.css">
 <style>
 /* STAR//LOG (under Data). Data: meta-log/data/astro.json (scripts/build_astro.py, from the git-ignored JSBV meta/ natal text),
    daily.json (every dataset) and life.json (chapters). Live positions for the chart's outer ring are computed in the page.
@@ -24,50 +24,23 @@
    periods (every transit, house period and moment, with the record during it) · lens (one metric by lunar phase and retrograde) ·
    sky (every metric against the sky). Effects use each day's value minus its centred 91-day mean ("vs usual"); p-values come
    from circular-shift permutations (the sky series slid against the data), which keeps both series' own runs and seasons intact. */
-:root {
-  color-scheme: dark;
-  --void: #07060f; --panel: #0d0b1c; --grid: #1f1a3d; --ink: #dcd8ff; --dim: #8a84b8;
-  --step: #3ff0ff; --sound: #ff3fb4; --climb: #ffb347; --trail: #b6ff5c; --violet: #9b7bff; --hot: #fff;
-  --tab-accent: #c7a6ff;
-  --f-display: "Monoton", "Chakra Petch", system-ui, sans-serif;
-  --f-ui: "Chakra Petch", "Segoe UI", system-ui, sans-serif;
-  --f-data: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
-  --sym: "Noto Sans Symbols", "Noto Sans Symbols 2", "Segoe UI Symbol", sans-serif;
-  --s-0: 0.75rem; --s-1: 0.875rem; --s-2: 1rem; --s-3: 1.25rem;
-}
-* { box-sizing: border-box; }
-html, body { background: var(--void); color: var(--ink); }
-body { margin: 0; font-family: var(--f-ui); font-size: var(--s-1); line-height: 1.5; overflow-x: clip;
-  padding: 24px max(16px, env(safe-area-inset-right, 0px)) 64px max(16px, env(safe-area-inset-left, 0px)); }
-body::after { content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 50;
-  background: repeating-linear-gradient(to bottom, rgba(0,0,0,0) 0 2px, rgba(0,0,0,0.18) 2px 3px); }
-.wrap { max-width: 1180px; margin: 0 auto; display: grid; gap: 22px; }
-h1 { font-family: var(--f-display); font-weight: 400; margin: 14px 0 0; font-size: clamp(2.2rem, 7vw, 4.6rem); line-height: 1;
-  color: var(--hot); text-shadow: 0 0 6px var(--violet), 0 0 18px var(--violet), 0 0 42px rgba(155,123,255,0.5); }
+body { overflow-x: clip; }
+h1 { margin: 14px 0 0; }
 h1 span { text-shadow: 0 0 6px #c7a6ff, 0 0 18px #c7a6ff, 0 0 42px rgba(199,166,255,0.6); }
-.readout { display: flex; flex-wrap: wrap; gap: 8px 28px; font-family: var(--f-data); padding: 12px 0; border-block: 1px solid var(--grid); }
-.readout div { display: grid; }
-.readout span { font-size: var(--s-0); text-transform: uppercase; letter-spacing: 0.12em; color: var(--dim); font-family: var(--f-ui); }
-.readout strong { font-size: var(--s-2); font-weight: 600; font-variant-numeric: tabular-nums; }
+.readout strong { font-size: var(--s-2); }
 .g { font-family: var(--sym); }
-section { border: 1px solid var(--grid); background: var(--panel); padding: 18px; display: grid; gap: 14px; min-width: 0; }
-section > * { min-width: 0; }
-h2 { margin: 0; font: 700 var(--s-2)/1.2 var(--f-ui); letter-spacing: 0.18em; text-transform: uppercase; color: var(--hot); }
+section { gap: 14px; }
 h3 { margin: 0; font: 600 var(--s-0)/1.2 var(--f-ui); letter-spacing: 0.14em; text-transform: uppercase; color: var(--dim); }
-.note { margin: 0; color: var(--dim); max-width: 80ch; font-size: var(--s-0); }
+.note { font-size: var(--s-0); }
 .ctl { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
-.ctl button { font: 600 var(--s-0) var(--f-data); letter-spacing: 0.08em; color: var(--dim); background: none;
-  border: 1px solid var(--grid); padding: 6px 10px; cursor: pointer; min-height: 36px; }
+.ctl button { font: 600 var(--s-0) var(--f-data); letter-spacing: 0.08em; color: var(--dim); background: none; border: 1px solid var(--grid); padding: 6px 10px; cursor: pointer; min-height: 36px; }
 .ctl button[aria-pressed="true"] { color: var(--void); background: #c7a6ff; border-color: #c7a6ff; }
 .ctl .gap { width: 12px; }
 .ctl select, .ctl input { font: 400 var(--s-1) var(--f-data); color: var(--ink); background: rgba(18,15,38,.9); border: 1px solid var(--grid); min-height: 36px; padding: 0 8px; border-radius: 9px; }
 .split { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 18px; align-items: start; }
 .wheel { position: relative; aspect-ratio: 1; width: 100%; max-width: 620px; }
 .wheel canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
-.scroll { overflow-x: auto; }
-table { border-collapse: collapse; width: 100%; font-family: var(--f-data); font-size: var(--s-0); font-variant-numeric: tabular-nums; }
-th, td { padding: 6px 8px; border-bottom: 1px solid var(--grid); text-align: right; white-space: nowrap; }
-th { color: var(--dim); font-weight: 400; text-transform: uppercase; letter-spacing: 0.08em; background: var(--panel); }
+th, td { padding: 6px 8px; }
 th:first-child, td:first-child, td.l, th.l { text-align: left; }
 td .g { font-size: 15px; }
 .rx { color: var(--sound); }
@@ -80,17 +53,15 @@ details.item[open] > summary { margin-bottom: 4px; }
 .item .d { font: var(--s-0) var(--f-data); color: var(--dim); }
 .item .x { font-size: var(--s-1); color: var(--ink); max-width: 90ch; }
 .item .rec { font: var(--s-0) var(--f-data); color: var(--dim); display: flex; flex-wrap: wrap; gap: 4px 14px; }
-.up { color: var(--step); } .dn { color: var(--sound); }
+.up { color: var(--step); }
+.dn { color: var(--sound); }
 .chart { position: relative; }
-.chart svg { display: block; width: 100%; }
-.chart text { font: 400 11px var(--f-data); fill: var(--dim); }
-.tip { position: fixed; z-index: 60; pointer-events: none; max-width: 340px; background: rgba(13,11,28,.96); border: 1px solid var(--grid); padding: 8px 10px;
-  font: var(--s-0)/1.45 var(--f-data); color: var(--ink); border-radius: 8px; }
+.tip { position: fixed; z-index: 60; pointer-events: none; max-width: 340px; background: rgba(13,11,28,.96); border: 1px solid var(--edge-hi); padding: 8px 10px; font: var(--s-0)/1.45 var(--f-data); color: var(--ink); }
 .tip b { color: var(--hot); }
 .rows { display: grid; gap: 6px; align-content: start; }
 .row { display: grid; grid-template-columns: 130px minmax(0, 1fr) 215px; gap: 10px; align-items: center; font: var(--s-0) var(--f-data); }
 .row .lab { color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.row .bar { position: relative; height: 18px; background: rgba(31,26,61,.5); }
+.row .bar { position: relative; height: 18px; }
 .row .bar i { position: absolute; top: 2px; bottom: 2px; }
 .row .bar .mid { position: absolute; left: 50%; top: 0; bottom: 0; width: 1px; background: var(--dim); opacity: .5; }
 .row .v { text-align: right; color: var(--dim); white-space: nowrap; }
@@ -100,12 +71,9 @@ td.sig { font-weight: 700; color: var(--hot); }
 .legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font: var(--s-0) var(--f-data); color: var(--dim); }
 .legend i { display: inline-block; width: 12px; height: 8px; margin-right: 6px; vertical-align: middle; }
 .prog { font: var(--s-0) var(--f-data); color: var(--dim); }
-footer { font-family: var(--f-data); font-size: var(--s-0); color: var(--dim); }
-[hidden] { display: none !important; }
 @media (max-width: 860px) { .split, .cols { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 560px) { .row { grid-template-columns: minmax(0, 1fr) auto; } .row .bar { grid-column: 1 / -1; order: 3; height: 12px; } }
 </style>
-<link rel="stylesheet" href="../assets/theme.css">
 <body>
 <div class="wrap">
   <header>
@@ -221,18 +189,11 @@ function lonOf(id, ms) {
   const P = helio(id, T); return norm360(Math.atan2(P[1] - E[1], P[0] - E[0]) * R2D + 1.396971 * T);
 }
 </script>
-<script>
+<script type="module">
+import { $, el, svg, DAY, T0, dayIndex, iso, dateLabel, tipAt, tipOff, seg, loadJSON } from '../assets/core.js';
 (async () => {
-  const $ = (s) => document.querySelector(s);
-  const NS = 'http://www.w3.org/2000/svg';
-  const sv = (tag, at, kids) => { const e = document.createElementNS(NS, tag); for (const k in at) e.setAttribute(k, at[k]); if (kids) e.append(...kids); return e; };
-  const el = (tag, props, kids) => { const e = Object.assign(document.createElement(tag), props || {}); if (kids) e.append(...kids.filter(Boolean)); return e; };
-  const DAY = 864e5, BASE = Date.UTC(2015, 0, 1) / DAY;
-  const idx = (s) => Date.UTC(+s.slice(0, 4), +s.slice(5, 7) - 1, +s.slice(8, 10)) / DAY - BASE;
-  const iso = (i) => new Date((i + BASE) * DAY).toISOString().slice(0, 10);
-  const fmt = (s) => new Date(Date.UTC(+s.slice(0, 4), +s.slice(5, 7) - 1, +s.slice(8, 10))).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
   const fmtM = (s) => new Date(Date.UTC(+s.slice(0, 4), +s.slice(5, 7) - 1, 1)).toLocaleDateString('en-US', { month: 'short', year: 'numeric', timeZone: 'UTC' });
-  const now = new Date(), TODAY = idx(`${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`);
+  const now = new Date(), TODAY = dayIndex(`${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`);
   const SIGNS = ['Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo', 'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'];
   const SG = ['♈', '♉', '♊', '♋', '♌', '♍', '♎', '♏', '♐', '♑', '♒', '♓'].map((g) => g + '︎');
   const GL = { sun: '☉', moon: '☽', mercury: '☿', venus: '♀', mars: '♂', jupiter: '♃', saturn: '♄', uranus: '♅', neptune: '♆', pluto: '♇', node: '☊', chiron: '⚷', asc: 'AC', mc: 'MC' };
@@ -245,24 +206,18 @@ function lonOf(id, ms) {
   const ph8 = (e) => Math.floor(norm360(e + 22.5) / 45) % 8;
   const deg = (l) => { const x = norm360(l) % 30; let d = Math.floor(x), m = Math.round((x - d) * 60); if (m === 60) { d++; m = 0; } return `${d}°${String(m).padStart(2, '0')}′`; };
   const pos = (l) => `${deg(l)} ${SIGNS[Math.floor(norm360(l) / 30)]}`;
-  const tip = $('#tip');
-  const tipAt = (ev, html) => { tip.innerHTML = html; tip.hidden = false; const r = tip.getBoundingClientRect();
-    tip.style.left = Math.max(6, Math.min(innerWidth - r.width - 6, ev.clientX + 14)) + 'px'; tip.style.top = (ev.clientY + 16 + r.height > innerHeight ? ev.clientY - r.height - 10 : ev.clientY + 16) + 'px'; };
-  const tipOff = () => { tip.hidden = true; };
-  const seg = (host, opts, cur, on) => { host.replaceChildren(...opts.map(([k, label]) => { const b = el('button', { type: 'button', textContent: label }); b.setAttribute('aria-pressed', String(k === cur));
-    b.onclick = () => { for (const c of host.children) c.setAttribute('aria-pressed', String(c === b)); on(k); }; return b; })); };
 
   let A, DJ, LIFE;
   try {
-    const [a, d, l] = await Promise.all(['../meta-log/data/astro.json', '../meta-log/data/daily.json', '../meta-log/data/life.json'].map((u) => fetch(u, { cache: 'no-cache' }).then((r) => (r.ok ? r.json() : null))));
+    const [a, d, l] = await Promise.all(['../meta-log/data/astro.json', '../meta-log/data/daily.json', '../meta-log/data/life.json'].map((u) => loadJSON(u, { optional: true })));
     if (!a || !d) throw 0; A = a; DJ = d; LIFE = l || [];
   } catch (e) { $('#err').hidden = false; SiteTabs.start(); return; }
 
   const NAT = Object.fromEntries(A.natal.points.map((p) => [p.id, p])), CUSPS = A.natal.cusps;
-  const T = A.transits.map((t) => ({ ...t, a0: idx(t.start), a1: idx(t.end) }));
-  const MOM = A.moments.map((m) => ({ ...m, i: idx(m.date) }));
+  const T = A.transits.map((t) => ({ ...t, a0: dayIndex(t.start), a1: dayIndex(t.end) }));
+  const MOM = A.moments.map((m) => ({ ...m, i: dayIndex(m.date) }));
   const ELA = A.daily.el, LOAD = A.daily.load, NA = A.daily.n;
-  const RX = {}; for (const [p, runs] of Object.entries(A.retro)) { const v = new Uint8Array(NA); for (const [s, e] of runs) for (let k = Math.max(0, idx(s)); k <= Math.min(NA - 1, idx(e)); k++) v[k] = 1; RX[p] = v; }
+  const RX = {}; for (const [p, runs] of Object.entries(A.retro)) { const v = new Uint8Array(NA); for (const [s, e] of runs) for (let k = Math.max(0, dayIndex(s)); k <= Math.min(NA - 1, dayIndex(e)); k++) v[k] = 1; RX[p] = v; }
   const PHA = new Uint8Array(NA), ILA = new Float64Array(NA); for (let j = 0; j < NA; j++) { PHA[j] = Math.floor(norm360(ELA[j] + 22.5) / 45) % 8; ILA[j] = (1 - Math.cos(ELA[j] * Math.PI / 180)) / 2; }
   const LUN = A.daily.lun || [], FW = new Uint8Array(NA), NW = new Uint8Array(NA);
   for (let j = 0; j < NA; j++) if (LUN[j] === 1 || LUN[j] === 2) for (let k = Math.max(0, j - 1); k <= Math.min(NA - 1, j + 1); k++) (LUN[j] === 2 ? FW : NW)[k] = 1;
@@ -280,7 +235,7 @@ function lonOf(id, ms) {
   if (TODAY < NA) { const ys = LOAD.slice(0, Math.min(NA, TODAY + 1)), sorted = [...ys].sort((a, b) => a - b), pct = Math.round(sorted.findIndex((x) => x >= LOAD[TODAY]) / sorted.length * 100);
     $('#r-load').textContent = `${LOAD[TODAY].toFixed(1)} · ${pct}th pct`; }
   const nextM = MOM.filter((m) => m.i > TODAY && m.w >= 3)[0];
-  $('#r-next').textContent = nextM ? `${nextM.title.replace(' (exact)', '')}, ${fmt(nextM.date)}` : '—';
+  $('#r-next').textContent = nextM ? `${nextM.title.replace(' (exact)', '')}, ${dateLabel(nextM.date)}` : '—';
 
   // ================================================================ CHART
   const cv = $('#c-wheel'), cx2 = cv.getContext('2d'); let cDay = TODAY;
@@ -305,7 +260,7 @@ function lonOf(id, ms) {
       for (let k = 0; k < 60; k++) for (let i = 0; i < items.length; i++) { const A1 = items[i], B1 = items[(i + 1) % items.length]; let df = B1.d - A1.d; if (i === items.length - 1) df += Math.PI * 2; if (df < sep) { A1.d -= (sep - df) / 2; B1.d += (sep - df) / 2; } } return items; };
     const glyph = (id, lon, r, rim, label) => ({ id, lon, r, rim, label, a: norm360(ang(lon) * R2D) * D2R });
     const nat = spread(A.natal.points.filter((p) => !['asc', 'mc'].includes(p.id)).map((p) => glyph(p.id, p.lon, rN, rTi, deg(p.lon).split('°')[0] + '°')), rN);
-    const ms = (cDay + BASE) * DAY + 17 * 3600e3, tids = ['sun', 'moon', 'mercury', 'venus', 'mars', 'jupiter', 'saturn', 'uranus', 'neptune', 'pluto', 'node'];
+    const ms = T0 + cDay * DAY + 17 * 3600e3, tids = ['sun', 'moon', 'mercury', 'venus', 'mars', 'jupiter', 'saturn', 'uranus', 'neptune', 'pluto', 'node'];
     const tr = spread(tids.map((id) => glyph(id, lonOf(id, ms), rT, rZi, '')), rT);
     for (const set of [nat, tr]) for (const g of set) {
       const gx = c + g.r * Math.cos(g.d), gy = c - g.r * Math.sin(g.d), [tx, ty] = P(g.lon, g.rim);
@@ -328,9 +283,9 @@ function lonOf(id, ms) {
     $('#c-asp').innerHTML = '<tr><th>Transit</th><th class="l">to natal</th><th>Orb</th></tr>' + (hits.length ? hits.slice(0, 6).map(([p, k, t, o]) => `<tr><td><span class="g" style="color:${PC[p]}">${GL[p]}︎</span> ${NM[p]}</td><td class="l"><span class="g" style="color:${AC[k]}">${AG[k]}</span> ${NM[t]}</td><td>${o.toFixed(1)}°</td></tr>`).join('') : '<tr><td colspan="3">None within orb</td></tr>')
       + '<tr><th colspan="3" class="l" style="padding-top:14px">Natal</th></tr>' + A.natal.aspects.filter((a) => a.orb < 4 && !['chiron'].includes(a.a) && !['chiron'].includes(a.b)).sort((a, b) => a.orb - b.orb).slice(0, 8).map((a) =>
       `<tr><td><span class="g" style="color:${PC[a.a]}">${GL[a.a]}︎</span> ${NM[a.a]}</td><td class="l"><span class="g" style="color:${AC[a.k]}">${AG[a.k]}</span> ${NM[a.b]}</td><td>${a.orb.toFixed(1)}°</td></tr>`).join('');
-    $('#c-asp').rows[0].cells[0].textContent = 'Transit on ' + fmt(iso(cDay)).replace(/, \d{4}$/, '');
+    $('#c-asp').rows[0].cells[0].textContent = 'Transit on ' + dateLabel(iso(cDay)).replace(/, \d{4}$/, '');
   }
-  $('#c-date').value = iso(TODAY); $('#c-date').onchange = (e) => { if (e.target.value) { cDay = idx(e.target.value); drawWheel(); } };
+  $('#c-date').value = iso(TODAY); $('#c-date').onchange = (e) => { if (e.target.value) { cDay = dayIndex(e.target.value); drawWheel(); } };
   $('#c-today').onclick = () => { cDay = TODAY; $('#c-date').value = iso(TODAY); drawWheel(); };
 
   // ================================================================ record during a period (vs the rest of that metric's record)
@@ -349,11 +304,11 @@ function lonOf(id, ms) {
   const sum = (kids) => el('summary', {}, kids);
   const itemT = (t, showRec, open) => el('details', { className: 'item', open: !!open, style: `--c:${AC[t.a] || '#c7a6ff'}` }, [sum([
     el('div', { className: 't', innerHTML: `<span class="g" style="color:${PC[t.p]}">${GL[t.p]}︎</span> <span class="g" style="color:${AC[t.a]}">${AG[t.a]}</span> <span class="g" style="color:${PC[t.t]}">${GL[t.t]}︎</span> ${t.title}` }),
-    el('div', { className: 'd', textContent: `${fmt(t.start)} → ${fmt(t.end)} · exact ${t.exact.length ? t.exact.map((x) => fmt(x)).join(', ') : '(outside 2015–2027)'} · weight ${t.w}` })]),
+    el('div', { className: 'd', textContent: `${dateLabel(t.start)} → ${dateLabel(t.end)} · exact ${t.exact.length ? t.exact.map((x) => dateLabel(x)).join(', ') : '(outside 2015–2027)'} · weight ${t.w}` })]),
     el('div', { className: 'x', textContent: t.text }),
     showRec && t.a0 <= TODAY ? record(t.a0, Math.min(t.a1, TODAY)) : null]);
   const itemM = (m, open) => el('details', { className: 'item', open: !!open, style: `--c:${KC[m.kind] || '#7fe0e8'}` }, [
-    sum([el('div', { className: 't', textContent: m.title }), el('div', { className: 'd', textContent: `${fmt(m.date)}${m.end ? ' → ' + fmt(m.end) : ''} · ${KN[m.kind] || m.kind} · impact ${m.w}` })]), el('div', { className: 'x', textContent: m.text }),
+    sum([el('div', { className: 't', textContent: m.title }), el('div', { className: 'd', textContent: `${dateLabel(m.date)}${m.end ? ' → ' + dateLabel(m.end) : ''} · ${KN[m.kind] || m.kind} · impact ${m.w}` })]), el('div', { className: 'x', textContent: m.text }),
     m.i <= TODAY ? record(m.i - 3, Math.min(m.i + 10, TODAY)) : null]);
 
   // ================================================================ NOW
@@ -369,7 +324,7 @@ function lonOf(id, ms) {
   $('#t-legend').innerHTML = [['#ffb347', 'conjunct'], ['#ff3fb4', 'square / opposite'], ['#3ff0ff', 'trine / sextile'], ...Object.entries(KC).map(([k, c]) => [c, KN[k]])].map(([c, l]) => `<span><i style="background:${c}"></i>${l}</span>`).join('');
   function drawTimeline() {
     const host = $('#t-chart'), W = host.clientWidth; if (!W) return;
-    const yr = new Date().getFullYear(), [a, b] = TV.span === 'year' ? [idx(`${yr}-01-01`), idx(`${yr}-12-31`)] : TV.span === '3y' ? [idx(`${yr - 3}-01-01`), idx(`${yr + 1}-12-31`)] : [0, NA - 1];
+    const yr = new Date().getFullYear(), [a, b] = TV.span === 'year' ? [dayIndex(`${yr}-01-01`), dayIndex(`${yr}-12-31`)] : TV.span === '3y' ? [dayIndex(`${yr - 3}-01-01`), dayIndex(`${yr + 1}-12-31`)] : [0, NA - 1];
     const lab = W < 520 ? 64 : 92, X = (i) => lab + (Math.max(a, Math.min(b + 1, i)) - a) / (b + 1 - a) * (W - lab - 8);
     const lanes = [];
     const PL = ['jupiter', 'saturn', 'uranus', 'neptune', 'pluto', 'node'];
@@ -377,44 +332,44 @@ function lonOf(id, ms) {
       for (const t of items) { let k = rows.findIndex((end) => end < t.a0 - 3); if (k < 0) { rows.push(0); k = rows.length - 1; } rows[k] = t.a1; t._row = k; }
       lanes.push({ p, items, rows: Math.max(1, rows.length) }); }
     const rh = 12, gap = 8; let y = 34;
-    const s = sv('svg', { viewBox: `0 0 ${W} 10`, role: 'img', 'aria-label': 'Transit timeline' });
+    const s = svg('svg', { viewBox: `0 0 ${W} 10`, role: 'img', 'aria-label': 'Transit timeline' });
     // years / months axis
     const span = b - a, step = span > 900 ? 365 : 0;
-    for (let i = a; i <= b; i++) { const d = iso(i); if ((step && d.endsWith('01-01')) || (!step && d.endsWith('-01'))) { s.append(sv('line', { x1: X(i), x2: X(i), y1: 14, y2: 4000, stroke: '#1f1a3d' }));
-      s.append(sv('text', { x: X(i) + 3, y: 12 }, [step ? d.slice(0, 4) : fmtM(d).replace(/ \d{4}$/, '')])); } }
+    for (let i = a; i <= b; i++) { const d = iso(i); if ((step && d.endsWith('01-01')) || (!step && d.endsWith('-01'))) { s.append(svg('line', { x1: X(i), x2: X(i), y1: 14, y2: 4000, stroke: '#1f1a3d' }));
+      s.append(svg('text', { x: X(i) + 3, y: 12 }, [step ? d.slice(0, 4) : fmtM(d).replace(/ \d{4}$/, '')])); } }
     // life chapters
-    s.append(sv('text', { x: 0, y: y + 9, style: 'fill:var(--ink)' }, ['Life']));
-    for (const L of LIFE) { const i0 = idx(L.start || L.date), i1 = idx(L.end || L.date); if (i1 < a || i0 > b) continue;
-      const r = sv('rect', { x: X(i0), y, width: Math.max(3, X(i1 + 1) - X(i0)), height: rh, fill: L.color, opacity: .55, rx: 2 }); r.addEventListener('mousemove', (ev) => tipAt(ev, `<b>${L.label}</b><br>${fmt(L.start || L.date)}${L.end ? ' → ' + fmt(L.end) : ''}`)); r.addEventListener('mouseleave', tipOff); s.append(r); }
+    s.append(svg('text', { x: 0, y: y + 9, style: 'fill:var(--ink)' }, ['Life']));
+    for (const L of LIFE) { const i0 = dayIndex(L.start || L.date), i1 = dayIndex(L.end || L.date); if (i1 < a || i0 > b) continue;
+      const r = svg('rect', { x: X(i0), y, width: Math.max(3, X(i1 + 1) - X(i0)), height: rh, fill: L.color, opacity: .55, rx: 2 }); r.addEventListener('mousemove', (ev) => tipAt(ev, `<b>${L.label}</b><br>${dateLabel(L.start || L.date)}${L.end ? ' → ' + dateLabel(L.end) : ''}`)); r.addEventListener('mouseleave', tipOff); s.append(r); }
     y += rh + gap;
     // moments
-    s.append(sv('text', { x: 0, y: y + 9, style: 'fill:var(--ink)' }, ['Moments']));
+    s.append(svg('text', { x: 0, y: y + 9, style: 'fill:var(--ink)' }, ['Moments']));
     const wMin = b - a > 400 ? 3 : 1.5;
     for (const m of [...MOM].sort((p, q) => p.w - q.w)) { if (m.i < a || m.i > b || m.w < wMin || /\(exact\)$/.test(m.title)) continue;
-      const c = KC[m.kind] || '#7fe0e8', d = sv('circle', { cx: X(m.i), cy: y + 6, r: Math.min(7, 2 + m.w * 0.8), fill: c, stroke: '#07060f', class: 'hit' });
-      d.addEventListener('mousemove', (ev) => tipAt(ev, `<b>${m.title}</b><br>${fmt(m.date)}`)); d.addEventListener('mouseleave', tipOff); d.addEventListener('click', () => { $('#t-pick').replaceChildren(itemM(m, true)); }); s.append(d); }
+      const c = KC[m.kind] || '#7fe0e8', d = svg('circle', { cx: X(m.i), cy: y + 6, r: Math.min(7, 2 + m.w * 0.8), fill: c, stroke: '#07060f', class: 'hit' });
+      d.addEventListener('mousemove', (ev) => tipAt(ev, `<b>${m.title}</b><br>${dateLabel(m.date)}`)); d.addEventListener('mouseleave', tipOff); d.addEventListener('click', () => { $('#t-pick').replaceChildren(itemM(m, true)); }); s.append(d); }
     y += rh + gap;
-    if (b - a <= 400) { s.append(sv('text', { x: 0, y: y + 9, style: 'fill:var(--ink)' }, ['Lunations']));
-      for (let i = a; i <= Math.min(b, NA - 1); i++) if (LUN[i] === 1 || LUN[i] === 2) { const d = sv('circle', { cx: X(i + 0.5), cy: y + 6, r: 4.5, fill: LUN[i] === 2 ? '#e3e8f4' : '#07060f', stroke: '#e3e8f4' });
-        d.addEventListener('mousemove', (ev) => tipAt(ev, `<b>${LUN[i] === 2 ? 'Full' : 'New'} moon</b><br>${fmt(iso(i))}`)); d.addEventListener('mouseleave', tipOff); s.append(d); }
+    if (b - a <= 400) { s.append(svg('text', { x: 0, y: y + 9, style: 'fill:var(--ink)' }, ['Lunations']));
+      for (let i = a; i <= Math.min(b, NA - 1); i++) if (LUN[i] === 1 || LUN[i] === 2) { const d = svg('circle', { cx: X(i + 0.5), cy: y + 6, r: 4.5, fill: LUN[i] === 2 ? '#e3e8f4' : '#07060f', stroke: '#e3e8f4' });
+        d.addEventListener('mousemove', (ev) => tipAt(ev, `<b>${LUN[i] === 2 ? 'Full' : 'New'} moon</b><br>${dateLabel(iso(i))}`)); d.addEventListener('mouseleave', tipOff); s.append(d); }
       y += rh + gap; }
     for (const L of lanes) {
-      s.append(sv('text', { x: 0, y: y + 9, style: 'fill:var(--ink)' }, [NM[L.p]]));
-      for (const t of L.items) { const yy = y + t._row * (rh + 3), r = sv('rect', { x: X(t.a0), y: yy, width: Math.max(3, X(t.a1 + 1) - X(t.a0)), height: rh, fill: AC[t.a], opacity: (0.35 + t.w / 15).toFixed(2), rx: 2, class: 'hit' });
-        r.addEventListener('mousemove', (ev) => tipAt(ev, `<b>${t.title}</b><br>${fmt(t.start)} → ${fmt(t.end)}<br>weight ${t.w}`)); r.addEventListener('mouseleave', tipOff);
+      s.append(svg('text', { x: 0, y: y + 9, style: 'fill:var(--ink)' }, [NM[L.p]]));
+      for (const t of L.items) { const yy = y + t._row * (rh + 3), r = svg('rect', { x: X(t.a0), y: yy, width: Math.max(3, X(t.a1 + 1) - X(t.a0)), height: rh, fill: AC[t.a], opacity: (0.35 + t.w / 15).toFixed(2), rx: 2, class: 'hit' });
+        r.addEventListener('mousemove', (ev) => tipAt(ev, `<b>${t.title}</b><br>${dateLabel(t.start)} → ${dateLabel(t.end)}<br>weight ${t.w}`)); r.addEventListener('mouseleave', tipOff);
         r.addEventListener('click', () => { $('#t-pick').replaceChildren(itemT(t, true, true)); }); s.append(r);
-        for (const e of t.exact) { const i = idx(e); if (i >= a && i <= b) s.append(sv('line', { x1: X(i), x2: X(i), y1: yy - 1, y2: yy + rh + 1, stroke: '#fff', 'stroke-width': 1.5 })); } }
+        for (const e of t.exact) { const i = dayIndex(e); if (i >= a && i <= b) s.append(svg('line', { x1: X(i), x2: X(i), y1: yy - 1, y2: yy + rh + 1, stroke: '#fff', 'stroke-width': 1.5 })); } }
       y += L.rows * (rh + 3) + gap; }
     // retrogrades
-    for (const p of ['mercury', 'venus', 'mars']) { s.append(sv('text', { x: 0, y: y + 8, style: 'fill:var(--ink)' }, [`${NM[p]} ℞`]));
-      for (const [s0, e0] of A.retro[p]) { const i0 = idx(s0), i1 = idx(e0); if (i1 < a || i0 > b) continue; const r = sv('rect', { x: X(i0), y, width: Math.max(2, X(i1 + 1) - X(i0)), height: 10, fill: PC[p], opacity: .7, rx: 2 });
-        r.addEventListener('mousemove', (ev) => tipAt(ev, `<b>${NM[p]} retrograde</b><br>${fmt(s0)} → ${fmt(e0)}`)); r.addEventListener('mouseleave', tipOff); s.append(r); }
+    for (const p of ['mercury', 'venus', 'mars']) { s.append(svg('text', { x: 0, y: y + 8, style: 'fill:var(--ink)' }, [`${NM[p]} ℞`]));
+      for (const [s0, e0] of A.retro[p]) { const i0 = dayIndex(s0), i1 = dayIndex(e0); if (i1 < a || i0 > b) continue; const r = svg('rect', { x: X(i0), y, width: Math.max(2, X(i1 + 1) - X(i0)), height: 10, fill: PC[p], opacity: .7, rx: 2 });
+        r.addEventListener('mousemove', (ev) => tipAt(ev, `<b>${NM[p]} retrograde</b><br>${dateLabel(s0)} → ${dateLabel(e0)}`)); r.addEventListener('mouseleave', tipOff); s.append(r); }
       y += 10 + gap; }
     // load line
-    const lh = 46, mx = Math.max(...LOAD.slice(a, b + 1)) || 1; s.append(sv('text', { x: 0, y: y + 14, style: 'fill:var(--ink)' }, ['Load']));
+    const lh = 46, mx = Math.max(...LOAD.slice(a, b + 1)) || 1; s.append(svg('text', { x: 0, y: y + 14, style: 'fill:var(--ink)' }, ['Load']));
     let dd = ''; for (let i = a; i <= Math.min(b, NA - 1); i++) dd += `${i === a ? 'M' : 'L'}${X(i).toFixed(1)},${(y + lh - LOAD[i] / mx * lh).toFixed(1)}`;
-    s.append(sv('path', { d: dd, fill: 'none', stroke: '#c7a6ff', 'stroke-width': 1.4 })); y += lh + 6;
-    if (TODAY >= a && TODAY <= b) { s.append(sv('line', { x1: X(TODAY), x2: X(TODAY), y1: 16, y2: y, stroke: '#fff', 'stroke-dasharray': '3 3', opacity: .6 })); s.append(sv('text', { x: X(TODAY) + 3, y: 26, style: 'fill:#fff' }, ['today'])); }
+    s.append(svg('path', { d: dd, fill: 'none', stroke: '#c7a6ff', 'stroke-width': 1.4 })); y += lh + 6;
+    if (TODAY >= a && TODAY <= b) { s.append(svg('line', { x1: X(TODAY), x2: X(TODAY), y1: 16, y2: y, stroke: '#fff', 'stroke-dasharray': '3 3', opacity: .6 })); s.append(svg('text', { x: X(TODAY) + 3, y: 26, style: 'fill:#fff' }, ['today'])); }
     s.setAttribute('viewBox', `0 0 ${W} ${y}`); s.setAttribute('height', y); host.replaceChildren(s);
   }
 
@@ -432,9 +387,9 @@ function lonOf(id, ms) {
       seg(k4, [['all', 'ALL'], ...Object.keys(KC).map((k) => [k, { eclipse: 'ECLIPSES', return: 'RETURNS', station: 'STATIONS', ingress: 'HOME SIGN', lunation: 'NEW / FULL', retro: 'RETROGRADES', mars: 'MARS', angle: 'ANGLES' }[k]])], PV.mk, (k) => { PV.mk = k; renderPeriods(); }); }
     let items;
     if (PV.kind === 'transits') items = T.filter((t) => PV.p === 'all' || t.p === PV.p).sort((a, b) => PV.sort === 'w' ? b.w - a.w : a.a0 - b.a0).map((t) => itemT(t, true));
-    else if (PV.kind === 'houses') items = A.houses.filter((h) => PV.p === 'all' || h.p === PV.p).sort((a, b) => idx(a.start) - idx(b.start)).map((h) => el('details', { className: 'item', style: `--c:${PC[h.p]}` }, [
-      sum([el('div', { className: 't', innerHTML: `<span class="g" style="color:${PC[h.p]}">${GL[h.p]}︎</span> ${NM[h.p]} through the ${ord(h.h)} house` }), el('div', { className: 'd', textContent: `${fmt(h.start)} → ${fmt(h.end)}` })]),
-      el('div', { className: 'x', textContent: h.text }), idx(h.start) <= TODAY ? record(idx(h.start), Math.min(idx(h.end), TODAY)) : null]));
+    else if (PV.kind === 'houses') items = A.houses.filter((h) => PV.p === 'all' || h.p === PV.p).sort((a, b) => dayIndex(a.start) - dayIndex(b.start)).map((h) => el('details', { className: 'item', style: `--c:${PC[h.p]}` }, [
+      sum([el('div', { className: 't', innerHTML: `<span class="g" style="color:${PC[h.p]}">${GL[h.p]}︎</span> ${NM[h.p]} through the ${ord(h.h)} house` }), el('div', { className: 'd', textContent: `${dateLabel(h.start)} → ${dateLabel(h.end)}` })]),
+      el('div', { className: 'x', textContent: h.text }), dayIndex(h.start) <= TODAY ? record(dayIndex(h.start), Math.min(dayIndex(h.end), TODAY)) : null]));
     else items = MOM.filter((m) => (PV.mk === 'all' || m.kind === PV.mk) && (PV.when === 'all' || (PV.when === 'next' ? m.i > TODAY && m.i <= TODAY + 365 : m.i <= TODAY)))
       .sort((p, q) => (PV.msort === 'w' ? q.w - p.w || p.i - q.i : PV.when === 'past' ? q.i - p.i : p.i - q.i)).map((m) => itemM(m));
     $('#p-list').replaceChildren(...items);
@@ -471,7 +426,7 @@ function lonOf(id, ms) {
       for (const k in hit) if (obs[k] != null && st[k] != null && Math.abs(st[k]) >= Math.abs(obs[k]) - 1e-12) hit[k]++; }
     const p = {}; for (const k in hit) p[k] = obs[k] == null ? null : (1 + hit[k]) / (1 + S); return p;
   }
-  const spanOf = (k) => k === 'year' ? [Math.max(0, idx(`${new Date().getFullYear()}-01-01`)), Math.min(NA - 1, TODAY)] : [0, Math.min(NA - 1, TODAY)];
+  const spanOf = (k) => k === 'year' ? [Math.max(0, dayIndex(`${new Date().getFullYear()}-01-01`)), Math.min(NA - 1, TODAY)] : [0, Math.min(NA - 1, TODAY)];
   const pfmt = (p) => p == null ? '—' : p < 0.001 ? '<0.001' : p.toFixed(3);
   const num = (x, u) => x == null ? '—' : (Math.abs(x) >= 100 ? Math.round(x).toLocaleString('en-US') : Math.abs(x) >= 10 ? x.toFixed(1) : x.toFixed(2)) + (u ? ' ' + u : '');
 
@@ -505,17 +460,17 @@ function lonOf(id, ms) {
     $('#l-rx').replaceChildren(el('h3', { textContent: 'Retrograde vs direct · vs usual' }), ...rxRows.map((x) => barRow(`<span class="g" style="color:${PC[x.pl]}">${GL[x.pl]}︎</span> ${NM[x.pl]} ℞`, x.v, mx2,
       x.on[1] ? `${x.v == null ? '—' : (x.v >= 0 ? '+' : '−') + Math.abs(x.v).toFixed(1) + '%'} · p ${pfmt(p[x.k])} · ${x.on[1]}d` : 'no ℞ days')),
       barRow('Full − New', obs.fn == null ? null : obs.fn / base * 100, mx2, `${obs.fn == null ? '—' : ((obs.fn >= 0 ? '+' : '−') + Math.abs(obs.fn / base * 100).toFixed(1) + '%')} · p ${pfmt(p.fn)}`));
-    $('#l-stat').innerHTML = `<span>${fmt(iso(lo))} → ${fmt(iso(hi))}</span><span>${R.cnt} days vs usual</span><span>average ${num(R.mean, u)}</span><span>Moon lit r ${obs.il == null ? '—' : obs.il.toFixed(3)} (p ${pfmt(p.il)})</span><span>Load r ${obs.lo == null ? '—' : obs.lo.toFixed(3)} (p ${pfmt(p.lo)})</span>`;
+    $('#l-stat').innerHTML = `<span>${dateLabel(iso(lo))} → ${dateLabel(iso(hi))}</span><span>${R.cnt} days vs usual</span><span>average ${num(R.mean, u)}</span><span>Moon lit r ${obs.il == null ? '—' : obs.il.toFixed(3)} (p ${pfmt(p.il)})</span><span>Load r ${obs.lo == null ? '—' : obs.lo.toFixed(3)} (p ${pfmt(p.lo)})</span>`;
     // strip: 7-day mean with Mercury ℞ shading and full moons
     const host = $('#l-chart'), W = host.clientWidth, H = 150, m = { l: 8, r: 8, t: 10, b: 22 }, X = (i) => m.l + (i - lo) / (hi - lo || 1) * (W - m.l - m.r);
     const sm = []; for (let i = 0; i < n; i++) { let s = 0, c = 0; for (let j = Math.max(0, i - 3); j <= Math.min(n - 1, i + 3); j++) if (R.raw[j] != null) { s += R.raw[j]; c++; } sm.push(c >= 3 ? s / c : null); }
     const vals = sm.filter((x) => x != null), y0 = Math.min(...vals), y1 = Math.max(...vals), Y = (v) => H - m.b - (v - y0) / (y1 - y0 || 1) * (H - m.t - m.b);
-    const s = sv('svg', { viewBox: `0 0 ${W} ${H}`, height: H, role: 'img', 'aria-label': 'Seven-day average with Mercury retrograde shaded' });
-    for (const [s0, e0] of A.retro.mercury) { const i0 = Math.max(lo, idx(s0)), i1 = Math.min(hi, idx(e0)); if (i1 >= i0) s.append(sv('rect', { x: X(i0), y: m.t, width: Math.max(1, X(i1 + 1) - X(i0)), height: H - m.t - m.b, fill: '#ffb347', opacity: .12 })); }
-    for (let i = lo; i <= hi; i++) if (ph8(ELA[i]) === 4 && (i === lo || ph8(ELA[i - 1]) !== 4)) s.append(sv('circle', { cx: X(i + 1), cy: H - m.b + 9, r: 2.5, fill: '#e3e8f4' }));
+    const s = svg('svg', { viewBox: `0 0 ${W} ${H}`, height: H, role: 'img', 'aria-label': 'Seven-day average with Mercury retrograde shaded' });
+    for (const [s0, e0] of A.retro.mercury) { const i0 = Math.max(lo, dayIndex(s0)), i1 = Math.min(hi, dayIndex(e0)); if (i1 >= i0) s.append(svg('rect', { x: X(i0), y: m.t, width: Math.max(1, X(i1 + 1) - X(i0)), height: H - m.t - m.b, fill: '#ffb347', opacity: .12 })); }
+    for (let i = lo; i <= hi; i++) if (ph8(ELA[i]) === 4 && (i === lo || ph8(ELA[i - 1]) !== 4)) s.append(svg('circle', { cx: X(i + 1), cy: H - m.b + 9, r: 2.5, fill: '#e3e8f4' }));
     let d = ''; sm.forEach((v, i) => { if (v == null) return; d += (d && sm[i - 1] != null ? 'L' : 'M') + X(lo + i).toFixed(1) + ',' + Y(v).toFixed(1); });
-    s.append(sv('path', { d, fill: 'none', stroke: Mx.m.color || '#3ff0ff', 'stroke-width': 1.5 }));
-    s.append(sv('text', { x: m.l, y: m.t + 10 }, [`${num(y1, u)} · 7-day average · Mercury ℞ shaded · full moons as dots`]));
+    s.append(svg('path', { d, fill: 'none', stroke: Mx.m.color || '#3ff0ff', 'stroke-width': 1.5 }));
+    s.append(svg('text', { x: m.l, y: m.t + 10 }, [`${num(y1, u)} · 7-day average · Mercury ℞ shaded · full moons as dots`]));
     host.replaceChildren(s);
   }
 
@@ -546,7 +501,7 @@ function lonOf(id, ms) {
     SV.paint = paint; paint();
     let i = 0; const step = () => { if (run !== SV.run) return; const t0 = performance.now();
       while (i < rows.length && performance.now() - t0 < 30) { const r = rows[i++]; r.p = permute(r.R.r, r.lo, r.hi - r.lo + 1, r.obs, 400); }
-      $('#s-prog').textContent = i < rows.length ? `Permutation tests: ${i} of ${rows.length} metrics` : `${rows.length} metrics · ${rows.length * TESTS.length} tests · ${fmt(iso(a0))} → ${fmt(iso(b0))}`;
+      $('#s-prog').textContent = i < rows.length ? `Permutation tests: ${i} of ${rows.length} metrics` : `${rows.length} metrics · ${rows.length * TESTS.length} tests · ${dateLabel(iso(a0))} → ${dateLabel(iso(b0))}`;
       if (i < rows.length) setTimeout(step, 0); else paint(); };
     step();
   }

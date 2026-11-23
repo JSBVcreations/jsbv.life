@@ -31,8 +31,9 @@ Jack's personal data site: a decade of steps, music, photos and trail logs, plus
 | `sky/` | SKY//WHEEL (Data tools card): live chart wheel, Earth at the hub (day/night, clouds from Open-Meteo or simulated), houses (Placidus/Whole/Equal/Porphyry), planets, aspects, Moon phase + next lunations, time-lapse | none: computed in the page (JPL elements, Meeus Moon); land mask baked in |
 | `astro/` | STAR//LOG (Data tools card): chart (natal + live transits bi-wheel) · now (in effect, next 12 months) · timeline (transits, moments, retrogrades, life, load) · periods (transits / houses / moments, each with the record vs the rest) · lens (one metric by lunar phase and retrograde, vs its 91-day usual) · sky (every metric × full−new, Moon lit, Mercury/Venus/Mars ℞, full/new moon ±1 day, load; circular-shift permutation p, BH q) | `meta-log/data/astro.json` (`build_astro.py`, from git-ignored `JSBV meta/text.txt`) + daily.json; day datasets `astro` (℞ days, transit load) and `moon` (full + new moons by sign, Moon lit; Data card under Sky) feed the Explorer and the Lab matrix; moments also cover returns (solar, Mercury, Venus, Mars), planets entering their natal sign, Mars on the chart, new/full moons on natal points, retrogrades over natal points |
 | `months/` | Report cards (Data): one card per month of the year, Fitness + Health graded A–F against every month on record, Media ungraded | `meta-log/data/months.json` (`build_report_cards.py`) |
-| `assets/site.js`, `assets/site.css` | Shared nav (Home · Fitness · Health · Media · Data; old trails/projects/movies hashes alias in), breadcrumbs, page tabs | — |
-| `assets/theme.css` | Shared look, loaded last on every page (glass panels, pill nav, controls, tables) | — |
+| `assets/site.js` | Shared nav (Home · Fitness · Health · Media · Data; old trails/projects/movies hashes alias in), breadcrumbs, page tabs | — |
+| `assets/theme.css` | Shared look and every colour token, loaded first on every page (glass panels, pill nav, page tabs, controls, tables); per-page accents under `[data-page=…]` | — |
+| `assets/core.js` | Shared ES module every page script imports: DOM (`$`, `el`, `svg`), dates (`dayIndex`, `iso`, `dateLabel`, weeks start Sunday), numbers (`fmtInt`, `num`, `tick`), colours `C`, tooltip `tipAt`/`tipOff`, cached `loadJSON`, `seg`, chart helpers | — |
 | `scripts/config/` | `registry.json` (every source; `build_manifest.py` → `meta-log/data/manifest.json`), `genres.json`, `at_profile.json` | — |
 | Scorecard on `#movies` | Screening Scorecard scores: badge, stars, quadrant bars, propaganda; sort by any scale; report card (scored rows only, notes in full, IMDb button) | `watch-scores.json` (`build_scorecard.py`) from `jsbv data/scorecard.json`, which Claude pulls from the Scorecard page (slug d91a6afc-01bd-493a-b1ee-f06b91daa5c2, collection `scores`) with Jack's notes |
 | `scripts/update.py`, `Update jsbv.command` | One-click refresh of every source (runs `fill_posters.py` for new watch-list titles first) | — |
@@ -74,14 +75,15 @@ Jack's personal data site: a decade of steps, music, photos and trail logs, plus
 - **Design:** dark CRT/synthwave. Colours: void #07060f, panel #0d0b1c, grid #1f1a3d, ink #dcd8ff, dim #8a84b8,
   cyan #3ff0ff (movement), magenta #ff3fb4 (music), amber #ffb347 (stairs/elevation), lime #b6ff5c (trail).
   Fonts: Monoton for titles, Chakra Petch for UI, JetBrains Mono for data.
-- **Sub-pages:** load `../assets/site.css` and `../assets/site.js` before their own script, `../assets/theme.css` right after their own `<style>`, and declare
+- **Sub-pages:** `<html lang="en" data-page="name">`; load `../assets/theme.css` before their own `<style>` (the page's style only adds to it: no `:root`, no `!important`),
+  `../assets/site.js` before their own script, and the page script as `<script type="module">` importing from `../assets/core.js`. Declare
   `<nav class="site" data-here="trails|projects|data" data-crumb="Section|Page">`.
 - **Tabs:**
   - Markup: `<nav class="ptabs" data-default="k"><a href="#k" data-tab="k" data-alias="old">`; panels carry `data-tab="k"`.
   - `data-off="1"` means no data and hides the tab.
   - API: `SiteTabs.start()`, `SiteTabs.show(k)`, `SiteTabs.refresh()`.
   - Charts draw only when visible and redraw on the `tabchange` event.
-- **New page:** add the favicon, theme-color and OG block after `<title>`, plus site.css/js, tabs if it runs past about 2 screens,
+- **New page:** add the favicon, theme-color and OG block after `<title>`, plus theme.css, site.js and a module script on core.js, tabs if it runs past about 2 screens,
   and a card or jump link in `renderTrails()` or `renderProjects()`.
 - **New dataset:** write a builder in `scripts/` (stdlib only, so it runs on stock macOS python3), output numbers-only JSON,
   register it in `build_meta_log.py`'s `datasets`, add a row to `scripts/config/registry.json`, then add it to `scripts/update.py` and `docs/UPDATING.md`.

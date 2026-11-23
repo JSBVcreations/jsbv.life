@@ -4,7 +4,7 @@ Personal data experiments at https://jsbv.life — static files, deployed by Ver
 
 ```
 index.html              Home · Trails · Projects · Data · Experiments (hash views)
-assets/                 site.css + site.js: shared nav, breadcrumbs, page tabs (#tab deep links)
+assets/                 theme.css (look + tokens), site.js (nav, breadcrumbs, page tabs), core.js (shared helpers module)
 step-song/              STEP//SONG explorer (static: index.html + data/*.json)
 meta-log/               data/*.json for the root page (index.html here only redirects to /)
 data/, highlights/      redirects to /#data and /#trails
