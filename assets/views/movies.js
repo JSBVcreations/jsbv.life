@@ -105,7 +105,10 @@ function renderWatched() {
     $('#w-prog').replaceChildren(el('span', { text: 'Scorecard' }), bar, el('span', { text: `${done} of ${mvAll.length} movies scored` })); }
   const mv = rows.filter((t) => t.type === 'movie').length;
   $('#w-note').textContent = `${rows.length} title${rows.length === 1 ? '' : 's'} (${mv} movie${mv === 1 ? '' : 's'}, ${rows.length - mv} show${rows.length - mv === 1 ? '' : 's'}), ${hrs(rows.reduce((a, t) => a + t.min, 0))} watched, through ${dshort(WT.through)}`;
-  $('#w-wall').replaceChildren(...(rows.length ? rows.map(titleCard) : [el('p', { className: 'note', text: 'Nothing matches those filters.' })]));
+  // one page of posters at a time (the whole list ran to 11,000 px); "More" adds the next page
+  const shown = rows.slice(0, (WV.page + 1) * W_PER), left = rows.length - shown.length;
+  $('#w-wall').replaceChildren(...(rows.length ? shown.map(titleCard) : [el('p', { className: 'note', text: 'Nothing matches those filters.' })]),
+    ...(left > 0 ? [el('button', { type: 'button', className: 'btn more', style: 'grid-column:1/-1;justify-self:center', text: `${Math.min(left, W_PER)} more of ${left}`, onclick: () => { WV.page++; renderWatched(); } })] : []));
 
 }
 if (WT) {

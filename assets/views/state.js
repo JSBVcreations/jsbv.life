@@ -4,9 +4,11 @@
      'full'    every dataset (meta-log/data/days/, assets/daily.js) + life chapters, hand-logged metrics and timelines (every other view)
    The exports are live bindings: a view that imports DS sees the full data once loadData('full') has run. */
 import { el, DAY, T0, MON, dayIndex, dateLabel, POOL, loadJSON } from '../core.js';
+import { clockMean } from '../stats.js';
 import { moonDataset } from '../moon.js';
 import { loadDaily } from '../daily.js';
 
+export const HIDE_M = new Set(['body:night_h']);
 export let daily, DS = {}, LIFE = [], TLS = null, today, DATA_A, DATA_B, lastYear, MAXI;
 export let YR, MO, WK, DOW;   // calendar keys for every day index
 export const PRIV = { box: null, ids: [], key: null };
@@ -82,7 +84,11 @@ async function build(want) {
           return { id: m.id, name: m.name, unit: m.unit || '', agg: m.agg === 'mean' ? 'mean' : 'sum', color: m.color || POOL[(k + 5) % POOL.length], v }; }) });
     }
   }
-  const ds2 = {}; for (const ds of dd.datasets) { ds.end = ds.offset + ds.n - 1; if (ds.from == null) ds.from = ds.offset; ds2[ds.id] = ds; }
+  // ds.end is the dataset's own last day with any value (a file padded with empty days must not read as zeros)
+  const ds2 = {}; for (const ds of dd.datasets) { let e = ds.n - 1; while (e > 0 && ds.metrics.every((m) => m.v[e] == null)) e--; ds.end = ds.offset + e; if (ds.from == null) ds.from = ds.offset;
+    // one sleep number on the site: sleep_h. night_h (Sleep, whole night) moves to ds.hidden.
+    const hid = ds.metrics.filter((m) => HIDE_M.has(ds.id + ':' + m.id)); if (hid.length) { ds.hidden = hid; ds.metrics = ds.metrics.filter((m) => !hid.includes(m)); }
+    ds2[ds.id] = ds; }
   // A chapter backed by a timeline (timelines.json, life_id) carries its stretches: the overlay paints them by status.
   const TL_BY_LIFE = {}; for (const t of (tls && tls.timelines) || []) if (t.life_id) TL_BY_LIFE[t.life_id] = t;
   const life = [...lifeRaw, ...(Array.isArray(lifePriv) ? lifePriv : [])].map((x) => { const t = TL_BY_LIFE[x.id];
@@ -102,7 +108,9 @@ async function build(want) {
 export const yearStart = (i) => dayIndex(`${YR[i]}-01-01`);
 export const clampI = (i) => Math.max(0, Math.min(MAXI, i));
 export const metricOf = (dsId, mId) => DS[dsId] && DS[dsId].metrics.find((m) => m.id === mId);
-export const asLine = (dsId, mId) => { const ds = DS[dsId], m = metricOf(dsId, mId); return m && { off: ds.offset, n: ds.n, v: m.v, unit: m.unit, name: m.name, color: m.color, agg: m.agg || 'sum', grain: ds.grain }; };
+// clock-hour metrics (bed_h runs 18–38 so a night past midnight stays one number): shown as a time of day, averaged on the circle
+export const CLOCK = new Set(['body:bed_h', 'body:wake_h']);
+export const asLine = (dsId, mId) => { const ds = DS[dsId], m = metricOf(dsId, mId); return m && { off: ds.offset, n: ds.n, v: m.v, unit: m.unit, name: m.name, color: m.color, agg: m.agg || 'sum', grain: ds.grain, clock: CLOCK.has(dsId + ':' + mId) }; };
 export const sumRange = (L, a, b) => { const lo = Math.max(a, L.off), hi = Math.min(b, L.off + L.n - 1); let sum = 0, cnt = 0;
   for (let i = lo; i <= hi; i++) { const x = L.v[i - L.off]; if (x != null) { sum += x; cnt++; } }
   return { sum, cnt, cov: Math.max(0, hi - lo + 1) }; };
@@ -117,20 +125,23 @@ export function makeBuckets(a, b, g) {
     out.push({ a: i, b: j, label: bLabel(i, g), tick: bTick(i, g) }); i = j + 1; }
   return out;
 }
+// Days a bucket needs before its average counts (stats fix 5): a week 5 of 7, a month 20; a bucket cut short by the
+// dataset's first or last day needs the same share of the days it covers. A missing day is missing, never zero.
+export const needDays = (cov) => cov >= 28 ? Math.min(20, Math.ceil(cov * 0.65)) : cov >= 7 ? Math.min(5, Math.ceil(cov * 0.7)) : Math.max(1, Math.ceil(cov * 0.7));
 export function bucketize(L, B, mode) {
-  return B.map((k) => { const r = sumRange(L, k.a, k.b);
-    const v = !r.cov ? null : L.agg === 'mean' ? (r.cnt ? r.sum / r.cnt : null) : mode === 'avg' ? r.sum / r.cov : r.sum;
-    return { v, sum: r.sum, cov: r.cov, cnt: r.cnt }; });
+  return B.map((k) => { const r = sumRange(L, k.a, k.b), enough = r.cnt >= needDays(r.cov);
+    const v = !r.cov || !r.cnt ? null : L.agg === 'mean' || mode === 'avg' ? (enough || k.a === k.b ? r.sum / r.cnt : null) : r.sum;
+    return { v, sum: r.sum, cov: r.cov, cnt: r.cnt, thin: !enough }; });
 }
 export function describe(L, cells, B) {
   const pts = cells.map((c, k) => [c.v, k]).filter((p) => p[0] != null);
   if (!pts.length) return null;
-  const xs = pts.map((p) => p[0]).sort((p, q) => p - q), n = xs.length, mean = xs.reduce((s, x) => s + x, 0) / n;
-  const sd = n > 1 ? Math.sqrt(xs.reduce((s, x) => s + (x - mean) ** 2, 0) / (n - 1)) : 0;
+  const xs = pts.map((p) => p[0]).sort((p, q) => p - q), n = xs.length, cm = L.clock ? clockMean(xs) : null, mean = cm ? cm.hour : xs.reduce((s, x) => s + x, 0) / n;
+  const sd = cm ? (cm.sdMin ?? 0) / 60 : n > 1 ? Math.sqrt(xs.reduce((s, x) => s + (x - mean) ** 2, 0) / (n - 1)) : 0;
   const hi = pts.reduce((p, q) => (q[0] > p[0] ? q : p)), lo = pts.reduce((p, q) => (q[0] < p[0] ? q : p));
   const tot = cells.reduce((s, c) => s + c.sum, 0), cov = cells.reduce((s, c) => s + c.cov, 0), cnt = cells.reduce((s, c) => s + c.cnt, 0);
   return { n, mean, sd, median: n % 2 ? xs[(n - 1) / 2] : (xs[n / 2 - 1] + xs[n / 2]) / 2, max: hi[0], maxAt: B[hi[1]].label, min: lo[0], minAt: B[lo[1]].label,
-    total: L.agg === 'mean' ? null : tot, perDay: L.agg === 'mean' ? (cnt ? tot / cnt : null) : (cov ? tot / cov : null), days: cov };
+    total: L.agg === 'mean' ? null : tot, perDay: cnt && !L.clock ? tot / cnt : null, days: cov, daysWithData: cnt };
 }
 export function pearson(x, y) {
   const p = []; for (let i = 0; i < x.length; i++) if (x[i] != null && y[i] != null) p.push([x[i], y[i]]);

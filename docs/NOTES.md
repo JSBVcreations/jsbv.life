@@ -41,14 +41,14 @@ Data refresh: `docs/UPDATING.md`.
 - `#log-block` views (`#log-view` buttons): Charts, Calendar, Weeks (`renderLogWeeks`), States (`renderLogStates`), Hours
   (`renderLogHours`). The last three are HTML tables in `.bd` containers, loaded on demand by `loadBD()`. Charts also carry
   a state overlay (`stateBands()`, toggle `#st-toggle`): alternate shading + state labels on all three day charts.
-  Deep links: `step-song/#trail-calendar`, `#trail-weeks`, `#trail-states`, `#trail-hours`.
+  Deep links (Nov 23 2026: the trail code moved to `trail/at.js`, tab `trail/#log`; the old step-song hashes redirect): `trail/#trail-calendar`, `#trail-weeks`, `#trail-states`, `#trail-hours`.
 - Calendar (`renderLogCal`): one row per week, Sunday
   to Saturday, 22 rows. Each day cell: date + day number, kind badge (zero / nero / skip), three bars (log miles, phone
   steps, moving hours; each scaled to its own best day, miles capped at 36 with a white cap above), miles, steps · hours,
   where the day ended, climb + end mile. Week total: miles, bar vs best week, steps, moving hours, climb, zeros, mi/day,
-  running total. Hover = `calTip` (logTip + steps, hours, climb, pace, music); click = `select()`. Deep link:
-  `step-song/#trail-calendar`.
-- Shown in step-song/index.html inside #trail as `#log-block` ("Trail log vs phone"): miles-per-day bars
+  running total. Hover = `calTip` (logTip + steps, hours, climb, pace, music); click opens the day replay. Deep link:
+  `trail/#trail-calendar`.
+- Shown in trail/index.html on the log tab (`#s-log`, was step-song #trail) as `#log-block` ("Trail log vs phone"): miles-per-day bars
   (log, missed, over-count, 7-day avg toggle all/hiking days), running totals of missed vs over-counted,
   moving pace (raw → adjusted, 3.2 mph line), capture card, stats card. Loads data/at2019-log.json; if the
   file is missing the block stays hidden. Clicking a day calls select() like the other trail charts.
@@ -70,7 +70,7 @@ Rule: a page should be about a screen or two tall per tab. Long pages get tabs, 
   Old names still land: `#trails` and `#highlights` → Fitness, `#projects` and `#movies` → Media, `experiments` → Data.
   - Root `index.html` (hash views, `assets/views/main.js` `VIEWS`): Home `#report` · `#fitness` (`renderTrails()`) ·
     `#health` (`renderHealth()`) · `#media` (`renderProjects()`) · `#data` (`renderData()`). Hubs are cards of jump links
-    straight to a tab on the target page (`pct-training/#calendar`, `step-song/#trail-states`, `trail/#replay`, ...).
+    straight to a tab on the target page (`pct-training/#calendar`, `trail/#trail-states`, `trail/#replay`, ...).
   - Data family: `#data`, `#explore`, `#calendar`, `#gantt` and the Lab `#experiments/<key>` share the `#subnav` tab bar, with Data lit up top.
   - Lab (`assets/views/lab.js`): one experiment open at a time, `#experiments/<key>`, keys in `E_TABS` (corr first and the default,
     then rings, week, tide, pairs, ridge, clock, screens, wimhof, eras, strata). Racing 2019 is now "Low tide": the 111 days of

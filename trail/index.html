@@ -2,12 +2,12 @@
 <html lang="en" data-page="trail">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>TRAIL//RADIO</title>
+<title>AT//2019 · JSBV.LIFE</title>
 <link rel="icon" href="../favicon.svg" type="image/svg+xml">
 <meta name="theme-color" content="#07060f">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="JSBV.LIFE">
-<meta property="og:title" content="TRAIL//RADIO · JSBV.LIFE">
+<meta property="og:title" content="AT//2019 · JSBV.LIFE">
 <meta property="og:description" content="The songs Jack walked the Appalachian Trail to in 2019, by state, week or any stretch of trail, with every day replayed hour by hour.">
 <meta property="og:url" content="https://jsbv.life/trail/">
 <meta property="og:image" content="https://jsbv.life/og.png">
@@ -115,13 +115,142 @@ button:focus-visible, select:focus-visible, a:focus-visible, [tabindex]:focus-vi
 #tip .k { color: var(--dim); }
 #tip b { color: var(--hot); }
 footer { font-family: var(--f-ui); }
+
+/* AT 2019 log tab (moved from STEP//SONG, Nov 23 2026): its rules, scoped to the tab */
+#s-log .c-step { color: var(--step); }
+#s-log .c-sound { color: var(--sound); }
+#s-log .c-climb { color: var(--climb); }
+#s-log .c-trail { color: var(--trail); }
+#s-log .heads { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+#s-log .meters { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 12px 24px; }
+#s-log .meter { display: grid; gap: 6px; font-family: var(--f-data); font-size: var(--s-0); }
+#s-log .meter .lab { display: flex; justify-content: space-between; gap: 8px; color: var(--dim); }
+#s-log .meter .lab b { color: var(--ink); font-weight: 600; }
+#s-log .meter .track { height: 10px; background: #120f26; border: 1px solid var(--grid); position: relative; }
+#s-log .meter .fill { position: absolute; inset: 0 auto 0 0; }
+#s-log .chips { display: flex; flex-wrap: wrap; gap: 6px 14px; font-family: var(--f-data); font-size: var(--s-0); color: var(--dim); }
+#s-log .chips span { display: inline-flex; align-items: center; gap: 6px; }
+#s-log .chips i { width: 10px; height: 10px; display: inline-block; box-shadow: 0 0 8px currentColor; }
+#s-log .slope { display: grid; gap: 10px; }
+#s-log .slope-row { display: grid; grid-template-columns: 92px minmax(0, 1fr) 84px; gap: 10px; align-items: center; font-family: var(--f-data); font-size: var(--s-0); }
+#s-log .slope-row .lab { color: var(--ink); text-transform: uppercase; letter-spacing: 0.1em; }
+#s-log .slope-row .v { color: var(--dim); text-align: right; font-variant-numeric: tabular-nums; }
+#s-log .stack { display: flex; height: 14px; border: 1px solid var(--grid); background: #120f26; overflow: hidden; }
+#s-log .stack b { display: block; height: 100%; }
+#s-log .trail-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 320px); gap: 18px; align-items: start; }
+@media (max-width: 860px) { #s-log .trail-grid { grid-template-columns: minmax(0, 1fr); } }
+#s-log .log-block { display: grid; gap: 14px; padding-top: 14px; border-top: 1px solid rgba(182,255,92,0.35); min-width: 0; }
+#s-log .log-block[hidden] { display: none; }
+#s-log #log-charts { display: grid; gap: 14px; min-width: 0; }
+#s-log #log-charts[hidden], #s-log #log-cal[hidden] { display: none; }
+#s-log .bd { display: grid; gap: 14px; min-width: 0; }
+#s-log .bd[hidden] { display: none; }
+#s-log .bd h3 { margin: 0; font: 700 var(--s-0) var(--f-ui); letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink); }
+#s-log .bd-scroll { overflow-x: auto; border: 1px solid var(--grid); }
+#s-log .bd table { width: 100%; border-collapse: collapse; font-family: var(--f-data); font-size: var(--s-0); min-width: 760px; }
+#s-log .bd th, #s-log .bd td { padding: 6px 9px; border-bottom: 1px solid rgba(31,26,61,0.8); text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; vertical-align: middle; }
+#s-log .bd th { color: var(--dim); font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; font-size: 10px; background: var(--panel); position: sticky; top: 0; }
+#s-log .bd th:first-child, #s-log .bd td:first-child, #s-log .bd td.l, #s-log .bd th.l { text-align: left; }
+#s-log .bd td { color: var(--dim); }
+#s-log .bd td b { color: var(--ink); font-weight: 600; }
+#s-log .bd td.t b { color: var(--trail); }
+#s-log .bd td.c b { color: var(--climb); }
+#s-log .bd td.s b { color: var(--step); }
+#s-log .bd tr.skip td { opacity: 0.55; }
+#s-log .bd tr.tot td { border-top: 1px solid var(--dim); color: var(--ink); }
+#s-log .bd .mb { display: inline-block; height: 8px; background: var(--trail); vertical-align: middle; margin-left: 8px; min-width: 1px; }
+#s-log .bd .mb.c { background: var(--climb); }
+#s-log .bd .mb.s { background: var(--step); }
+#s-log .bd .barcell { text-align: left; min-width: 150px; }
+#s-log .bd .barcell b { display: inline-block; min-width: 42px; text-align: right; }
+#s-log .bd svg { display: block; }
+#s-log .bd .charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
+#s-log .bd .panel { border: 1px solid var(--grid); padding: 12px; display: grid; gap: 8px; min-width: 0; align-content: start; background: rgba(7,6,15,0.5); }
+#s-log .bd .panel svg { width: 100%; height: auto; }
+#s-log .bd .panel text { font-family: var(--f-data); font-size: 10px; fill: var(--dim); }
+#s-log .bd ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; color: var(--ink); max-width: 90ch; }
+#s-log .bd ul b { color: var(--trail); font-weight: 600; }
+#s-log .bd .k { color: var(--dim); font-weight: 400; }
+#s-log .st-key { display: flex; flex-wrap: wrap; gap: 4px; font-family: var(--f-data); font-size: 10px; }
+#s-log .st-key span { padding: 2px 6px; border: 1px solid var(--grid); color: var(--dim); }
+#s-log #log-cal { display: grid; gap: 12px; min-width: 0; }
+#s-log .cal-scroll { overflow-x: auto; }
+#s-log .cal { display: grid; grid-template-columns: 74px repeat(7, minmax(112px, 1fr)) minmax(176px, 1.4fr); gap: 4px; min-width: 1060px; font-family: var(--f-data); font-size: var(--s-0); }
+#s-log .cal .hd { color: var(--dim); text-transform: uppercase; letter-spacing: 0.12em; font-size: 10px; padding: 2px 6px; }
+#s-log .cal .wk { display: grid; align-content: center; gap: 2px; padding: 6px; color: var(--dim); border-left: 2px solid rgba(182,255,92,0.35); }
+#s-log .cal .wk b { color: var(--ink); font-weight: 600; }
+#s-log .ccell { display: grid; grid-template-rows: auto 52px auto auto auto auto; gap: 2px; padding: 6px; border: 1px solid var(--grid); background: rgba(7,6,15,0.5); min-width: 0; cursor: pointer; }
+#s-log .ccell:hover, #s-log .ccell:focus-visible { border-color: var(--trail); }
+#s-log .ccell.sel { border-color: var(--hot); }
+#s-log .ccell.rest { background: rgba(31,26,61,0.35); }
+#s-log .ccell.void { border-style: dashed; opacity: 0.35; cursor: default; }
+#s-log .ccell .dt { display: flex; justify-content: space-between; gap: 4px; color: var(--dim); font-size: 10px; letter-spacing: 0.06em; }
+#s-log .ccell .dt em { font-style: normal; text-transform: uppercase; letter-spacing: 0.1em; color: var(--climb); }
+#s-log .ccell .dt em.zero { color: var(--dim); }
+#s-log .ccell .dt em.skip { color: var(--sound); }
+#s-log .ccell .bars { display: grid; grid-template-columns: 5fr 2fr 2fr; gap: 3px; align-items: end; border-bottom: 1px solid var(--grid); padding: 0 8%; }
+#s-log .ccell .bars i { display: block; min-height: 0; }
+#s-log .ccell .bars .mi { background: var(--trail); }
+#s-log .ccell .bars .mi.over { border-top: 3px solid var(--hot); }
+#s-log .ccell .bars .st { background: var(--step); }
+#s-log .ccell .bars .hr { background: var(--climb); }
+#s-log .ccell .num b { font-size: var(--s-1); font-weight: 600; color: var(--trail); }
+#s-log .ccell.rest .num b { color: var(--dim); }
+#s-log .ccell .sub { color: var(--dim); font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
+#s-log .ccell .sub.loc { color: var(--ink); }
+#s-log .ccell .sub .st { color: var(--step); }
+#s-log .ccell .sub .hr { color: var(--climb); }
+#s-log .csum { display: grid; align-content: center; gap: 4px; padding: 6px 8px; border: 1px solid var(--grid); background: rgba(13,11,28,0.8); min-width: 0; }
+#s-log .csum .big { font-size: var(--s-3); font-weight: 600; color: var(--trail); font-variant-numeric: tabular-nums; }
+#s-log .csum .big small { color: var(--dim); font-weight: 400; font-size: var(--s-0); }
+#s-log .csum .track { height: 8px; background: #120f26; border: 1px solid var(--grid); }
+#s-log .csum .track i { display: block; height: 100%; background: var(--trail); }
+#s-log .csum .sub { color: var(--dim); font-size: 10px; font-variant-numeric: tabular-nums; }
+#s-log .bands { display: flex; height: 14px; border: 1px solid var(--grid); overflow: hidden; }
+#s-log .bands b { display: block; height: 100%; }
+#s-log .dist { display: grid; grid-template-columns: minmax(0, 1fr) repeat(3, auto); gap: 4px 12px; font-family: var(--f-data); font-size: var(--s-0); }
+#s-log .dist span { color: var(--dim); text-align: right; font-variant-numeric: tabular-nums; }
+#s-log .dist .lb { text-align: left; color: var(--ink); }
+#s-log .dist .hd { color: var(--dim); text-transform: uppercase; letter-spacing: 0.1em; font-size: 10px; text-align: right; }
+#s-log .dist b { color: var(--ink); font-weight: 600; text-align: right; }
+#s-log .cls { font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; padding: 1px 5px; border: 1px solid currentColor; margin-left: 6px; }
+#s-log .cls.adhd { color: var(--climb); }
+#s-log .cls.skip { color: var(--sound); }
+#s-log .cls.sleep { color: #8a84b8; }
+#s-log .sec-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 16px; }
+#s-log h2 { font-size: var(--s-2); font-weight: 700; line-height: 1.5; color: inherit; }
+#s-log h2 small { font-weight: 400; color: var(--dim); letter-spacing: 0.08em; text-transform: none; margin-left: 10px; font-size: var(--s-1); }
+#s-log .seg { display: inline-flex; flex-wrap: wrap; }
+#s-log .seg button, #s-log .btn { font: 600 var(--s-0)/1 var(--f-ui); letter-spacing: 0.14em; text-transform: uppercase; background: transparent; color: var(--dim); border: 0; cursor: pointer; }
+#s-log .seg button[aria-pressed="true"] { color: var(--void); background: var(--ink); }
+#s-log .seg button[data-mode="steps"][aria-pressed="true"] { background: var(--step); }
+#s-log .seg button[data-mode="sound"][aria-pressed="true"] { background: var(--sound); }
+#s-log .seg button[data-mode="elev"][aria-pressed="true"] { background: var(--climb); }
+#s-log .btn { border: 1px solid var(--grid); color: var(--ink); }
+#s-log .btn:hover, #s-log .seg button:hover { color: var(--hot); }
+#s-log canvas { display: block; width: 100%; touch-action: manipulation; }
+#s-log .cv { position: relative; min-width: 0; }
+#s-log .legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-family: var(--f-data); font-size: var(--s-0); color: var(--dim); align-items: center; }
+#s-log .legend i { display: inline-block; width: 22px; height: 8px; margin-right: 6px; vertical-align: middle; }
+#s-log .cuts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 330px), 1fr)); gap: 18px; }
+#s-log .card { padding: 14px; display: grid; gap: 10px; align-content: start; min-width: 0; }
+#s-log .card h3 { margin: 0; font-size: var(--s-0); letter-spacing: 0.2em; text-transform: uppercase; }
+#s-log .rows { display: grid; gap: 4px; font-family: var(--f-data); font-size: var(--s-0); }
+#s-log .row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 10px; align-items: center; }
+#s-log .row .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#s-log .row .v { color: var(--dim); font-variant-numeric: tabular-nums; }
+#s-log .bar { grid-column: 1 / -1; height: 3px; }
+#s-log .bar b { display: block; height: 100%; }
+#s-log .click { cursor: pointer; }
+#s-log .click:hover .nm { color: var(--hot); }
+#s-log { display: grid; gap: 14px; min-width: 0; }
 </style>
 
 <div class="wrap">
   <header>
-    <nav class="site" data-here="fitness" data-crumb="AT 2019|Trail radio"></nav>
-    <h1>TRAIL<span class="sl">//</span>RADIO</h1>
-    <div id="boot">TUNING IN… loading 146 days of listening</div>
+    <nav class="site" data-here="pct" data-crumb="AT//2019"></nav>
+    <h1>AT<span class="sl">//</span>2019</h1>
+    <div id="boot">Loading 146 days on the trail…</div>
   </header>
 
   <section id="s-strip" aria-labelledby="h-strip" hidden>
@@ -137,11 +266,78 @@ footer { font-family: var(--f-ui); }
     <div class="selbar" id="selbar" aria-live="polite"></div>
   </section>
 
-  <nav class="ptabs" data-default="radio" aria-label="Trail radio views" hidden id="trail-tabs">
+  <nav class="ptabs" data-default="log" aria-label="AT 2019 views" hidden id="trail-tabs">
+    <a href="#log" data-tab="log" data-alias="trail trail-calendar trail-weeks trail-states trail-hours">Trail log</a>
     <a href="#radio" data-tab="radio">Radio</a>
     <a href="#replay" data-tab="replay">Day replay</a>
     <a href="#map" data-tab="map">Soundtrack map</a>
   </nav>
+
+  <section id="s-log" data-tab="log" aria-labelledby="h-trail">
+    <div class="sec-head">
+      <h2 id="h-trail" class="c-trail">The trail log <small id="trail-sub"></small></h2>
+      <div class="seg scale-seg" role="group" aria-label="Chart scale"><button type="button" id="sc-lin-trail" data-scale="lin" aria-pressed="true">Linear</button><button type="button" id="sc-log-trail" data-scale="log" aria-pressed="false">Log</button></div>
+    </div>
+    <div class="readout" id="trail-stats"></div>
+    <div class="meters" id="trail-meters"></div>
+    <h2 style="font-size:var(--s-0)">Elevation profile <small id="prof-sub">Katahdin → Springer Mountain · glow = what was playing</small></h2>
+    <div class="cv"><canvas id="profcv" data-h="300" aria-label="Appalachian Trail elevation profile, colored by the genre playing at each point"></canvas></div>
+    <div class="chips" id="genre-chips"></div>
+    <div class="trail-grid">
+      <div style="display:grid;gap:8px;min-width:0">
+        <h2 style="font-size:var(--s-0)">Climb and descent by day <small>from the profile · white tick = phone-measured gain</small></h2>
+        <div class="cv"><canvas id="trailcv" data-h="200" aria-label="Daily climb and descent on the Appalachian Trail"></canvas></div>
+      </div>
+      <div style="display:grid;gap:10px;min-width:0">
+        <h2 style="font-size:var(--s-0)">Soundtrack by terrain <small>hours on the move</small></h2>
+        <div class="slope" id="slope"></div>
+      </div>
+    </div>
+    <div class="log-block" id="log-block" hidden>
+      <div class="sec-head">
+        <h2 class="c-trail" style="font-size:var(--s-1)">Trail log vs phone <small>the log counts every mile walked; the phone is what Apple Health caught</small></h2>
+      </div>
+      <div class="readout" id="log-stats"></div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;justify-self:start"><div class="seg" id="log-view" role="group" aria-label="Trail log view"><button type="button" data-v="charts" aria-pressed="true">Charts</button><button type="button" data-v="cal" aria-pressed="false">Calendar</button><button type="button" data-v="weeks" aria-pressed="false">Weeks</button><button type="button" data-v="states" aria-pressed="false">States</button><button type="button" data-v="hours" aria-pressed="false">Hours</button></div></div>
+      <div id="log-weeks" class="bd" hidden></div>
+      <div id="log-states" class="bd" hidden></div>
+      <div id="log-hours" class="bd" hidden></div>
+      <div id="log-cal" hidden>
+        <div class="legend" id="cal-legend"></div>
+        <div class="cal-scroll"><div class="cal" id="cal-grid" role="table" aria-label="Appalachian Trail 2019, one row per week"></div></div>
+        <p class="note" id="cal-note"></p>
+      </div>
+      <div id="log-charts">
+      <div class="seg" style="justify-self:start"><button type="button" id="st-toggle" aria-pressed="true" title="Shade the charts by state">State overlay</button></div>
+      <div class="sec-head">
+        <h2 style="font-size:var(--s-0)">Miles per day <small>click a day to open it</small></h2>
+        <div class="seg" id="ma-seg" role="group" aria-label="Moving average"><button type="button" data-ma="all" aria-pressed="true">7-day avg · all days</button><button type="button" data-ma="hiking" aria-pressed="false">7-day avg · hiking days</button></div>
+      </div>
+      <div class="cv"><canvas id="logcv" data-h="250" aria-label="Miles per day on the 2019 Appalachian Trail: trail log against phone, with a 7-day moving average"></canvas></div>
+      <div class="legend" id="log-legend"></div>
+      <h2 style="font-size:var(--s-0)">Running totals <small>miles the phone missed vs miles it over-counted · they almost cancel</small></h2>
+      <div class="cv"><canvas id="cumcv" data-h="190" aria-label="Running total of miles missed and over-counted by the phone"></canvas></div>
+      <h2 style="font-size:var(--s-0)">Moving pace <small>dim dot = raw · bright dot = terrain-adjusted (+30 min per 1,000 ft)</small></h2>
+      <div class="cv"><canvas id="pacecv" data-h="220" aria-label="Moving pace per day, raw and adjusted for climbing"></canvas></div>
+      <div class="cuts">
+        <div class="card" style="gap:12px">
+          <h3>What the phone caught</h3>
+          <div class="meters" id="cap-meters" style="grid-template-columns:1fr"></div>
+          <div id="cap-bands"></div>
+          <div class="rows" id="cap-months"></div>
+        </div>
+        <div class="card" style="gap:12px">
+          <h3>Miles per day</h3>
+          <div class="rows" id="log-dist"></div>
+          <h3>Biggest days</h3>
+          <div class="rows" id="log-big"></div>
+        </div>
+      </div>
+      </div>
+      <p class="note" id="log-note"></p>
+    </div>
+    
+  </section>
 
   <section id="s-radio" data-tab="radio" aria-labelledby="h-radio" hidden>
     <div class="sec-head">
@@ -418,9 +614,15 @@ import { $, el, svg, MON, DOW, C as C0, fmtInt as n0, fixed1 as n1, esc, tipAt a
   curDay = 0; renderReplay();
   if (st) select(st.name, D.filter((d) => d.state === st.abbr).map((d) => d.i), [st.sobo_a, st.sobo_b], 'st:' + st.abbr); else select('The whole trail', D.map((d) => d.i), null, 'all');
   // redraw at the panel's real width once a tab is shown (it may have been drawn while hidden)
-  addEventListener('tabchange', () => { drawStrip(); renderReplay(); renderRiver(); });
+  // the strip picks a stretch for Radio, Day replay and the map; the log tab has its own charts
+  let logMod = null;
+  const LOGV = { 'trail-calendar': 'cal', 'trail-weeks': 'weeks', 'trail-states': 'states', 'trail-hours': 'hours' };
+  async function openLog() { const v = LOGV[decodeURIComponent(location.hash.slice(1))];
+    if (!logMod) { logMod = await import('./at.js'); await logMod.start(v); } else if (v) logMod.setView(v); }
+  addEventListener('tabchange', (e) => { const lg = e.detail.tab === 'log'; $('#s-strip').hidden = lg; if (lg) { openLog(); return; } drawStrip(); renderReplay(); renderRiver(); });
+  addEventListener('at:day', (e) => { const d = D.find((x) => x.date === e.detail.date); if (!d) return; curDay = d.i; SiteTabs.show('replay'); });
   let rz; addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { drawStrip(); renderReplay(); renderRiver(); }, 140); });
-  if (window.SiteTabs) SiteTabs.start(); else for (const id of ['#s-radio', '#s-replay', '#s-river']) $(id).hidden = false;
+  SiteTabs.start(); if (st && SiteTabs.current === 'log') SiteTabs.show('radio');
   const plays = D.reduce((t, d) => t + d.plays.length / 4, 0);
   $('#foot').textContent = `${R.trip} · ${n0(plays)} plays of ${n0(TR.length)} songs on ${D.length} days · music from Spotify, steps from the phone, miles from the trail log · data built ${R.generated}`;
 })();
