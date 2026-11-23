@@ -3,12 +3,13 @@
 Jack's personal data site: a decade of steps, music, photos and trail logs, plus training for a PCT thru-hike
 (northbound, starts 2027-03-01). This brief covers most tasks. Read further only when a task needs it:
 - `docs/BLUEPRINT.md`: the whole site on one page (map, pipeline, data shapes, workflow). Paste it into a new chat.
+- `README.md`: layout, local preview, and the rare builders update.py doesn't run.
 - `docs/NOTES.md`: per-page and per-dataset detail. Jump to the heading you need; don't read it all.
 - `docs/UPDATING.md`: every data source, where it lives, and how it's refreshed.
 - `docs/EXERCISE-ANALYSIS.md`, `docs/SLEEP-ANALYSIS.md`: findings (Nov 20); charts in `docs/snapshots/`.
 
 ## Stack
-- Static site with no build step and no libraries. Each page is one `index.html` with inline CSS and JS, and fetches its `data/*.json`.
+- Static site with no build step and no libraries. Each sub-page is one `index.html` with inline CSS and a module script, and fetches its `data/*.json`; the root page's views are modules in `assets/views/`.
 - Before Jack commits, `python3 scripts/check_public.py` must say clean (update.py runs it).
 - GitHub `JSBVcreations/jsbv.life`, branch `main`. Vercel deploys every push in about a minute.
 - **Jack commits and pushes himself in GitHub Desktop. Never push for him.**

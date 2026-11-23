@@ -64,33 +64,31 @@ Data refresh: `docs/UPDATING.md`.
   same tracker folder from the Lightroom Classic catalog (`~/Pictures/Lightroom/JSBV-Catalog.lrcat`, read-only).
   Stages: rejected (reject flag) > 4–5★ > 3★ > 1–2★ > unrated. If the file is missing the section stays hidden.
 
-## Site hierarchy + tabs (Nov 15, 2026)
+## Site hierarchy + tabs
 Rule: a page should be about a screen or two tall per tab. Long pages get tabs, not more scrolling.
-- Four top-level sections, the same everywhere: Home · Trails · Projects · Data (Nov 19: Experiments became the Lab, a Data sub-tab; `#experiments/<key>` unchanged).
-  - Root `index.html` (hash views): Home `#report` (dashboard) · Trails `#trails` · Projects `#projects` · Data `#data`
-    · Experiments `#experiments`. `#highlights` is an alias of `#trails` (old links still work).
-  - Trails (`renderTrails()`): a PCT 2027 card and an AT 2019 card. Each card is a grid of jump links straight to a tab
-    on the target page (`pct-training/#calendar`, `step-song/#trail-states`, `trail/#replay`, ...).
-  - Projects (`renderProjects()`): STEP//SONG and PHOTO//SORT cards, built the same way.
-  - Data family: `#data`, `#explore`, `#calendar`, `#watched` share the `#subnav` tab bar (`nav.ptabs`), with Data lit up top.
-  - Experiments: one experiment open at a time, `#experiments/<key>` with keys from `E_TABS`
-    (corr first and the default, then rings, week, tide, pairs). Racing 2019 moved out (Nov 15) and is now "Low tide":
-    the 111 days of walking before the AT (training.json `pre_at`, phone) as the floor for the PCT countdown. It is a
-    PCT//PREP tab (`pct-training/#low-tide`, alias `#race`; `renderRace`) and a home dashboard panel (`drawRace` → `#r-race`);
-    `#experiments/race` redirects there. The "now" line uses phone miles while the Health export covers the day (or the
-    Strava hike if longer) and Strava hikes alone after it (drawn dashed), so it moves with every Strava update. `E_SET` (What moves together) includes Fortnite wins + level and Smoking total + spliffs. Draw only the open one (resize redraws it too). Optional experiments set
-    `dataset.off='1'` instead of `hidden` (race: no training.json; tide: missing lines), and `applyExpTab()` hides their tab.
-    To add one: a `section.box#e-<key>` in `#v-experiments`, a draw function, an `E_TABS` entry and an entry in the two
-    `{ rings: drawRings, ... }` maps.
-  - Life calendar: four-year eras (`ERAS`, newest first, buttons in `#c-eras`). `showDay` switches era when it needs to.
-  - Gantt (`#gantt`, Data sub-tab, `renderGantt`): one lane per daily.json dataset (a day counts when any metric is non-zero),
-    weekly cells (daily for the current-year range), Intensity (opacity = week total ÷ the lane's 90th percentile) or Bars
-    (runs, gaps under ~2 weeks merged); dataset chips toggle lanes; Life chapters lane + faint bands from life.json.
-  - Movies & TV (`#movies`, alias `#watched`; its own top-level tab since Nov 19): every title in one grid, no paging. A tile is a
-    button that opens the report card (`<dialog id="rc">`): Final, stars, verdict, quadrant bars, then only the categories Jack scored
-    (band text + his note in full), propaganda, custom scales, surprise actors, and the only IMDb link (a button).
+- Five top-level sections, the same everywhere (`assets/site.js` `PRIMARY`): Home · Fitness · Health · Media · Data.
+  Old names still land: `#trails` and `#highlights` → Fitness, `#projects` and `#movies` → Media, `experiments` → Data.
+  - Root `index.html` (hash views, `assets/views/main.js` `VIEWS`): Home `#report` · `#fitness` (`renderTrails()`) ·
+    `#health` (`renderHealth()`) · `#media` (`renderProjects()`) · `#data` (`renderData()`). Hubs are cards of jump links
+    straight to a tab on the target page (`pct-training/#calendar`, `step-song/#trail-states`, `trail/#replay`, ...).
+  - Data family: `#data`, `#explore`, `#calendar`, `#gantt` and the Lab `#experiments/<key>` share the `#subnav` tab bar, with Data lit up top.
+  - Lab (`assets/views/lab.js`): one experiment open at a time, `#experiments/<key>`, keys in `E_TABS` (corr first and the default,
+    then rings, week, tide, pairs, ridge, clock, screens, wimhof, eras, strata). Racing 2019 is now "Low tide": the 111 days of
+    walking before the AT (training.json `pre_at`, phone) as the floor for the PCT countdown. It is a PCT//PREP tab
+    (`pct-training/#low-tide`, alias `#race`) and a home panel (`drawRace` → `#r-race`); `#experiments/race` redirects there.
+    The "now" line uses phone miles while the Health export covers the day (or the Strava hike if longer) and Strava hikes alone
+    after it (drawn dashed). `E_SET` (What moves together) includes Fortnite wins + level and Smoking total + spliffs. Only the
+    open experiment draws (resize redraws it). Optional ones set `dataset.off='1'` instead of `hidden` and lose their tab.
+    To add one: a `section.box#e-<key>` in `#v-experiments`, a draw function, an `E_TABS` entry and a `DRAW` entry.
+  - Life calendar (`#calendar`): four-year eras (`ERAS`, newest first, buttons in `#c-eras`). `showDay` switches era when it needs to.
+  - Gantt (`#gantt`): one lane per dataset (a day counts when any metric is non-zero), weekly cells (daily for the current-year
+    range), Intensity (opacity = week total ÷ the lane's 90th percentile) or Bars (runs, gaps under ~2 weeks merged); dataset
+    chips toggle lanes; Life chapters lane + faint bands from life.json.
+  - Movies & TV (`#movies`, alias `#watched`, under Media): every title in one grid, no paging. A tile opens the report card
+    (`<dialog id="rc">`): Final, stars, verdict, quadrant bars, then only the categories Jack scored (band text + his note in
+    full), propaganda, custom scales, surprise actors, and the only IMDb link (a button).
 - Sub-pages load the shared `assets/theme.css` (before their own `<style>`) and `assets/site.js` (before their own script); page scripts are ES modules importing `assets/core.js`. They declare
-  `<nav class="site" data-here="trails|projects|data|experiments" data-crumb="Section part|Page"></nav>`; site.js fills
+  `<nav class="site" data-here="fitness|health|media|data" data-crumb="Section part|Page"></nav>` (old `trails`/`projects` values still map); site.js fills
   in the five links (with the current one marked) and a breadcrumb.
 - Page tabs (site.js): `<nav class="ptabs" data-default="key"><a href="#key" data-tab="key" data-alias="old-hash ...">`.
   - Any element with `data-tab="key"` is a panel. `data-off="1"` hides the panel and its tab (no data).
@@ -109,17 +107,17 @@ Rule: a page should be about a screen or two tall per tab. Long pages get tabs, 
 
   `--tab-accent` sets each page's tab colour.
 - New page checklist: include theme.css + site.js, a module script on core.js, `data-page` on `<html>`, `nav.site` with data-here/data-crumb, tabs if it runs past ~2 screens,
-  and a card or jump link under Trails or Projects in the root page.
+  and a card or jump link in a hub (`renderTrails()`, `renderHealth()` or `renderProjects()` in `assets/views/data.js`).
 - Data cards come from daily.json; `DIR` gives each one its blurb and own-page link. `HIDE_IN_DATA` keeps the trail log out
-  of Data (it lives under Trails).
-- `meta-log/`, `data/`, `highlights/` (→ `#trails`), `experiments/` are redirect stubs. `meta-log/data/` still holds the
+  of Data (it lives under Fitness).
+- `meta-log/`, `data/`, `highlights/` (→ `#fitness`), `experiments/` are redirect stubs. `meta-log/data/` still holds the
   data files. The 404 page links the five sections.
 - Heights (desktop px, sum of 13 views) went from 45,010 to 22,865; on phone from 87,293 to 36,005. Measuring script:
   render each view at 1280 and 390 wide and read `scrollHeight`.
 
 ## META//LOG data + views (app is the root index.html; data in meta-log/data/)
 - Root `index.html` is markup + CSS; its JS is one module per view in `assets/views/` (`main.js` routes and imports a view's module the
-  first time its hash opens; `state.js` loads the data: `summary.json` for Home, `daily.json` for everything else). Views besides the nav ones above: `#report` (the home dashboard,
+  first time its hash opens; `state.js` loads the data: `summary.json` for Home, the per-dataset files in `meta-log/data/days/` for everything else, plus the Moon computed by `assets/moon.js`). Views besides the nav ones above: `#report` (the home dashboard,
   rebuilt Nov 14, 2026: two hero panels, PCT//PREP from `pct-training/data/training.json` and PHOTO//SORT from
   `daily.snapshots`, over a grid of tiles. One tile per umbrella in `GROUPS` (Activity, Health, Music, Watching, Calls,
   Breathwork, Photos); a metric appears only under its umbrella (Listening and Plays under Music). Tiles change only when clicked: the
@@ -131,8 +129,8 @@ Rule: a page should be about a screen or two tall per tab. Long pages get tabs, 
   per year, one square per day, life chapters as bands, chapter table).
 - Data defaults to the current year, not all time (Jack's rule, Nov 14, 2026): Data cards total `lastYear` with a
   `2026 | ALL TIME` switch (`DV.span`), "Chart it" opens that span, and the explorer starts on the `ty` preset.
-- `meta-log/data/daily.json` is written by `scripts/build_meta_log.py`, which reads only step-song/data and
-  photo-library/data. Run it after any other builder. Layout is documented at the top of the script. To add a dataset,
+- `meta-log/data/daily.json` is written by `scripts/build_meta_log.py`, which reads only repo files (step-song/data,
+  photo-library/data, games/data and the meta-log/data JSON), then `build_daily_web.py` cuts `days/*.json` and `summary.json`. update.py runs it after the source builders. Layout is documented at the top of the script. To add a dataset,
   append to `datasets` there (metrics + optional dims); the page picks it up without changes.
 - Watching dataset: `scripts/build_watch_log.py "<workbook.xlsx>"` → `meta-log/data/watch.json` (then rerun build_meta_log.py).
   The workbook stays OUTSIDE the repo (`*.xlsx` is git-ignored). HARD RULE: never publish the names of people Jack watched
@@ -286,7 +284,7 @@ Keep the MX / TXT / DKIM / autodiscover records — they run the jsbv.life busin
 - Map: `assets/maps/na.json` (Natural Earth 50m land, US Census state lines; projection x=(lon+125)·cos40°·14, y=(52−lat)·14).
   "Most days" zooms to places with ≥ 30 days; dots are pies by status, area ∝ days.
 
-## Lab ridgeline + decade clock, Movies & TV map + propaganda board (Nov 19, 2026; VIZ-PLAN 4, 1, 5, 6)
+## Lab ridgeline + decade clock, Movies & TV map + propaganda board (Nov 19, 2026; docs/archive/VIZ-PLAN-2026-11-19.md 4, 1, 5, 6)
 - `#experiments/ridge` (drawRidge): daily.json move:steps or music:minutes, one ridge per year from 2016, Sunday-start weeks,
   value = a day's average within the week (weeks with 3+ days of data). Height is sqrt-scaled above the 3rd-percentile week so
   ordinary years still show shape next to the AT. The current year is drawn in the metric colour; hover highlights a year.
@@ -301,7 +299,7 @@ Keep the MX / TXT / DKIM / autodiscover records — they run the jsbv.life busin
   `prop_by` text with the PROP_TAGS rules in index.html ("Big X" → Big X, military, surveillance, retail…; 0 → Nothing sold;
   no match → Unnamed). Add a rule there when a new note doesn't land. "Ranked" shows one list, highest first.
 
-## Lab: screens vs feet, Wim Hof, musical eras, photo strata (Nov 19, 2026; VIZ-PLAN 8, 7, 2, 9)
+## Lab: screens vs feet, Wim Hof, musical eras, photo strata (Nov 19, 2026; docs/archive/VIZ-PLAN-2026-11-19.md 8, 7, 2, 9)
 - `#experiments/screens` (drawScreens): the latest year with data. Up = Apple exercise minutes (no walking-minutes metric
   exists); down = watching + call minutes, stacked. Lines are 7-day means (4+ days with data). Fortnite is left out: its daily
   numbers are season totals spread over days, not time played. Countdown counts to 2027-03-01 from today.

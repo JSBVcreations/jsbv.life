@@ -15,13 +15,13 @@ What runs, in what order and from which files, comes from `scripts/config/regist
 
 | Source | Kind | Raw file (outside the repo) | How to refresh | Builder → repo file |
 |---|---|---|---|---|
-| Apple Health (steps, distance, flights, exercise, HR, HRV, sleep) | manual export | `jsbv data/health export YYYY-MM-DD/` (HealthView hourly CSVs) | iPhone → HealthView → export hourly CSVs from Jan 1 to today → AirDrop → name the folder by date | `build_health_log.py` → `meta-log/data/health.json`; also feeds `build_pct_training.py` |
+| Apple Health (steps, distance, flights, exercise, HR, HRV, sleep) | manual export | `jsbv data/health export YYYY-MM-DD/` (HealthView hourly CSVs) | iPhone → HealthView → export hourly CSVs from Jan 1 to today → AirDrop → drop the folder in the inbox | `build_health_log.py` → `meta-log/data/health.json`; also feeds `build_pct_training.py` |
 | Watch list | manual (you log it) | `jsbv data/YYYY-Watch-List.xlsx` | Log titles, save. Update first runs `fill_posters.py`: OMDb posters / IMDb ids / ratings for new titles go to `jsbv data/omdb-cache.json` (key in `omdb-key.txt`; misses listed in `posters-to-check.csv`: add the IMDb ID in the Titles sheet) | `build_watch_log.py` → `watch.json`, `watch-titles.json` |
 | Scorecard | ask Claude: "pull my scorecard" | Screening Scorecard (private claude.ai page) → Claude saves `jsbv data/scorecard.json` (scores, propaganda meter, notes, custom scales, surprise actors) | Claude writes the file; Update rebuilds | `build_scorecard.py` → `watch-scores.json` (joined onto the `#watched` wall by IMDb id, then title) |
-| Call log | manual export | `jsbv data/YYYY-MM-Call-Log-Backup.xlsx` | Save a fresh backup from the call-log app | `build_call_log.py` → `calls.json` |
+| Call log | manual export | `jsbv data/YYYY-MM-Call-Log-Backup.xlsx` | Save a fresh backup from the call-log app → inbox | `build_call_log.py` → `calls.json` |
 | Phone (AT&T) | manual export | `jsbv data/ATT/raw/ATT-usage-<from>_to_<to>.xlsx` (one per bill; myAT&T → Usage → download usage details; overlapping copies are fine) | Drop the download in the inbox | `build_phone.py` → `phone/data/phone.json` + `meta-log/data/phone.json` (aliases only); private key + tables in `jsbv data/ATT/` |
-| Breathwork | manual export | `jsbv data/export_results.numbers` (or `.csv`) | Wim Hof app → export results | `build_breath_log.py` → `breath.json` |
-| Water | manual (you log it) | `jsbv data/YYYY-MM-Water-Log.csv` (date, time, fill_ml; note column never read). Every file matching `*Water-Log*.csv` is read | Save a new month's log in "jsbv data" | `build_water_log.py` → `water.json` |
+| Breathwork | manual export | `jsbv data/export_results.numbers` (or `.csv`) | Wim Hof app → export results → inbox | `build_breath_log.py` → `breath.json` |
+| Water | manual (you log it) | `jsbv data/YYYY-MM-Water-Log.csv` (date, time, fill_ml; note column never read). Every file matching `*Water-Log*.csv` is read | Drop a new month's log in the inbox | `build_water_log.py` → `water.json` |
 | Smoking | manual (you log it) | `jsbv data/2026-fall-smoking.xlsx` (Log tab: Year, Month, Day, Time hhmm, Type) | Type new rows, save | `build_smoking_log.py` → `private/smoking.json` (git-ignored) → sealed into `private.enc.json` (needs `pip3 install cryptography` and the key file) |
 | Timelines | manual (you log it) | `jsbv data/Timeline-*.xlsx` (listed in `scripts/config/timelines.json`) | Edit and save. New place names need a row in `scripts/config/places.json` | `build_timelines.py` → `meta-log/data/timelines.json` |
 | Fortnite | manual export, per season | `jsbv data/YYYY-MM-DD-jsbv-fortnite-data.pdf` + `Fortnite-Library-Manager.numbers` | epicgames.com → Account → Privacy → request your data; update the season calendar. Needs `pip3 install pypdf numbers-parser` | `build_fortnite.py` → `games/data/fortnite.json` |
@@ -58,7 +58,7 @@ flowchart LR
   subgraph HI["Historic, frozen"]
     AT["AT 2019 log, profile,<br/>trail radio"]
   end
-  INBOX[("jsbv data folder<br/>newest wins")]
+  INBOX[("jsbv data/inbox<br/>filed by contents")]
   UP{{"Update jsbv.command<br/>scripts/update.py"}}
   H --> INBOX
   W --> INBOX
@@ -72,11 +72,13 @@ flowchart LR
   UP --> J["meta-log/data/*.json<br/>training.json<br/>photo-library/data"]
   J --> D["daily.json"]
   SS --> D
-  D --> SITE["jsbv.life pages"]
-  SITE --> GH["GitHub Desktop: commit + push"] --> V["Vercel deploys"]
+  D --> DW["days/*.json + summary.json"] --> SITE["jsbv.life pages"]
+  D --> DB[("jsbv data/jsbv.sqlite<br/>+ claude-ready/")]
+  DW --> PC{{"privacy check"}} --> GH["GitHub Desktop: commit + push"] --> V["Vercel deploys"]
 ```
 
 ## Notes
 - If macOS refuses to open `Update jsbv.command` the first time, right-click it → Open.
+- To run it by itself every morning at 6 and whenever a file lands in the inbox: `bash scripts/launchd/install.sh` (once; `--remove` undoes it). Give python3 Full Disk Access when the log at `~/Library/Logs/jsbv-update.log` says "Operation not permitted". The agent never commits or pushes; it ends with a notification.
 - The script's "Changed files" list shows which data moved. Only those files need committing.
 - Rebuilding STEP//SONG (the decade of Spotify plus steps) is a separate, heavier job. Its `END` date is set in `build_step_song.py`. Ask Claude to do it when a new Spotify export arrives. Afterwards run `python3 scripts/build_eras.py` (Lab > Musical eras).
