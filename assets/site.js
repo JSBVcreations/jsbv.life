@@ -51,7 +51,7 @@
     ['GAME//LOG · Fortnite', 'media', 'games/#fortnite', 'video games seasons'], ['GAME//LOG · Seasons', 'media', 'games/#seasons', 'video games table'],
     ['Data', 'data', '#data', 'datasets all'], ['Explorer', 'data', '#explore', 'chart any metric'], ['Calendar', 'data', '#calendar', 'heatmap'],
     ['Gantt', 'data', '#gantt', 'life chapters'],
-    ['Lab · Links', 'data', '#experiments/links', 'correlation what moves together any two numbers scatter'], ['Lab · Year rings', 'data', '#experiments/rings'],
+    ['Lab · Links', 'data', '#experiments/links', 'correlation what moves together any two numbers scatter day-ahead lag'], ['Lab · Shifts', 'data', '#experiments/shifts', 'level change step break'], ['Lab · Year rings', 'data', '#experiments/rings'],
     ['Lab · Shape of a week', 'data', '#experiments/week', 'weekday'], ['Lab · Tide', 'data', '#experiments/tide'],
     ['Lab · Ridgeline', 'data', '#experiments/ridge'],
     ['Lab · Decade clock', 'data', '#experiments/clock'], ['Lab · Screens vs feet', 'data', '#experiments/screens'],

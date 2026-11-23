@@ -1,13 +1,13 @@
 /* The Lab (#experiments/<key>): one experiment at a time. */
 import { $, el, svg, DAY, T0, dayIndex, MON, dateLabel, num, tick, loadJSON, FONT_UI, FONT_DATA, C } from '../core.js';
 import { DOW, DS, LIFE, MO, WD, YR, asLine, daily, eTipAt, eTipOff, makeBuckets, metricOf, pearson, sumRange, sw, today } from './state.js';
-import { corr, deviation, bh, blockDiff, rolling } from '../stats.js';
+import { corr, deviation, bh, blockDiff, rolling, shifts } from '../stats.js';
 // ================================================================ EXPERIMENTS
 // One experiment open at a time (#experiments/<key>), chosen from the tab bar under the intro.
 // Links (Nov 23 2026) = the old 'What moves together' matrix and 'Any two numbers' scatter on one tab; #experiments/corr and /pairs land on it
-const E_TABS = [['links', 'Links'], ['rings', 'Year rings'], ['week', 'Shape of a week'], ['tide', 'Tide'], ['ridge', 'Ridgeline'], ['clock', 'Decade clock'], ['screens', 'Screens vs feet'], ['wimhof', 'Does Wim Hof work?'], ['eras', 'Musical eras'], ['strata', 'Photo strata']];
+const E_TABS = [['links', 'Links'], ['shifts', 'Shifts'], ['rings', 'Year rings'], ['week', 'Shape of a week'], ['tide', 'Tide'], ['ridge', 'Ridgeline'], ['clock', 'Decade clock'], ['screens', 'Screens vs feet'], ['wimhof', 'Does Wim Hof work?'], ['eras', 'Musical eras'], ['strata', 'Photo strata']];
 let expTab = 'links';
-const E_SECS = { links: ['corr', 'pairs'] };   // a tab may show more than one section
+const E_SECS = { links: ['corr', 'lags', 'pairs'] };   // a tab may show more than one section
 const E_ALIAS = { corr: 'links', pairs: 'links' };
 function applyExpTab() {
   const secs = (k) => (E_SECS[k] || [k]).map((x) => document.getElementById('e-' + x)).filter(Boolean);
@@ -298,6 +298,50 @@ const spline = (pts) => { if (pts.length < 3) return pts.map((p, i) => (i ? 'L' 
 const hm = (min) => (min >= 90 ? `${(min / 60).toFixed(1)} h` : `${Math.round(min)} min`);
 const tiny = (x, y, t, a = 'start', c = C.dim) => svg('text', { x, y, 'text-anchor': a, fill: c, style: `font:10px ${FONT_DATA}` }, t);
 
+// Display 4, lagged links: does one day's number move the next days' other number? Daily gaps from each metric's own
+// trailing 28-day median, x on day t against y on day t+1 and t+2, effective-n interval, BH q across every pair and lag.
+const LAG_SET = [['move', 'steps'], ['exercise', 'minutes'], ['body', 'resting_hr'], ['body', 'hrv'], ['body', 'sleep_h'], ['music', 'minutes'], ['watch', 'minutes'], ['calls', 'minutes'], ['breath', 'sessions']]
+  .filter(([d, m]) => metricOf(d, m)).map(([d, m]) => ({ key: d + ':' + m, L: asLine(d, m) }));
+const LAGS = { key: null, rows: null };
+function drawLags() {
+  const [a, b] = eSpan(), key = a + ':' + b;
+  if (LAGS.key !== key) {
+    const D = LAG_SET.map((s) => deviation(Array.from({ length: b - a + 1 }, (_, k) => dayVal(s.L, a + k)), 28, 14)), rows = [];
+    for (let i = 0; i < D.length; i++) for (let j = 0; j < D.length; j++) { if (i === j) continue;
+      for (const lag of [1, 2]) { const c = corr(D[i].slice(0, D[i].length - lag), D[j].slice(lag), { minN: 60 }); if (c) rows.push({ i, j, lag, c }); } }
+    const q = bh(rows.map((r) => r.c.p)); rows.forEach((r, k) => { r.q = q[k]; });
+    rows.sort((p, s) => (p.q - s.q) || Math.abs(s.c.r) - Math.abs(p.c.r)); LAGS.key = key; LAGS.rows = rows;
+  }
+  const rows = LAGS.rows, pass = rows.filter((r) => r.q < 0.1), show = (pass.length ? pass : rows).slice(0, 10);
+  $('#e-lag-table').replaceChildren(el('thead', {}, el('tr', {}, ['This day', 'Later', 'r', '95% range', 'q', 'Days'].map((h, k) => el('th', { scope: 'col', className: k < 2 ? 'l' : '', text: h })))),
+    el('tbody', {}, show.map((r) => el('tr', { className: r.q < 0.1 ? '' : 'faded' }, [el('td', { className: 'l', text: LAG_SET[r.i].L.name }), el('td', { className: 'l', text: `${LAG_SET[r.j].L.name}, ${r.lag === 1 ? 'next day' : '2 days on'}` }),
+      el('td', { text: sg2(r.c.r), style: `color:${r.c.r >= 0 ? '#3ff0ff' : '#ff3fb4'}` }), el('td', { text: `${sg2(r.c.lo)} to ${sg2(r.c.hi)}` }), el('td', { text: qf(r.q) }), el('td', { text: r.c.n.toLocaleString() })]))));
+  $('#e-lag-note').textContent = pass.length ? `${pass.length} of ${rows.length} day-ahead links pass q < 0.1` : `None of ${rows.length} day-ahead links pass q < 0.1; the strongest are shown faded`;
+}
+
+// Display 10, shift finder: the weeks where a metric's level changed and stayed changed (binary segmentation, BIC-style penalty).
+const SH = { k: null };
+function drawShifts() {
+  if (!SH.k || !E_SET.some((s) => s.key === SH.k)) SH.k = E_SET[0].key;
+  const pick = $('#e-shift-pick'); if (!pick.options.length) { pick.replaceChildren(...E_SET.map((s) => el('option', { value: s.key, text: s.L.name }))); pick.onchange = () => { SH.k = pick.value; drawShifts(); }; } pick.value = SH.k;
+  const S0 = E_SET.find((s) => s.key === SH.k), L = S0.L, b = L.off + L.n - 1, a = Math.max(L.off, b - 7 * 52 * 4), B = makeBuckets(a, b, 'week'), v = eWeekly(L, B), cuts = shifts(v, { minSeg: 8 });
+  const host = $('#e-shift-fig'), Wd = Math.max(300, host.clientWidth || 800), H = Wd < 560 ? 240 : 300, P = { l: 46, r: 10, t: 12, b: 22 }, got = v.filter((x) => x != null);
+  if (got.length < 16) { host.replaceChildren(el('p', { className: 'note', text: 'Not enough weeks.' })); $('#e-shift-list').replaceChildren(); return; }
+  const y0 = Math.min(0, ...got), y1 = Math.max(...got), X = (k) => P.l + (k / (B.length - 1)) * (Wd - P.l - P.r), Y = (x) => P.t + (1 - (x - y0) / (y1 - y0 || 1)) * (H - P.t - P.b);
+  const s = svg('svg', { viewBox: `0 0 ${Wd} ${H}`, width: Wd, height: H, role: 'img', 'aria-label': `${L.name} by week with the level shifts marked` });
+  for (let t = 0; t <= 4; t++) { const x = y0 + ((y1 - y0) * t) / 4; s.append(svg('line', { x1: P.l, x2: Wd - P.r, y1: Y(x), y2: Y(x), stroke: C.grid }), tiny(P.l - 6, Y(x) + 3, tick(x), 'end')); }
+  let lastYr = null; B.forEach((k, t) => { const yr = YR[k.a]; if (yr !== lastYr) { if (lastYr != null) s.append(tiny(X(t) + 3, H - 6, String(yr))); lastYr = yr; } });
+  v.forEach((x, t) => { if (x != null) s.append(svg('circle', { cx: X(t), cy: Y(x), r: 2, fill: L.color, 'fill-opacity': 0.45 })); });
+  const bounds = [0, ...cuts.map((c) => c.at), B.length];
+  for (let g = 0; g < bounds.length - 1; g++) { const seg = v.slice(bounds[g], bounds[g + 1]).filter((x) => x != null), m = seg.reduce((t, x) => t + x, 0) / (seg.length || 1);
+    s.append(svg('line', { x1: X(bounds[g]), x2: X(bounds[g + 1] - 1), y1: Y(m), y2: Y(m), stroke: L.color, 'stroke-width': 3, style: `filter:drop-shadow(0 0 4px ${L.color})` })); }
+  for (const c of cuts) s.append(svg('line', { x1: X(c.at), x2: X(c.at), y1: P.t, y2: H - P.b, stroke: C.ink, 'stroke-opacity': 0.5, 'stroke-dasharray': '3 3' }));
+  host.replaceChildren(s);
+  const per = L.agg === 'mean' ? L.unit : L.unit + ' a day';
+  $('#e-shift-list').replaceChildren(...(cuts.length ? cuts.map((c) => el('div', { className: 'e-shift' }, [el('b', { text: 'Week of ' + dateLabel(B[c.at].a) }), el('span', { text: `${num(c.before)} → ${num(c.after)} ${per} (${c.after >= c.before ? '+' : ''}${Math.round(((c.after - c.before) / (Math.abs(c.before) || 1)) * 100)}%)` })]))
+    : [el('p', { className: 'note', text: 'No lasting shift in these four years.' })]));
+}
+
 // Screens vs feet: exercise minutes up, watching + calls down, 7-day means, countdown to the PCT start.
 const PCT_START = dayIndex('2027-03-01');
 function drawScreens() {
@@ -467,7 +511,7 @@ function renderExperiments() {
     $('#e-win-seg').replaceChildren(...[['year', 'This year'], ['all', 'All years']].map(([k, label]) => el('button', { type: 'button', text: label, 'aria-pressed': String(EXP.win === k), onclick: (ev) => { EXP.win = k; EXP.pair = null; for (const b of $('#e-win-seg').children) b.setAttribute('aria-pressed', String(b === ev.target)); drawCorr(); drawWeekShape(); } }))); }
   if (!$('#e-tabs').children.length) $('#e-tabs').replaceChildren(...E_TABS.map(([k, label]) => { const a = el('a', { href: '#experiments/' + k, text: label }); a.dataset.k = k; return a; }));
   applyExpTab();   // open the tab first, so the drawing below measures its real width
-  ({ rings: drawRings, links: () => { drawCorr(); drawPairs(); }, week: drawWeekShape, tide: drawTide, ridge: drawRidge, clock: drawClock, screens: drawScreens, wimhof: drawWimHof, eras: drawEras, strata: drawStrata })[expTab]();
+  ({ rings: drawRings, links: () => { drawCorr(); drawLags(); drawPairs(); }, shifts: drawShifts, week: drawWeekShape, tide: drawTide, ridge: drawRidge, clock: drawClock, screens: drawScreens, wimhof: drawWimHof, eras: drawEras, strata: drawStrata })[expTab]();
 }
 
 export function render(sub) { if (E_ALIAS[sub]) { history.replaceState(null, '', '#experiments/' + E_ALIAS[sub]); sub = E_ALIAS[sub]; } if (E_TABS.some(([k]) => k === sub)) expTab = sub; renderExperiments(); }

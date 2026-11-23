@@ -85,6 +85,10 @@ td .sw { margin-right: 8px; }
 .band-h b { color: var(--ink); font-weight: 600; }
 .dash-p.clock svg { max-width: 340px; margin: 0 auto; }
 .dtab th.l, .dtab td.l { text-align: left; }
+.dtab tr.faded td { opacity: .45; }
+.e-shifts { display: flex; flex-wrap: wrap; gap: 8px 22px; margin-top: 10px; font: 400 12px var(--f-data); }
+.e-shift b { display: block; color: var(--ink); font-weight: 600; }
+.e-shift span { color: var(--dim); }
 .dtab td.dim { color: var(--dim); }
 .dtab td small { display: block; color: var(--dim); font-size: 11px; }
 .dtab td small a { color: var(--dim); }
@@ -537,6 +541,16 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
         <div class="e-scroll"><div id="e-matrix"></div></div>
         <div class="e-side"><div id="e-scatter"></div><div id="e-top"></div></div>
       </div>
+    </section>
+    <section class="box" id="e-lags">
+      <div class="head"><h2>Day-ahead links</h2></div>
+      <div class="scroll"><table class="dtab" id="e-lag-table"></table></div>
+      <p class="note" id="e-lag-note"></p>
+    </section>
+    <section class="box" id="e-shifts">
+      <div class="head"><h2>Shifts</h2><label class="e-pick" style="flex:0 1 220px">Metric<select id="e-shift-pick"></select></label></div>
+      <div id="e-shift-fig"></div>
+      <div class="e-shifts" id="e-shift-list"></div>
     </section>
     <section class="box" id="e-rings">
       <div class="head"><h2>Year rings</h2>
