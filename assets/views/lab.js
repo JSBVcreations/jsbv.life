@@ -1,7 +1,7 @@
 /* The Lab (#experiments/<key>): one experiment at a time. */
 import { $, el, svg, DAY, T0, dayIndex, MON, dateLabel, num, tick, loadJSON, FONT_UI, FONT_DATA, C } from '../core.js';
 import { DOW, DS, LIFE, MO, WD, YR, asLine, daily, eTipAt, eTipOff, makeBuckets, metricOf, pearson, sumRange, sw, today } from './state.js';
-import { corr, deviation, bh } from '../stats.js';
+import { corr, deviation, bh, blockDiff, rolling } from '../stats.js';
 // ================================================================ EXPERIMENTS
 // One experiment open at a time (#experiments/<key>), chosen from the tab bar under the intro.
 // Links (Nov 23 2026) = the old 'What moves together' matrix and 'Any two numbers' scatter on one tab; #experiments/corr and /pairs land on it
@@ -304,7 +304,8 @@ function drawScreens() {
   const up = asLine('exercise', 'minutes'), dn = [['watch', 'minutes', 'Watching', '#4ea8ff'], ['calls', 'minutes', 'Calls', '#4fe0c0']].map(([d, m, label, c]) => ({ L: asLine(d, m), label, c })).filter((x) => x.L);
   const host = $('#e-scr-fig');
   const ends = [up, ...dn.map((x) => x.L)].filter(Boolean).map((L) => L.off + L.n - 1); if (!up || !ends.length) { host.replaceChildren(el('p', { className: 'note', text: 'No exercise data.' })); return; }
-  const b = Math.min(Math.max(...ends), today), yr = YR[b], a = dayIndex(`${yr}-01-01`), N = b - a + 1;
+  // the last day every series has, so a lagging export never reads as zero
+  const b = Math.min(...ends, today), yr = YR[b], a = dayIndex(`${yr}-01-01`), N = b - a + 1;
   const U = [], D = [];   // minutes
   for (let i = a; i <= b; i++) { U.push(dayVal(up, i) == null ? null : dayVal(up, i) * 60); D.push(dn.map((x) => (dayVal(x.L, i) || 0) * 60)); }
   const left = PCT_START - today; $('#e-scr-count').replaceChildren(String(Math.max(0, left)), el('small', { text: left > 0 ? 'days to the PCT' : 'PCT under way' }));
@@ -318,8 +319,7 @@ function drawScreens() {
   U.forEach((v, k) => { if (v) bars.append(svg('rect', { x: X(k) + 0.15 * bw, width: Math.max(0.8, bw * 0.7), y: mid - v * sc, height: v * sc, fill: up.color, 'fill-opacity': 0.7 })); });
   D.forEach((r, k) => { let y = mid; r.forEach((v, j) => { if (!v) return; bars.append(svg('rect', { x: X(k) + 0.15 * bw, width: Math.max(0.8, bw * 0.7), y, height: v * sc, fill: dn[j].c, 'fill-opacity': 0.7 })); y += v * sc; }); });
   S.append(bars, svg('line', { x1: P.l, x2: W - P.r, y1: mid, y2: mid, stroke: C.ink, 'stroke-opacity': 0.5 }));
-  const roll = (get) => Array.from({ length: N }, (_, k) => { let s = 0, c = 0; for (let j = Math.max(0, k - 6); j <= k; j++) { const v = get(j); if (v != null) { s += v; c++; } } return c >= 4 ? s / c : null; });
-  const rU = roll((j) => U[j]), rD = roll((j) => D[j].reduce((s, x) => s + x, 0));
+  const rU = rolling(U, 7, { minDays: 4 }), rD = rolling(D.map((r) => r.reduce((s, x) => s + x, 0)), 7, { minDays: 4 });
   for (const [r, sgn, c] of [[rU, 1, up.color], [rD, -1, '#4ea8ff']]) { const pts = r.map((v, k) => (v == null ? null : [X(k) + bw / 2, mid - sgn * v * sc])).filter(Boolean);
     S.append(svg('path', { d: spline(pts), fill: 'none', stroke: c, 'stroke-width': 2.2, style: `filter:drop-shadow(0 0 4px ${c})` })); }
   S.append(svg('text', { x: P.l + 6, y: P.t + 12, fill: up.color, style: `font:600 11px ${FONT_UI};letter-spacing:.14em` }, 'EXERCISE ↑'), svg('text', { x: P.l + 6, y: H - P.b - 6, fill: '#4ea8ff', style: `font:600 11px ${FONT_UI};letter-spacing:.14em` }, 'SCREENS ↓'));
@@ -336,11 +336,16 @@ function drawScreens() {
 // Does Wim Hof work? 2026 calendar of HRV / resting HR / sleep with breathwork days dotted; next morning after a breath day vs other days.
 const EW = { k: 'hrv' }, EW_M = [['hrv', 'HRV'], ['resting_hr', 'Resting HR'], ['sleep_h', 'Sleep']];
 function wimStats(k) {
+  // Next morning after a breath day vs other days. The test runs on each morning's gap from its own trailing 28-day median
+  // (so slow drift doesn't count), with whole Sunday weeks shuffled for p and resampled for the 95% range.
   const L = asLine('body', k), B = asLine('breath', 'sessions'), g = { yes: [], no: [] }; if (!L || !B) return null;
-  for (let i = L.off; i < L.off + L.n - 1; i++) { const nx = dayVal(L, i + 1), br = dayVal(B, i); if (nx == null || br == null) continue; g[br > 0 ? 'yes' : 'no'].push(nx); }
-  const st = (xs) => { const n = xs.length, m = n ? xs.reduce((s, x) => s + x, 0) / n : null, sd = n > 1 ? Math.sqrt(xs.reduce((s, x) => s + (x - m) ** 2, 0) / (n - 1)) : 0; return { n, m, sd }; };
-  const y = st(g.yes), n = st(g.no), se = y.n > 1 && n.n > 1 ? Math.sqrt(y.sd ** 2 / y.n + n.sd ** 2 / n.n) : null;
-  return { L, g, y, n, diff: y.m != null && n.m != null ? y.m - n.m : null, se };
+  const raw = Array.from({ length: L.n }, (_, j) => dayVal(L, L.off + j)), dev = deviation(raw, 28, 14);
+  const vals = [], flags = [], block = [];
+  for (let i = L.off; i < L.off + L.n - 1; i++) { const nx = raw[i + 1 - L.off], br = dayVal(B, i); if (nx == null || br == null) continue; g[br > 0 ? 'yes' : 'no'].push(nx);
+    vals.push(dev[i + 1 - L.off]); flags.push(br > 0); block.push(i - DOW[i]); }
+  const st = (xs) => ({ n: xs.length, m: xs.length ? xs.reduce((s, x) => s + x, 0) / xs.length : null });
+  const t = blockDiff(vals, flags, block, { iters: 2000, seed: 7 });
+  return { L, g, y: st(g.yes), n: st(g.no), diff: t ? t.diff : null, lo: t?.lo, hi: t?.hi, p: t?.p };
 }
 function drawWimHof() {
   const L = asLine('body', EW.k), B = asLine('breath', 'sessions'), host = $('#e-wh-cal');
@@ -373,14 +378,14 @@ function drawWimHof() {
     const strip = svg('svg', { viewBox: `0 0 ${sw2} 34`, width: sw2, height: 34, 'aria-hidden': 'true' });
     [['yes', 8, '#fff'], ['no', 24, C.dim]].forEach(([g, y, c]) => { for (const v of s.g[g]) strip.append(svg('circle', { cx: sx(v), cy: y + (((v * 997) % 7) - 3) * 0.7, r: 1.6, fill: c, 'fill-opacity': 0.55 }));
       const m = g === 'yes' ? s.y.m : s.n.m; strip.append(svg('line', { x1: sx(m), x2: sx(m), y1: y - 6, y2: y + 6, stroke: g === 'yes' ? s.L.color : C.ink, 'stroke-width': 2.5 })); });
-    const ci = s.se != null ? ` (95% range ${s.diff - 1.96 * s.se > 0 ? '+' : ''}${num(s.diff - 1.96 * s.se)} to ${s.diff + 1.96 * s.se > 0 ? '+' : ''}${num(s.diff + 1.96 * s.se)})` : '';
+    const sg = (v) => (v > 0 ? '+' : '') + num(v), ci = s.lo != null ? ` (95% ${sg(s.lo)} to ${sg(s.hi)} · p ${s.p < 0.001 ? '<0.001' : s.p.toFixed(3)})` : '';
     card.append(el('b', { text: label }),
       el('span', { className: 'wh-row' }, [el('span', { text: 'After a breath day' }), el('em', { text: num(s.y.m, u) }), el('small', { text: 'n ' + s.y.n })]),
       el('span', { className: 'wh-row' }, [el('span', { text: 'After other days' }), el('em', { text: num(s.n.m, u) }), el('small', { text: 'n ' + s.n.n })]),
-      strip, el('span', { className: 'wh-diff', text: `Difference ${s.diff > 0 ? '+' : ''}${num(s.diff, u)}${ci}` }));
+      strip, el('span', { className: 'wh-diff', text: s.diff == null ? 'Too few days to test' : `Vs usual ${s.diff > 0 ? '+' : ''}${num(s.diff, u)}${ci}` }));
     return card; }));
   const bAll = (() => { let n = 0; for (let i = a; i <= last; i++) if (dayVal(B, i) > 0) n++; return n; })();
-  $('#e-wh-note').textContent = `${yr} through ${dateLabel(last)} · ${bAll} breathwork days · next-day comparison uses every 2026 day with heart data and a breathwork record`;
+  $('#e-wh-note').textContent = `${yr} through ${dateLabel(last)} · ${bAll} breathwork days · each morning against its own 28-day median · weeks shuffled for p`;
 }
 
 // Musical eras: streamgraph of the artists that defined each year (step-song/data/eras.json, build_eras.py), life chapters behind.

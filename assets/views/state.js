@@ -4,6 +4,7 @@
      'full'    every dataset (meta-log/data/days/, assets/daily.js) + life chapters, hand-logged metrics and timelines (every other view)
    The exports are live bindings: a view that imports DS sees the full data once loadData('full') has run. */
 import { el, DAY, T0, MON, dayIndex, dateLabel, POOL, loadJSON } from '../core.js';
+import { clockMean } from '../stats.js';
 import { moonDataset } from '../moon.js';
 import { loadDaily } from '../daily.js';
 
@@ -102,7 +103,9 @@ async function build(want) {
 export const yearStart = (i) => dayIndex(`${YR[i]}-01-01`);
 export const clampI = (i) => Math.max(0, Math.min(MAXI, i));
 export const metricOf = (dsId, mId) => DS[dsId] && DS[dsId].metrics.find((m) => m.id === mId);
-export const asLine = (dsId, mId) => { const ds = DS[dsId], m = metricOf(dsId, mId); return m && { off: ds.offset, n: ds.n, v: m.v, unit: m.unit, name: m.name, color: m.color, agg: m.agg || 'sum', grain: ds.grain }; };
+// clock-hour metrics (bed_h runs 18–38 so a night past midnight stays one number): shown as a time of day, averaged on the circle
+export const CLOCK = new Set(['body:bed_h', 'body:wake_h']);
+export const asLine = (dsId, mId) => { const ds = DS[dsId], m = metricOf(dsId, mId); return m && { off: ds.offset, n: ds.n, v: m.v, unit: m.unit, name: m.name, color: m.color, agg: m.agg || 'sum', grain: ds.grain, clock: CLOCK.has(dsId + ':' + mId) }; };
 export const sumRange = (L, a, b) => { const lo = Math.max(a, L.off), hi = Math.min(b, L.off + L.n - 1); let sum = 0, cnt = 0;
   for (let i = lo; i <= hi; i++) { const x = L.v[i - L.off]; if (x != null) { sum += x; cnt++; } }
   return { sum, cnt, cov: Math.max(0, hi - lo + 1) }; };
@@ -128,12 +131,12 @@ export function bucketize(L, B, mode) {
 export function describe(L, cells, B) {
   const pts = cells.map((c, k) => [c.v, k]).filter((p) => p[0] != null);
   if (!pts.length) return null;
-  const xs = pts.map((p) => p[0]).sort((p, q) => p - q), n = xs.length, mean = xs.reduce((s, x) => s + x, 0) / n;
-  const sd = n > 1 ? Math.sqrt(xs.reduce((s, x) => s + (x - mean) ** 2, 0) / (n - 1)) : 0;
+  const xs = pts.map((p) => p[0]).sort((p, q) => p - q), n = xs.length, cm = L.clock ? clockMean(xs) : null, mean = cm ? cm.hour : xs.reduce((s, x) => s + x, 0) / n;
+  const sd = cm ? (cm.sdMin ?? 0) / 60 : n > 1 ? Math.sqrt(xs.reduce((s, x) => s + (x - mean) ** 2, 0) / (n - 1)) : 0;
   const hi = pts.reduce((p, q) => (q[0] > p[0] ? q : p)), lo = pts.reduce((p, q) => (q[0] < p[0] ? q : p));
   const tot = cells.reduce((s, c) => s + c.sum, 0), cov = cells.reduce((s, c) => s + c.cov, 0), cnt = cells.reduce((s, c) => s + c.cnt, 0);
   return { n, mean, sd, median: n % 2 ? xs[(n - 1) / 2] : (xs[n / 2 - 1] + xs[n / 2]) / 2, max: hi[0], maxAt: B[hi[1]].label, min: lo[0], minAt: B[lo[1]].label,
-    total: L.agg === 'mean' ? null : tot, perDay: cnt ? tot / cnt : null, days: cov, daysWithData: cnt };
+    total: L.agg === 'mean' ? null : tot, perDay: cnt && !L.clock ? tot / cnt : null, days: cov, daysWithData: cnt };
 }
 export function pearson(x, y) {
   const p = []; for (let i = 0; i < x.length; i++) if (x[i] != null && y[i] != null) p.push([x[i], y[i]]);

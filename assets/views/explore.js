@@ -1,7 +1,9 @@
 /* Data explorer (#explore): any series over any range, bucketed, with stats, a table and snapshots. */
 import { $, el, dayIndex, iso, dateLabel, num, tick, niceMax, FONT_UI, FONT_DATA, C, POOL } from '../core.js';
-import { DS, LIFE, MAXI, bucketize, clampI, daily, describe, lastYear, makeBuckets, metricOf, sw, today } from './state.js';
-import { corr, deviation, bh } from '../stats.js';
+import { CLOCK, DS, LIFE, MAXI, bucketize, clampI, daily, describe, lastYear, makeBuckets, metricOf, sw, today } from './state.js';
+import { corr, deviation, bh, clockLabel } from '../stats.js';
+// a value as the table shows it: clock metrics as a time of day, their spread in minutes
+const fv = (L, v, u) => (L.clock ? (v == null ? '—' : clockLabel(v)) : num(v, u)), fsd = (L, v, u) => (L.clock ? (v == null ? '—' : Math.round(v * 60) + ' min') : num(v, u));
 // ================================================================ EXPLORER
 let sid = 0;
 const S = { a: 0, b: 0, bucket: 'auto', chart: 'line', mode: 'total', overlay: true, index: false, series: [] };
@@ -16,7 +18,7 @@ function addSeries(dsId, mId, dimId, cats, split) {
 }
 function expand(s) {
   const ds = DS[s.ds], m = metricOf(s.ds, s.metric);
-  const base = { off: ds.offset, n: ds.n, unit: m.unit, agg: m.agg || 'sum', grain: ds.grain, group: s.id, ds: ds.name };
+  const base = { off: ds.offset, n: ds.n, unit: m.unit, agg: m.agg || 'sum', grain: ds.grain, group: s.id, ds: ds.name, clock: CLOCK.has(s.ds + ':' + s.metric) && !s.dim };
   if (!s.dim) return [{ ...base, key: s.id, name: m.name, color: s.color, v: m.v }];
   const dim = ds.dims.find((d) => d.id === s.dim), src = dim.v[s.metric], cats = dim.cats.filter((c) => s.cats.includes(c.id));
   if (s.split) return cats.map((c) => ({ ...base, key: s.id + ':' + c.id, name: `${m.name} · ${c.name}`, color: c.color, v: src[c.id] }));
@@ -163,8 +165,8 @@ function renderStats(M) {
   const tb = el('tbody'); t.append(tb);
   for (const L of M.shown) { const s = L.stats, u = L.unit;
     tb.append(el('tr', {}, [el('td', {}, [sw(L.color), L.name, el('small', { text: `${L.ds} · ${s.daysWithData.toLocaleString()} of ${s.days.toLocaleString()} days with data` })]),
-      el('td', { text: num(s.total, u) }), el('td', { text: num(s.perDay, u) }), el('td', { text: num(s.mean, u) }), el('td', { text: num(s.median, u) }), el('td', { text: num(s.sd, u) }),
-      el('td', {}, [num(s.min, u), el('small', { text: s.minAt })]), el('td', {}, [num(s.max, u), el('small', { text: s.maxAt })])])); }
+      el('td', { text: num(s.total, u) }), el('td', { text: num(s.perDay, u) }), el('td', { text: fv(L, s.mean, u) }), el('td', { text: fv(L, s.median, u) }), el('td', { text: fsd(L, s.sd, u) }),
+      el('td', {}, [fv(L, s.min, u), el('small', { text: s.minAt })]), el('td', {}, [fv(L, s.max, u), el('small', { text: s.maxAt })])])); }
   // correlations between series
   const box = $('#x-corr'); box.replaceChildren();
   const ls = M.shown.slice(0, 12), pairs = [];
@@ -184,7 +186,7 @@ function renderStats(M) {
 function renderTable(M) {
   const t = $('#x-table'); t.replaceChildren(); if (!M.shown.length) return;
   t.append(el('thead', {}, el('tr', {}, [el('th', { text: M.g, scope: 'col' }), ...M.shown.map((L) => el('th', { text: `${L.name} (${L.unit})`, scope: 'col' }))])));
-  const rows = M.B.slice(0, 600).map((b, k) => el('tr', {}, [el('td', { text: b.label }), ...M.shown.map((L) => el('td', { text: num(L.vals[k]) }))]));
+  const rows = M.B.slice(0, 600).map((b, k) => el('tr', {}, [el('td', { text: b.label }), ...M.shown.map((L) => el('td', { text: L.clock ? fv(L, L.vals[k]) : num(L.vals[k]) }))]));
   t.append(el('tbody', {}, rows));
   if (M.B.length > 600) t.append(el('caption', { text: `First 600 of ${M.B.length} rows. Save CSV for all of them.`, style: 'caption-side:bottom;color:var(--dim);padding:8px' }));
 }
@@ -204,7 +206,7 @@ function hover(ev) {
     ctx.fillStyle = C.panel; ctx.beginPath(); ctx.arc(x, y, 5.5, 0, 6.3); ctx.fill(); ctx.fillStyle = L.color; ctx.beginPath(); ctx.arc(x, y, 3.5, 0, 6.3); ctx.fill(); }
   const b = model.B[k], rows = model.shown.filter((L) => L.vals[k] != null);
   const here = LIFE.filter((l) => l.b >= b.a && l.a <= b.b);
-  tip.replaceChildren(el('b', { text: b.label }), ...rows.map((L) => el('div', {}, [sw(L.color), el('span', { text: L.name }), el('span', { text: num(L.vals[k], L.unit + (S.mode === 'avg' && L.agg !== 'mean' ? '/day' : '')) })])),
+  tip.replaceChildren(el('b', { text: b.label }), ...rows.map((L) => el('div', {}, [sw(L.color), el('span', { text: L.name }), el('span', { text: L.clock ? fv(L, L.vals[k]) : num(L.vals[k], L.unit + (S.mode === 'avg' && L.agg !== 'mean' ? '/day' : '')) })])),
     ...(here.length ? [el('div', { className: 'dim', style: 'margin-top:4px', text: here.map((l) => l.label).join(' · ') })] : []));
   tip.hidden = false;
   const tw = tip.offsetWidth, th = tip.offsetHeight;
@@ -247,7 +249,7 @@ function snapshot(kind) {
     ctx.font = `400 12px ${FONT_DATA}`;
     for (const L of rows) { const s = L.stats, u = L.unit; ctx.fillStyle = L.color; ctx.fillRect(PAD, y + 5, 11, 11);
       ctx.fillStyle = C.ink; ctx.textAlign = 'left'; let nm = L.name; while (ctx.measureText(nm).width > cw * 0.36 && nm.length > 8) nm = nm.slice(0, -2); ctx.fillText(nm === L.name ? nm : nm + '…', PAD + 18, y + 11);
-      ctx.textAlign = 'right'; [s.total, s.perDay, s.mean, s.median, s.max].forEach((v, i) => ctx.fillText(num(v, u), PAD + cols[i + 1][1] * cw, y + 11)); y += 22; }
+      ctx.textAlign = 'right'; [s.total, s.perDay, s.mean, s.median, s.max].forEach((v, i) => ctx.fillText(i > 1 ? fv(L, v, u) : num(v, u), PAD + cols[i + 1][1] * cw, y + 11)); y += 22; }
     if (M.shown.length > rows.length) { ctx.fillStyle = C.dim; ctx.textAlign = 'left'; ctx.fillText(`+ ${M.shown.length - rows.length} more series`, PAD, y + 10); y += 20; }
   }
   y += 22; ctx.fillStyle = C.dim; ctx.font = `400 11px ${FONT_DATA}`; ctx.textAlign = 'left'; ctx.fillText('jsbv.life', PAD, y);

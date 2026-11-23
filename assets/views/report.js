@@ -1,6 +1,7 @@
 /* Home (#report): this month and PCT//PREP heroes and the Fitness · Health · Media tiles. Runs on summary.json.
    The year by season moved to REPORT//CARDS (assets/seasons.js) and Low tide to PCT//PREP's tab on Nov 23 2026. */
 import { $, el, svg, dayIndex, iso, MON, dateLabel, num, loadJSON } from '../core.js';
+import { median, percentile } from '../stats.js';
 import { DS, asLine, daily, eTipAt, eTipOff, linkRow, metricOf, openInExplorer, sumRange, sw, today, yearStart } from './state.js';
 // ================================================================ REPORT CARD
 // Home dashboard. GROUPS = the umbrellas: [id, title, colour, [[dataset, metric], ...]]. A metric only shows under its
@@ -18,10 +19,14 @@ const RC = { at: {}, built: false };
 function slideOf(g, k) {
   const [dsId, mId] = g.ms[k], ds = DS[dsId], m = metricOf(dsId, mId), L = asLine(dsId, mId), e = ds.end, perDay = PER_DAY.has(dsId + ':' + mId);
   const val = (a, b) => { const r = sumRange(L, a, b); if (r.cov < b - a + 1) return null; return L.agg === 'mean' ? (r.cnt ? r.sum / r.cnt : null) : perDay ? r.sum / r.cov : r.sum; };
-  const col = (w, cap) => { const v = val(e - w + 1, e), pv = val(e - 2 * w + 1, e - w), d = v != null && pv ? ((v - pv) / pv) * 100 : null;
+  // the typical size of this change: every earlier w-vs-prior-w swing the data holds (summary.json keeps ~60 days, so 7-day only)
+  const swing = (w) => { const xs = []; for (let t = e - 1; t - 2 * w + 1 >= L.off; t--) { const v = val(t - w + 1, t), pv = val(t - 2 * w + 1, t - w); if (v != null && pv) xs.push(Math.abs((v - pv) / pv) * 100); } return xs.length >= 14 ? xs : null; };
+  const col = (w, cap) => { const v = val(e - w + 1, e), pv = val(e - 2 * w + 1, e - w), d = v != null && pv ? ((v - pv) / pv) * 100 : null, sw7 = d == null ? null : swing(w);
+    const typ = sw7 && median(sw7), big = sw7 && percentile(Math.abs(d), sw7) >= 80;
     return el('div', {}, [el('div', { className: 'cap', text: cap }), el('div', { className: 'val', text: v == null ? '—' : num(v) }),
       el('div', { className: 'unit', text: m.unit + (L.agg === 'mean' ? ' average' : perDay ? ' a day' : ' total') }),
-      el('div', { className: 'dl' + (d == null ? '' : d >= 0 ? ' up' : ' dn'), text: d == null ? 'no earlier stretch' : `${d >= 0 ? '▲' : '▼'} ${Math.abs(d).toFixed(0)}% vs prior ${w}` })]); };
+      el('div', { className: 'dl' + (d == null ? '' : d >= 0 ? ' up' : ' dn') + (sw7 && !big ? ' usual' : ''), title: typ ? `A ${w}-day swing is usually about ${typ.toFixed(0)}%` : '',
+        text: d == null ? 'no earlier stretch' : `${d >= 0 ? '▲' : '▼'} ${Math.abs(d).toFixed(0)}% vs prior ${w}${typ ? ` · usual ±${typ.toFixed(0)}%` : ''}` })]); };
   const a = Math.max(ds.offset, e - 29), vals = []; for (let i = a; i <= e; i++) vals.push(L.v[i - L.off]);
   const got = vals.filter((v) => v != null), mx = Math.max(1e-9, ...got), lo = L.agg === 'mean' && got.length ? Math.min(...got) * 0.9 : 0;
   const sp = svg('svg', { viewBox: `0 0 ${vals.length * 10} 40`, preserveAspectRatio: 'none', role: 'img', 'aria-label': `${m.name}, last 30 days by day` });

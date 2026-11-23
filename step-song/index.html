@@ -227,6 +227,7 @@ footer { font-family: var(--f-ui); }
 <script src="../assets/site.js"></script>
 <script type="module">
 import { MON, DOW_LONG as DOW, fmtInt as fmt, isoDate as iso, esc, tipAt, tipOff as hideTip, fitCanvas, loadJSON } from '../assets/core.js';
+import { rolling } from '../assets/stats.js';
 (() => {
 const toAT = () => { const h = location.hash.slice(1); if (/^trail(-calendar|-weeks|-states|-hours)?$/.test(h)) { location.replace('../trail/#' + h); return true; } };
 if (toAT()) return; addEventListener('hashchange', toAT);
@@ -341,13 +342,10 @@ function dayTip(di) {
 // ---------- SIGNAL
 let roll;
 function computeRoll() {
-  const D = M.daily, W = 30, s = new Float64Array(ND), l = new Float64Array(ND);
-  let ss = 0, sn = 0, ls = 0;
-  for (let i = 0; i < ND; i++) {
-    if (D.has[i] & 1) { ss += D.steps[i]; sn++; } ls += D.listen[i];
-    if (i >= W) { const j = i - W; if (D.has[j] & 1) { ss -= D.steps[j]; sn--; } ls -= D.listen[j]; }
-    s[i] = sn > 10 ? ss / sn : NaN; l[i] = ls / Math.min(W, i + 1) / 60;
-  }
+  const D = M.daily, W = 30, l = new Float64Array(ND);
+  const s = Float64Array.from(rolling(Array.from({ length: ND }, (_, i) => (D.has[i] & 1 ? D.steps[i] : null)), W, { minDays: 11 }), (v) => (v == null ? NaN : v));
+  let ls = 0;
+  for (let i = 0; i < ND; i++) { ls += D.listen[i]; if (i >= W) ls -= D.listen[i - W]; l[i] = ls / Math.min(W, i + 1) / 60; }
   roll = { s, l, sMax: Math.max(...[...s].filter(v => !isNaN(v))), lMax: Math.max(...l) };
 }
 const SG = { left: 48, right: 40, top: 12, bottom: 50 };
