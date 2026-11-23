@@ -11,58 +11,22 @@ public film details on the Titles sheet (year, director, runtime, IMDb id/rating
 people and no free-text notes can reach the site. Posters are linked, not copied into the repo.
 Standard library only (an .xlsx is a zip of XML), so it runs with the stock macOS python3.
 """
-import sys, os, re, json, zipfile, datetime as dt, collections
-import xml.etree.ElementTree as ET
+import sys, os, re, json, datetime as dt, collections
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from lib.paths import ROOT  # noqa: E402
+from lib.xlsx import Book  # noqa: E402
 OUT = os.path.join(ROOT, 'meta-log', 'data', 'watch.json')
-NS = {'m': 'http://schemas.openxmlformats.org/spreadsheetml/2006/main',
-      'r': 'http://schemas.openxmlformats.org/officeDocument/2006/relationships'}
 KEEP = {'Movie Log': ['Watch Date', 'Minutes Watched', 'Primary Genre', 'Platform', 'Title', 'Rewatch', 'In Theaters'],
         'TV Log': ['Watch Date', 'Minutes Watched', 'Primary Genre', 'Platform', 'Episode Count', 'Show'],
         'Titles': ['Title', 'Type', 'My Rating', 'Tier', 'Year', 'Runtime (min)', 'Genre', 'Director', 'IMDb Rating', 'Poster URL', 'IMDb ID']}
 
-def col_of(ref): return re.match(r'[A-Z]+', ref).group(0)
-
-def read_sheet(z, shared, path, wanted):
-    """rows as dicts holding only the wanted columns"""
-    root = ET.fromstring(z.read(path)); rows = root.find('m:sheetData', NS).findall('m:row', NS)
-    def val(c):
-        t = c.get('t'); v = c.find('m:v', NS)
-        if t == 'inlineStr': return ''.join(x.text or '' for x in c.iter('{%s}t' % NS['m']))
-        if v is None or v.text is None: return None
-        if t == 's': return shared[int(v.text)]
-        if t in ('str', 'e'): return v.text
-        try: return float(v.text)
-        except ValueError: return v.text
-    cols = {}
-    for c in rows[0].findall('m:c', NS):
-        h = val(c)
-        if h in wanted: cols[col_of(c.get('r'))] = h
-    missing = set(wanted) - set(cols.values())
-    if missing: sys.exit(f'{path}: missing column(s) {sorted(missing)}')
-    out = []
-    for r in rows[1:]:
-        d = {cols[col_of(c.get('r'))]: val(c) for c in r.findall('m:c', NS) if col_of(c.get('r')) in cols}
-        out.append(d)
-    return out
-
 def load(xlsx):
-    z = zipfile.ZipFile(xlsx)
-    shared = []
-    if 'xl/sharedStrings.xml' in z.namelist():
-        for si in ET.fromstring(z.read('xl/sharedStrings.xml')).findall('m:si', NS):
-            shared.append(''.join(t.text or '' for t in si.iter('{%s}t' % NS['m'])))
-    rels = {r.get('Id'): r.get('Target') for r in ET.fromstring(z.read('xl/_rels/workbook.xml.rels'))}
-    sheets = {}
-    for s in ET.fromstring(z.read('xl/workbook.xml')).find('m:sheets', NS):
-        name = s.get('name')
-        if name in KEEP:
-            t = rels[s.get('{%s}id' % NS['r'])]; t = t.lstrip('/') if t.startswith('/') else 'xl/' + t
-            sheets[name] = read_sheet(z, shared, t, KEEP[name])
+    """Only the sheets and columns in KEEP are read (lib/xlsx.py never decodes the others)."""
+    book = Book(xlsx)
     for name in KEEP:
-        if name not in sheets: sys.exit(f'sheet "{name}" not found')
-    return sheets
+        if name not in book.names: sys.exit(f'sheet "{name}" not found')
+    return {name: book.table(name, cols) for name, cols in KEEP.items()}
 
 def serial(x): return dt.date(1899, 12, 30) + dt.timedelta(days=int(x))
 

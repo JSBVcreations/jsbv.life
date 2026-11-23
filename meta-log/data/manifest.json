@@ -43,7 +43,21 @@
      "path": "meta-log/data/watch-titles.json",
      "kb": 64,
      "through": "2026-11-15"
-    },
+    }
+   ]
+  },
+  {
+   "id": "scorecard",
+   "name": "Screening Scorecard",
+   "kind": "ask Claude",
+   "builder": "build_scorecard.py",
+   "pages": [
+    "/#watched"
+   ],
+   "through": null,
+   "age_days": null,
+   "stale": false,
+   "files": [
     {
      "path": "meta-log/data/watch-scores.json",
      "kb": 39,
@@ -526,6 +540,11 @@
      "path": "meta-log/data/summary.json",
      "kb": 17,
      "through": "2026-11-21"
+    },
+    {
+     "path": "meta-log/data/private.enc.json",
+     "kb": 56,
+     "through": null
     }
    ]
   },

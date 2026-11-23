@@ -11,65 +11,19 @@ Output: {generated, timelines: [{id, name, kind, start, end, end_event, life_id,
          segments: [{a, b, s, p}] (inclusive ISO dates, status id, place), places: {name: [lat, lon]}}]}
 A timeline workbook that is missing keeps its last good entry.
 """
-import datetime as dt, json, os, re, sys, zipfile
-import xml.etree.ElementTree as ET
+import datetime as dt, json, os, sys
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from lib.paths import ROOT  # noqa: E402
+from lib.xlsx import Book  # noqa: E402
+
 CFG = os.path.join(ROOT, 'scripts', 'config')
 OUT = os.path.join(ROOT, 'meta-log', 'data', 'timelines.json')
-M = '{http://schemas.openxmlformats.org/spreadsheetml/2006/main}'
-R = '{http://schemas.openxmlformats.org/officeDocument/2006/relationships}'
-
-
-def col_of(ref):
-    return re.match(r'[A-Z]+', ref).group(0)
 
 
 def read_sheet(path, sheet, wanted):
     """Rows (dicts of the wanted columns only). The header is the first row holding all wanted names."""
-    z = zipfile.ZipFile(path)
-    shared = []
-    if 'xl/sharedStrings.xml' in z.namelist():
-        shared = [''.join(t.text or '' for t in si.iter(M + 't')) for si in ET.fromstring(z.read('xl/sharedStrings.xml')).findall(M + 'si')]
-    rels = {r.get('Id'): r.get('Target') for r in ET.fromstring(z.read('xl/_rels/workbook.xml.rels'))}
-    target = None
-    for s in ET.fromstring(z.read('xl/workbook.xml')).find(M + 'sheets'):
-        if s.get('name') == sheet:
-            t = rels[s.get(R + 'id')]
-            target = t.lstrip('/') if t.startswith('/') else 'xl/' + t
-    if not target:
-        sys.exit(f'{os.path.basename(path)}: no sheet "{sheet}"')
-
-    def val(c):
-        t, v = c.get('t'), c.find(M + 'v')
-        if t == 'inlineStr':
-            return ''.join(x.text or '' for x in c.iter(M + 't'))
-        if v is None or v.text is None:
-            return None
-        if t == 's':
-            return shared[int(v.text)]
-        if t in ('str', 'e'):
-            return v.text
-        try:
-            return float(v.text)
-        except ValueError:
-            return v.text
-
-    rows = ET.fromstring(z.read(target)).find(M + 'sheetData').findall(M + 'row')
-    cols, out = None, []
-    for r in rows:
-        cells = r.findall(M + 'c')
-        if cols is None:
-            heads = {col_of(c.get('r')): val(c) for c in cells}
-            if set(wanted) <= {str(h).strip() for h in heads.values() if h is not None}:
-                cols = {k: str(h).strip() for k, h in heads.items() if h is not None and str(h).strip() in wanted}
-            continue
-        d = {cols[col_of(c.get('r'))]: val(c) for c in cells if col_of(c.get('r')) in cols}
-        if any(v not in (None, '') for v in d.values()):
-            out.append(d)
-    if cols is None:
-        sys.exit(f'{os.path.basename(path)}: header row with {wanted} not found')
-    return out
+    return Book(path).table(sheet, wanted, header='find', keep_empty=False)
 
 
 def as_date(x):

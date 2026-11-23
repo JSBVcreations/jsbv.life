@@ -24,52 +24,29 @@ Aliases are drawn at random (not derived from the number, so they can't be rever
 The adjective's family follows the person's "vibe" (how you talk to them) the first time they're seen; the colour's brightness
 follows how much you talk to them. Standard library only.
 """
-import os, re, sys, json, csv, glob, zipfile, random, math, collections, datetime as dt
-import xml.etree.ElementTree as ET
+import os, re, sys, json, csv, glob, random, collections, datetime as dt
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DATA = os.environ.get('JSBV_DATA') or os.path.expanduser('~/Documents/00-Database/jsbv data')
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from lib.paths import ROOT, DATA  # noqa: E402
+from lib.finders import files_matching, sheets  # noqa: E402
+from lib.xlsx import Book  # noqa: E402
+
 ATT = os.path.join(DATA, 'ATT')
 RAW = os.path.join(ATT, 'raw')
 PUB = os.path.join(ROOT, 'phone', 'data', 'phone.json')
 PUB_DAY = os.path.join(ROOT, 'meta-log', 'data', 'phone.json')
-M = '{http://schemas.openxmlformats.org/spreadsheetml/2006/main}'
-R = '{http://schemas.openxmlformats.org/officeDocument/2006/relationships}'
 EPOCH = dt.datetime(1899, 12, 30)
 
-# ------------------------------------------------------------------ xlsx reader (stdlib)
+# ------------------------------------------------------------------ xlsx (lib/xlsx.py), as lists of cells per row
 def read_xlsx(path, want=None):
-    z = zipfile.ZipFile(path)
-    shared = []
-    if 'xl/sharedStrings.xml' in z.namelist():
-        shared = [''.join(t.text or '' for t in si.iter(M + 't')) for si in ET.fromstring(z.read('xl/sharedStrings.xml')).findall(M + 'si')]
-    wb = ET.fromstring(z.read('xl/workbook.xml'))
-    rels = ET.fromstring(z.read('xl/_rels/workbook.xml.rels'))
-    target = {r.get('Id'): r.get('Target') for r in rels}
+    book = Book(path, bools='bool')
     out = {}
-    for s in wb.find(M + 'sheets'):
-        name = s.get('name')
+    for name in book.names:
         if want and name not in want: continue
-        t = target[s.get(R + 'id')].lstrip('/')
-        t = t if t.startswith('xl/') else 'xl/' + t
         rows = []
-        for r in ET.fromstring(z.read(t)).find(M + 'sheetData').findall(M + 'row'):
-            row = {}
-            for c in r.findall(M + 'c'):
-                ref = re.match(r'([A-Z]+)', c.get('r')).group(1)
-                ci = 0
-                for ch in ref: ci = ci * 26 + ord(ch) - 64
-                typ, v = c.get('t'), c.find(M + 'v')
-                if typ == 's' and v is not None: val = shared[int(v.text)]
-                elif typ == 'inlineStr': val = ''.join(x.text or '' for x in c.iter(M + 't'))
-                elif typ in ('str', 'e'): val = v.text if v is not None else None
-                elif typ == 'b': val = v is not None and v.text == '1'
-                elif v is not None:
-                    try: val = float(v.text); val = int(val) if val.is_integer() else val
-                    except ValueError: val = v.text
-                else: val = None
-                row[ci - 1] = val
-            rows.append([row.get(i) for i in range(max(row) + 1)] if row else [])
+        for _, d in book.rows(name):
+            d = {c - 1: (int(v) if isinstance(v, float) and v.is_integer() else v) for c, v in d.items()}
+            rows.append([d.get(i) for i in range(max(d) + 1)] if d else [])
         out[name] = rows
     return out
 
@@ -136,12 +113,8 @@ print(f'AT&T  {len(files)} periods  {D0} → {D1}  calls={sum(e["kind"] == "call
 # ------------------------------------------------------------------ 2. call log (hand-kept)
 def find_call_log():
     c = []
-    for d in (DATA, ROOT):
-        for p in glob.glob(os.path.join(d, '*Call-L*.xlsx')):
-            if os.path.basename(p).startswith('~$'): continue
-            try:
-                if 'Call-List' in [s.get('name') for s in ET.fromstring(zipfile.ZipFile(p).read('xl/workbook.xml')).find(M + 'sheets')]: c.append(p)
-            except Exception: pass
+    for p in files_matching(['*Call-L*.xlsx']):      # data folder, its subfolders and raw/calls (where the inbox files it)
+        if 'Call-List' in sheets(p): c.append(p)
     return max(c, key=os.path.getmtime) if c else None
 
 LOGF = find_call_log()

@@ -12,12 +12,13 @@ This script reads only four columns of the first sheet and never opens 'Who' / '
 calls.json holds counts and minutes per day, by time of day and by call length. No names, no numbers,
 no per-person rows. Standard library only, so it runs with the stock macOS python3.
 """
-import sys, os, re, json, zipfile, datetime as dt
-import xml.etree.ElementTree as ET
+import sys, os, re, datetime as dt
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from lib.paths import ROOT, write_json  # noqa: E402
+from lib.xlsx import Book  # noqa: E402
+
 OUT = os.path.join(ROOT, 'meta-log', 'data', 'calls.json')
-M = '{http://schemas.openxmlformats.org/spreadsheetml/2006/main}'
 WANT = ['HHMM', 'HrMin', 'Month', 'Day']
 
 if len(sys.argv) not in (2, 3): sys.exit(__doc__)
@@ -25,28 +26,10 @@ path = sys.argv[1]
 ym = re.search(r'(20\d\d)', os.path.basename(path))
 year = int(sys.argv[2]) if len(sys.argv) == 3 else int(ym.group(1)) if ym else sys.exit('pass the year as a second argument')
 
-z = zipfile.ZipFile(path)
-shared = []
-if 'xl/sharedStrings.xml' in z.namelist():
-    shared = [''.join(t.text or '' for t in si.iter(M + 't')) for si in ET.fromstring(z.read('xl/sharedStrings.xml')).findall(M + 'si')]
-sheet = sorted(n for n in z.namelist() if re.fullmatch(r'xl/worksheets/sheet\d+\.xml', n))[0]
-rows = ET.fromstring(z.read(sheet)).find(M + 'sheetData').findall(M + 'row')
-col = lambda c: re.match(r'[A-Z]+', c.get('r')).group(0)
-cols = {}
-for c in rows[0].findall(M + 'c'):                       # header row: keep only the wanted column letters
-    v = c.find(M + 'v')
-    h = shared[int(v.text)] if c.get('t') == 's' and v is not None else None
-    if h in WANT: cols[col(c)] = h
-if set(cols.values()) != set(WANT): sys.exit(f'missing column(s): {sorted(set(WANT) - set(cols.values()))}')
-
+book = Book(path, bools='text')
 calls = []   # (date, start minute of day, length in minutes)
-for r in rows[1:]:
-    d = {}
-    for c in r.findall(M + 'c'):
-        k = cols.get(col(c)); v = c.find(M + 'v')
-        if k and v is not None and c.get('t') in (None, 'n'):
-            try: d[k] = int(float(v.text))
-            except ValueError: pass
+for r in book.table(book.names[0], WANT):              # header row: only these four columns are ever decoded
+    d = {k: int(v) for k, v in r.items() if isinstance(v, float)}
     if len(d) < 4: continue
     try: date = dt.date(year, d['Month'], d['Day'])
     except ValueError: continue
@@ -75,6 +58,5 @@ out = {
         {'id': 'length', 'name': 'Call length', 'cats': [{'id': k, 'name': nm, 'color': c} for k, nm, c, _ in LEN], 'v': {'calls': l_cnt, 'minutes': l_min}},
     ],
 }
-os.makedirs(os.path.dirname(OUT), exist_ok=True)
-with open(OUT, 'w') as f: json.dump(out, f, separators=(',', ':'), ensure_ascii=False)
+write_json(OUT, out)
 print(f"calls  {start} → {end}  calls={sum(cnt):,} minutes={sum(mins):,} ({sum(mins) / 60:.0f} h) on {sum(1 for x in cnt if x)} days  → {os.path.relpath(OUT, ROOT)}")

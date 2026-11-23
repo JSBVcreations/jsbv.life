@@ -1,0 +1,58 @@
+{
+ "how": "Rules for scripts/check_public.py (lib/privacy.py), run at the end of every update. keys: JSON keys only raw exports carry; a public file holding one is flagged. allow: known false positives, each with why; match by file glob plus key, exact text, or sha (first 12 hex of sha256, so the rule never spells out the value). skip: files not checked (ciphertext).",
+ "keys": [
+  "ip_addr",
+  "ip_addr_decrypted",
+  "conn_country",
+  "user_agent_decrypted",
+  "username",
+  "email",
+  "summary_polyline",
+  "polyline",
+  "start_latlng",
+  "end_latlng",
+  "latlng",
+  "map",
+  "description",
+  "with",
+  "watched_with",
+  "who",
+  "number",
+  "phone_number",
+  "contact",
+  "address",
+  "birth",
+  "birth_time",
+  "birthplace",
+  "latitude",
+  "longitude"
+ ],
+ "allow": [
+  {
+   "file": "docs/BLUEPRINT.md",
+   "kind": "email address",
+   "sha": "f4e683d20470",
+   "why": "Jack's own contact line; on main before the rebuild"
+  },
+  {
+   "file": "docs/NOTES.md",
+   "kind": "IP address",
+   "why": "Vercel's DNS records for the domain"
+  },
+  {
+   "file": "step-song/data/*.json",
+   "kind": "IP address",
+   "sha": "0a29e59e77d5",
+   "why": "a band name made of dotted digits"
+  },
+  {
+   "file": "step-song/data/*.json",
+   "kind": "phone number",
+   "sha": "f6fa87935647",
+   "why": "an artist whose name is a phone number"
+  }
+ ],
+ "skip": [
+  "meta-log/data/private.enc.json"
+ ]
+}

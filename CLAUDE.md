@@ -9,6 +9,7 @@ Jack's personal data site: a decade of steps, music, photos and trail logs, plus
 
 ## Stack
 - Static site with no build step and no libraries. Each page is one `index.html` with inline CSS and JS, and fetches its `data/*.json`.
+- Before Jack commits, `python3 scripts/check_public.py` must say clean (update.py runs it).
 - GitHub `JSBVcreations/jsbv.life`, branch `main`. Vercel deploys every push in about a minute.
 - **Jack commits and pushes himself in GitHub Desktop. Never push for him.**
 - Local preview: `python3 -m http.server 8000` from the repo root. `file://` doesn't work because the pages use fetch.
@@ -37,7 +38,9 @@ Jack's personal data site: a decade of steps, music, photos and trail logs, plus
 | `assets/core.js` | Shared ES module every page script imports: DOM (`$`, `el`, `svg`), dates (`dayIndex`, `iso`, `dateLabel`, weeks start Sunday), numbers (`fmtInt`, `num`, `tick`), colours `C`, tooltip `tipAt`/`tipOff`, cached `loadJSON`, `seg`, chart helpers | — |
 | `scripts/config/` | `registry.json` (every source; `build_manifest.py` → `meta-log/data/manifest.json`), `genres.json`, `at_profile.json` | — |
 | Scorecard on `#movies` | Screening Scorecard scores: badge, stars, quadrant bars, propaganda; sort by any scale; report card (scored rows only, notes in full, IMDb button) | `watch-scores.json` (`build_scorecard.py`) from `jsbv data/scorecard.json`, which Claude pulls from the Scorecard page (slug d91a6afc-01bd-493a-b1ee-f06b91daa5c2, collection `scores`) with Jack's notes |
-| `scripts/update.py`, `Update jsbv.command` | One-click refresh of every source (runs `fill_posters.py` for new watch-list titles first) | — |
+| `scripts/update.py`, `Update jsbv.command` | One-click refresh: files whatever is in `jsbv data/inbox/`, runs each registry row's `run` in order (skipping rows whose files didn't change), then the Claude-ready copy, the manifest and the privacy check | `registry.json` |
+| `scripts/lib/` | Shared builder code: `paths.py`, `finders.py`, `xlsx.py` (the one workbook reader; decodes only named sheets and columns), `inbox.py`, `privacy.py`, `moon.py` | — |
+| `scripts/check_public.py` | Privacy check over every file git would commit (phone numbers, emails, IPs, raw-export keys, call-log names, private datasets in plain form). Rules + known false positives (by sha, never spelled out): `scripts/config/public-check.json` | — |
 | `meta-log/`, `data/`, `highlights/`, `experiments/` | Redirect stubs (`meta-log/data/` holds the JSON) | — |
 
 ## Hard privacy rules (never break)
@@ -87,7 +90,7 @@ Jack's personal data site: a decade of steps, music, photos and trail logs, plus
 - **New page:** add the favicon, theme-color and OG block after `<title>`, plus theme.css, site.js and a module script on core.js, tabs if it runs past about 2 screens,
   and a card or jump link in `renderTrails()` or `renderProjects()`.
 - **New dataset:** write a builder in `scripts/` (stdlib only, so it runs on stock macOS python3), output numbers-only JSON,
-  register it in `build_meta_log.py`'s `datasets`, add a row to `scripts/config/registry.json`, then add it to `scripts/update.py` and `docs/UPDATING.md`.
+  register it in `build_meta_log.py`'s `datasets`, add a row to `scripts/config/registry.json` with a `run` block (update.py reads it; no code change there), teach `lib/inbox.py` to recognise its export, and add it to `docs/UPDATING.md`. Read workbooks with `lib/xlsx.py`, naming only the columns the privacy rules allow.
 
 ## Working from Claude (cloud session linked to the Mac)
 - Make a scratch copy of the repo, edit and test there, then write to the Mac folder through the device tools.

@@ -1,5 +1,5 @@
 {
- "how": "One row per data source: the single list of what feeds the site. build_manifest.py reads this and writes meta-log/data/manifest.json (file sizes and how fresh each output is). Add a row here when adding a source; keep docs/UPDATING.md in step. fresh_by_build: true = the output's build date counts as its freshness (snapshots, exports); otherwise only real data dates count.",
+ "how": "One row per data source: the single list of what feeds the site. update.py runs each row's builder in `run.order` (skipping a row when none of its files, its builder or scripts/lib changed since the last good run; `daily` rows also run once a day). build_manifest.py writes meta-log/data/manifest.json from it (file sizes and how fresh each output is). run.find: what the row needs, each {glob: patterns in the data folder} | {data: path under the data folder} | {health: true}; all: every match, not just the newest. run.opt: the same, but optional. run.args: {0} the first find, {0*} all its files, {health} the Health export, {vitals} the extra HealthView folders, {data} the data folder. run.reads: repo files whose contents count as inputs. run.also: other rows whose files count as inputs. run.after: rows that must succeed first. fresh_by_build: true = the output's build date counts as its freshness (snapshots, exports); otherwise only real data dates count.",
  "sources": [
   {
    "id": "health",
@@ -15,7 +15,20 @@
     "/#explore",
     "pct-training/#recovery"
    ],
-   "stale_days": 10
+   "stale_days": 10,
+   "run": {
+    "order": 10,
+    "label": "Apple Health",
+    "find": [
+     {
+      "health": true
+     }
+    ],
+    "args": [
+     "{0}",
+     "{vitals}"
+    ]
+   }
   },
   {
    "id": "watch",
@@ -23,16 +36,57 @@
    "kind": "manual log",
    "raw": "jsbv data/YYYY-Watch-List.xlsx",
    "builder": "build_watch_log.py",
-   "pre": "fill_posters.py",
    "outputs": [
     "meta-log/data/watch.json",
-    "meta-log/data/watch-titles.json",
+    "meta-log/data/watch-titles.json"
+   ],
+   "pages": [
+    "/#watched"
+   ],
+   "stale_days": 14,
+   "run": {
+    "order": 20,
+    "label": "Watch list",
+    "find": [
+     {
+      "glob": [
+       "*Watch-List*.xlsx",
+       "*Watch-List*.xlsm"
+      ]
+     }
+    ],
+    "guard": "watch",
+    "args": [
+     "{0}"
+    ],
+    "pre": "fill_posters.py"
+   }
+  },
+  {
+   "id": "scorecard",
+   "name": "Screening Scorecard",
+   "kind": "ask Claude",
+   "raw": "jsbv data/scorecard.json (pulled from the Scorecard page)",
+   "builder": "build_scorecard.py",
+   "outputs": [
     "meta-log/data/watch-scores.json"
    ],
    "pages": [
     "/#watched"
    ],
-   "stale_days": 14
+   "stale_days": 30,
+   "run": {
+    "order": 25,
+    "label": "Scorecard",
+    "find": [
+     {
+      "data": "scorecard.json"
+     }
+    ],
+    "args": [
+     "{0}"
+    ]
+   }
   },
   {
    "id": "calls",
@@ -46,7 +100,22 @@
    "pages": [
     "/#explore"
    ],
-   "stale_days": 30
+   "stale_days": 30,
+   "run": {
+    "order": 30,
+    "label": "Call log",
+    "find": [
+     {
+      "glob": [
+       "*Call-Log*.xlsx"
+      ]
+     }
+    ],
+    "guard": "calls",
+    "args": [
+     "{0}"
+    ]
+   }
   },
   {
    "id": "phone",
@@ -62,7 +131,24 @@
     "/phone/",
     "/#explore"
    ],
-   "stale_days": 45
+   "stale_days": 45,
+   "run": {
+    "order": 70,
+    "label": "Phone (AT&T)",
+    "find": [
+     {
+      "data": "ATT/raw/ATT-usage-*.xlsx",
+      "all": true
+     }
+    ],
+    "also": [
+     "calls"
+    ],
+    "reads": [
+     "scripts/config/registry.json"
+    ],
+    "args": []
+   }
   },
   {
    "id": "breath",
@@ -76,7 +162,24 @@
    "pages": [
     "/#explore"
    ],
-   "stale_days": 30
+   "stale_days": 30,
+   "run": {
+    "order": 40,
+    "label": "Breathwork",
+    "find": [
+     {
+      "glob": [
+       "export_results*.numbers",
+       "export_results*.csv",
+       "*[Ww]im*[Hh]of*.csv",
+       "*[Ww]im*[Hh]of*.numbers"
+      ]
+     }
+    ],
+    "args": [
+     "{0}"
+    ]
+   }
   },
   {
    "id": "water",
@@ -91,7 +194,22 @@
     "/#data",
     "/#explore"
    ],
-   "stale_days": null
+   "stale_days": null,
+   "run": {
+    "order": 60,
+    "label": "Water",
+    "find": [
+     {
+      "glob": [
+       "*Water-Log*.csv"
+      ],
+      "all": true
+     }
+    ],
+    "args": [
+     "{0*}"
+    ]
+   }
   },
   {
    "id": "smoking",
@@ -106,7 +224,22 @@
    "pages": [
     "/#report (unlocked)"
    ],
-   "stale_days": 14
+   "stale_days": 14,
+   "run": {
+    "order": 50,
+    "label": "Smoking log",
+    "find": [
+     {
+      "glob": [
+       "*smoking*.xlsx",
+       "*smoking*.numbers"
+      ]
+     }
+    ],
+    "args": [
+     "{0}"
+    ]
+   }
   },
   {
    "id": "fortnite",
@@ -121,7 +254,28 @@
     "games/"
    ],
    "stale_days": 120,
-   "fresh_by_build": true
+   "fresh_by_build": true,
+   "run": {
+    "order": 80,
+    "label": "Fortnite",
+    "find": [
+     {
+      "glob": [
+       "*fortnite-data*.pdf",
+       "*Epic*Games*.pdf"
+      ]
+     },
+     {
+      "glob": [
+       "*Fortnite-Library-Manager*.numbers"
+      ]
+     }
+    ],
+    "args": [
+     "{0}",
+     "{1}"
+    ]
+   }
   },
   {
    "id": "strava",
@@ -136,7 +290,25 @@
    "pages": [
     "pct-training/"
    ],
-   "stale_days": 3
+   "stale_days": 3,
+   "run": {
+    "order": 100,
+    "label": "PCT//PREP training.json",
+    "opt": [
+     {
+      "health": true
+     }
+    ],
+    "args": [
+     "{health}"
+    ],
+    "reads": [
+     "pct-training/data/activities.json",
+     "pct-training/data/plan.json",
+     "pct-training/data/plan-adjusted.json"
+    ],
+    "daily": true
+   }
   },
   {
    "id": "plan",
@@ -165,7 +337,15 @@
     "photo-library/"
    ],
    "stale_days": 14,
-   "fresh_by_build": true
+   "fresh_by_build": true,
+   "run": {
+    "order": 90,
+    "label": "Photos",
+    "tracker": [
+     "photo_snapshot.py",
+     "lightroom_snapshot.py"
+    ]
+   }
   },
   {
    "id": "spotify",
@@ -175,7 +355,8 @@
    "builder": "build_step_song.py, then build_eras.py",
    "outputs": [
     "step-song/data/meta.json",
-    "step-song/data/hourly.json", "step-song/data/tracks.json",
+    "step-song/data/hourly.json",
+    "step-song/data/tracks.json",
     "step-song/data/plays-YYYY.json",
     "step-song/data/eras.json"
    ],
@@ -230,7 +411,27 @@
     "/#explore (overlay)"
    ],
    "stale_days": null,
-   "fresh_by_build": true
+   "fresh_by_build": true,
+   "run": {
+    "order": 110,
+    "label": "timelines.json",
+    "find": [
+     {
+      "glob": [
+       "Timeline-*.xlsx"
+      ],
+      "all": true
+     }
+    ],
+    "args": [
+     "{data}"
+    ],
+    "reads": [
+     "scripts/config/timelines.json",
+     "scripts/config/places.json",
+     "step-song/data/meta.json"
+    ]
+   }
   },
   {
    "id": "astro",
@@ -246,7 +447,16 @@
     "/#experiments/corr",
     "/#explore"
    ],
-   "fresh_by_build": true
+   "fresh_by_build": true,
+   "run": {
+    "order": 130,
+    "label": "astro.json (STAR//LOG)",
+    "reads": [
+     "JSBV meta/text.txt"
+    ],
+    "daily": true,
+    "args": []
+   }
   },
   {
    "id": "daily",
@@ -255,12 +465,42 @@
    "raw": "every repo JSON above",
    "builder": "build_meta_log.py",
    "outputs": [
-    "meta-log/data/daily.json", "meta-log/data/days/*.json", "meta-log/data/summary.json"
+    "meta-log/data/daily.json",
+    "meta-log/data/days/*.json",
+    "meta-log/data/summary.json",
+    "meta-log/data/private.enc.json"
    ],
    "pages": [
     "/ (all views)"
    ],
-   "fresh_by_build": true
+   "fresh_by_build": true,
+   "run": {
+    "order": 140,
+    "label": "daily.json",
+    "reads": [
+     "step-song/data/meta.json",
+     "step-song/data/tracks.json",
+     "step-song/data/hourly.json",
+     "step-song/data/plays-*.json",
+     "step-song/data/at2019-log.json",
+     "photo-library/data/photo-library.json",
+     "photo-library/data/lightroom.json",
+     "games/data/fortnite.json",
+     "meta-log/data/health.json",
+     "meta-log/data/watch.json",
+     "meta-log/data/calls.json",
+     "meta-log/data/phone.json",
+     "meta-log/data/breath.json",
+     "meta-log/data/water.json",
+     "meta-log/data/lifting.json",
+     "meta-log/data/astro.json",
+     "meta-log/data/privacy.json",
+     "meta-log/data/private/smoking.json",
+     "meta-log/data/private/fitness_body.json"
+    ],
+    "daily": true,
+    "args": []
+   }
   },
   {
    "id": "seasons",
@@ -273,7 +513,21 @@
    ],
    "pages": [
     "/#report"
-   ]
+   ],
+   "run": {
+    "order": 150,
+    "label": "seasons.json",
+    "after": [
+     "daily"
+    ],
+    "reads": [
+     "meta-log/data/daily.json",
+     "meta-log/data/watch-titles.json",
+     "pct-training/data/activities.json"
+    ],
+    "daily": true,
+    "args": []
+   }
   },
   {
    "id": "fitness",
@@ -290,7 +544,31 @@
     "/#explore",
     "fitness/"
    ],
-   "stale_days": 3650
+   "stale_days": 3650,
+   "run": {
+    "order": 120,
+    "label": "fitness.json (IRON//LOG)",
+    "find": [
+     {
+      "glob": [
+       "*MetaData*.xlsx"
+      ]
+     }
+    ],
+    "opt": [
+     {
+      "glob": [
+       "*Journey*1000*.xlsx",
+       "Training_*.xlsx",
+       "*Whiteboard-Workout-Log-*.json",
+       "*Gym-Notes-*.json",
+       "*Gym-Notebooks.json"
+      ],
+      "all": true
+     }
+    ],
+    "args": []
+   }
   },
   {
    "id": "months",
@@ -304,7 +582,20 @@
    "pages": [
     "months/",
     "/#report"
-   ]
+   ],
+   "run": {
+    "order": 160,
+    "label": "months.json (report cards)",
+    "after": [
+     "daily"
+    ],
+    "reads": [
+     "meta-log/data/daily.json",
+     "pct-training/data/activities.json"
+    ],
+    "daily": true,
+    "args": []
+   }
   },
   {
    "id": "body",
@@ -317,7 +608,17 @@
    ],
    "pages": [
     "body/"
-   ]
+   ],
+   "run": {
+    "order": 170,
+    "label": "body.json (BODY//MAP)",
+    "reads": [
+     "fitness/data/fitness.json",
+     "pct-training/data/activities.json"
+    ],
+    "daily": true,
+    "args": []
+   }
   }
  ]
 }

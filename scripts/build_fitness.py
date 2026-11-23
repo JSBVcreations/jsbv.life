@@ -53,16 +53,14 @@ import shutil
 import sqlite3
 import tempfile
 import sys
-import zipfile
-import xml.etree.ElementTree as ET
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DATA = os.environ.get('JSBV_DATA') or os.path.join(os.path.expanduser('~'), 'Documents', '00-Database', 'jsbv data')
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from lib.paths import ROOT, DATA  # noqa: E402
+from lib.xlsx import Book  # noqa: E402
+
 OUT_JSON = os.path.join(ROOT, 'fitness', 'data', 'fitness.json')
 OUT_DB = os.path.join(ROOT, 'meta-log', 'data', 'private', 'fitness.sqlite')
 OUT_BODY = os.path.join(ROOT, 'meta-log', 'data', 'private', 'fitness_body.json')   # sealed by build_meta_log (privacy.json)
-NS = {'m': 'http://schemas.openxmlformats.org/spreadsheetml/2006/main',
-      'r': 'http://schemas.openxmlformats.org/officeDocument/2006/relationships'}
 
 # sheets read per workbook, and the column range read from each (None = every column)
 READ = {
@@ -75,45 +73,14 @@ READ = {
 NEVER = {'Money'}
 
 
-# ------------------------------------------------------------------ xlsx (stdlib)
-def col_num(ref):
-    n = 0
-    for ch in re.match(r'[A-Z]+', ref).group(0): n = n * 26 + ord(ch) - 64
-    return n
-
-
+# ------------------------------------------------------------------ xlsx (lib/xlsx.py: only the sheets and columns in READ are decoded)
 def load_book(path, wanted):
-    z = zipfile.ZipFile(path)
-    shared = []
-    if 'xl/sharedStrings.xml' in z.namelist():
-        for si in ET.fromstring(z.read('xl/sharedStrings.xml')).findall('m:si', NS):
-            shared.append(''.join(t.text or '' for t in si.iter('{%s}t' % NS['m'])))
-    rels = {r.get('Id'): r.get('Target') for r in ET.fromstring(z.read('xl/_rels/workbook.xml.rels'))}
-    names = {}
-    for s in ET.fromstring(z.read('xl/workbook.xml')).find('m:sheets', NS):
-        t = rels[s.get('{%s}id' % NS['r'])]
-        names[s.get('name')] = t.lstrip('/') if t.startswith('/') else 'xl/' + t
+    book = Book(path, bools='bool')
     out = {}
     for name, rng in wanted.items():
         if name in NEVER: continue
-        if name not in names: sys.exit(f'{os.path.basename(path)}: sheet "{name}" not found')
-        grid = {}
-        for row in ET.fromstring(z.read(names[name])).find('m:sheetData', NS).findall('m:row', NS):
-            for c in row.findall('m:c', NS):
-                ref = c.get('r'); ci = col_num(ref); ri = int(re.search(r'\d+', ref).group(0))
-                if rng and not (rng[0] <= ci <= rng[1]): continue
-                t, v = c.get('t'), c.find('m:v', NS)
-                if t == 'inlineStr': val = ''.join(x.text or '' for x in c.iter('{%s}t' % NS['m']))
-                elif v is None or v.text is None: continue
-                elif t == 's': val = shared[int(v.text)]
-                elif t == 'b': val = v.text == '1'
-                elif t in ('str', 'e'): val = v.text
-                else:
-                    try: val = float(v.text)
-                    except ValueError: val = v.text
-                if isinstance(val, str) and not val.strip(): continue
-                grid[(ri, ci)] = val
-        out[name] = grid
+        if name not in book.names: sys.exit(f'{os.path.basename(path)}: sheet "{name}" not found')
+        out[name] = book.grid(name, cols=rng)
     return out
 
 

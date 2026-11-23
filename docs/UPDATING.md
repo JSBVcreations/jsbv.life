@@ -1,11 +1,15 @@
 # Updating jsbv.life's data
 
 **Normal routine (weekly or whenever):**
-1. Drop any fresh exports into `~/Documents/00-Database/jsbv data` (table below). Newer files win, so old ones can stay.
-2. Double-click **`Update jsbv.command`** in the repo folder. Or run `python3 scripts/update.py`; add `--check` to only see what's stale.
+1. Drop any fresh export into `~/Documents/00-Database/jsbv data/inbox`, with any name. Update recognises each file by what is inside it and files it (table below). Files it doesn't recognise stay in the inbox and are listed at the end.
+2. Double-click **`Update jsbv.command`** in the repo folder. Or run `python3 scripts/update.py`; `--check` shows what would run, `--all` rebuilds everything, `--only watch,daily` rebuilds just those.
 3. Commit and push in GitHub Desktop. Vercel publishes in about a minute.
 
-The script rebuilds every source it finds, then rebuilds PCT//PREP, `daily.json`, `seasons.json` (year by season) and `manifest.json` (what's fresh). It ends with a freshness table: `!!` marks a stale source, and the steps to fix it are printed under the table. If a source fails, the site keeps that source's last good data.
+What runs, in what order and from which files, comes from `scripts/config/registry.json` (each row's `run`). A source is skipped when none of its files, its builder or `scripts/lib/` changed since its last good run; the PCT//PREP, STAR//LOG, daily, seasons, report card and BODY//MAP builds also run once a day, since they count from today. Last good runs: `meta-log/data/private/update-state.json` (git-ignored). Then the Claude-ready copy, `manifest.json`, and the privacy check (`scripts/check_public.py`), which looks at every file git would commit for phone numbers, emails, IPs, raw-export fields, call-log names and private datasets in plain form. A problem there means: don't commit until it's fixed. Last comes a freshness table: `!!` marks a stale source, with the steps to fix it under the table. If a source fails, the site keeps that source's last good data.
+
+**The inbox files:** Health export folders → `raw/health/`; AT&T usage workbooks (Talk, Text and Data sheets) → `ATT/raw/ATT-usage-<date>.xlsx`; call-log backups → `raw/calls/`; Wim Hof exports → `raw/breath/`; water CSVs → `raw/water/`; watch list → `raw/watch/`; smoking workbook → `raw/smoking/`; Epic PDF + season calendar → `raw/fortnite/`; Spotify zip → `raw/spotify/`; `Timeline-*.xlsx` → the data folder. Nothing is overwritten (a taken name gets `-2`); every move is logged in `jsbv data/raw/inbox-log.csv`. Recognising a file reads only its sheet names and header row.
+
+**Shared code:** `scripts/lib/` holds what builders share: `paths.py` (where things live, `write_json`), `finders.py` (finding exports), `xlsx.py` (the one workbook reader: it decodes only the sheets and columns a builder names), `inbox.py`, `privacy.py`, `moon.py`.
 
 ## Sources
 
@@ -15,7 +19,7 @@ The script rebuilds every source it finds, then rebuilds PCT//PREP, `daily.json`
 | Watch list | manual (you log it) | `jsbv data/YYYY-Watch-List.xlsx` | Log titles, save. Update first runs `fill_posters.py`: OMDb posters / IMDb ids / ratings for new titles go to `jsbv data/omdb-cache.json` (key in `omdb-key.txt`; misses listed in `posters-to-check.csv`: add the IMDb ID in the Titles sheet) | `build_watch_log.py` → `watch.json`, `watch-titles.json` |
 | Scorecard | ask Claude: "pull my scorecard" | Screening Scorecard (private claude.ai page) → Claude saves `jsbv data/scorecard.json` (scores, propaganda meter, notes, custom scales, surprise actors) | Claude writes the file; Update rebuilds | `build_scorecard.py` → `watch-scores.json` (joined onto the `#watched` wall by IMDb id, then title) |
 | Call log | manual export | `jsbv data/YYYY-MM-Call-Log-Backup.xlsx` | Save a fresh backup from the call-log app | `build_call_log.py` → `calls.json` |
-| Phone (AT&T) | manual export | `jsbv data/ATT/raw/ATT-usage-<from>_to_<to>.xlsx` (one per bill; myAT&T → Usage → download usage details; overlapping copies are fine) | Drop new bills in `jsbv data/ATT/raw` and rename them like the others | `build_phone.py` → `phone/data/phone.json` + `meta-log/data/phone.json` (aliases only); private key + tables in `jsbv data/ATT/` |
+| Phone (AT&T) | manual export | `jsbv data/ATT/raw/ATT-usage-<from>_to_<to>.xlsx` (one per bill; myAT&T → Usage → download usage details; overlapping copies are fine) | Drop the download in the inbox | `build_phone.py` → `phone/data/phone.json` + `meta-log/data/phone.json` (aliases only); private key + tables in `jsbv data/ATT/` |
 | Breathwork | manual export | `jsbv data/export_results.numbers` (or `.csv`) | Wim Hof app → export results | `build_breath_log.py` → `breath.json` |
 | Water | manual (you log it) | `jsbv data/YYYY-MM-Water-Log.csv` (date, time, fill_ml; note column never read). Every file matching `*Water-Log*.csv` is read | Save a new month's log in "jsbv data" | `build_water_log.py` → `water.json` |
 | Smoking | manual (you log it) | `jsbv data/2026-fall-smoking.xlsx` (Log tab: Year, Month, Day, Time hhmm, Type) | Type new rows, save | `build_smoking_log.py` → `private/smoking.json` (git-ignored) → sealed into `private.enc.json` (needs `pip3 install cryptography` and the key file) |
@@ -32,7 +36,7 @@ The script rebuilds every source it finds, then rebuilds PCT//PREP, `daily.json`
 
 `build_meta_log.py` builds `meta-log/data/daily.json` from the repo files above (never from raw exports), then cuts the copies the pages read: one file per dataset in `meta-log/data/days/` (with a version hash in `days/index.json`) and `summary.json` for Home (`build_daily_web.py`). The Python builders read `daily.json` itself.
 
-The workbooks can still sit in the repo folder (they're git-ignored), but `jsbv data` keeps them all in one place. Files with "copy" in the name are ignored.
+The workbooks can still sit in the repo folder (they're git-ignored), but `jsbv data` keeps them all in one place. Files with "copy" in the name are ignored. Exports are looked for in `jsbv data`, one folder down, and each `raw/<source>/` folder.
 
 ## Flow
 

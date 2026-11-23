@@ -18,52 +18,25 @@ Already-found titles are never asked again; misses are retried after 30 days or 
 API key: $OMDB_API_KEY, or "jsbv data/omdb-key.txt" (asked once and saved there). Free keys: omdbapi.com/apikey.aspx
 Standard library only.
 """
-import csv, datetime as dt, json, os, re, sys, time, urllib.parse, urllib.request, zipfile
-import xml.etree.ElementTree as ET
+import csv, datetime as dt, json, os, re, sys, time, urllib.parse, urllib.request
 
-HOME = os.path.expanduser('~')
-DATA = os.environ.get('JSBV_DATA') or os.path.join(HOME, 'Documents', '00-Database', 'jsbv data')
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from lib.paths import DATA  # noqa: E402
+from lib.xlsx import Book  # noqa: E402
+
 CACHE = os.path.join(DATA, 'omdb-cache.json')
 KEY_FILE = os.path.join(DATA, 'omdb-key.txt')
 RETRY_DAYS = 30
-NS = {'m': 'http://schemas.openxmlformats.org/spreadsheetml/2006/main',
-      'r': 'http://schemas.openxmlformats.org/officeDocument/2006/relationships'}
 WANT = {'Titles': ['Title', 'Type', 'Year', 'IMDb ID', 'Poster URL'], 'Movie Log': ['Title'], 'TV Log': ['Show']}
 TODAY = dt.date.today()
 
 
-# ---------------------------------------------------------------- reading the workbook (stdlib; same approach as build_watch_log.py)
-def col_of(ref): return re.match(r'[A-Z]+', ref).group(0)
-
-
+# ---------------------------------------------------------------- reading the workbook (lib/xlsx.py: only the WANT columns)
 def read_sheets(xlsx):
-    z = zipfile.ZipFile(xlsx)
-    shared = []
-    if 'xl/sharedStrings.xml' in z.namelist():
-        for si in ET.fromstring(z.read('xl/sharedStrings.xml')).findall('m:si', NS):
-            shared.append(''.join(t.text or '' for t in si.iter('{%s}t' % NS['m'])))
-    rels = {r.get('Id'): r.get('Target') for r in ET.fromstring(z.read('xl/_rels/workbook.xml.rels'))}
-
-    def val(c):
-        t = c.get('t'); v = c.find('m:v', NS)
-        if t == 'inlineStr': return ''.join(x.text or '' for x in c.iter('{%s}t' % NS['m']))
-        if v is None or v.text is None: return None
-        if t == 's': return shared[int(v.text)]
-        if t in ('str', 'e'): return v.text
-        try: return float(v.text)
-        except ValueError: return v.text
-
-    out = {}
-    for s in ET.fromstring(z.read('xl/workbook.xml')).find('m:sheets', NS):
-        name = s.get('name')
-        if name not in WANT: continue
-        t = rels[s.get('{%s}id' % NS['r'])]; t = t.lstrip('/') if t.startswith('/') else 'xl/' + t
-        rows = ET.fromstring(z.read(t)).find('m:sheetData', NS).findall('m:row', NS)
-        cols = {col_of(c.get('r')): val(c) for c in rows[0].findall('m:c', NS) if val(c) in WANT[name]}
-        out[name] = [{cols[col_of(c.get('r'))]: val(c) for c in r.findall('m:c', NS) if col_of(c.get('r')) in cols} for r in rows[1:]]
+    book = Book(xlsx)
     for name in WANT:
-        if name not in out: sys.exit(f'sheet "{name}" not found in {xlsx}')
-    return out
+        if name not in book.names: sys.exit(f'sheet "{name}" not found in {xlsx}')
+    return {name: book.table(name, cols, strict=False) for name, cols in WANT.items()}
 
 
 # ---------------------------------------------------------------- matching

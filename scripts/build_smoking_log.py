@@ -13,13 +13,12 @@ import json
 import os
 import re
 import sys
-import zipfile
-import xml.etree.ElementTree as ET
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from lib.paths import ROOT  # noqa: E402
+from lib.xlsx import Book  # noqa: E402
+
 OUT = os.path.join(ROOT, 'meta-log', 'data', 'private', 'smoking.json')   # git-ignored; published only sealed (private_box.py)
-M = '{http://schemas.openxmlformats.org/spreadsheetml/2006/main}'
-R = '{http://schemas.openxmlformats.org/officeDocument/2006/relationships}'
 TYPES = [('cigarette', 'cigarettes', 'Cigarettes', '#ffb347'), ('spliff', 'spliffs', 'Spliffs', '#ff7a59'),
          ('joint', 'joints', 'Joints', '#b6ff5c'), ('pinner', 'pinners', 'Pinners', '#4fe0c0'),
          ('pen', 'pens', 'Pens', '#3ff0ff'), ('edible', 'edibles', 'Edibles', '#ff3fb4')]
@@ -29,43 +28,15 @@ TOD = [('night', 'Night 0–6', '#9b7bff'), ('morning', 'Morning 6–12', '#ffb3
 EPOCH = dt.datetime(1899, 12, 30)
 
 
-def col_index(ref):
-    n = 0
-    for ch in re.match(r'[A-Z]+', ref).group(0): n = n * 26 + ord(ch) - 64
-    return n - 1
+READ = {'year', 'month', 'day', 'time (hhmm)', 'time hhmm', 'hhmm', 'type', 'date', 'time'}   # every other column stays unread
 
 
 def rows_xlsx(path):
-    z = zipfile.ZipFile(path)
-    wb = ET.fromstring(z.read('xl/workbook.xml'))
-    rels = ET.fromstring(z.read('xl/_rels/workbook.xml.rels'))
-    target = {r.get('Id'): r.get('Target') for r in rels}
-    sheet = next((s for s in wb.iter(M + 'sheet') if s.get('name') == 'Log'), None)
-    if sheet is None: sys.exit('no "Log" sheet in ' + path)
-    t = target[sheet.get(R + 'id')].lstrip('/')
-    t = t if t.startswith('xl/') else 'xl/' + t
-    shared = []
-    if 'xl/sharedStrings.xml' in z.namelist():
-        for si in ET.fromstring(z.read('xl/sharedStrings.xml')).iter(M + 'si'):
-            shared.append(''.join(x.text or '' for x in si.iter(M + 't')))
-    out = []
-    for row in ET.fromstring(z.read(t)).find(M + 'sheetData').findall(M + 'row'):
-        vals = {}
-        for c in row.findall(M + 'c'):
-            v = c.find(M + 'v'); kind = c.get('t')
-            if kind == 'inlineStr':
-                val = ''.join(x.text or '' for x in c.iter(M + 't'))
-            elif v is None:
-                continue
-            elif kind == 's':
-                val = shared[int(v.text)]
-            elif kind in ('str', 'b', 'e'):
-                val = v.text
-            else:
-                val = float(v.text)
-            vals[col_index(c.get('r'))] = val
-        out.append(vals)
-    return out
+    """Rows of the Log sheet as {0-based column: value}, holding only the READ columns (plus the header row)."""
+    book = Book(path, bools='text')
+    if 'Log' not in book.names: sys.exit('no "Log" sheet in ' + path)
+    cols = {c for c, h in book.header('Log').items() if h.lower() in READ}
+    return [{c - 1: v for c, v in d.items()} for _, d in book.rows('Log', keep=lambda c: c in cols)]
 
 
 def rows_numbers(path):

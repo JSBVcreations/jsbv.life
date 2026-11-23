@@ -1,109 +1,70 @@
 #!/usr/bin/env python3
 """Refresh every data source on jsbv.life in one go. Double-click `Update jsbv.command`, or:
 
-    python3 scripts/update.py            find the newest export of each source, rebuild, report
-    python3 scripts/update.py --check    report only; change nothing
-    python3 scripts/update.py --no-photos   skip the PHOTO//SORT + Lightroom snapshot
+    python3 scripts/update.py              sort the inbox, rebuild what changed, check privacy, report
+    python3 scripts/update.py --check      report what would run; change nothing
+    python3 scripts/update.py --all        rebuild every source, changed or not
+    python3 scripts/update.py --only a,b   rebuild only these registry rows (and nothing skips them)
+    python3 scripts/update.py --no-photos  skip the PHOTO//SORT + Lightroom snapshot
+    python3 scripts/update.py --notify     end with a macOS notification (the launchd agent uses this)
 
-Where exports are looked for (newest wins; names containing " copy" or starting "~$" are ignored):
-  1. the data folder: $JSBV_DATA, default ~/Documents/00-Database/jsbv data (top level and one folder down,
-     except archive/)
-  2. this repo's root (older habit; *.xlsx / *.csv / *.numbers are git-ignored there)
-Raw exports are only ever READ. Builders write numbers-only JSON into the repo (privacy rules: CLAUDE.md).
+What runs, in what order, and from which files comes from scripts/config/registry.json (each row's `run`).
+A row is skipped when none of its files, its builder or scripts/lib changed since its last good run; rows marked
+`daily` also run once a day. The last good runs are kept in meta-log/data/private/update-state.json (git-ignored).
+Exports are looked for in the data folder ($JSBV_DATA, default ~/Documents/00-Database/jsbv data); see lib/finders.py.
+Files dropped in "jsbv data/inbox/" are filed first (lib/inbox.py). Raw exports are only ever READ.
+Builders write numbers-only JSON into the repo, and scripts/check_public.py checks it all at the end (rules: CLAUDE.md).
 Stock macOS python3 (3.9) is enough. Full map of sources and steps: docs/UPDATING.md.
 """
 import datetime as dt
 import glob
+import hashlib
 import json
 import os
-import re
 import subprocess
 import sys
-import zipfile
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from lib.paths import ROOT, HOME, DATA, write_json  # noqa: E402
+from lib import finders  # noqa: E402
+from lib.finders import files_matching, newest_health, vitals_folders, sheets, offloaded, fingerprint  # noqa: E402
+from lib.inbox import sort_inbox  # noqa: E402
+from lib.privacy import check_public, report as privacy_report  # noqa: E402
+
 S = os.path.join(ROOT, 'scripts')
-HOME = os.path.expanduser('~')
-DATA = os.environ.get('JSBV_DATA') or os.path.join(HOME, 'Documents', '00-Database', 'jsbv data')
 TRACKER = os.environ.get('JSBV_PHOTO_TRACKER') or os.path.join(HOME, 'Documents', '01-Projects', 'photo-library-tracker')
+STATE = os.path.join(ROOT, 'meta-log', 'data', 'private', 'update-state.json')
 TODAY = dt.date.today()
-ARGS = set(sys.argv[1:])
-CHECK = '--check' in ARGS
+ARGV = sys.argv[1:]
+CHECK, ALL = '--check' in ARGV, '--all' in ARGV
+ONLY = next((set(ARGV[i + 1].split(',')) for i, a in enumerate(ARGV[:-1]) if a == '--only'), None)
+PY = sys.executable or 'python3'
 
 # How to get a fresh copy of each source. Printed when a source is stale or missing.
 HOW = {
     'health': 'iPhone > HealthView > export hourly CSVs, Jan 1 of this year to today > AirDrop to the Mac > '
-              'put the folder in "jsbv data", named "health export YYYY-MM-DD".',
+              'drop the folder in "jsbv data/inbox".',
     'watch': 'Log new titles in the watch-list workbook (YYYY-Watch-List.xlsx) and save it in "jsbv data".',
-    'calls': 'Save a fresh call-log backup (YYYY-MM-Call-Log-Backup.xlsx) in "jsbv data".',
-    'breath': 'Wim Hof app > export results > save it in "jsbv data" (as export_results.csv, or a name with "wim hof" in it).',
-    'water': 'Save the water log as YYYY-MM-Water-Log.csv (columns date, time, fill_ml) in "jsbv data".',
-    'smoking': 'Add rows to 2026-fall-smoking.xlsx (Log tab: Year, Month, Day, Time hhmm, Type) in "jsbv data" and save.',
-    'fortnite': 'epicgames.com > Account > Privacy > request your data; save the PDF in "jsbv data" as YYYY-MM-DD-jsbv-fortnite-data.pdf '
-                '(keep Fortnite-Library-Manager.numbers there too). Needs: pip3 install pypdf numbers-parser',
+    'calls': 'Save a fresh call-log backup and drop it in "jsbv data/inbox".',
+    'breath': 'Wim Hof app > export results > drop it in "jsbv data/inbox".',
+    'water': 'Save the water log (columns date, time, fill_ml) as a CSV and drop it in "jsbv data/inbox".',
+    'smoking': 'Add rows to the smoking workbook (Log tab: Year, Month, Day, Time hhmm, Type) in "jsbv data" and save.',
+    'fortnite': 'epicgames.com > Account > Privacy > request your data; drop the PDF (and Fortnite-Library-Manager.numbers) '
+                'in "jsbv data/inbox". Needs: pip3 install pypdf numbers-parser',
+    'phone': 'att.com > usage details > download the Talk/Text/Data workbook and drop it in "jsbv data/inbox".',
+    'scorecard': 'Tell Claude "pull my scorecard".',
     'strava': 'Tell Claude "update Strava" (it adds new hikes to pct-training/data/activities.json), then Update again.',
     'photos': 'Automatic: each Update takes a PHOTO//SORT + Lightroom snapshot (needs the tracker folder).',
     'timelines': 'Keep timeline workbooks (Timeline-*.xlsx, listed in scripts/config/timelines.json) in "jsbv data" and save.',
     'spotify': 'Rare: request "Extended streaming history" at spotify.com/account/privacy (arrives within ~30 days), '
-               'then ask Claude to rebuild STEP//SONG.',
+               'drop the zip in "jsbv data/inbox", then ask Claude to rebuild STEP//SONG.',
+    'fitness': 'Keep MetaData.dot.xlsx in "jsbv data"; tell Claude "pull the whiteboard sheet" for new sessions.',
 }
-
-
-def roots():
-    out = []
-    if os.path.isdir(DATA):
-        out.append(DATA)
-        out += [p for p in sorted(glob.glob(os.path.join(DATA, '*'))) if os.path.isdir(p)
-                and os.path.basename(p).lower() != 'archive' and not os.path.basename(p).lower().startswith('health export')]
-    out.append(ROOT)
-    return out
-
-
-def ok_name(p):
-    b = os.path.basename(p)
-    return not b.startswith('~$') and not b.startswith('.') and ' copy' not in b.lower()
-
-
-def newest_file(patterns):
-    hits = [p for r in roots() for pat in patterns for p in glob.glob(os.path.join(r, pat)) if os.path.isfile(p) and ok_name(p)]
-    return max(hits, key=os.path.getmtime) if hits else None
-
-
-def name_date(p):
-    m = re.search(r'(\d{4})-(\d{2})-(\d{2})', os.path.basename(p))
-    return dt.date(*map(int, m.groups())) if m else dt.date.fromtimestamp(os.path.getmtime(p))
-
-
-def newest_health():
-    hits = [p for r in roots() for p in glob.glob(os.path.join(r, 'health export *'))
-            if os.path.isdir(p) and ok_name(p) and glob.glob(os.path.join(p, 'HealthView_*.csv'))]
-    return max(hits, key=name_date) if hits else None
-
-
-def vitals_folders(main):
-    """Other HealthView folders in the data folder (heart rate etc. over a longer span), merged into the history."""
-    hits = [p for p in glob.glob(os.path.join(DATA, '*')) if os.path.isdir(p) and ok_name(p) and p != main
-            and glob.glob(os.path.join(p, 'HealthView_*HEART RATE*.csv'))]
-    return sorted(hits)
-
-
-def sheets(p):
-    try:
-        return re.findall(r'<sheet [^>]*name="([^"]+)"', zipfile.ZipFile(p).read('xl/workbook.xml').decode('utf-8'))
-    except Exception:  # noqa: BLE001
-        return []
-
-
-def offloaded(p):
-    """True when the file can't be read: usually iCloud has moved it to the cloud ("Optimize Mac Storage")."""
-    try:
-        with open(p, 'rb') as f: f.read(1)
-        return False
-    except OSError:
-        return True
-
-
 ICLOUD = 'can\'t be read: iCloud has probably offloaded it. In Finder, right-click it (or the folder) > Download Now, then Update again'
+
+
+def short(p):
+    return p.replace(HOME, '~') if p else '-'
 
 
 def wrong_workbook(key, p):
@@ -115,112 +76,161 @@ def wrong_workbook(key, p):
     return None
 
 
-def run(label, cmd, cwd=ROOT):
+def find(spec):
+    """One finder from a registry row: a list of paths (newest only, unless `all`)."""
+    if spec.get('health'):
+        h = newest_health()
+        return [h] if h else []
+    if 'data' in spec:
+        hits = sorted(p for p in glob.glob(os.path.join(DATA, spec['data'])) if finders.ok_name(p))
+    else:
+        hits = files_matching(spec['glob'])
+    if spec.get('all'): return hits
+    return [max(hits, key=os.path.getmtime)] if hits else []
+
+
+def content_hash(patterns, own=()):
+    """Hash of repo files a row reads, leaving out its own outputs and the manifest (both rewritten every run)."""
+    h = hashlib.sha1()
+    for pat in patterns:
+        for p in sorted(glob.glob(os.path.join(ROOT, pat))):
+            if os.path.isfile(p) and p not in own and not p.endswith(('manifest.json', 'update-state.json')):
+                h.update(p.encode()); h.update(open(p, 'rb').read())
+    return h.hexdigest()[:16]
+
+
+def code_files(row):
+    out = [os.path.join(S, row['builder'])] if row.get('builder', '').endswith('.py') else []
+    if row['run'].get('pre'): out.append(os.path.join(S, row['run']['pre']))
+    return out + sorted(glob.glob(os.path.join(S, 'lib', '*.py')))
+
+
+def run(label, cmd, cwd=ROOT, live=False):
     print(f'  > {label}', flush=True)
-    if CHECK:
-        return True
+    if CHECK: return True
+    if live:
+        return subprocess.run(cmd, cwd=cwd).returncode == 0
     r = subprocess.run(cmd, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
-    tail = [ln for ln in (r.stdout or '').strip().splitlines() if ln.strip()][-2:]
-    for ln in tail:
+    for ln in [ln for ln in (r.stdout or '').strip().splitlines() if ln.strip()][-2:]:
         print('      ' + ln[:150])
     if r.returncode != 0:
         print(f'      FAILED (exit {r.returncode})')
     return r.returncode == 0
 
 
-def short(p):
-    return p.replace(HOME, '~') if p else '-'
-
-
 def main():
-    py = sys.executable or 'python3'
-    print(f'jsbv.life update  {TODAY}  {"(check only, nothing changes)" if CHECK else ""}')
+    reg = json.load(open(os.path.join(S, 'config', 'registry.json'), encoding='utf-8'))
+    rows = sorted((s for s in reg['sources'] if 'run' in s), key=lambda s: s['run']['order'])
+    try:
+        state = json.load(open(STATE, encoding='utf-8'))
+    except (OSError, ValueError):
+        state = {}
+    flags = ' '.join(f for f in ('check only, nothing changes' if CHECK else '', 'every source' if ALL else '',
+                                 f'only {",".join(sorted(ONLY))}' if ONLY else '') if f)
+    print(f'jsbv.life update  {TODAY}  {f"({flags})" if flags else ""}')
     print(f'data folder: {short(DATA)}{"" if os.path.isdir(DATA) else "  (not found; using the repo root only)"}\n')
-    used, failed = {}, []
 
-    print('1. Exports')
-    health = newest_health()
-    used['health'] = health
-    if health:
-        extra = [x for v in vitals_folders(health) for x in ('--vitals-from', v)]
-        label = f'Apple Health  {short(health)}' + (f" + {', '.join(short(v) for v in vitals_folders(health))}" if extra else '')
-        if not run(label, [py, os.path.join(S, 'build_health_log.py'), health] + extra): failed.append('health')
-    for key, label, pats, script in [
-        ('watch', 'Watch list', ['*Watch-List*.xlsx', '*Watch-List*.xlsm'], 'build_watch_log.py'),
-        ('calls', 'Call log', ['*Call-Log*.xlsx'], 'build_call_log.py'),
-        ('breath', 'Breathwork', ['export_results*.numbers', 'export_results*.csv', '*[Ww]im*[Hh]of*.csv', '*[Ww]im*[Hh]of*.numbers'], 'build_breath_log.py'),
-        ('smoking', 'Smoking log', ['*smoking*.xlsx', '*smoking*.numbers'], 'build_smoking_log.py'),
-    ]:
-        f = newest_file(pats)
-        used[key] = f
-        bad = f and (ICLOUD if offloaded(f) else wrong_workbook(key, f))
+    print('1. Inbox')
+    moved, left = sort_inbox(CHECK)
+    for src, b, dest in moved: print(f'  {"would file" if CHECK else "filed"} {b}  as {src}: {short(dest)}')
+    for b, why in left: print(f'  ! {b}: {why}; left in the inbox')
+    if not moved and not left: print('  - empty')
+
+    print('\n2. Sources (skipped when nothing changed)')
+    found, failed, ran, skipped, missing = {}, [], [], [], []
+    for row in rows:
+        k, spec = row['id'], row['run']
+        label = spec.get('label', row['name'])
+        if ONLY and k not in ONLY: continue
+        if spec.get('tracker'):
+            if '--no-photos' in ARGV: print(f'  - {label}: skipped (--no-photos)'); continue
+            if not os.path.isdir(TRACKER): print(f'  - {label}: tracker folder not found ({short(TRACKER)})'); continue
+            for script in spec['tracker']:
+                if os.path.isfile(os.path.join(TRACKER, script)) and not run(script, [PY, script], cwd=TRACKER): failed.append(k)
+            continue
+        if any(a in failed for a in spec.get('after', [])):
+            print(f'  - {label}: skipped, {", ".join(spec["after"])} failed'); continue
+        need = [find(f) for f in spec.get('find', [])]
+        opt = [find(f) for f in spec.get('opt', [])]
+        found[k] = [p for g in need for p in g]
+        if any(not g for g in need):
+            if k in HOW: missing.append(k)
+            continue
+        bad = next((ICLOUD for p in found[k] if offloaded(p)), None) or (spec.get('guard') and wrong_workbook(spec['guard'], found[k][0]))
         if bad:
-            print(f'  ! {label}  {short(f)}\n      skipped: {bad}. The site keeps its last good data.'); failed.append(key); continue
-        if f and key == 'watch' and not CHECK:      # find posters for newly logged titles first (OMDb; may ask for the key once)
-            print('  > Posters (OMDb) for new titles', flush=True)
-            subprocess.run([py, os.path.join(S, 'fill_posters.py'), f], cwd=ROOT)
-        if f and not run(f'{label}  {short(f)}', [py, os.path.join(S, script), f]): failed.append(key)
-    water = sorted({p for r in roots() for p in glob.glob(os.path.join(r, '*Water-Log*.csv')) if os.path.isfile(p) and ok_name(p)})
-    used['water'] = water[-1] if water else None     # every water log is read, not just the newest
-    if any(offloaded(p) for p in water):
-        print(f'  ! Water  {short(water[0])}\n      skipped: {ICLOUD}.'); failed.append('water')
-    elif water and not run(f'Water  {len(water)} log{"" if len(water) == 1 else "s"}', [py, os.path.join(S, 'build_water_log.py')] + water): failed.append('water')
-    att = glob.glob(os.path.join(DATA, 'ATT', 'raw', 'ATT-usage-*.xlsx'))     # AT&T usage exports + the call log -> phone/ (aliases only)
-    if att and not run(f'Phone (AT&T)  {len(att)} bills', [py, os.path.join(S, 'build_phone.py')]): failed.append('phone')
-    sc = os.path.join(DATA, 'scorecard.json')            # Screening Scorecard scores (Claude saves this file when asked to "pull my scorecard")
-    if os.path.isfile(sc) and not run(f'Scorecard  {short(sc)}', [py, os.path.join(S, 'build_scorecard.py'), sc]): failed.append('scorecard')
-    pdf, cal = newest_file(['*fortnite-data*.pdf', '*Epic*Games*.pdf']), newest_file(['*Fortnite-Library-Manager*.numbers'])
-    used['fortnite'] = pdf
-    if pdf and cal and (offloaded(pdf) or offloaded(cal)):
-        print(f'  ! Fortnite  {short(pdf)}\n      skipped: {ICLOUD}.'); failed.append('fortnite')
-    elif pdf and cal:
-        if not run(f'Fortnite  {short(pdf)}', [py, os.path.join(S, 'build_fortnite.py'), pdf, cal]): failed.append('fortnite')
-    for key in ('health', 'watch', 'calls', 'breath', 'water', 'smoking', 'fortnite'):
-        if not used[key]: print(f'  - {key}: no export found. {HOW[key]}')
+            print(f'  ! {label}  {short(found[k][0])}\n      skipped: {bad}. The site keeps its last good data.'); failed.append(k); continue
+        health = (found.get('health') or [None])[0]
+        args = []
+        for a in spec.get('args', []):
+            if a == '{vitals}': args += [x for v in vitals_folders(health) for x in ('--vitals-from', v)] if health else []
+            elif a == '{health}': args += [health] if health else []
+            elif a == '{data}': args.append(DATA)
+            elif a.endswith('*}'): args += need[int(a[1:-2])]
+            elif a.startswith('{'): args.append(need[int(a[1:-1])][0])
+            else: args.append(a)
+        inputs = found[k] + [p for g in opt for p in g] + [p for o in spec.get('also', []) for p in found.get(o, [])]
+        outs = [p for o in row.get('outputs', []) for p in glob.glob(os.path.join(ROOT, o.replace('YYYY', '[0-9]' * 4)))]
+        fp = '|'.join([fingerprint(inputs + code_files(row)),
+                       content_hash(spec.get('reads', []), set(outs)), ' '.join(args), str(TODAY) if spec.get('daily') else ''])
+        if not ALL and not ONLY and state.get(k, {}).get('fp') == fp and (outs or not row.get('outputs')):
+            skipped.append(k); continue
+        detail = f'  {short(found[k][0])}' if found[k] else ''
+        if len(found[k]) > 1: detail += f' + {len(found[k]) - 1} more'
+        if spec.get('pre') and not CHECK:
+            print(f'  > {spec["pre"]} (first)', flush=True)
+            subprocess.run([PY, os.path.join(S, spec['pre'])] + args[:1], cwd=ROOT)
+        if run(label + detail, [PY, os.path.join(S, row['builder'])] + args):
+            ran.append(k)
+            if not CHECK: state[k] = {'fp': fp, 'at': dt.datetime.now().isoformat(timespec='seconds')}
+        else:
+            failed.append(k)
+    if skipped: print(f'  = unchanged, not rebuilt: {", ".join(skipped)}')
+    for k in missing: print(f'  - {k}: no export found. {HOW[k]}')
 
-    print('\n2. Photos (snapshot of the library and the Lightroom catalog)')
-    if '--no-photos' in ARGS:
-        print('  - skipped (--no-photos)')
-    elif not os.path.isdir(TRACKER):
-        print(f'  - tracker folder not found ({short(TRACKER)}); skipped')
-    else:
-        for script in ('photo_snapshot.py', 'lightroom_snapshot.py'):
-            if os.path.isfile(os.path.join(TRACKER, script)) and not run(script, [py, script], cwd=TRACKER): failed.append(script)
+    print('\n3. Copies and checks')
+    if not CHECK and not ONLY and not run('Claude-ready tables', [PY, os.path.join(S, 'export_for_claude.py')]): failed.append('claude-export')
+    if not run('manifest.json', [PY, os.path.join(S, 'build_manifest.py')]): failed.append('manifest')
+    problems = check_public()
+    print('  > privacy check: ' + ('clean' if not problems else f'{len(problems)} PROBLEM{"" if len(problems) == 1 else "S"}: do not commit until fixed'))
+    if problems:
+        print(privacy_report(problems)); failed.append('privacy')
+    if not CHECK:
+        write_json(STATE, state)
 
-    print('\n3. Site data (PCT//PREP, then the day-by-day file every page reads)')
-    cmd = [py, os.path.join(S, 'build_pct_training.py')] + ([health] if health else [])
-    if not run('PCT//PREP training.json', cmd): failed.append('pct')
-    if not run('timelines.json', [py, os.path.join(S, 'build_timelines.py'), DATA]): failed.append('timelines')
-    if newest_file(['*MetaData*.xlsx']) and not run('fitness.json (IRON//LOG)', [py, os.path.join(S, 'build_fitness.py')]): failed.append('fitness')
-    if not run('astro.json (STAR//LOG)', [py, os.path.join(S, 'build_astro.py')]): failed.append('astro')
-    if not run('daily.json', [py, os.path.join(S, 'build_meta_log.py')]): failed.append('daily')
-    if 'daily' not in failed and not run('seasons.json', [py, os.path.join(S, 'build_seasons.py')]): failed.append('seasons')
-    if 'daily' not in failed and not run('months.json (report cards)', [py, os.path.join(S, 'build_report_cards.py')]): failed.append('months')
-    if not run('body.json (BODY//MAP)', [py, os.path.join(S, 'build_body_map.py')]): failed.append('body')
-    if not CHECK and not run('Claude-ready tables', [py, os.path.join(S, 'export_for_claude.py')]): failed.append('claude-export')
-    if not run('manifest.json', [py, os.path.join(S, 'build_manifest.py')]): failed.append('manifest')
-
-    report(used)
+    report()
     if not CHECK:
         changed = subprocess.run(['git', 'status', '--short', '--', '.'], cwd=ROOT, stdout=subprocess.PIPE,
                                  stderr=subprocess.DEVNULL, universal_newlines=True).stdout.rstrip()
         print('\nChanged files:' if changed else '\nNo files changed.')
         if changed: print('  ' + changed.replace('\n', '\n  '))
-        print('\nNext: open GitHub Desktop, commit, push. Vercel publishes in about a minute.')
+        if 'privacy' not in failed: print('\nNext: open GitHub Desktop, commit, push. Vercel publishes in about a minute.')
+    if left: print(f'\nStill in the inbox: {", ".join(b for b, _ in left)}.')
+    if '--notify' in ARGV and not CHECK and (ran or failed or moved):
+        bits = [f'rebuilt {", ".join(ran)}' if ran else '', f'needs a look: {", ".join(failed)}' if failed else '',
+                f'{len(left)} file{"" if len(left) == 1 else "s"} left in the inbox' if left else '']
+        notify('jsbv.life update', '; '.join(b for b in bits if b) or 'filed the inbox')
     if failed:
         print(f'\nNeeds a look: {", ".join(failed)}. Everything else updated; copy the lines above to Claude if unclear.')
         sys.exit(1)
 
 
-def report(used):
+def notify(title, text):
+    """A macOS notification (no-op elsewhere)."""
+    if sys.platform != 'darwin': return
+    q = lambda s: s.replace('\\', '\\\\').replace('"', '\\"')
+    subprocess.run(['osascript', '-e', f'display notification "{q(text)}" with title "{q(title)}"'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+
+def report():
     """How current each source is, from the files the site actually serves."""
     print('\n4. Freshness (last day on the site)')
+    ends = {}
     try:
-        D = json.load(open(os.path.join(ROOT, 'meta-log', 'data', 'daily.json'), encoding='utf-8'))
-        start = dt.date.fromisoformat(D['start'])
-        ends = {d['id']: start + dt.timedelta(days=d['offset'] + d['n'] - 1) for d in D['datasets'] if d.get('grain') == 'day'}
+        ix = json.load(open(os.path.join(ROOT, 'meta-log', 'data', 'daily.json'), encoding='utf-8'))
+        start = dt.date.fromisoformat(ix['start'])
+        ends = {d['id']: start + dt.timedelta(days=d['offset'] + d['n'] - 1) for d in ix['datasets'] if d.get('grain') == 'day'}
     except Exception as e:  # noqa: BLE001
-        print(f'  could not read daily.json: {e}'); ends = {}
+        print(f'  could not read daily.json: {e}')
     try:
         A = json.load(open(os.path.join(ROOT, 'pct-training', 'data', 'activities.json'), encoding='utf-8'))
         last = max([a.get('date', '')[:10] for a in A.get('activities', [])] + [str(A.get('through', ''))[:10]])
@@ -240,7 +250,8 @@ def report(used):
     rows = [  # (label, end key, source key, days before it counts as stale; None = historic)
         ('Movement (Apple Health)', 'move', 'health', 7), ('Heart + sleep', 'body', 'health', 7),
         ('Strava hikes', 'strava', 'strava', 7), ('Watching', 'watch', 'watch', 14), ('Phone calls', 'calls', 'calls', 31),
-        ('Breathwork', 'breath', 'breath', 31), ('Smoking', 'smoking', 'smoking', 7), ('Fortnite seasons', 'fortnite', 'fortnite', 120), ('Photos', 'photos', 'photos', 14), ('Music (Spotify)', 'music', 'spotify', 120),
+        ('Breathwork', 'breath', 'breath', 31), ('Smoking', 'smoking', 'smoking', 7), ('Fortnite seasons', 'fortnite', 'fortnite', 120),
+        ('Photos', 'photos', 'photos', 14), ('Music (Spotify)', 'music', 'spotify', 120),
         ('AT 2019 trail log', 'trail', None, None), ('Water (Sep 2025 log)', 'water', None, None),
     ]
     todo = []
