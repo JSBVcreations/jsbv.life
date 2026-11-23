@@ -57,12 +57,12 @@
     ['Lab · Decade clock', 'data', '#experiments/clock'], ['Lab · Screens vs feet', 'data', '#experiments/screens'],
     ['Lab · Does Wim Hof work?', 'data', '#experiments/wimhof', 'breathwork'], ['Lab · Musical eras', 'data', '#experiments/eras'],
     ['Lab · Photo strata', 'data', '#experiments/strata'],
-    ['REPORT//CARDS', 'data', 'months/', 'grades months'],
+    ['REPORT//CARDS · Months', 'data', 'months/', 'grades months report cards'], ['REPORT//CARDS · Seasons', 'data', 'months/#seasons', 'winter spring summer fall year'],
     ['TIME//LINES · Overview', 'data', 'timelines/#overview'], ['TIME//LINES · Together vs apart', 'data', 'timelines/#compare'],
     ['TIME//LINES · After', 'data', 'timelines/#after'], ['TIME//LINES · Map', 'data', 'timelines/#map'],
-    ['SKY//WHEEL', 'data', 'sky/', 'planets houses moon live'],
-    ['STAR//LOG · Chart', 'data', 'astro/#chart', 'natal transits'], ['STAR//LOG · Now', 'data', 'astro/#now'], ['STAR//LOG · Timeline', 'data', 'astro/#timeline'],
-    ['STAR//LOG · Periods', 'data', 'astro/#periods'], ['STAR//LOG · Lens', 'data', 'astro/#lens', 'lunar phase retrograde'], ['STAR//LOG · Sky table', 'data', 'astro/#sky'],
+    ['SKY//LOG · Wheel', 'data', 'sky/', 'planets houses moon live sky wheel'],
+    ['SKY//LOG · Chart', 'data', 'astro/#chart', 'natal transits star log'], ['SKY//LOG · Now', 'data', 'astro/#now', 'star log'], ['SKY//LOG · Timeline', 'data', 'astro/#timeline', 'star log'],
+    ['SKY//LOG · Periods', 'data', 'astro/#periods', 'star log'], ['SKY//LOG · Lens', 'data', 'astro/#lens', 'lunar phase retrograde star log'], ['SKY//LOG · Sky table', 'data', 'astro/#sky', 'star log'],
   ];
 
   const isRoot = () => !!document.querySelector('nav.site[data-root]');
