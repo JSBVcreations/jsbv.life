@@ -99,7 +99,21 @@ nav.site.primary, nav.tabs {
   display: flex; flex-wrap: wrap; gap: 6px; padding: 6px; border-radius: 999px; width: fit-content; max-width: 100%;
   background: rgba(13,11,28,0.7); border: 1px solid var(--edge); box-shadow: var(--lift);
 }
-nav.site.primary { font: 600 var(--s-0) var(--f-ui); letter-spacing: 0.16em; text-transform: uppercase; }
+nav.site.primary { font: 600 var(--s-0) var(--f-ui); letter-spacing: 0.16em; text-transform: uppercase; position: sticky; top: 8px; z-index: 60;
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); background: rgba(13,11,28,0.86); align-items: center; }
+nav.site.primary .jump-btn { all: unset; cursor: pointer; color: var(--dim); font: 400 1.15rem/1 var(--sym); width: 36px; height: 36px; display: inline-grid; place-items: center; border-radius: 999px; }
+nav.site.primary .jump-btn:hover, nav.site.primary .jump-btn:focus-visible { color: var(--hot); background: rgba(220,216,255,0.06); }
+html.has-nav nav.ptabs { top: 66px; }
+/* jump box (assets/site.js): "/" opens it */
+dialog.jump { width: min(560px, calc(100vw - 24px)); max-height: min(70dvh, 560px); margin: 12vh auto auto; padding: 0; border: 1px solid var(--edge-hi); border-radius: var(--r);
+  background: var(--panel); color: var(--ink); box-shadow: 0 24px 60px rgba(0,0,0,0.7); display: none; }
+dialog.jump[open] { display: grid; grid-template-rows: auto minmax(0, 1fr); }
+dialog.jump::backdrop { background: rgba(7,6,15,0.72); backdrop-filter: blur(3px); }
+dialog.jump input { all: unset; font: 400 var(--s-2) var(--f-data); padding: 16px 18px; border-bottom: 1px solid var(--grid); color: var(--hot); }
+dialog.jump ul { list-style: none; margin: 0; padding: 6px; overflow: auto; }
+dialog.jump li a { display: flex; justify-content: space-between; gap: 12px; padding: 9px 12px; border-radius: var(--r-sm); color: var(--ink); text-decoration: none; font: 500 var(--s-1) var(--f-ui); }
+dialog.jump li a small { color: var(--dim); font: 400 var(--s-0) var(--f-data); letter-spacing: 0.08em; text-transform: uppercase; }
+dialog.jump li[aria-selected] a, dialog.jump li a:hover { background: rgba(63,240,255,0.1); color: var(--hot); }
 nav.site.primary a, nav.tabs a { color: var(--dim); text-decoration: none; border: 0; border-radius: 999px; padding: 9px 18px; transition: color .18s, background .18s, box-shadow .18s; }
 nav.site.primary a { min-height: 36px; display: inline-flex; align-items: center; }
 nav.site.primary a:hover:not([aria-current]), nav.tabs a:hover:not([aria-current]) { background: rgba(220,216,255,0.06); color: var(--hot); }
@@ -112,6 +126,7 @@ nav.site.primary a[aria-current], nav.tabs a[aria-current="page"] {
 .crumbs a:hover { color: var(--hot); }
 .crumbs b { color: var(--ink); font-weight: 600; }
 .crumbs .sep { opacity: 0.6; }
+.crumbs .tabcrumb { display: contents; }
 
 /* ---------------------------------------------------------------- page tabs (sticky; built by assets/site.js) */
 nav.ptabs {
@@ -199,6 +214,12 @@ footer { font-family: var(--f-data); font-size: var(--s-0); color: var(--dim); o
   :root { --r: 12px; }
   nav.tabs, nav.site.primary { border-radius: var(--r); width: 100%; justify-content: space-between; flex-wrap: nowrap; gap: 2px; padding: 4px; }
   nav.tabs a, nav.site.primary a { padding: 8px 3px; flex: 1 1 0; min-width: 0; justify-content: center; text-align: center; letter-spacing: 0.04em; font-size: 0.64rem; line-height: 1.15; }
+  /* phones: the six sections sit in a bar at the bottom of the screen */
+  nav.site.primary { position: fixed; top: auto; left: 8px; right: 8px; bottom: calc(8px + env(safe-area-inset-bottom)); width: auto; max-width: none; padding: 5px; box-shadow: 0 -6px 24px rgba(0,0,0,0.55); }
+  nav.site.primary a { min-height: 44px; }
+  nav.site.primary .jump-btn { flex: 0 0 40px; height: 44px; }
+  html.has-nav body { padding-bottom: calc(76px + env(safe-area-inset-bottom)); }
+  html.has-nav nav.ptabs { top: 8px; }
 }
 @media (max-width: 560px) {
   nav.ptabs { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }   /* was clipped on phones before the rebuild */

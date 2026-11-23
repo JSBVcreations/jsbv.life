@@ -22,10 +22,6 @@
    and PHOTO//SORT. All three views read data/daily.json (scripts/build_meta_log.py) and data/life.json. */
 a.back { font-family: var(--f-data); font-size: var(--s-0); color: var(--dim); text-decoration: none; }
 a.back:hover { color: var(--step); }
-nav.tabs a { font: 600 var(--s-1) var(--f-ui); letter-spacing: 0.16em; text-transform: uppercase; text-decoration: none; color: var(--dim); }
-nav.tabs a[aria-current="page"] { border-color: var(--step); }
-@media (max-width: 640px) { nav.tabs a { letter-spacing: 0.04em; font-size: 0.64rem; line-height: 1.15; } }
-nav.tabs a:hover:not([aria-current]) { border-color: var(--dim); }
 nav.sub { display: flex; flex-wrap: wrap; gap: 6px 18px; font: 600 var(--s-0) var(--f-data); letter-spacing: 0.08em; text-transform: uppercase; }
 nav.sub a { color: var(--dim); text-decoration: none; padding: 2px 0; border-bottom: 1px solid transparent; }
 nav.sub a:hover { color: var(--ink); }
@@ -433,7 +429,7 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
 .idx .kv b { color: var(--hot); }
 .idx .card.body, .idx .card.hr { box-shadow: var(--lift, none), inset 0 2px 0 #ff4d6d; }
 .idx .card.mv { box-shadow: var(--lift, none), inset 0 2px 0 #4ea8ff; }
-@media (max-width: 560px) { nav.tabs a { padding: 9px 10px; } .hero { padding: 14px; } .hero .huge { font-size: 2.6rem; } .tiles { grid-template-columns: 1fr; } }
+@media (max-width: 560px) { .hero { padding: 14px; } .hero .huge { font-size: 2.6rem; } .tiles { grid-template-columns: 1fr; } }
 </style>
 
 <div class="wrap">
@@ -441,21 +437,15 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
     <h1>JSBV<span>.LIFE</span></h1>
   </header>
 
-  <nav class="tabs" aria-label="Site">
-    <a href="#report" data-nav="home">Home</a>
-    <a href="#fitness" data-nav="fitness">Fitness</a>
-    <a href="#health" data-nav="health">Health</a>
-    <a href="#media" data-nav="media">Media</a>
-    <a href="#data" data-nav="data">Data</a>
-  </nav>
+  <nav class="site" data-here="home" data-root="1"></nav>
   <nav class="ptabs inview" id="subnav" aria-label="Data views" hidden>
     <a href="#data">All data</a>
     <a href="#explore">Explorer</a>
     <a href="#calendar">Calendar</a>
     <a href="#gantt">Gantt</a>
     <a href="#experiments">Lab</a>
-    <a href="months/">Report cards</a>
-    <a href="timelines/">Timelines</a>
+    <a href="months/">Report//cards</a>
+    <a href="timelines/">Time//lines</a>
   </nav>
 
   <div id="boot" class="note">Loading data…</div>
@@ -591,6 +581,7 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
   </div>
 
   <!-- ============================================================ TRAILS + PROJECTS (section indexes) -->
+  <div class="view" id="v-pct" hidden><div class="idx" id="pct-cards"></div></div>
   <div class="view" id="v-fitness" hidden><div class="idx" id="t-cards"></div></div>
   <div class="view" id="v-health" hidden><div class="idx" id="h-cards"></div></div>
   <div class="view" id="v-media" hidden><div class="idx" id="p-cards"></div></div>
@@ -730,4 +721,5 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
   </section>
 </div>
 
+<script src="assets/site.js"></script>
 <script type="module" src="assets/views/main.js"></script>

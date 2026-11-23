@@ -6,12 +6,12 @@ import { loadData, PRIV, DS, store, openBox, b64d, b64e } from './state.js';
 // view → [module, export to call, data it needs: 'summary' (Home), 'full' (daily.json and the rest) or null (none)]
 const VIEWS = {
   report: ['./report.js', 'render', 'summary'],
-  fitness: ['./data.js', 'renderTrails', 'full'], health: ['./data.js', 'renderHealth', 'full'], media: ['./data.js', 'renderProjects', 'full'], data: ['./data.js', 'renderData', 'full'],
+  pct: ['./data.js', 'renderPct', 'full'], fitness: ['./data.js', 'renderTrails', 'full'], health: ['./data.js', 'renderHealth', 'full'], media: ['./data.js', 'renderProjects', 'full'], data: ['./data.js', 'renderData', 'full'],
   experiments: ['./lab.js', 'render', 'full'], explore: ['./explore.js', 'render', 'full'], calendar: ['./calendar.js', 'render', 'full'], gantt: ['./gantt.js', 'render', 'full'],
   watched: ['./movies.js', 'render', null],
 };
-const TITLES = { watched: 'Movies & TV', fitness: 'Fitness', health: 'Health', media: 'Media', data: 'Data', experiments: 'Lab', explore: 'Explorer', calendar: 'Calendar', gantt: 'Gantt' };   // browser tab + history
-const NAV_OF = { report: 'home', fitness: 'fitness', health: 'health', media: 'media', data: 'data', experiments: 'data', explore: 'data', calendar: 'data', gantt: 'data', watched: 'media' };
+const TITLES = { pct: 'PCT', watched: 'Movies & TV', fitness: 'Fitness', health: 'Health', media: 'Media', data: 'Data', experiments: 'Lab', explore: 'Explorer', calendar: 'Calendar', gantt: 'Gantt' };   // browser tab + history
+const NAV_OF = { report: 'home', pct: 'pct', fitness: 'fitness', health: 'health', media: 'media', data: 'data', experiments: 'data', explore: 'data', calendar: 'data', gantt: 'data', watched: 'media' };
 const ALIAS = { highlights: 'fitness', trails: 'fitness', projects: 'media', report: 'report', movies: 'watched' };
 
 let booted = false, turn = 0;
@@ -37,7 +37,7 @@ async function route() {
     if (my !== turn) return;
   }
   for (const k in VIEWS) $('#v-' + k).hidden = k !== v;
-  for (const a of document.querySelectorAll('nav.tabs a')) { if (a.dataset.nav === NAV_OF[v]) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); }
+  window.SiteNav?.here(NAV_OF[v]);
   const tool = v === 'data' || v === 'explore' || v === 'calendar' || v === 'gantt' || v === 'experiments'; $('#subnav').hidden = !tool;
   const privHere = v === 'report' || v === 'data';
   if (privHere) privPanel();

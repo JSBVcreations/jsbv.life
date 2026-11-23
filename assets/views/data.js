@@ -30,13 +30,13 @@ async function gamesCard() {
   const S = GAMES.seasons, played = S.filter((s) => s.level), yr = String(lastYear), inYr = played.filter((s) => (s.end || s.start).slice(0, 4) === yr);
   const sum = (a, k) => a.reduce((t, s) => t + (s[k] || 0), 0);
   return el('div', { className: 'card', style: '--acc:#c77dff' }, [
-    el('h3', { text: 'Video games' }),
+    el('h3', { text: 'GAME//LOG' }),
     el('dl', {}, DV.span === 'year'
       ? [el('dt', { text: 'Seasons ended in ' + yr }), el('dd', { text: String(inYr.length) }), el('dt', { text: 'Wins' }), el('dd', { text: num(sum(inYr, 'wins')) }),
          el('dt', { text: 'Levels' }), el('dd', { text: num(sum(inYr, 'level')) }), ]
       : [el('dt', { text: 'Seasons played' }), el('dd', { text: String(played.length) }), el('dt', { text: 'Wins' }), el('dd', { text: num(GAMES.totals.wins) }),
          el('dt', { text: 'Levels' }), el('dd', { text: num(GAMES.totals.levels) }), ]),
-    linkRow([['games/', 'Open Video games'], ...(DS.fortnite ? [[() => openInExplorer([['fortnite', 'wins', null, [], false], ['fortnite', 'level', null, [], false]], DS.fortnite.offset, DS.fortnite.end), 'Chart it']] : [])]),
+    linkRow([['games/', 'Open GAME//LOG'], ...(DS.fortnite ? [[() => openInExplorer([['fortnite', 'wins', null, [], false], ['fortnite', 'level', null, [], false]], DS.fortnite.offset, DS.fortnite.end), 'Chart it']] : [])]),
   ]);
 }
 function renderData() {
@@ -61,17 +61,19 @@ function renderData() {
     return ds.length ? [el('h2', { className: 'sec dgrp' + (k === 'sky' ? ' sky' : ''), text: label }), ...ds.map(cardFor)] : []; }));
   $('#d-tools').replaceChildren(
     el('div', { className: 'card' }, [el('h3', { text: 'Explorer' }), linkRow([['#explore', 'Open the explorer']])]),
-    el('div', { className: 'card', style: '--acc:#ff6fd8' }, [el('h3', { text: 'Timelines' }), ...(TLS && TLS.timelines.length ? [el('dl', {}, TLS.timelines.flatMap((t) => [el('dt', { text: t.name }), el('dd', { text: `${t.start} → ${t.end}` })]))] : []), linkRow([['timelines/', 'Open Timelines']])]),
+    el('div', { className: 'card', style: '--acc:#ff6fd8' }, [el('h3', { text: 'TIME//LINES' }), ...(TLS && TLS.timelines.length ? [el('dl', {}, TLS.timelines.flatMap((t) => [el('dt', { text: t.name }), el('dd', { text: `${t.start} → ${t.end}` })]))] : []), linkRow([['timelines/', 'Open TIME//LINES']])]),
     el('div', { className: 'card' }, [el('h3', { text: 'Calendar' }), linkRow([['#calendar', 'Open the calendar']])]),
-    el('div', { className: 'card', style: '--acc:#9b7bff' }, [el('h3', { text: 'Report cards' }), linkRow([['months/', 'Open the report cards']])]),
+    el('div', { className: 'card', style: '--acc:#9b7bff' }, [el('h3', { text: 'REPORT//CARDS' }), linkRow([['months/', 'Open the report cards']])]),
     el('div', { className: 'card', style: '--acc:#ffb347' }, [el('h3', { text: 'Sky Wheel' }), linkRow([['sky/', 'Open the sky wheel']])]),
-    el('div', { className: 'card', style: '--acc:#c7a6ff' }, [el('h3', { text: 'Star Log' }), linkRow([['astro/#now', 'Transits now'], ['astro/#lens', 'Data by Moon + retrograde'], ['astro/#sky', 'Sky table']])]));
+    el('div', { className: 'card', style: '--acc:#c7a6ff' }, [el('h3', { text: 'STAR//LOG' }), linkRow([['astro/#now', 'Transits now'], ['astro/#lens', 'Data by Moon + retrograde'], ['astro/#sky', 'Sky table']])]));
 }
 // ================================================================ TRAILS + PROJECTS
 // Section indexes. Each card's links open the target page on the right tab (see assets/site.js on those pages).
-const jump = (rows) => el('div', { className: 'jump' }, rows.map(([href, label, note]) => el('a', { href }, [label, el('small', { text: note })])));
+const jump = (rows) => el('div', { className: 'jump' }, rows.map(([href, label]) => el('a', { href, text: label })));   // the old third field (a subtitle) is no longer shown
 let TRN;   // pct-training/data/training.json, fetched once
-async function renderTrails() {
+// PCT (#pct): the PCT and AT 2019 cards; Fitness (#fitness): BODY//MAP, IRON//LOG, Movement
+async function renderPct() { await renderTrails('pct'); }
+async function renderTrails(which = 'fitness') {
   const cards = [], T = daily.datasets.find((d) => d.id === 'trail');
   if (TRN === undefined) { TRN = await loadJSON('pct-training/data/training.json', { optional: true }); }
   if (TRN) {
@@ -96,10 +98,12 @@ async function renderTrails() {
       linkRow([[() => openInExplorer([['trail', 'log_miles', null, [], false], ['move', 'steps', null, [], false]], a, b), 'Chart it in the explorer']]),
     ]));
   }
+  if (which === 'pct') { $('#pct-cards').replaceChildren(...(cards.length ? cards : [el('p', { className: 'note', text: 'Nothing here yet.' })])); return; }
+  cards.length = 0;
   cards.push(el('div', { className: 'card body' }, [
     el('h3', { text: 'BODY//MAP' }),
     el('div', { className: 'big2' }, ['19', el('small', { text: 'muscle groups · load, recovery, stretches' })]),
-    jump([['body/', 'Recovery', 'what is still loaded'], ['body/#strain', '10 days', 'load added lately'], ['months/', 'Report cards', 'month by month']]),
+    jump([['body/', 'Recovery', 'what is still loaded'], ['body/#strain', '10 days', 'load added lately']]),
   ]));
   cards.push(el('div', { className: 'card iron' }, [
     el('h3', { text: 'IRON//LOG' }),
@@ -118,7 +122,7 @@ function renderHealth() {
     el('h3', { text: 'Heart + sleep' }),
     el('div', { className: 'kv' }, [['resting_hr', 'resting', 'bpm'], ['hrv', 'HRV', 'ms'], ['sleep_h', 'sleep', 'h'], ['walking_hr', 'walking', 'bpm']].map(([m, lab, u]) => { const v = last30('body', m); return v == null ? null : el('span', {}, [lab + ' ', el('b', { text: `${num(v)} ${u}` })]); })),
     el('div', { className: 'tag', text: `last 30 days · through ${dateLabel(B.end)}` }),
-    jump([['pct-training/#recovery', 'Recovery', 'heart rate, HRV, sleep vs training'], ['body/', 'BODY//MAP', 'muscle load + stretches'], ['months/', 'Report cards', 'graded month by month'], ['#experiments/corr', 'What moves together', 'correlations']]),
+    jump([['pct-training/#recovery', 'Recovery', 'heart rate, HRV, sleep vs training'], ['body/', 'BODY//MAP', 'muscle load + stretches'], ['months/', 'REPORT//CARDS'], ['#experiments/corr', 'What moves together', 'correlations']]),
     linkRow([[() => openInExplorer([['body', 'resting_hr', null, [], false], ['body', 'hrv', null, [], false]], Math.max(B.offset, yearStart(B.end)), B.end), 'Chart it']]),
   ]));
   if (DS.breath) { const Bt = DS.breath; cards.push(el('div', { className: 'card br' }, [
@@ -164,4 +168,4 @@ function renderProjects() {
   $('#p-cards').replaceChildren(...cards);
 }
 
-export { renderData, renderTrails, renderHealth, renderProjects };
+export { renderData, renderPct, renderTrails, renderHealth, renderProjects };
