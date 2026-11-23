@@ -34,9 +34,11 @@ def digest(s):
 
 
 def committable():
-    out = subprocess.run(['git', 'ls-files', '-co', '--exclude-standard'], cwd=ROOT, stdout=subprocess.PIPE,
-                         stderr=subprocess.DEVNULL, universal_newlines=True).stdout.split('\n')
-    return [f for f in out if f and os.path.isfile(repo(f))]
+    r = subprocess.run(['git', 'ls-files', '-co', '--exclude-standard'], cwd=ROOT, stdout=subprocess.PIPE,
+                       stderr=subprocess.PIPE, universal_newlines=True)
+    if r.returncode != 0:      # no git = no way to know what would be committed: never report "clean" for that
+        raise SystemExit(f'privacy check: git could not list the files ({r.stderr.strip()[:120]}); run it inside the repo')
+    return [f for f in r.stdout.split('\n') if f and os.path.isfile(repo(f))]
 
 
 def public_files():

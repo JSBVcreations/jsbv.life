@@ -77,8 +77,8 @@ def wrong_workbook(key, p):
     return None
 
 
-def find(spec):
-    """One finder from a registry row: a list of paths (newest only, unless `all`)."""
+def find(spec, guard=None):
+    """One finder from a registry row: a list of paths (newest only, unless `all`; with a guard, the newest that passes)."""
     if spec.get('health'):
         h = newest_health()
         return [h] if h else []
@@ -87,6 +87,9 @@ def find(spec):
     else:
         hits = files_matching(spec['glob'])
     if spec.get('all'): return hits
+    if guard:
+        good = [p for p in hits if offloaded(p) or not wrong_workbook(guard, p)]
+        hits = good or hits          # nothing passes: keep the newest so the run says why it was skipped
     return [max(hits, key=os.path.getmtime)] if hits else []
 
 
@@ -152,7 +155,7 @@ def main():
             continue
         if any(a in failed for a in spec.get('after', [])):
             print(f'  - {label}: skipped, {", ".join(spec["after"])} failed'); continue
-        need = [find(f) for f in spec.get('find', [])]
+        need = [find(f, spec.get('guard')) for f in spec.get('find', [])]
         opt = [find(f) for f in spec.get('opt', [])]
         found[k] = [p for g in need for p in g]
         if any(not g for g in need):

@@ -92,7 +92,7 @@
    "id": "calls",
    "name": "Call log",
    "kind": "manual export",
-   "raw": "jsbv data/YYYY-MM-Call-Log-Backup.xlsx",
+   "raw": "jsbv data/YYYY-Call-List-master.xlsx (Call-Input sheet) or a YYYY-MM-Call-Log-Backup.xlsx",
    "builder": "build_call_log.py",
    "outputs": [
     "meta-log/data/calls.json"
@@ -107,7 +107,8 @@
     "find": [
      {
       "glob": [
-       "*Call-Log*.xlsx"
+       "*Call-Log*.xlsx",
+       "*Call-List*.xlsx"
       ]
      }
     ],
