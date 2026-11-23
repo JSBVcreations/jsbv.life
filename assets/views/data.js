@@ -122,7 +122,9 @@ async function renderTrails(which = 'fitness') {
       linkRow([[() => openInExplorer([['trail', 'log_miles', null, [], false], ['move', 'steps', null, [], false]], a, b), 'Chart it in the explorer']]),
     ]));
   }
-  if (which === 'pct') { $('#pct-cards').replaceChildren(...(cards.length ? cards : [el('p', { className: 'note', text: 'Nothing here yet.' })])); return; }
+  const HV = await import('./hubviz.js'), put = (id, xs) => $(id).replaceChildren(...xs.filter(Boolean));
+  if (which === 'pct') { put('#pct-dash', [HV.runwayFan(TRN), HV.loadRatio()]); $('#pct-cards').replaceChildren(...(cards.length ? cards : [el('p', { className: 'note', text: 'Nothing here yet.' })])); return; }
+  put('#fitness-dash', [HV.avgYear('move', 'steps', 'Steps'), HV.streaks([['10,000 steps', 'move', 'steps', (v) => v >= 10000], ['5 miles', 'move', 'miles', (v) => v >= 5], ['30 min exercise', 'exercise', 'minutes', (v) => v >= 0.5], ['10 flights', 'move', 'flights', (v) => v >= 10]])]);
   cards.length = 0;
   cards.push(el('div', { className: 'card body' }, [
     el('h3', { text: 'BODY//MAP' }),
@@ -140,7 +142,10 @@ async function renderTrails(which = 'fitness') {
     linkRow([[() => openInExplorer([['move', 'steps', null, [], false], ['exercise', 'minutes', null, [], false]], yearStart(M.end), M.end), 'Chart it'], ['step-song/#decade', 'Ten years of steps']])])); }
   $('#t-cards').replaceChildren(...(cards.length ? cards : [el('p', { className: 'note', text: 'Nothing here yet.' })]));
 }
-function renderHealth() {
+async function renderHealth() {
+  const HV = await import('./hubviz.js');
+  $('#health-dash').replaceChildren(...[HV.baselineBands([['body', 'resting_hr', 'Resting HR'], ['body', 'hrv', 'HRV'], ['body', 'sleep_h', 'Sleep']]), HV.sleepClock(),
+    HV.streaks([['7 h sleep', 'body', 'sleep_h', (v) => v >= 7], ['Breathwork', 'breath', 'sessions', (v) => v >= 1], ['HRV over 70 ms', 'body', 'hrv', (v) => v > 70]])].filter(Boolean));
   const cards = [], B = DS.body, last30 = (ds, m) => { const d = DS[ds]; if (!d) return null; const L = asLine(ds, m), r = sumRange(L, d.end - 29, d.end); return r.cnt ? (L.agg === 'mean' ? r.sum / r.cnt : r.sum) : null; };
   if (B) cards.push(el('div', { className: 'card hr' }, [
     el('h3', { text: 'Heart + sleep' }),

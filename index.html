@@ -73,6 +73,17 @@ th { font: 600 var(--s-0) var(--f-ui); letter-spacing: 0.1em; }
 th:first-child, td:first-child { text-align: left; }
 td:first-child { white-space: normal; min-width: 160px; }
 td .sw { margin-right: 8px; }
+.dash { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 14px; margin-bottom: 14px; }
+.dash:empty { display: none; }
+.dash-p { margin: 0; min-width: 0; align-self: start; }
+.dash-p.wide { grid-column: 1 / -1; }
+.dash-h { margin: 0 0 8px; font: 600 var(--s-1, 13px) var(--f-ui); letter-spacing: .14em; text-transform: uppercase; color: var(--ink); }
+.dash-key { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 6px; font: 400 11px var(--f-data); color: var(--dim); }
+.dash-key .sw { margin-right: 5px; vertical-align: -1px; }
+.bands { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: 10px 16px; }
+.band-h { display: flex; justify-content: space-between; gap: 8px; font: 400 11px var(--f-data); color: var(--dim); }
+.band-h b { color: var(--ink); font-weight: 600; }
+.dash-p.clock svg { max-width: 340px; margin: 0 auto; }
 .dtab th.l, .dtab td.l { text-align: left; }
 .dtab td.dim { color: var(--dim); }
 .dtab td small { display: block; color: var(--dim); font-size: 11px; }
@@ -510,9 +521,9 @@ h2.sec { font: 700 var(--s-0)/1 var(--f-ui); letter-spacing: 0.2em; color: var(-
   </div>
 
   <!-- ============================================================ TRAILS + PROJECTS (section indexes) -->
-  <div class="view" id="v-pct" hidden><div class="idx" id="pct-cards"></div></div>
-  <div class="view" id="v-fitness" hidden><div class="idx" id="t-cards"></div></div>
-  <div class="view" id="v-health" hidden><div class="idx" id="h-cards"></div></div>
+  <div class="view" id="v-pct" hidden><div class="dash" id="pct-dash"></div><div class="idx" id="pct-cards"></div></div>
+  <div class="view" id="v-fitness" hidden><div class="dash" id="fitness-dash"></div><div class="idx" id="t-cards"></div></div>
+  <div class="view" id="v-health" hidden><div class="dash" id="health-dash"></div><div class="idx" id="h-cards"></div></div>
   <div class="view" id="v-media" hidden><div class="idx" id="p-cards"></div></div>
 
   <!-- ============================================================ EXPERIMENTS -->
