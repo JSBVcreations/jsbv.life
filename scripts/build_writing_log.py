@@ -3,10 +3,10 @@
 
     python3 scripts/build_writing_log.py "jsbv data/Writing-Log.xlsx" ["jsbv data"]
 
-With the data folder as a second argument, it also reads the 2025 Obsidian daily notes: every *.md under a folder
-named "*Daily Notes*" in the data folder (one note per day, named YYYY-MM-DD). Only the date and the "Word Count"
-field (YAML frontmatter `Word Count: 1234` or inline `Word Count:: 1234`) are read; no other field or note text.
-Each note with words becomes one day-total row: project "Daily notes", notebook "Obsidian", session 0, no times.
+With the data folder as a second argument, it also reads "jsbv data/Writing-History-Obsidian.xlsx" (sheet Daily
+Totals: date, word_count, note), the 2025 word counts copied from the Obsidian daily notes on Nov 23 2026. Each row is
+one day total (zeros kept: a tracked day with no writing): project "Daily notes", notebook "Obsidian", session 0, no
+times. A day that also has logged sessions keeps only the sessions.
 
 Reads only the "Writing Sessions" sheet, one row per session: project, notebook, word_count, session_date,
 start_time, finish_time, music, location. Rows with no date are skipped. A finish earlier than the start ran past
@@ -73,22 +73,17 @@ def words(v):
 def slug(s): return re.sub(r'[^a-z0-9]+', '-', s.lower()).strip('-') or 'x'
 
 
-FIELD = re.compile(r'^\s*Word Count\s*::?\s*([\d,]+)\s*$', re.M | re.I)
-NAME = re.compile(r'(\d{4}-\d{2}-\d{2})')
+HISTORY = 'Daily Totals'          # sheet of the history workbook: date, word_count (one row per day)
 
 
-def daily_notes(data):
-    """[(date, words)] from Obsidian daily notes. Reads the file name and the Word Count line, nothing else."""
+def history(data):
+    """[(date, words)] from "jsbv data/Writing-History*.xlsx" (2025 Obsidian daily-note word counts, built Nov 23 2026)."""
     out = {}
-    for folder in sorted(glob.glob(os.path.join(data, '*Daily Notes*'))):
-        for path in glob.glob(os.path.join(folder, '**', '*.md'), recursive=True):
-            m = NAME.search(os.path.basename(path))
-            if not m: continue
-            try: d = dt.date.fromisoformat(m.group(1))
-            except ValueError: continue
-            with open(path, encoding='utf-8', errors='replace') as f:
-                w = FIELD.search(f.read())
-            if w and int(w.group(1).replace(',', '')) > 0: out[d] = int(w.group(1).replace(',', ''))   # a copy in two folders counts once
+    for path in sorted(glob.glob(os.path.join(data, '*Writing-History*.xlsx'))):
+        if os.path.basename(path).startswith('~$'): continue
+        for r in Book(path).table(HISTORY, ['date', 'word_count'], keep_empty=False):
+            d, w = day(r.get('date')), words(r.get('word_count'))
+            if d and w is not None: out[d] = w
     return sorted(out.items())
 
 
@@ -107,7 +102,8 @@ def main():
         tod = next(k for h, k in TOD if a < h * 60) if a is not None else None
         rows.append((d.isoformat(), project, slug(project), text(r.get('notebook')), words(r.get('word_count')),
                      hhmm(a), hhmm(f), mins, tod, text(r.get('music')), 1, 'log', text(r.get('location'))))
-    notes = daily_notes(sys.argv[2]) if len(sys.argv) > 2 else []
+    logged = {r[0] for r in rows}
+    notes = [(d, w) for d, w in (history(sys.argv[2]) if len(sys.argv) > 2 else []) if d.isoformat() not in logged]   # a logged day wins
     rows += [(d.isoformat(), 'Daily notes', 'daily-notes', 'Obsidian', w, None, None, None, None, None, 0, 'obsidian', None) for d, w in notes]
     rows.sort(key=lambda x: (x[0], x[5] or ''))
     n = put_table('writing', [

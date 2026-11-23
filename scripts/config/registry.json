@@ -216,7 +216,7 @@
    "id": "writing",
    "name": "Writing log",
    "kind": "manual log",
-   "raw": "jsbv data/Writing-Log.xlsx (Writing Sessions sheet) + jsbv data/*Daily Notes*/ (2025 Obsidian notes, Word Count only)",
+   "raw": "jsbv data/Writing-Log.xlsx (Writing Sessions sheet) + jsbv data/Writing-History-Obsidian.xlsx (2025 daily word counts)",
    "builder": "build_writing_log.py",
    "sql_first": true,
    "outputs": [
@@ -234,7 +234,8 @@
     "find": [
      {
       "glob": [
-       "*[Ww]riting*[Ll]og*.xlsx"
+       "*[Ww]riting*[Ll]og*.xlsx",
+       "*[Ww]riting*[Ll]og*.xlsm"
       ]
      }
     ],
@@ -344,10 +345,8 @@
     "opt": [
      {
       "glob": [
-       "*Daily Notes*/*.md",
-       "*Daily Notes*/*/*.md"
-      ],
-      "all": true
+       "*Writing-History*.xlsx"
+      ]
      }
     ]
    }

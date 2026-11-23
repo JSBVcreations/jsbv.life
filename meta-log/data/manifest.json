@@ -157,13 +157,18 @@
     "writing/",
     "/#explore"
    ],
-   "through": null,
-   "age_days": null,
+   "through": "2026-10-15",
+   "age_days": 39,
    "stale": false,
    "files": [
     {
+     "path": "meta-log/data/writing.json",
+     "kb": 15,
+     "through": "2026-10-15"
+    },
+    {
      "path": "writing/data/sessions.json",
-     "kb": 0,
+     "kb": 4,
      "through": null
     }
    ]
@@ -478,7 +483,7 @@
    "files": [
     {
      "path": "meta-log/data/daily.json",
-     "kb": 1054,
+     "kb": 1068,
      "through": "2026-11-23"
     },
     {
@@ -562,8 +567,13 @@
      "through": null
     },
     {
+     "path": "meta-log/data/days/writing.json",
+     "kb": 15,
+     "through": null
+    },
+    {
      "path": "meta-log/data/summary.json",
-     "kb": 17,
+     "kb": 18,
      "through": "2026-11-23"
     },
     {

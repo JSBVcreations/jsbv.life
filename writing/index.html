@@ -107,15 +107,16 @@ section[data-tab="links"] .tall { max-height: 360px; }
     <div class="top"><h2>Sessions</h2><div class="ctl"><select id="lg-proj" aria-label="Project"></select></div></div>
     <div class="scroll tall"><table id="lg-table"></table></div>
   </section>
-  <footer>Writing log workbook · Obsidian daily notes, 2025</footer>
+  <footer>Writing log workbook · 2025 Obsidian daily notes</footer>
 </div>
 <script src="../assets/site.js"></script>
 <script type="module">
-import { $, el, svg, MON, DOW, fmtInt, fmt1, loadJSON, dayIndex, iso, dateLabel, weekStart, POOL, C, tipAt, tipOff, niceMax, seg, esc, tick } from '../assets/core.js';
+import { $, el, svg, MON, DOW, fmtInt, fmt1, loadJSON, dayIndex, iso, dateLabel, weekStart, POOL, C, tipAt, tipOff, niceMax, seg, esc } from '../assets/core.js';
 import { loadDaily } from '../assets/daily.js';
 import { corr, bh, quantile, mean, median } from '../assets/stats.js';
 
 const GOLD = '#ffd84a', GOAL = 10000;   // words per week, the 2025 Obsidian dashboard's goal
+const tick = (v) => (Math.abs(v) >= 1000 ? +(v / 1000).toFixed(v % 1000 ? 1 : 0) + 'k' : String(+(+v).toFixed(1)));   // axis labels: 12.5k, not 13k
 const txt = (x, y, s, at) => svg('text', Object.assign({ x, y }, at || {}), s);
 const hm = (m) => m == null ? '—' : m >= 120 ? fmt1(m / 60) + ' h' : fmtInt(m) + ' min';
 const now = new Date(), today = dayIndex(`${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`);
@@ -142,19 +143,21 @@ if (!SS.length) { $('#empty').hidden = false; for (const s of document.querySele
 const first = SS[0].d, last = Math.max(today, SS[SS.length - 1].d);
 const years = [...new Set(SS.map((s) => +s.date.slice(0, 4)))];
 const yStart = (y) => dayIndex(`${y}-01-01`);
-const RANGES = [...years.slice().reverse().map((y) => [String(y), Math.max(first, yStart(y)), Math.min(last, yStart(y + 1) - 1)]), ['ALL', first, last]]
+const firstIn = (y) => Math.min(...SS.filter((x) => +x.date.slice(0, 4) === y).map((x) => x.d));   // a year's range starts at its first row
+const RANGES = [...years.slice().reverse().map((y) => [String(y), firstIn(y), Math.min(last, yStart(y + 1) - 1)]), ['ALL', first, last]]
   .filter((r, i, a) => !(r[0] === 'ALL' && a.length === 2));
 const V = { r: 0, by: 'project', y: 'words', lag: 0, pick: null, proj: '' };
 const A = () => RANGES[V.r][1], B = () => RANGES[V.r][2];
 const inR = () => SS.filter((s) => s.d >= A() && s.d <= B());
 
 // day totals over the whole span (days with no session are 0 words)
-const NDAY = last - first + 1, dW = new Array(NDAY).fill(0), dM = new Array(NDAY).fill(0), dN = new Array(NDAY).fill(0);
-for (const s of SS) { const i = s.d - first; dW[i] += s.words || 0; dM[i] += s.minutes || 0; dN[i]++; }
+const NDAY = last - first + 1, dW = new Array(NDAY).fill(0), dM = new Array(NDAY).fill(0), dN = new Array(NDAY).fill(0), dR = new Array(NDAY).fill(0);
+for (const s of SS) { const i = s.d - first; dW[i] += s.words || 0; dM[i] += s.minutes || 0; dR[i]++; if (s.ses || s.words > 0) dN[i]++; }   // dR: any row (a tracked day), dN: wrote
 // a day counts as tracked when a logged row is within 21 days of it; longer gaps (between the 2025 notes and the log) are missing, not zero
+const logFrom = SS.some((x) => x.ses) ? Math.min(...SS.filter((x) => x.ses).map((x) => x.d)) : null;
 const TRK = new Array(NDAY).fill(false); { let prev = -1e9; const next = new Array(NDAY).fill(1e9);
-  for (let i = NDAY - 1, nx = 1e9; i >= 0; i--) { if (dN[i]) nx = i; next[i] = nx; }
-  for (let i = 0; i < NDAY; i++) { if (dN[i]) prev = i; TRK[i] = i - prev <= 21 || next[i] - i <= 21; } }
+  for (let i = NDAY - 1, nx = 1e9; i >= 0; i--) { if (dR[i]) nx = i; next[i] = nx; }
+  for (let i = 0; i < NDAY; i++) { if (dR[i]) prev = i; TRK[i] = i - prev <= 21 || next[i] - i <= 21 || (logFrom != null && i + first >= logFrom); } }   // the live log counts every day from its first session to today
 const wordsOn = (g) => (g < first || g > last || !TRK[g - first] ? null : dW[g - first]);
 
 function streaks(a, b) {
@@ -167,13 +170,13 @@ function streaks(a, b) {
 
 // ---------------------------------------------------------------- readout
 function renderReadout() {
-  const R = inR(), a = A(), b = Math.min(B(), last), days = Array.from({ length: Math.max(0, b - a + 1) }, (_, k) => a + k).filter((g) => wordsOn(g) != null && g <= today).length, wrote = new Set(R.map((s) => s.d)).size;
+  const R = inR(), a = A(), b = Math.min(B(), last), days = Array.from({ length: Math.max(0, b - a + 1) }, (_, k) => a + k).filter((g) => wordsOn(g) != null && g <= today).length, wrote = new Set(R.filter((s) => s.ses || s.words > 0).map((s) => s.d)).size;
   const words = R.reduce((t, s) => t + (s.words || 0), 0), mins = R.reduce((t, s) => t + (s.minutes > 0 && s.words != null ? s.minutes : 0), 0);
   const wTimed = R.reduce((t, s) => t + (s.minutes > 0 && s.words != null ? s.words : 0), 0), st = streaks(a, b);
   const cell = (label, v, color) => el('div', {}, [el('span', { text: label }), el('strong', { text: v, style: color ? `color:${color}` : '' })]);
   $('#readout').replaceChildren(cell('Words', fmtInt(words), GOLD), cell('Sessions', fmtInt(R.filter((s) => s.ses).length)), cell('Days written', `${wrote} / ${days}`),
     cell('Per writing day', fmtInt(wrote ? words / wrote : null)), cell('Words / hour', fmtInt(mins ? wTimed / (mins / 60) : null), C.sound),
-    cell('Time', hm(R.reduce((t, s) => t + (s.minutes || 0), 0))), cell('Streak', `${st.cur} d`, C.trail), cell('Best streak', `${st.best} d`));
+    cell('Time', mins ? hm(R.reduce((t, s) => t + (s.minutes || 0), 0)) : '—'), cell('Streak', `${st.cur} d`, C.trail), cell('Best streak', `${st.best} d`));
 }
 
 // ---------------------------------------------------------------- habit: calendar + weeks
@@ -195,7 +198,7 @@ function renderHabit() {
     const top = bi * blockH + 14;
     if (blocks.length > 1) root.append(txt(0, top - 2, String(y), { class: 'lab' }));
     [1, 3, 5].forEach((d) => root.append(txt(L - 4, top + d * cs + cs * 0.8, DOW[d][0], { 'text-anchor': 'end' })));
-    for (let g = ga; g <= gb; g++) { const d = iso(g); if (d.slice(8) === '01' && (gb - g) > 10) root.append(txt(L + Math.floor((g - g0) / 7) * cs, top + 7 * cs + 12, MON[+d.slice(5, 7) - 1])); }
+    for (let g = ga; g <= gb; g++) { const d = iso(g); if ((d.slice(8) === '01' || (g === ga && +d.slice(8) < 20)) && (gb - g) > 10) root.append(txt(L + Math.floor((g - g0) / 7) * cs, top + 7 * cs + 12, MON[+d.slice(5, 7) - 1])); }
     for (let g = ga; g <= gb; g++) {
       const x = L + Math.floor((g - g0) / 7) * cs, yy = top + (g - weekStart(g)) * cs;
       const w = wordsOn(g), out = g > today;
@@ -234,7 +237,7 @@ function renderWeeks() {
     const hit = svg('rect', { x, y: 0, width: bw, height: H - pb, fill: 'transparent', class: 'hit' });
     hit.addEventListener('mousemove', (ev) => tipAt(ev, `<b>Week of ${dateLabel(a + k * 7)}</b><br>${fmtInt(acc)} words` + keys.filter((c) => t[c.id]).map((c) => `<br>${esc(c.name)}: ${fmtInt(t[c.id])}`).join('')));
     hit.addEventListener('mouseleave', tipOff); root.append(hit);
-    const d = iso(a + k * 7); if (+d.slice(8) <= 7) root.append(txt(x, H - pb + 14, MON[+d.slice(5, 7) - 1]));
+    const d = iso(a + k * 7); if (+d.slice(8) <= 7 || k === 0) root.append(txt(x, H - pb + 14, MON[+d.slice(5, 7) - 1]));
   });
   const tot = T.map((t, k) => (wordsOn(a + k * 7) == null && wordsOn(a + k * 7 + 6) == null ? null : Object.values(t).reduce((x, y) => x + y, 0))).filter((v) => v != null);
   host.replaceChildren(root, el('div', { className: 'legend' }, [...keys.map((c) => el('span', {}, [el('i', { style: `background:${c.color}` }), c.name])),

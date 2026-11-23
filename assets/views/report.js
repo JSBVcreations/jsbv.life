@@ -1,4 +1,4 @@
-/* Home (#report): this month and PCT//PREP heroes and the Fitness · Health · Media tiles. Runs on summary.json.
+/* Home (#report): this month and PCT//PREP heroes and the Fitness · Health · Media · Writing tiles. Runs on summary.json.
    The year by season moved to REPORT//CARDS (assets/seasons.js) and Low tide to PCT//PREP's tab on Nov 23 2026. */
 import { $, el, svg, dayIndex, iso, MON, dateLabel, num, loadJSON } from '../core.js';
 import { median, percentile, blockDiff, bh } from '../stats.js';
@@ -10,6 +10,7 @@ const GROUPS = [
   ['fitness', 'Fitness', '#3ff0ff', [['move', 'steps'], ['move', 'miles'], ['move', 'elev'], ['exercise', 'minutes'], ['lifting', 'sessions']]],
   ['health', 'Health', '#ff4d6d', [['body', 'resting_hr'], ['body', 'hrv'], ['body', 'sleep_h'], ['body', 'walking_hr'], ['breath', 'sessions'], ['breath', 'avg_hold'], ['water', 'liters']]],
   ['media', 'Media', '#ff3fb4', [['music', 'minutes'], ['watch', 'minutes'], ['watch', 'movies'], ['watch', 'episodes'], ['calls', 'minutes'], ['photos', 'items']]],
+  ['writing', 'Writing', '#ffd84a', [['writing', 'words'], ['writing', 'sessions'], ['writing', 'minutes']]],
   // private datasets bring their own tile (site.group), so nothing about them is written into this public page
   ...daily.datasets.filter((d) => d.site && d.site.group).map((d) => [d.id, d.site.group[0], d.site.group[1], d.site.group[2].map((m) => [d.id, m])]),
 ].map(([id, name, color, ms]) => ({ id, name, color, ms: ms.filter(([d, m]) => DS[d] && DS[d].grain === 'day' && metricOf(d, m)) })).filter((g) => g.ms.length);
