@@ -1,5 +1,5 @@
 {
- "generated": "2026-11-23",
+ "generated": "2026-11-24",
  "sources": [
   {
    "id": "health",
@@ -12,7 +12,7 @@
     "pct-training/#recovery"
    ],
    "through": "2026-11-22",
-   "age_days": 1,
+   "age_days": 2,
    "stale": false,
    "files": [
     {
@@ -31,7 +31,7 @@
     "/#watched"
    ],
    "through": "2026-11-15",
-   "age_days": 8,
+   "age_days": 9,
    "stale": false,
    "files": [
     {
@@ -74,7 +74,7 @@
     "/#explore"
    ],
    "through": "2026-11-15",
-   "age_days": 8,
+   "age_days": 9,
    "stale": false,
    "files": [
     {
@@ -94,7 +94,7 @@
     "/#explore"
    ],
    "through": "2026-11-16",
-   "age_days": 7,
+   "age_days": 8,
    "stale": false,
    "files": [
     {
@@ -118,7 +118,7 @@
     "/#explore"
    ],
    "through": "2026-11-16",
-   "age_days": 7,
+   "age_days": 8,
    "stale": false,
    "files": [
     {
@@ -138,7 +138,7 @@
     "/#explore"
    ],
    "through": "2025-10-01",
-   "age_days": 418,
+   "age_days": 419,
    "stale": false,
    "files": [
     {
@@ -157,18 +157,18 @@
     "writing/",
     "/#explore"
    ],
-   "through": "2026-10-15",
-   "age_days": 39,
+   "through": "2026-11-03",
+   "age_days": 21,
    "stale": false,
    "files": [
     {
      "path": "meta-log/data/writing.json",
      "kb": 15,
-     "through": "2026-10-15"
+     "through": "2026-11-03"
     },
     {
      "path": "writing/data/sessions.json",
-     "kb": 4,
+     "kb": 5,
      "through": null
     }
    ]
@@ -201,7 +201,7 @@
     "games/"
    ],
    "through": "2026-11-15",
-   "age_days": 8,
+   "age_days": 9,
    "stale": false,
    "files": [
     {
@@ -220,7 +220,7 @@
     "pct-training/"
    ],
    "through": "2026-11-19",
-   "age_days": 4,
+   "age_days": 5,
    "stale": true,
    "files": [
     {
@@ -244,7 +244,7 @@
     "pct-training/#plan"
    ],
    "through": "2026-11-19",
-   "age_days": 4,
+   "age_days": 5,
    "stale": false,
    "files": [
     {
@@ -263,7 +263,7 @@
     "photo-library/"
    ],
    "through": "2026-11-22",
-   "age_days": 1,
+   "age_days": 2,
    "stale": false,
    "files": [
     {
@@ -288,7 +288,7 @@
     "/#experiments/eras"
    ],
    "through": "2026-10-15",
-   "age_days": 39,
+   "age_days": 40,
    "stale": false,
    "files": [
     {
@@ -438,7 +438,7 @@
     "/#explore (overlay)"
    ],
    "through": "2026-11-23",
-   "age_days": 0,
+   "age_days": 1,
    "stale": false,
    "files": [
     {
@@ -459,7 +459,7 @@
     "/#explore"
    ],
    "through": "2026-11-23",
-   "age_days": 0,
+   "age_days": 1,
    "stale": false,
    "files": [
     {
@@ -477,14 +477,14 @@
    "pages": [
     "/ (all views)"
    ],
-   "through": "2026-11-23",
+   "through": "2026-11-24",
    "age_days": 0,
    "stale": false,
    "files": [
     {
      "path": "meta-log/data/daily.json",
-     "kb": 1068,
-     "through": "2026-11-23"
+     "kb": 1069,
+     "through": "2026-11-24"
     },
     {
      "path": "meta-log/data/days/astro.json",
@@ -519,7 +519,7 @@
     {
      "path": "meta-log/data/days/index.json",
      "kb": 3,
-     "through": "2026-11-23"
+     "through": "2026-11-24"
     },
     {
      "path": "meta-log/data/days/lifting.json",
@@ -574,7 +574,7 @@
     {
      "path": "meta-log/data/summary.json",
      "kb": 18,
-     "through": "2026-11-23"
+     "through": "2026-11-24"
     },
     {
      "path": "meta-log/data/private.enc.json",
@@ -592,7 +592,7 @@
     "/#report"
    ],
    "through": "2026-11-22",
-   "age_days": 1,
+   "age_days": 2,
    "stale": false,
    "files": [
     {
@@ -613,7 +613,7 @@
     "fitness/"
    ],
    "through": "2025-10-22",
-   "age_days": 397,
+   "age_days": 398,
    "stale": false,
    "files": [
     {
@@ -638,7 +638,7 @@
     "/#report"
    ],
    "through": "2026-11-23",
-   "age_days": 0,
+   "age_days": 1,
    "stale": false,
    "files": [
     {
@@ -657,7 +657,7 @@
     "body/"
    ],
    "through": "2026-11-19",
-   "age_days": 4,
+   "age_days": 5,
    "stale": false,
    "files": [
     {
