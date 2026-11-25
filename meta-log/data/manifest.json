@@ -157,18 +157,18 @@
     "writing/",
     "/#explore"
    ],
-   "through": "2026-11-03",
-   "age_days": 22,
+   "through": "2026-11-23",
+   "age_days": 2,
    "stale": false,
    "files": [
     {
      "path": "meta-log/data/writing.json",
-     "kb": 15,
-     "through": "2026-11-03"
+     "kb": 16,
+     "through": "2026-11-23"
     },
     {
      "path": "writing/data/sessions.json",
-     "kb": 5,
+     "kb": 6,
      "through": null
     }
    ]
@@ -568,7 +568,7 @@
     },
     {
      "path": "meta-log/data/days/writing.json",
-     "kb": 15,
+     "kb": 16,
      "through": null
     },
     {
