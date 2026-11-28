@@ -157,6 +157,21 @@ for r in src['rows']:
     if d.get('badges'): row['badges'] = [x for x in d['badges'] if isinstance(x, str)]
     if d.get('genre2'): row['sgenre2'] = d['genre2']
     rows.append(row)
+# A scored title with no IMDb id on the Scorecard joins the poster wall by its exact title, so a title spelt differently
+# in the watch list (or one whose id was never filled in) would show no score. Borrow the wall tile's id instead.
+_wt = os.path.join(ROOT, 'meta-log', 'data', 'watch-titles.json')
+ALIASES = {'dracula 2000': 'wes craven presents dracula 2000', 'aquaman and the lost kingdom': 'aquaman 2 the lost kingdom',
+           'dune': 'dune part 1', 'dune part two': 'dune part 2'}      # Scorecard title -> watch-list title
+if os.path.exists(_wt):
+    import re
+    nt = lambda x: re.sub(r'[^a-z0-9]+', ' ', re.sub(r'\s*\(\d{4}\)\s*$', '', str(x or '')).lower().replace('&', 'and')).strip()
+    tiles = {}
+    for t in json.load(open(_wt, encoding='utf-8'))['titles']:
+        if t.get('id'): tiles.setdefault((nt(t['t']), t['type']), t['id'])
+    for row in rows:
+        if 'id' not in row:
+            k = nt(row['t']); tid = tiles.get((ALIASES.get(k, k), row['type']))
+            if tid: row['id'] = tid
 out = {'pulled': src.get('source', ''), 'quads': QUADS, 'cats': [{'k': k, 'name': n, 'quad': q, 'bands': BANDS[k]} for k, n, q in CATS], 'rows': [list(k) for k in ROWS], 'descs': list(DESCS), 'titles': rows}
 with open(OUT, 'w', encoding='utf-8') as f: json.dump(out, f, separators=(',', ':'), ensure_ascii=False)
 print(f"scorecard  {len(rows)} titles scored, {sum(1 for r in rows if r['final'] is not None)} with a Final  → {os.path.relpath(OUT, ROOT)}")

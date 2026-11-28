@@ -17,8 +17,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from lib.paths import ROOT  # noqa: E402
 from lib.xlsx import Book  # noqa: E402
 OUT = os.path.join(ROOT, 'meta-log', 'data', 'watch.json')
-KEEP = {'Movie Log': ['Watch Date', 'Minutes Watched', 'Primary Genre', 'Platform', 'Title', 'Rewatch', 'In Theaters'],
-        'TV Log': ['Watch Date', 'Minutes Watched', 'Primary Genre', 'Platform', 'Episode Count', 'Show'],
+KEEP = {'Movie Log': ['Watch Date', 'Minutes Watched', 'Primary Genre', 'Platform', 'Title', 'Rewatch', 'In Theaters', 'Portion', 'Speed'],
+        'TV Log': ['Watch Date', 'Minutes Watched', 'Primary Genre', 'Platform', 'Episode Count', 'Show', 'Portion', 'Speed'],
         'Titles': ['Title', 'Type', 'My Rating', 'Tier', 'Year', 'Runtime (min)', 'Genre', 'Director', 'IMDb Rating', 'Poster URL', 'IMDb ID']}
 
 def load(xlsx):
@@ -32,18 +32,44 @@ def serial(x): return dt.date(1899, 12, 30) + dt.timedelta(days=int(x))
 
 if len(sys.argv) != 2: sys.exit(__doc__)
 S = load(sys.argv[1])
+# Posters / IMDb ids / ratings / runtimes found by scripts/fill_posters.py (OMDb). The workbook wins when it has a value.
+_cp = os.path.join(os.environ.get('JSBV_DATA') or os.path.expanduser('~/Documents/00-Database/jsbv data'), 'omdb-cache.json')
+OMDB = {}
+if os.path.exists(_cp):
+    for c in json.load(open(_cp, encoding='utf-8')).values():
+        if c.get('status') == 'ok': OMDB[c['title']] = c
+ON_SHEET = {r['Title'].strip() for r in S['Titles'] if isinstance(r.get('Title'), str)}
+filled = 0
+
+def fill_minutes(r, kind, name_):
+    """A log row whose title has no Titles row yet has blank (formula) minutes: rebuild them from the OMDb runtime,
+    the same way the workbook does (runtime x portion / speed for movies, episode runtime x episodes for TV)."""
+    o = OMDB.get(name_.strip()) if isinstance(name_, str) else None
+    if not o or not o.get('runtime'): return None
+    f = lambda k: r.get(k) if isinstance(r.get(k), float) and r.get(k) > 0 else 1.0
+    n = r.get('Episode Count') if kind == 'tv' else 1.0
+    return o['runtime'] * (n if isinstance(n, float) else 1.0) * f('Portion') / f('Speed')
 entries = []   # (date, kind, minutes, genre, platform, count)
 agg = collections.defaultdict(lambda: {'min': 0.0, 'n': 0, 'sit': 0, 'dates': [], 'rewatch': False, 'theater': False})
 for kind, name in (('movies', 'Movie Log'), ('tv', 'TV Log')):
     for r in S[name]:
         d, mins = r.get('Watch Date'), r.get('Minutes Watched')
-        if not isinstance(d, float) or not isinstance(mins, float): continue      # blank template rows
         n = r.get('Episode Count') if kind == 'tv' else 1
         name_ = (r.get('Title') if kind == 'movies' else r.get('Show'))
+        genre = r.get('Primary Genre')
+        if isinstance(d, float) and not isinstance(mins, float):
+            mins = fill_minutes(r, kind, name_)
+            if mins is not None:
+                filled += 1
+                if not isinstance(genre, str) and OMDB[name_.strip()].get('genre'): genre = OMDB[name_.strip()]['genre'][0]
+        if isinstance(d, float) and not isinstance(mins, float) and isinstance(name_, str):
+            a = agg[name_.strip()]                 # no runtime anywhere: still a tile (sittings, dates), but no minutes
+            a['n'] += int(n) if isinstance(n, float) else 1; a['sit'] += 1; a['dates'].append(serial(d))
+        if not isinstance(d, float) or not isinstance(mins, float): continue      # blank template rows
         if isinstance(name_, str):
             a = agg[name_.strip()]; a['min'] += mins; a['n'] += int(n) if isinstance(n, float) else 1; a['sit'] += 1
             a['dates'].append(serial(d)); a['rewatch'] |= r.get('Rewatch') == 'Y'; a['theater'] |= r.get('In Theaters') == 'Y'
-        entries.append((serial(d), kind, mins, (r.get('Primary Genre') or 'Unknown').strip(),
+        entries.append((serial(d), kind, mins, (genre if isinstance(genre, str) else 'Unknown').strip(),
                         (r.get('Platform') or 'Not logged').strip(), int(n) if isinstance(n, float) else 1))
 if not entries: sys.exit('no dated rows found')
 start = dt.date(min(e[0] for e in entries).year, 1, 1); end = max(e[0] for e in entries); n = (end - start).days + 1
@@ -91,12 +117,7 @@ print(f"watch  {start} → {end}  minutes={round(sum(tot)):,} movies={sum(mov)} 
 
 # ---------------------------------------------------------------- the titles themselves (poster wall)
 def num(x): return x if isinstance(x, float) else None
-# Posters / IMDb ids / ratings found by scripts/fill_posters.py (OMDb) fill any empty cells; the workbook wins when it has one.
-_cp = os.path.join(os.environ.get('JSBV_DATA') or os.path.expanduser('~/Documents/00-Database/jsbv data'), 'omdb-cache.json')
-OMDB = {}
-if os.path.exists(_cp):
-    for c in json.load(open(_cp, encoding='utf-8')).values():
-        if c.get('status') == 'ok': OMDB[c['title']] = c
+if filled: print(f"watch  {filled} log rows had blank minutes (title not on the Titles sheet yet); filled from the OMDb runtime")
 titles = []
 for r in S['Titles']:
     t = r.get('Title')
@@ -118,6 +139,23 @@ for r in S['Titles']:
         if 'poster' not in row and o.get('poster', '').startswith('https://'): row['poster'] = o['poster']
         if 'id' not in row and re.fullmatch(r'tt\d+', o.get('imdb') or ''): row['id'] = o['imdb']
         if 'imdb' not in row and o.get('rating'): row['imdb'] = o['rating']
+    if a['rewatch']: row['rewatch'] = True
+    if a['theater']: row['theater'] = True
+    titles.append(row)
+# Logged titles with no Titles row yet: a tile from the OMDb record (until the row is added to the workbook).
+for t, a in agg.items():
+    o = OMDB.get(t)
+    if t in ON_SHEET or not o or not a['dates']: continue
+    row = {'t': t, 'type': 'tv' if o.get('type') == 'series' else 'movie',
+           'min': round(a['min'], 1), 'n': a['n'], 'sit': a['sit'], 'first': min(a['dates']).isoformat(), 'last': max(a['dates']).isoformat()}
+    y = re.match(r'(\d{4})', o.get('omdb_year') or '')
+    if y: row['year'] = int(y.group(1))
+    if o.get('runtime'): row['rt'] = o['runtime']
+    if o.get('genre'): row['genre'] = o['genre']
+    if o.get('director'): row['dir'] = o['director']
+    if o.get('rating'): row['imdb'] = o['rating']
+    if re.fullmatch(r'tt\d+', o.get('imdb') or ''): row['id'] = o['imdb']
+    if (o.get('poster') or '').startswith('https://'): row['poster'] = o['poster']
     if a['rewatch']: row['rewatch'] = True
     if a['theater']: row['theater'] = True
     titles.append(row)

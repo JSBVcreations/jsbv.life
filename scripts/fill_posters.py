@@ -6,7 +6,8 @@
 
 What it does
   1. Reads the Titles, Movie Log and TV Log sheets (Title / Show, Type, Year, IMDb ID, Poster URL only).
-  2. For each title you've logged that has no poster link yet, asks OMDb. An IMDb ID typed in the Titles sheet
+  2. For each title you've logged that has no poster link yet (including titles logged in Movie Log / TV Log that have
+     no Titles row yet, whose minutes are blank in the workbook), asks OMDb. An IMDb ID typed in the Titles sheet
      wins; otherwise it only accepts a result whose title matches yours (year may be off by one), so it can't
      quietly attach the wrong film.
   3. Saves results in "jsbv data/omdb-cache.json" (outside the repo). build_watch_log.py fills any empty Poster URL /
@@ -110,7 +111,10 @@ def pack(d, how):
     poster, rating = d.get('Poster', ''), d.get('imdbRating', '')
     return {'imdb': d.get('imdbID', ''), 'poster': poster if poster.startswith('https://') else '',
             'rating': float(rating) if re.fullmatch(r'\d+(\.\d+)?', rating or '') else None,
-            'omdb_title': d.get('Title', ''), 'omdb_year': d.get('Year', ''), 'how': how}
+            'omdb_title': d.get('Title', ''), 'omdb_year': d.get('Year', ''), 'how': how,
+            'runtime': int(m.group(1)) if (m := re.match(r'\s*(\d+)\s*min', d.get('Runtime') or '')) else None,
+            'genre': [g.strip() for g in (d.get('Genre') or '').split(',') if g.strip() and g.strip() != 'N/A'],
+            'type': d.get('Type', ''), 'director': d.get('Director', '') if d.get('Director') not in (None, 'N/A') else ''}
 
 
 # ---------------------------------------------------------------- main
@@ -136,6 +140,17 @@ def main():
         c = cache.get(key)
         if c and (c['status'] == 'ok' or (TODAY - dt.date.fromisoformat(c['checked'])).days < RETRY_DAYS): continue
         todo.append((key, t, query, year, typ, imdb_id))
+    # Titles logged in Movie Log / TV Log that have no row on the Titles sheet yet: their runtime (and so their minutes)
+    # is blank in the workbook, so look them up too. build_watch_log.py fills the minutes, genre and poster from the cache.
+    on_sheet = {str(r.get('Title')).strip() for r in S['Titles'] if isinstance(r.get('Title'), str)}
+    for sheet, col, typ in (('Movie Log', 'Title', 'movie'), ('TV Log', 'Show', 'series')):
+        for t in sorted({str(r.get(col)).strip() for r in S[sheet] if isinstance(r.get(col), str)} - on_sheet - done):
+            key = f'{t}||'
+            c = cache.get(key)
+            if c and (c['status'] == 'ok' or (TODAY - dt.date.fromisoformat(c['checked'])).days < RETRY_DAYS): continue
+            if any(x[0] == key for x in todo): continue
+            todo.append((key, t, t, None, typ, ''))
+            on_sheet.add(t)
     print(f'posters  {len(watched)} watched titles; {len(todo)} to look up')
     if todo:
         k = get_key()
@@ -143,6 +158,10 @@ def main():
             print('posters  no OMDb key (set OMDB_API_KEY or put it in jsbv data/omdb-key.txt); skipped'); return
         for key, t, query, year, typ, imdb_id in todo:
             status, rec = lookup(k, query, year, typ, imdb_id)
+            if status == 'ok' and typ == 'series' and not (rec.get('runtime') or 0) >= 5 and rec.get('imdb'):
+                ep = omdb(k, i=rec['imdb'], Season=1, Episode=1)       # show has no runtime (or a bogus one): use episode 1's
+                m = re.match(r'\s*(\d+)\s*min', ep.get('Runtime') or '')
+                rec['runtime'] = int(m.group(1)) if m else None
             if status == 'error':
                 print(f'posters  OMDb stopped: {rec["error"][:80]} (check jsbv data/omdb-key.txt, or try again tomorrow)'); break
             cache[key] = dict(rec, title=t, status=status, checked=TODAY.isoformat())

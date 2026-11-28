@@ -76,6 +76,7 @@
    ],
    "stale_days": 30,
    "run": {
+    "reads": ["meta-log/data/watch-titles.json"],
     "order": 25,
     "label": "Scorecard",
     "find": [

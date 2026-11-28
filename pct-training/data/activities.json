@@ -1,7 +1,7 @@
 {
   "how": "Training hikes from Strava, one row per activity: date, name (the Strava title), miles, moving_min, gain_ft, pack_lb (null when not noted). Titles only; Strava descriptions, GPS tracks and locations are never copied here. Append new rows and rerun scripts/build_pct_training.py.",
   "source": "Strava",
-  "through": "2026-11-19",
+  "through": "2026-11-27",
   "activities": [
     {"date": "2026-10-29", "name": "Surveying Stroll", "miles": 1.45, "moving_min": 28.9, "gain_ft": 169, "pack_lb": null},
     {"date": "2026-11-02", "name": "Tryangle", "miles": 3.02, "moving_min": 55.7, "gain_ft": 292, "pack_lb": null},
@@ -20,6 +20,11 @@
     {"date": "2026-11-17", "name": "Lunch Hike", "miles": 3.71, "moving_min": 66.6, "gain_ft": 318, "pack_lb": null},
     {"date": "2026-11-18", "name": "Morning Hike", "miles": 3.71, "moving_min": 64.1, "gain_ft": 318, "pack_lb": 0},
     {"date": "2026-11-18", "name": "13lb summit", "miles": 1.5, "moving_min": 39.1, "gain_ft": 600, "pack_lb": 13},
-    {"date": "2026-11-19", "name": "13lb ruck", "miles": 3.71, "moving_min": 66.1, "gain_ft": 318, "pack_lb": 13}
+    {"date": "2026-11-19", "name": "13lb ruck", "miles": 3.71, "moving_min": 66.1, "gain_ft": 318, "pack_lb": 13},
+    {"date": "2026-11-23", "name": "Afternoon Hike", "miles": 1.82, "moving_min": 35.8, "gain_ft": 173, "pack_lb": null},
+    {"date": "2026-11-25", "name": "starting again : no weight", "miles": 3.7, "moving_min": 66.9, "gain_ft": 318, "pack_lb": 0},
+    {"date": "2026-11-26", "name": "Afternoon Hike", "miles": 2.05, "moving_min": 35.7, "gain_ft": 205, "pack_lb": null},
+    {"date": "2026-11-27", "name": "Afternoon Hike", "miles": 3.74, "moving_min": 69.0, "gain_ft": 318, "pack_lb": null},
+    {"date": "2026-11-27", "name": "Afternoon Hike - 11lb ruck", "miles": 3.65, "moving_min": 66.5, "gain_ft": 318, "pack_lb": 11}
   ]
 }
